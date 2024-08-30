@@ -7,3 +7,4 @@ export const META_DESC =
 export const PHONE = "+1 (702) 613-8800";
 export const PHONE_HREF = "tel:+17026138800";
 export const EMAIL = "contact@hostlyapp.com";
+export const WEBSITE = "https://www.hostlyapp.com/";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { TITLE, DESC, META_DESC } from "./constants";
+import { TITLE, DESC, META_DESC, WEBSITE } from "./constants";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: TITLE,
     description: META_DESC,
-    url: "https://eventsapp-rose.vercel.app/",
+    url: WEBSITE,
     type: "website",
     images: [
       {
@@ -31,6 +31,7 @@ export const metadata: Metadata = {
       },
     ],
   },
+  metadataBase: new URL(WEBSITE),
 };
 
 export default function RootLayout({

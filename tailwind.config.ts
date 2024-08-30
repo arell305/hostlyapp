@@ -17,6 +17,7 @@ const config: Config = {
         customPrimaryBlue: "#6B9AE1",
         customSecondaryBlue: "#A0BAE1",
         customDarkBlue: "#324E78",
+        customDarkerBlue: "#A3C7F2",
       },
     },
   },
