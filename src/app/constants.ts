@@ -1,4 +1,4 @@
-export const TITLE = "HostlyApp";
+export const TITLE = "Hostly";
 export const DESC =
   "Streamline your event planning with our all-in-one management app for guest lists, ticket sales, and event promotion.";
 export const UPDATED_DATE = "August 2, 2024";

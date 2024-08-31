@@ -8,7 +8,7 @@ export default function Login() {
     <div className="bg-gradient-to-b from-customDarkBlue to-customPrimaryBlue h-[calc(100dvh)] flex justify-center items-center overflow-hidden">
       <div className="bg-white flex flex-col h-[70vh] md:h-[85%] w-[90%] md:w-[70%] max-w-[800px] max-h-[600px] rounded-xl shadow-md">
         <h1 className="leading-tight text-5xl md:text-6xl font-semibold mt-6 md:mt-14 text-center">
-          Login to HostlyApp
+          Login to Hostly
         </h1>
         <div className="flex flex-col mt-6 md:mt-12 justify-center items-center space-y-4">
           <LoginButton
