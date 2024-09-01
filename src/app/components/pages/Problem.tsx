@@ -5,7 +5,7 @@ const items = [
     description: (
       <>
         <p className="mb-2">
-          It&quot;'s&quot; tough to stand out in a crowded event market.
+          It&quot;s&quot; tough to stand out in a crowded event market.
           Potential attendees can feel overwhelmed and overlook your event.
         </p>
       </>

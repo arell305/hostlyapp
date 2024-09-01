@@ -11,7 +11,7 @@ const Navbar: React.FC = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     const currentScrollPos = window.scrollY;
 
     if (currentScrollPos > prevScrollPos && currentScrollPos > 50) {
@@ -21,13 +21,13 @@ const Navbar: React.FC = () => {
     }
 
     setPrevScrollPos(currentScrollPos);
-  };
+  }, [prevScrollPos]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [prevScrollPos, handleScroll]);
+  }, [handleScroll]);
 
   return (
     <nav
