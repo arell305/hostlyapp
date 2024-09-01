@@ -32,6 +32,10 @@ Detailed information about the tech stack, database, and API design can be found
 
 The application is deployed at [hostlyapp.com](hostlyapp.com).
 
+## User Stories
+
+User stories for this project can be viewed [here](https://docs.google.com/document/d/1WwRWuncTOXTl1gNuvq8ovf7ouA9e1GGhARNtAh3aflM/edit?usp=sharing)
+
 ## Design
 
 The Figma design for this project can be viewed [here](https://www.figma.com/design/tN96q1FVDM90gmTqEEhU2r/High-Wireframe?node-id=0-1&node-type=CANVAS&t=XuNBbUMDHQw3Rng1-0).
