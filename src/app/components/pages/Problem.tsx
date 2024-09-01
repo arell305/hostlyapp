@@ -5,8 +5,8 @@ const items = [
     description: (
       <>
         <p className="mb-2">
-          It's tough to stand out in a crowded event market. Potential attendees
-          can feel overwhelmed and overlook your event.
+          It&quot;'s&quot; tough to stand out in a crowded event market.
+          Potential attendees can feel overwhelmed and overlook your event.
         </p>
       </>
     ),
@@ -76,9 +76,3 @@ const Problem = () => {
 };
 
 export default Problem;
-
-/*
-Our app streamlines these
-        tasks, making it easy to manage and track guest interactions, ensuring
-        smooth event execution and efficient promoter payments.
-*/

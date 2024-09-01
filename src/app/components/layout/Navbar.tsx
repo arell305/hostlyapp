@@ -15,9 +15,9 @@ const Navbar: React.FC = () => {
     const currentScrollPos = window.scrollY;
 
     if (currentScrollPos > prevScrollPos && currentScrollPos > 50) {
-      setVisible(false); // Hide on scroll down
+      setVisible(false);
     } else {
-      setVisible(true); // Show on scroll up
+      setVisible(true);
     }
 
     setPrevScrollPos(currentScrollPos);
@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
     window.addEventListener("scroll", handleScroll);
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [prevScrollPos]);
+  }, [prevScrollPos, handleScroll]);
 
   return (
     <nav
