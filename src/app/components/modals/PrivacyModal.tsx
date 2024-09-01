@@ -49,18 +49,18 @@ const PrivacyModal: React.FC<ModalProps> = ({ handleClose }) => {
               Effective Date: {UPDATED_DATE}
             </p>
             <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              {TITLE} ("us", "we", or "our") values your privacy. This policy
-              outlines how we collect, use, and protect your personal
-              information when you use our website. We may collect personal data
-              such as your email address, name, phone number, and address for
-              purposes including providing and improving our services,
-              communicating with you, and complying with legal obligations. We
-              do not share your information except as necessary to provide our
-              services or as required by law. By using our website, you consent
-              to the terms of this policy. We take measures to protect your
-              data, but no method of transmission over the Internet is
-              completely secure. Changes to this policy will be posted here;
-              please review it periodically.
+              {TITLE} (&quot;us&quot;, &quot;we&quot;, or &quot;our&quot;)
+              values your privacy. This policy outlines how we collect, use, and
+              protect your personal information when you use our website. We may
+              collect personal data such as your email address, name, phone
+              number, and address for purposes including providing and improving
+              our services, communicating with you, and complying with legal
+              obligations. We do not share your information except as necessary
+              to provide our services or as required by law. By using our
+              website, you consent to the terms of this policy. We take measures
+              to protect your data, but no method of transmission over the
+              Internet is completely secure. Changes to this policy will be
+              posted here; please review it periodically.
             </p>
           </div>
           {/* Modal footer */}

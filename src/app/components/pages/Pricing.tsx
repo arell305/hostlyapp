@@ -7,8 +7,8 @@ const Pricing = () => {
         </h2>
         <div className="flex items-center justify-center">
           <p className="text-lg md:text-xl w-[900px]">
-            We're finalizing our pricing plans. In the meantime, book a demo to
-            see how our solution fits your needs!
+            We&quot;re&quot; finalizing our pricing plans. In the meantime, book
+            a demo to see how our solution fits your needs!
           </p>
         </div>
       </div>

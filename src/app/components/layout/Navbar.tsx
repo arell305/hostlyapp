@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { TITLE } from "@/app/constants";
 
 const Navbar: React.FC = () => {
@@ -11,23 +11,23 @@ const Navbar: React.FC = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     const currentScrollPos = window.scrollY;
 
     if (currentScrollPos > prevScrollPos && currentScrollPos > 50) {
-      setVisible(false); // Hide on scroll down
+      setVisible(false);
     } else {
-      setVisible(true); // Show on scroll up
+      setVisible(true);
     }
 
     setPrevScrollPos(currentScrollPos);
-  };
+  }, [prevScrollPos]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [prevScrollPos]);
+  }, [handleScroll]);
 
   return (
     <nav
