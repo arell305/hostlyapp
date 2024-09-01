@@ -22,7 +22,7 @@ Visit http://localhost:3000 in your browser to view the application.
 
 ### Testing
 
-`npm run dev`
+`npm test`
 
 ## Tech Stack
 
@@ -30,7 +30,7 @@ Detailed information about the tech stack, database, and API design can be found
 
 ## Deployment
 
-The application is deployed at hostlyapp.com.
+The application is deployed at [hostlyapp.com](hostlyapp.com).
 
 ## Design
 
