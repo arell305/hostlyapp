@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import Login from "../../../src/app/login/page";
+import Login from "../../../app/login/page";
 import "@testing-library/jest-dom";
 
 describe("Login Component", () => {

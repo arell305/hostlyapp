@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { TITLE, DESC, META_DESC, WEBSITE } from "./constants";
+import { ConvexClientProvider } from "./ConvexClientProvider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -41,7 +42,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={` ${poppins.variable}`}>{children}</body>
+      <body className={` ${poppins.variable}`}>
+        <ConvexClientProvider>{children}</ConvexClientProvider>
+      </body>
     </html>
   );
 }

@@ -1,10 +1,10 @@
-import { TITLE, UPDATED_DATE } from "@/app/constants";
+import { TITLE, UPDATED_DATE } from "../../constants";
 
 interface ModalProps {
   handleClose: () => void;
 }
 
-const TermsModal: React.FC<ModalProps> = ({ handleClose }) => {
+const PrivacyModal: React.FC<ModalProps> = ({ handleClose }) => {
   return (
     <div
       id="default-modal"
@@ -13,11 +13,12 @@ const TermsModal: React.FC<ModalProps> = ({ handleClose }) => {
       className="fixed inset-0 z-50 flex justify-center items-center w-full h-full overflow-y-auto overflow-x-hidden bg-black bg-opacity-50"
     >
       <div className="relative p-4 w-full max-w-2xl max-h-full">
+        {/* Modal content */}
         <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
           {/* Modal header */}
           <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Terms of Service
+              Privacy Policy
             </h3>
             <button
               type="button"
@@ -48,27 +49,26 @@ const TermsModal: React.FC<ModalProps> = ({ handleClose }) => {
               Effective Date: {UPDATED_DATE}
             </p>
             <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              Welcome to {TITLE}! By accessing and using this website, you agree
-              to comply with these Terms of Service. This website and its
-              content are provided for informational purposes only. We strive to
-              ensure accuracy but make no warranties or representations
-              regarding the completeness, accuracy, or reliability of any
-              information. Use the information at your own risk. We reserve the
-              right to modify these terms at any time without notice. Your
-              continued use of the website constitutes acceptance of any
-              changes. We may link to third-party websites; these links are
-              provided for convenience and do not imply endorsement. Your use of
-              linked websites is subject to their terms and policies. We respect
-              your privacy; please review our Privacy Policy for details on how
-              we handle your personal information
+              {TITLE} (&quot;us&quot;, &quot;we&quot;, or &quot;our&quot;)
+              values your privacy. This policy outlines how we collect, use, and
+              protect your personal information when you use our website. We may
+              collect personal data such as your email address, name, phone
+              number, and address for purposes including providing and improving
+              our services, communicating with you, and complying with legal
+              obligations. We do not share your information except as necessary
+              to provide our services or as required by law. By using our
+              website, you consent to the terms of this policy. We take measures
+              to protect your data, but no method of transmission over the
+              Internet is completely secure. Changes to this policy will be
+              posted here; please review it periodically.
             </p>
           </div>
           {/* Modal footer */}
-          <div className="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+          <div className="flex items-center justify-center p-4 md:p-5 border-t border-gray-200 rounded-b ">
             <button
               onClick={handleClose}
               type="button"
-              className="text-white bg-custom5 hover:bg-custom3 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              className="text-white bg-customDarkBlue hover:bg-customPrimaryBlue focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
             >
               Dismiss
             </button>
@@ -79,4 +79,4 @@ const TermsModal: React.FC<ModalProps> = ({ handleClose }) => {
   );
 };
 
-export default TermsModal;
+export default PrivacyModal;
