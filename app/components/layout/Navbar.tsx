@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { TITLE } from "@/app/constants";
+import { TITLE } from "../../constants";
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
