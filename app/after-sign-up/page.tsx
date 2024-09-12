@@ -25,7 +25,7 @@ function AfterSignUp() {
       router.push("/");
     }
     init();
-  }, []);
+  }, [user, router]);
 
   return (
     <div className="mt-20 flex items-center justify-center">
