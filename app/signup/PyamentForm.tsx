@@ -49,55 +49,55 @@ const CheckoutForm = () => {
     },
   ];
 
-  useEffect(() => {
-    if (stripe) {
-      const pr = stripe.paymentRequest({
-        country: "US",
-        currency: "usd",
-        total: {
-          label: "Total",
-          amount: 1000, // Replace with actual total amount (in cents)
-        },
-        requestPayerName: true,
-        requestPayerEmail: true,
-      });
+  //   useEffect(() => {
+  //     if (stripe) {
+  //       const pr = stripe.paymentRequest({
+  //         country: "US",
+  //         currency: "usd",
+  //         total: {
+  //           label: "Total",
+  //           amount: 1000, // Replace with actual total amount (in cents)
+  //         },
+  //         requestPayerName: true,
+  //         requestPayerEmail: true,
+  //       });
 
-      pr.canMakePayment().then((result) => {
-        if (result) {
-          setPaymentRequest(pr);
-          setCanMakePayment(true);
-        }
-      });
+  //       pr.canMakePayment().then((result) => {
+  //         if (result) {
+  //           setPaymentRequest(pr);
+  //           setCanMakePayment(true);
+  //         }
+  //       });
 
-      pr.on("paymentmethod", async (ev) => {
-        setLoading(true);
-        // Send payment method and priceId to backend to handle subscription
-        const response = await fetch("/api/create-subscription", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: ev.payerEmail,
-            paymentMethodId: ev.paymentMethod.id,
-            priceId,
-          }),
-        });
+  //       pr.on("paymentmethod", async (ev) => {
+  //         setLoading(true);
+  //         // Send payment method and priceId to backend to handle subscription
+  //         const response = await fetch("/api/create-subscription", {
+  //           method: "POST",
+  //           headers: { "Content-Type": "application/json" },
+  //           body: JSON.stringify({
+  //             email: ev.payerEmail,
+  //             paymentMethodId: ev.paymentMethod.id,
+  //             priceId,
+  //           }),
+  //         });
 
-        const subscriptionResult = await response.json();
+  //         const subscriptionResult = await response.json();
 
-        if (subscriptionResult.error) {
-          ev.complete("fail");
-          setErrorMessage(
-            subscriptionResult.error.message || "Subscription failed."
-          );
-        } else {
-          ev.complete("success");
-          alert("Subscription successful! Check your email for confirmation.");
-        }
+  //         if (subscriptionResult.error) {
+  //           ev.complete("fail");
+  //           setErrorMessage(
+  //             subscriptionResult.error.message || "Subscription failed."
+  //           );
+  //         } else {
+  //           ev.complete("success");
+  //           alert("Subscription successful! Check your email for confirmation.");
+  //         }
 
-        setLoading(false);
-      });
-    }
-  }, [stripe]);
+  //         setLoading(false);
+  //       });
+  //     }
+  //   }, [stripe]);
 
   // Handle form submission for regular card payments
   const handleSubmit = async (event: React.FormEvent) => {
