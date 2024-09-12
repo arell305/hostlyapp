@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { TITLE } from "../../constants";
+import { SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs";
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,22 +41,28 @@ const Navbar: React.FC = () => {
           {TITLE}
         </a>
         <div className="flex md:order-2 space-x-3 md:space-x-3 rtl:space-x-reverse">
-          <a href="/login" className="my-auto">
-            <button
-              type="button"
-              className="bg-transparent border border-white hover:bg-white hover:text-black focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 md:py-1.5 text-center"
-            >
-              Login
-            </button>
-          </a>
-          <a href="#demo" className="my-auto">
-            <button
-              type="button"
-              className="bg-customPrimaryBlue hover:bg-customSecondaryBlue hover:text-black focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 md:py-1.5 text-center"
-            >
-              Demo
-            </button>
-          </a>
+          <SignedOut>
+            <a href="/signup" className="my-auto">
+              <button
+                type="button"
+                className="bg-transparent border border-white hover:bg-white hover:text-black focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 md:py-1.5 text-center"
+              >
+                Signup
+              </button>
+            </a>
+
+            <a href="#demo" className="my-auto">
+              <button
+                type="button"
+                className="bg-customPrimaryBlue hover:bg-customSecondaryBlue hover:text-black focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 md:py-1.5 text-center"
+              >
+                Demo
+              </button>
+            </a>
+          </SignedOut>
+          <SignedIn>
+            <SignOutButton />
+          </SignedIn>
           <button
             onClick={toggleNavbar}
             type="button"
