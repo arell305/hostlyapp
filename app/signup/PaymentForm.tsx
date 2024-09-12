@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { FaApple } from "react-icons/fa";
 
 // Load Stripe with your publishable key
 const stripePromise = loadStripe("pk_test_XXXXXXXXXXXXXXXXXXXXXXXX");
@@ -24,6 +25,10 @@ const CheckoutForm = () => {
   const [priceId, setPriceId] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
+    null
+  );
+  const [canMakePayment, setCanMakePayment] = useState(true);
 
   const pricingOptions = [
     {
@@ -49,57 +54,55 @@ const CheckoutForm = () => {
     },
   ];
 
-  //   useEffect(() => {
-  //     if (stripe) {
-  //       const pr = stripe.paymentRequest({
-  //         country: "US",
-  //         currency: "usd",
-  //         total: {
-  //           label: "Total",
-  //           amount: 1000, // Replace with actual total amount (in cents)
-  //         },
-  //         requestPayerName: true,
-  //         requestPayerEmail: true,
-  //       });
+  useEffect(() => {
+    if (stripe) {
+      const pr = stripe.paymentRequest({
+        country: "US",
+        currency: "usd",
+        total: {
+          label: "Total",
+          amount: 1000, // Replace with actual total amount (in cents)
+        },
+        requestPayerName: true,
+        requestPayerEmail: true,
+      });
 
-  //       pr.canMakePayment().then((result) => {
-  //         if (result) {
-  //           setPaymentRequest(pr);
-  //           setCanMakePayment(true);
-  //         }
-  //       });
+      pr.canMakePayment().then((result) => {
+        if (result) {
+          setPaymentRequest(pr);
+          setCanMakePayment(true);
+        }
+      });
 
-  //       pr.on("paymentmethod", async (ev) => {
-  //         setLoading(true);
-  //         // Send payment method and priceId to backend to handle subscription
-  //         const response = await fetch("/api/create-subscription", {
-  //           method: "POST",
-  //           headers: { "Content-Type": "application/json" },
-  //           body: JSON.stringify({
-  //             email: ev.payerEmail,
-  //             paymentMethodId: ev.paymentMethod.id,
-  //             priceId,
-  //           }),
-  //         });
+      pr.on("paymentmethod", async (ev) => {
+        setLoading(true);
+        const response = await fetch("/api/create-subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: ev.payerEmail,
+            paymentMethodId: ev.paymentMethod.id,
+            priceId,
+          }),
+        });
 
-  //         const subscriptionResult = await response.json();
+        const subscriptionResult = await response.json();
 
-  //         if (subscriptionResult.error) {
-  //           ev.complete("fail");
-  //           setErrorMessage(
-  //             subscriptionResult.error.message || "Subscription failed."
-  //           );
-  //         } else {
-  //           ev.complete("success");
-  //           alert("Subscription successful! Check your email for confirmation.");
-  //         }
+        if (subscriptionResult.error) {
+          ev.complete("fail");
+          setErrorMessage(
+            subscriptionResult.error.message || "Subscription failed."
+          );
+        } else {
+          ev.complete("success");
+          alert("Subscription successful! Check your email for confirmation.");
+        }
 
-  //         setLoading(false);
-  //       });
-  //     }
-  //   }, [stripe]);
+        setLoading(false);
+      });
+    }
+  }, [stripe, priceId]);
 
-  // Handle form submission for regular card payments
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -160,7 +163,7 @@ const CheckoutForm = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="Enter your email"
-          className="md:w-[400px]"
+          className="md:w-[400px] text-base"
         />
       </div>
 
@@ -180,7 +183,9 @@ const CheckoutForm = () => {
             >
               <div className="flex justify-between">
                 <h3 className="text-xl font-semibold">{option.name}</h3>
-                {option.isFree && <Badge>1st Month Free</Badge>}
+                {option.isFree && (
+                  <Badge className="bg-customDarkBlue">1st Month Free</Badge>
+                )}
               </div>
               <p className="text-gray-600">{option.price}</p>
               <p className="text-sm text-gray-500">{option.description}</p>
@@ -192,17 +197,45 @@ const CheckoutForm = () => {
         </p>
       </div>
 
+      {/* Payment Request Button (Apple Pay) */}
+      {canMakePayment && (
+        <div className="mb-4">
+          <Button
+            type="button"
+            onClick={() => {
+              paymentRequest?.show();
+            }}
+            className="bg-black text-white w-full md:w-[200px]"
+          >
+            <FaApple className="mr-2" size={20} />
+            Pay
+          </Button>
+        </div>
+      )}
+      <hr className="my-4" />
       {/* Credit card input */}
       <div className="mb-4">
         <Label>Card Details</Label>
-        <div className="p-2 border rounded md:w-[400px]">
-          <CardElement />
+        <div className="p-2 border rounded md:w-[400px] ">
+          <CardElement
+            options={{
+              style: {
+                base: {
+                  fontSize: "16px", // Setting the font size to 16px
+                },
+              },
+            }}
+          />
         </div>
       </div>
 
       {/* Submit button */}
       <div className="mb-4">
-        <Button type="submit" disabled={!stripe || loading}>
+        <Button
+          type="submit"
+          disabled={!stripe || loading}
+          className="w-full bg-customLightBlue font-semibold  hover:bg-customDarkerBlue  md:w-[200px] text-black"
+        >
           {loading ? "Processing..." : "Subscribe"}
         </Button>
       </div>
@@ -215,7 +248,7 @@ const CheckoutForm = () => {
 
 const PaymentForm = () => {
   return (
-    <div className="bg-white py-2 md:py-10 px-10 rounded-xl shadow-md sm:mx-4">
+    <div className="bg-white py-2 md:py-10 px-10 rounded-xl shadow-md sm:mx-4 my-6 sm:my-0 mx-6">
       <Elements stripe={stripePromise}>
         <CheckoutForm />
       </Elements>
