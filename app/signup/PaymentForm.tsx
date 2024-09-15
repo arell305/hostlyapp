@@ -13,16 +13,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { FaApple } from "react-icons/fa";
+import { pricingOptions } from "../../constants/pricingOptions";
+import { useSearchParams } from "next/navigation";
+import { useTimer } from "react-timer-hook";
+import { getPricingOptionByName } from "../../utils/helpers";
+import { api } from "../../convex/_generated/api";
+import { useAction } from "convex/react";
+import { useRouter } from "next/navigation";
+import { PricingOption } from "@/types";
 
-// Load Stripe with your publishable key
-const stripePromise = loadStripe("pk_test_XXXXXXXXXXXXXXXXXXXXXXXX");
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
+);
 
 const CheckoutForm = () => {
+  const searchParams = useSearchParams();
   const stripe = useStripe();
   const elements = useElements();
+  const router = useRouter();
 
+  const createStripeSubscription = useAction(
+    api.stripe.createStripeSubscription
+  );
   const [email, setEmail] = useState("");
-  const [priceId, setPriceId] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<PricingOption | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
@@ -30,78 +44,81 @@ const CheckoutForm = () => {
   );
   const [canMakePayment, setCanMakePayment] = useState(true);
 
-  const pricingOptions = [
-    {
-      id: "price_1XX_STANDARD",
-      name: "Basic",
-      price: "$20/month",
-      description: "Unlimited Tickets",
-      isFree: true,
-    },
-    {
-      id: "price_1XX_PRO",
-      name: "Plus",
-      price: "$30/month",
-      description: "Unlimited Tickets & 1 Guest List Event",
-      isFree: true,
-    },
-    {
-      id: "price_1XX_ENTERPRISE",
-      name: "Elite",
-      price: "$40/month",
-      description: "Unlimited Tickets & Guest List",
-      isFree: false,
-    },
-  ];
+  const expiryTimestamp = new Date();
+  expiryTimestamp.setSeconds(expiryTimestamp.getSeconds() + 600);
+
+  const { seconds, minutes, hours } = useTimer({
+    expiryTimestamp,
+  });
 
   useEffect(() => {
-    if (stripe) {
-      const pr = stripe.paymentRequest({
-        country: "US",
-        currency: "usd",
-        total: {
-          label: "Total",
-          amount: 1000, // Replace with actual total amount (in cents)
-        },
-        requestPayerName: true,
-        requestPayerEmail: true,
-      });
-
-      pr.canMakePayment().then((result) => {
-        if (result) {
-          setPaymentRequest(pr);
-          setCanMakePayment(true);
-        }
-      });
-
-      pr.on("paymentmethod", async (ev) => {
-        setLoading(true);
-        const response = await fetch("/api/create-subscription", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: ev.payerEmail,
-            paymentMethodId: ev.paymentMethod.id,
-            priceId,
-          }),
-        });
-
-        const subscriptionResult = await response.json();
-
-        if (subscriptionResult.error) {
-          ev.complete("fail");
-          setErrorMessage(
-            subscriptionResult.error.message || "Subscription failed."
-          );
-        } else {
-          ev.complete("success");
-          alert("Subscription successful! Check your email for confirmation.");
-        }
-
-        setLoading(false);
-      });
+    if (typeof window !== "undefined") {
+      // Ensure this runs only on the client side
+      const queryPlan = searchParams.get("plan");
+      const plan = getPricingOptionByName(queryPlan);
+      setSelectedPlan(plan);
     }
-  }, [stripe, priceId]);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!stripe || !selectedPlan) {
+      return;
+    }
+
+    // Convert price from string to number (cents)
+    const amount = parseFloat(selectedPlan.price) * 100; // Convert dollars to cents
+
+    if (isNaN(amount)) {
+      console.error("Invalid price amount.");
+      return;
+    }
+
+    const pr = stripe.paymentRequest({
+      country: "US",
+      currency: "usd",
+      total: {
+        label: "Total",
+        amount: Math.round(amount), // Ensure amount is an integer
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    pr.canMakePayment().then((result) => {
+      if (result) {
+        setPaymentRequest(pr as unknown as PaymentRequest);
+        setCanMakePayment(true);
+      }
+    });
+
+    pr.on("paymentmethod", async (ev) => {
+      setLoading(true);
+
+      const response = await fetch("/api/create-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: ev.payerEmail,
+          paymentMethodId: ev.paymentMethod.id,
+          priceId: selectedPlan.priceId,
+        }),
+      });
+
+      const subscriptionResult = await response.json();
+
+      if (subscriptionResult.error) {
+        ev.complete("fail");
+        setErrorMessage(
+          subscriptionResult.error.message || "Subscription failed."
+        );
+      } else {
+        ev.complete("success");
+        alert("Subscription successful! Check your email for confirmation.");
+      }
+
+      setLoading(false);
+    });
+  }, [stripe, selectedPlan]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -125,34 +142,49 @@ const CheckoutForm = () => {
       return;
     }
 
-    // Send payment method and plan ID to backend to handle subscription
-    const response = await fetch("/api/create-subscription", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      if (!selectedPlan) {
+        return;
+      }
+      const result = await createStripeSubscription({
         email,
         paymentMethodId: paymentMethod.id,
-        priceId,
-      }),
-    });
+        priceId: selectedPlan.priceId,
+      });
 
-    const subscriptionResult = await response.json();
-
-    if (subscriptionResult.error) {
-      setErrorMessage(
-        subscriptionResult.error.message || "Subscription failed."
-      );
-    } else {
-      alert("Subscription successful! Check your email for confirmation.");
+      if (result && result.subscriptionId) {
+        router.push("/after-sign-up");
+      } else {
+        setErrorMessage("Failed to create subscription. Please try again.");
+      }
+    } catch (error) {
+      setErrorMessage("Subscription failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
-
   return (
     <form onSubmit={handleSubmit}>
       <h1 className="text-3xl md:text-4xl font-semibold mb-4 mt-4">Checkout</h1>
+      <div className="mb-2">
+        <p>Free Trial ends:</p>
 
+        <ul className="flex ">
+          <li className="inline-block p-2 text-center list-none">
+            <span className="block text-3xl text-center bg-blue-50 w-[70px] py-1 rounded-md">
+              {minutes.toString().padStart(2, "0")}
+            </span>
+            Mins{" "}
+          </li>
+          <li className="text-3xl py-2">:</li>
+          <li className="inline-block p-2 text-center list-none">
+            <span className="block text-3xl text-center bg-blue-50 w-[70px] py-1 rounded-md">
+              {seconds.toString().padStart(2, "0")}
+            </span>
+            Secs
+          </li>
+        </ul>
+      </div>
       {/* Email input */}
       <div className="mb-4">
         <Label htmlFor="email">Email</Label>
@@ -163,7 +195,7 @@ const CheckoutForm = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="Enter your email"
-          className="md:w-[400px] text-base"
+          className="md:w-[400px] text-base "
         />
       </div>
 
@@ -175,19 +207,21 @@ const CheckoutForm = () => {
             <div
               key={option.id}
               className={`p-4 border rounded-lg cursor-pointer ${
-                priceId === option.id
+                selectedPlan?.id === option.id
                   ? "border-blue-500 bg-blue-50"
                   : "border-gray-300"
               }`}
-              onClick={() => setPriceId(option.id)}
+              onClick={() => setSelectedPlan(option)}
             >
               <div className="flex justify-between">
                 <h3 className="text-xl font-semibold">{option.name}</h3>
-                {option.isFree && (
-                  <Badge className="bg-customDarkBlue">1st Month Free</Badge>
+                {option.isFree ? (
+                  <Badge className="bg-customDarkBlue">Free Trial</Badge>
+                ) : (
+                  <Badge className="bg-customPrimaryBlue">Full Access</Badge>
                 )}
               </div>
-              <p className="text-gray-600">{option.price}</p>
+              <p className="text-gray-600">${option.price}/month</p>
               <p className="text-sm text-gray-500">{option.description}</p>
             </div>
           ))}
@@ -205,7 +239,7 @@ const CheckoutForm = () => {
             onClick={() => {
               paymentRequest?.show();
             }}
-            className="bg-black text-white w-full md:w-[200px]"
+            className="bg-black text-white w-full md:w-[200px] shadow-md"
           >
             <FaApple className="mr-2" size={20} />
             Pay
@@ -221,7 +255,7 @@ const CheckoutForm = () => {
             options={{
               style: {
                 base: {
-                  fontSize: "16px", // Setting the font size to 16px
+                  fontSize: "16px",
                 },
               },
             }}
@@ -234,7 +268,7 @@ const CheckoutForm = () => {
         <Button
           type="submit"
           disabled={!stripe || loading}
-          className="w-full bg-customLightBlue font-semibold  hover:bg-customDarkerBlue  md:w-[200px] text-black"
+          className="shadow-md w-full bg-customLightBlue font-semibold  hover:bg-customDarkerBlue  md:w-[200px] text-black"
         >
           {loading ? "Processing..." : "Subscribe"}
         </Button>
