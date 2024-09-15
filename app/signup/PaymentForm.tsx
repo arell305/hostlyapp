@@ -60,65 +60,65 @@ const CheckoutForm = () => {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    if (!stripe || !selectedPlan) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (!stripe || !selectedPlan) {
+  //     return;
+  //   }
 
-    // Convert price from string to number (cents)
-    const amount = parseFloat(selectedPlan.price) * 100; // Convert dollars to cents
+  //   // Convert price from string to number (cents)
+  //   const amount = parseFloat(selectedPlan.price) * 100; // Convert dollars to cents
 
-    if (isNaN(amount)) {
-      console.error("Invalid price amount.");
-      return;
-    }
+  //   if (isNaN(amount)) {
+  //     console.error("Invalid price amount.");
+  //     return;
+  //   }
 
-    const pr = stripe.paymentRequest({
-      country: "US",
-      currency: "usd",
-      total: {
-        label: "Total",
-        amount: Math.round(amount), // Ensure amount is an integer
-      },
-      requestPayerName: true,
-      requestPayerEmail: true,
-    });
+  //   const pr = stripe.paymentRequest({
+  //     country: "US",
+  //     currency: "usd",
+  //     total: {
+  //       label: "Total",
+  //       amount: Math.round(amount), // Ensure amount is an integer
+  //     },
+  //     requestPayerName: true,
+  //     requestPayerEmail: true,
+  //   });
 
-    pr.canMakePayment().then((result) => {
-      if (result) {
-        setPaymentRequest(pr as unknown as PaymentRequest);
-        setCanMakePayment(true);
-      }
-    });
+  //   pr.canMakePayment().then((result) => {
+  //     if (result) {
+  //       setPaymentRequest(pr as unknown as PaymentRequest);
+  //       setCanMakePayment(true);
+  //     }
+  //   });
 
-    pr.on("paymentmethod", async (ev) => {
-      setLoading(true);
+  //   pr.on("paymentmethod", async (ev) => {
+  //     setLoading(true);
 
-      const response = await fetch("/api/create-subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: ev.payerEmail,
-          paymentMethodId: ev.paymentMethod.id,
-          priceId: selectedPlan.priceId,
-        }),
-      });
+  //     const response = await fetch("/api/create-subscription", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         email: ev.payerEmail,
+  //         paymentMethodId: ev.paymentMethod.id,
+  //         priceId: selectedPlan.priceId,
+  //       }),
+  //     });
 
-      const subscriptionResult = await response.json();
+  //     const subscriptionResult = await response.json();
 
-      if (subscriptionResult.error) {
-        ev.complete("fail");
-        setErrorMessage(
-          subscriptionResult.error.message || "Subscription failed."
-        );
-      } else {
-        ev.complete("success");
-        alert("Subscription successful! Check your email for confirmation.");
-      }
+  //     if (subscriptionResult.error) {
+  //       ev.complete("fail");
+  //       setErrorMessage(
+  //         subscriptionResult.error.message || "Subscription failed."
+  //       );
+  //     } else {
+  //       ev.complete("success");
+  //       alert("Subscription successful! Check your email for confirmation.");
+  //     }
 
-      setLoading(false);
-    });
-  }, [stripe, selectedPlan]);
+  //     setLoading(false);
+  //   });
+  // }, [stripe, selectedPlan]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
