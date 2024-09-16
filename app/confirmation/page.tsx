@@ -8,9 +8,9 @@ function Confirmation() {
           Congratulations!
         </h1>
         <p className="text-center mt-4 md:mt-8 md:text-xl">
-          Your order was successful, and we're excited to have you onboard!
-          You'll receive an <span className="font-bold">email</span> shortly
-          with everything you need to get started with our app.
+          Your order was successful, and we&apos;re excited to have you onboard!
+          You&apos;ll receive an <span className="font-bold">email</span>{" "}
+          shortly with everything you need to get started with our app.
         </p>
         <p></p>
       </div>

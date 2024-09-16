@@ -163,7 +163,14 @@ const CheckoutForm = () => {
         setLoading(false);
       }
     });
-  }, [stripe, selectedPlan, promoState]);
+  }, [
+    stripe,
+    selectedPlan,
+    promoState,
+    email,
+    createStripeSubscription,
+    router,
+  ]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
