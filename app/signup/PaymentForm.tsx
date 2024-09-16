@@ -150,7 +150,7 @@ const CheckoutForm = () => {
 
         if (result.customerId && result.subscriptionId) {
           ev.complete("success");
-          router.push("/after-sign-up");
+          router.push("/confirmation");
         } else {
           ev.complete("fail");
           setErrorMessage("Failed to create subscription. Please try again.");
@@ -199,7 +199,7 @@ const CheckoutForm = () => {
       });
 
       if (result.customerId && result.subscriptionId) {
-        router.push("/after-sign-up");
+        router.push("/confirmation");
       } else {
         setErrorMessage("Failed to create subscription. Please try again.");
       }
