@@ -13,3 +13,5 @@ node_modules/
 
 # Other potentially sensitive files
 .env
+
+certificates
