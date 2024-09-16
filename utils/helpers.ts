@@ -27,3 +27,16 @@ export const truncatedToTwoDecimalPlaces = (num: number) => {
   }
   return integerPart;
 };
+
+export const calculateDiscountedAmount = (
+  price: string,
+  discount: number
+): number => {
+  const priceNumber = parseFloat(price);
+
+  let discountedPrice = priceNumber * (1 - discount / 100);
+  discountedPrice = Math.floor(discountedPrice * 100) / 100;
+  const amount = Math.round(discountedPrice * 100);
+
+  return amount;
+};
