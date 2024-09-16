@@ -19,4 +19,9 @@ export default defineSchema({
     email: v.string(),
     paymentMethodId: v.string(),
   }),
+  promoCodes: defineTable({
+    promoCode: v.string(),
+    promoId: v.string(),
+    discount: v.number(),
+  }),
 });

@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as customers from "../customers.js";
+import type * as promoCode from "../promoCode.js";
 import type * as stripe from "../stripe.js";
 
 /**
@@ -26,6 +27,7 @@ import type * as stripe from "../stripe.js";
  */
 declare const fullApi: ApiFromModules<{
   customers: typeof customers;
+  promoCode: typeof promoCode;
   stripe: typeof stripe;
 }>;
 export declare const api: FilterApi<

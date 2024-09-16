@@ -6,7 +6,7 @@ export const pricingOptions: PricingOption[] = [
     price: "39.99",
     description: "Unlimited Tickets",
     isFree: true,
-    priceId: "price_1PxfD5Rv8MX5Pza1TJKtcBHK",
+    priceId: "price_1PxexNRv8MX5Pza1YpAG3Znt",
   },
   {
     id: "prod_QpJo0GlbKBCugX",
@@ -22,6 +22,6 @@ export const pricingOptions: PricingOption[] = [
     price: "199.99",
     description: "Unlimited Tickets & Guest List",
     isFree: false,
-    priceId: "price_1PxexNRv8MX5Pza1YpAG3Znt",
+    priceId: "price_1PxfD5Rv8MX5Pza1TJKtcBHK",
   },
 ];

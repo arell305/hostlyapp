@@ -16,7 +16,10 @@ import { FaApple } from "react-icons/fa";
 import { pricingOptions } from "../../constants/pricingOptions";
 import { useSearchParams } from "next/navigation";
 import { useTimer } from "react-timer-hook";
-import { getPricingOptionByName } from "../../utils/helpers";
+import {
+  getPricingOptionByName,
+  truncatedToTwoDecimalPlaces,
+} from "../../utils/helpers";
 import { api } from "../../convex/_generated/api";
 import { useAction } from "convex/react";
 import { useRouter } from "next/navigation";
@@ -35,6 +38,8 @@ const CheckoutForm = () => {
   const createStripeSubscription = useAction(
     api.stripe.createStripeSubscription
   );
+
+  const validatePromoCode = useAction(api.stripe.validatePromoCode);
   const [email, setEmail] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<PricingOption | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,6 +48,38 @@ const CheckoutForm = () => {
     null
   );
   const [canMakePayment, setCanMakePayment] = useState(true);
+  const [promoCodeError, setPromoCodeError] = useState("");
+  const [promoState, setPromoState] = useState({
+    discount: 0,
+    promoCode: "",
+    promoCodeApplied: false,
+    promoCodeId: null as string | null,
+  });
+  const [isPromoLoading, setIsPromoLoading] = useState(false);
+
+  const handleApplyPromoCode = async () => {
+    setPromoCodeError("");
+    setIsPromoLoading(true);
+    try {
+      const result = await validatePromoCode({
+        promoCode: promoState.promoCode,
+      });
+      if (result.isValid) {
+        setPromoState((prevState) => ({
+          ...prevState,
+          discount: result.discount ?? 0,
+          promoCodeApplied: true,
+          promoCodeId: result.promoCodeId || null,
+        }));
+      } else {
+        setPromoCodeError("Invalid promo code.");
+      }
+    } catch (error) {
+      setPromoCodeError("Failed to apply promo code. Please try again.");
+    } finally {
+      setIsPromoLoading(false);
+    }
+  };
 
   const expiryTimestamp = new Date();
   expiryTimestamp.setSeconds(expiryTimestamp.getSeconds() + 600);
@@ -150,9 +187,10 @@ const CheckoutForm = () => {
         email,
         paymentMethodId: paymentMethod.id,
         priceId: selectedPlan.priceId,
+        promoCodeId: promoState.promoCodeId,
       });
-
-      if (result && result.subscriptionId) {
+      console.log("result", result);
+      if (result.customerId && result.subscriptionId) {
         router.push("/after-sign-up");
       } else {
         setErrorMessage("Failed to create subscription. Please try again.");
@@ -163,6 +201,7 @@ const CheckoutForm = () => {
       setLoading(false);
     }
   };
+
   return (
     <form onSubmit={handleSubmit}>
       <h1 className="text-3xl md:text-4xl font-semibold mb-4 mt-4">Checkout</h1>
@@ -203,32 +242,91 @@ const CheckoutForm = () => {
       <div className="mb-4">
         <Label>Select Your Plan</Label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-          {pricingOptions.map((option) => (
-            <div
-              key={option.id}
-              className={`p-4 border rounded-lg cursor-pointer ${
-                selectedPlan?.id === option.id
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-300"
-              }`}
-              onClick={() => setSelectedPlan(option)}
-            >
-              <div className="flex justify-between">
-                <h3 className="text-xl font-semibold">{option.name}</h3>
-                {option.isFree ? (
-                  <Badge className="bg-customDarkBlue">Free Trial</Badge>
+          {pricingOptions.map((option) => {
+            const discountedPrice = truncatedToTwoDecimalPlaces(
+              (option.price as unknown as number) *
+                (1 - promoState.discount / 100)
+            );
+            return (
+              <div
+                key={option.id}
+                className={`p-4 border rounded-lg cursor-pointer ${
+                  selectedPlan?.id === option.id
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300"
+                }`}
+                onClick={() => setSelectedPlan(option)}
+              >
+                <div className="flex justify-between">
+                  <h3 className="text-xl font-semibold">{option.name}</h3>
+                  {option.isFree ? (
+                    <Badge className="bg-customDarkBlue">Free Trial</Badge>
+                  ) : (
+                    <Badge className="bg-customPrimaryBlue">Full Access</Badge>
+                  )}
+                </div>
+                {promoState.promoCodeApplied ? (
+                  <>
+                    <p className="text-gray-600 line-through">
+                      ${option.price}/month
+                    </p>
+                    <p className="text-gray-600 font-semibold">
+                      ${discountedPrice as unknown as string}/month
+                    </p>
+                  </>
                 ) : (
-                  <Badge className="bg-customPrimaryBlue">Full Access</Badge>
+                  <p className="text-gray-600">${option.price}/month</p>
                 )}
+                <p className="text-sm text-gray-500">{option.description}</p>
               </div>
-              <p className="text-gray-600">${option.price}/month</p>
-              <p className="text-sm text-gray-500">{option.description}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <p className="mt-2 text-sm">
           Easily change or cancel your plan whenever you need.
         </p>
+      </div>
+
+      {/* promo input */}
+      <div className="mb-8">
+        <Label htmlFor="promoCode">Promo Code</Label>
+        <div className="flex items-center">
+          <Input
+            id="promoCode"
+            type="text"
+            value={promoState.promoCode}
+            onChange={(e) =>
+              setPromoState((prevState) => ({
+                ...prevState,
+                promoCode: e.target.value,
+              }))
+            }
+            placeholder="Enter promo code"
+            className="md:w-[200px] text-base"
+            disabled={isPromoLoading}
+          />
+
+          <Button
+            type="button"
+            onClick={handleApplyPromoCode}
+            className="ml-2 border border-customPrimaryBlue text-customPrimaryBlue bg-transparent hover:bg-customPrimaryBlue hover:text-white transition-all duration-300"
+          >
+            {isPromoLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm mr-2"></span>
+                Applying...
+              </>
+            ) : (
+              "Apply"
+            )}
+          </Button>
+        </div>
+        {promoCodeError && (
+          <p className="text-red-600 mt-2">{promoCodeError}</p>
+        )}
+        {promoState.promoCodeApplied && (
+          <p className="text-green-600 mt-2">Promo code applied!</p>
+        )}
       </div>
 
       {/* Payment Request Button (Apple Pay) */}
@@ -239,7 +337,7 @@ const CheckoutForm = () => {
             onClick={() => {
               paymentRequest?.show();
             }}
-            className="bg-black text-white w-full md:w-[200px] shadow-md"
+            className="bg-black text-white w-full md:w-[200px] h-[45px] shadow-md"
           >
             <FaApple className="mr-2" size={20} />
             Pay
@@ -268,7 +366,7 @@ const CheckoutForm = () => {
         <Button
           type="submit"
           disabled={!stripe || loading}
-          className="shadow-md w-full bg-customLightBlue font-semibold  hover:bg-customDarkerBlue  md:w-[200px] text-black"
+          className="shadow-md w-full bg-customLightBlue font-semibold  hover:bg-customDarkerBlue h-[45px] md:w-[200px] text-black"
         >
           {loading ? "Processing..." : "Subscribe"}
         </Button>

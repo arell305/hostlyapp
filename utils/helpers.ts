@@ -19,3 +19,11 @@ export function getPricingOptionByName(name: string | null): PricingOption {
     ) || pricingOptions[0]
   );
 }
+
+export const truncatedToTwoDecimalPlaces = (num: number) => {
+  const [integerPart, decimalPart] = num.toString().split(".");
+  if (decimalPart) {
+    return `${integerPart}.${decimalPart.substring(0, 2)}`;
+  }
+  return integerPart;
+};
