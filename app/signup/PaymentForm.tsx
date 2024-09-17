@@ -25,6 +25,7 @@ import { api } from "../../convex/_generated/api";
 import { useAction } from "convex/react";
 import { useRouter } from "next/navigation";
 import { PricingOption } from "@/types";
+import { ERROR_MESSAGES } from "../../constants/errorMessages";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
@@ -146,6 +147,7 @@ const CheckoutForm = () => {
           paymentMethodId: ev.paymentMethod.id,
           priceId: selectedPlan.priceId,
           promoCodeId: promoState.promoCodeId,
+          subscriptionTier: selectedPlan.tier,
         });
 
         if (result.customerId && result.subscriptionId) {
@@ -189,11 +191,11 @@ const CheckoutForm = () => {
     });
 
     if (error) {
-      setErrorMessage(error.message || "An error occurred. Please try again.");
+      setErrorMessage(error.message || ERROR_MESSAGES.GENERIC_PAYMENT_ERROR);
       setLoading(false);
       return;
     }
-
+    console.log(paymentMethod);
     try {
       if (!selectedPlan) {
         return;
@@ -203,15 +205,21 @@ const CheckoutForm = () => {
         paymentMethodId: paymentMethod.id,
         priceId: selectedPlan.priceId,
         promoCodeId: promoState.promoCodeId,
+        subscriptionTier: selectedPlan.tier,
       });
 
       if (result.customerId && result.subscriptionId) {
         router.push("/confirmation");
       } else {
-        setErrorMessage("Failed to create subscription. Please try again.");
+        setErrorMessage(ERROR_MESSAGES.SUBSCRIPTION_CREATION_FAILED);
       }
-    } catch (error) {
-      setErrorMessage("Subscription failed. Please try again.");
+    } catch (error: any) {
+      console.log("err", error.message);
+      if (error.message.includes(ERROR_MESSAGES.ACTIVE_SUBSCRIPTION_EXISTS)) {
+        setErrorMessage(ERROR_MESSAGES.ACTIVE_SUBSCRIPTION_EXISTS);
+      } else {
+        setErrorMessage(ERROR_MESSAGES.SUBSCRIPTION_CREATION_FAILED);
+      }
     } finally {
       setLoading(false);
     }
@@ -273,7 +281,7 @@ const CheckoutForm = () => {
                 onClick={() => setSelectedPlan(option)}
               >
                 <div className="flex justify-between">
-                  <h3 className="text-xl font-semibold">{option.name}</h3>
+                  <h3 className="text-xl font-semibold">{option.tier}</h3>
                   {option.isFree ? (
                     <Badge className="bg-customDarkBlue">Free Trial</Badge>
                   ) : (

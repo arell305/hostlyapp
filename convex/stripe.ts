@@ -7,6 +7,14 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { createClerkClient } from "@clerk/backend";
 import { findPromoIdByCode } from "./promoCode";
+import {
+  findCustomerByEmail,
+  insertCustomerAndSubscription,
+} from "./customers";
+import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
+import { Customer } from "@/types";
+import { ERROR_MESSAGES } from "../constants/errorMessages";
+import { getFutureISOString } from "../utils/helpers";
 
 // export const pay = action({
 //   args: { priceId: v.string(), email: v.string() },
@@ -96,64 +104,127 @@ export const createStripeSubscription = action({
     paymentMethodId: v.string(),
     priceId: v.string(),
     promoCodeId: v.optional(v.union(v.string(), v.null())),
+    subscriptionTier: v.union(
+      v.literal("Standard"),
+      v.literal("Plus"),
+      v.literal("Elite")
+    ),
   },
   handler: async (ctx, args) => {
     const stripe = new Stripe(process.env.STRIPE_KEY!, {
       apiVersion: "2024-06-20",
     });
-    try {
-      // Step 1: Create the Stripe customer
-      const customer = await stripe.customers.create({
-        email: args.email,
-      });
 
-      // Step 2: Attach the payment method to the customer
-      const paymentMethod = await stripe.paymentMethods.attach(
-        args.paymentMethodId,
+    try {
+      // Step 1: Check if the customer exists in your database
+      const existingCustomer: Customer | null = await ctx.runQuery(
+        internal.customers.findCustomerByEmail,
         {
-          customer: customer.id,
+          email: args.email,
         }
       );
 
-      // Step 3: Set the payment method as the default
-      await stripe.customers.update(customer.id, {
+      // Step 2: Check if the customer has an active or trialing subscription
+      if (
+        existingCustomer &&
+        (existingCustomer.subscriptionStatus === SubscriptionStatus.ACTIVE ||
+          existingCustomer.subscriptionStatus === SubscriptionStatus.TRIALING)
+      ) {
+        throw new Error(ERROR_MESSAGES.ACTIVE_SUBSCRIPTION_EXISTS);
+      }
+
+      // Step 3: Create a new Stripe customer if they don't exist, else reuse the existing Stripe customer
+      let stripeCustomerId: string;
+      if (existingCustomer) {
+        stripeCustomerId = existingCustomer.stripeCustomerId;
+      } else {
+        const customer = await stripe.customers.create({
+          email: args.email,
+        });
+        stripeCustomerId = customer.id;
+      }
+
+      // Step 4: Attach the payment method to the customer
+      const paymentMethod = await stripe.paymentMethods.attach(
+        args.paymentMethodId,
+        {
+          customer: stripeCustomerId,
+        }
+      );
+
+      // Step 5: Set the payment method as default
+      await stripe.customers.update(stripeCustomerId, {
         invoice_settings: {
           default_payment_method: paymentMethod.id,
         },
       });
 
-      // Step 4: Create the subscription
+      // Step 6: Determine if the customer should receive a trial period
+      let trialPeriodDays: number | undefined = undefined;
+      let trialEndDate: string | null = null;
+
+      // New customers are eligible for trials if they choose Standard or Plus
+      if (
+        !existingCustomer && // Trial only for new customers
+        (args.subscriptionTier === SubscriptionTier.STANDARD ||
+          args.subscriptionTier === SubscriptionTier.PLUS)
+      ) {
+        trialPeriodDays = 30;
+      }
+
+      // Step 7: Create the subscription (with or without trial)
       const subscriptionOptions: Stripe.SubscriptionCreateParams = {
-        customer: customer.id,
+        customer: stripeCustomerId,
         items: [{ price: args.priceId }],
         expand: ["latest_invoice.payment_intent"],
+        ...(trialPeriodDays && { trial_period_days: trialPeriodDays }), // Only add trial if applicable
       };
 
-      // If promoCodeId is passed, apply it directly
+      // Apply promo code if provided
       if (args.promoCodeId) {
         subscriptionOptions.promotion_code = args.promoCodeId;
       }
 
-      // Step 5: Create the subscription
-
       const subscription =
         await stripe.subscriptions.create(subscriptionOptions);
 
-      // Step 6: Call Clerk API to create an invitation
-      const clerkClient = createClerkClient({
-        secretKey: process.env.CLERK_SECRET_KEY,
+      if (subscription.trial_end) {
+        trialEndDate = new Date(subscription.trial_end * 1000).toISOString(); // Convert timestamp to ISO string
+      }
+
+      // Step 8: Insert or update customer and subscription info in your database
+      await ctx.runMutation(internal.customers.insertCustomerAndSubscription, {
+        stripeCustomerId,
+        stripeSubscriptionId: subscription.id,
+        email: args.email,
+        paymentMethodId: args.paymentMethodId,
+        subscriptionTier: args.subscriptionTier,
+        subscriptionStatus:
+          trialPeriodDays !== undefined
+            ? SubscriptionStatus.TRIALING
+            : SubscriptionStatus.ACTIVE,
+        trialEndDate,
       });
 
-      await clerkClient.invitations.createInvitation({
-        emailAddress: args.email,
-        redirectUrl: "https://www.hostlyapp.com/login",
-        ignoreExisting: true,
-      });
+      // Step 9: Optionally, create an invitation using Clerk
+      // const clerkClient = createClerkClient({
+      //   secretKey: process.env.CLERK_SECRET_KEY,
+      // });
 
-      return { customerId: customer.id, subscriptionId: subscription.id };
-    } catch (error) {
-      console.error("Error creating subscription:", error);
-      throw new Error("Failed to create subscription");
+      // await clerkClient.invitations.createInvitation({
+      //   emailAddress: args.email,
+      //   redirectUrl: "https://www.hostlyapp.com/login",
+      //   ignoreExisting: true,
+      // });
+
+      // Return subscription details
+      return { customerId: stripeCustomerId, subscriptionId: subscription.id };
+    } catch (error: any) {
+      if (error.message.includes(ERROR_MESSAGES.ACTIVE_SUBSCRIPTION_EXISTS)) {
+        // Throw specific error that the frontend can handle
+        throw new Error(ERROR_MESSAGES.ACTIVE_SUBSCRIPTION_EXISTS);
+      }
+      throw new Error(ERROR_MESSAGES.SUBSCRIPTION_CREATION_FAILED);
     }
   },
 });
