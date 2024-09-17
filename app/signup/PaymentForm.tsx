@@ -150,7 +150,7 @@ const CheckoutForm = () => {
 
         if (result.customerId && result.subscriptionId) {
           ev.complete("success");
-          router.push("/after-sign-up");
+          router.push("/confirmation");
         } else {
           ev.complete("fail");
           setErrorMessage("Failed to create subscription. Please try again.");
@@ -163,7 +163,14 @@ const CheckoutForm = () => {
         setLoading(false);
       }
     });
-  }, [stripe, selectedPlan, promoState]);
+  }, [
+    stripe,
+    selectedPlan,
+    promoState,
+    email,
+    createStripeSubscription,
+    router,
+  ]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -199,7 +206,7 @@ const CheckoutForm = () => {
       });
 
       if (result.customerId && result.subscriptionId) {
-        router.push("/after-sign-up");
+        router.push("/confirmation");
       } else {
         setErrorMessage("Failed to create subscription. Please try again.");
       }
