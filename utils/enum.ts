@@ -14,3 +14,9 @@ export enum SubscriptionStatus {
   PAST_DUE = "past_due",
   UNPAID = "unpaid",
 }
+
+export enum SubscriptionTier {
+  STANDARD = "Standard",
+  PLUS = "Plus",
+  ELITE = "Elite",
+}

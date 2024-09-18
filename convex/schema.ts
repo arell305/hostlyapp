@@ -18,6 +18,11 @@ export default defineSchema({
     stripeSubscriptionId: v.string(),
     email: v.string(),
     paymentMethodId: v.string(),
+    subscriptionStatus: v.string(),
+    subscriptionTier: v.string(),
+    trialEndDate: v.union(v.string(), v.null()),
+    cancelAt: v.union(v.string(), v.null()),
+    nextPayment: v.string(),
   }),
   promoCodes: defineTable({
     promoCode: v.string(),

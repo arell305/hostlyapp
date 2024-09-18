@@ -1,8 +1,10 @@
 import { PricingOption } from "../app/types";
+import { SubscriptionTier } from "../utils/enum";
+
 export const pricingOptions: PricingOption[] = [
   {
-    id: "rod_QpJqLkwhLCLZfN",
-    name: "Standard",
+    id: "prod_QpJqLkwhLCLZfN",
+    tier: SubscriptionTier.STANDARD,
     price: "39.99",
     description: "Unlimited Tickets",
     isFree: true,
@@ -10,7 +12,7 @@ export const pricingOptions: PricingOption[] = [
   },
   {
     id: "prod_QpJo0GlbKBCugX",
-    name: "Plus",
+    tier: SubscriptionTier.PLUS,
     price: "99.99",
     description: "Unlimited Tickets & 4 Guest List Events",
     isFree: true,
@@ -18,7 +20,7 @@ export const pricingOptions: PricingOption[] = [
   },
   {
     id: "prod_QpJaBAWi59Guz9",
-    name: "Elite",
+    tier: SubscriptionTier.ELITE,
     price: "199.99",
     description: "Unlimited Tickets & Guest List",
     isFree: false,

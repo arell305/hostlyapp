@@ -15,7 +15,7 @@ export function getPricingOptionByName(name: string | null): PricingOption {
   // return plus tier if no match
   return (
     pricingOptions.find(
-      (option) => option.name.toLowerCase() === lowercasedName
+      (option) => option.tier.toLowerCase() === lowercasedName
     ) || pricingOptions[0]
   );
 }
@@ -39,4 +39,10 @@ export const calculateDiscountedAmount = (
   const amount = Math.round(discountedPrice * 100);
 
   return amount;
+};
+
+export const getFutureISOString = (days: number): string => {
+  const today = new Date();
+  today.setDate(today.getDate() + days);
+  return today.toISOString();
 };
