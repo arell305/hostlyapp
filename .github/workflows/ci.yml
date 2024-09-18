@@ -3,10 +3,10 @@ name: Next.js CI
 on:
   push:
     branches:
-      - main
+      - main # Only trigger on push to main
   pull_request:
     branches:
-      - main
+      - main # Only trigger on PR to main
 
 jobs:
   build-and-test:
@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x] # Updated to use Node.js 18.x
+        node-version: [18.x]
 
     steps:
       - name: Checkout code
@@ -25,8 +25,16 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Cache node_modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run build
         run: npm run build

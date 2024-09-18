@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { SubscriptionStatus } from "../utils/enum";
-import { Customer } from "@/types";
+import { Customer } from "../app/types";
 import { getFutureISOString } from "../utils/helpers";
 
 export const insertCustomerAndSubscription = internalMutation({
