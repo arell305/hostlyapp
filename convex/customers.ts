@@ -72,3 +72,28 @@ export const findCustomerByEmail = internalQuery({
     }
   },
 });
+
+const allowedFields = {
+  stripeCustomerId: v.optional(v.string()),
+  subscriptionStatus: v.optional(v.string()), // Adjust if SubscriptionStatus has specific values
+  trialEndDate: v.optional(v.union(v.string(), v.null())),
+  stripeSubscriptionId: v.optional(v.string()),
+  email: v.optional(v.string()),
+  paymentMethodId: v.optional(v.string()),
+  subscriptionTier: v.optional(v.string()), // Adjust if SubscriptionTier has specific values
+};
+
+export const updateCustomer = internalMutation({
+  args: {
+    id: v.id("customers"),
+    updates: v.object(allowedFields), // Expect an object for updates
+  },
+  handler: async (ctx, args) => {
+    const { id, updates } = args;
+
+    // Check if there are any valid fields to update
+    if (Object.keys(updates).length > 0) {
+      await ctx.db.patch(id, updates);
+    }
+  },
+});
