@@ -1,7 +1,7 @@
-import { internalMutation } from "./_generated/server";
+import { internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 
-export const findPromoIdByCode = internalMutation({
+export const findPromoIdByCode = internalQuery({
   args: { promoCode: v.string() },
   handler: async ({ db }, { promoCode }) => {
     const promo = await db

@@ -1,3 +1,4 @@
+import { Id } from "../convex/_generated/dataModel";
 import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
 
 export interface PricingOption {
@@ -10,6 +11,7 @@ export interface PricingOption {
 }
 
 export interface Customer {
+  _id?: Id<"customers">;
   stripeCustomerId: string;
   subscriptionStatus: SubscriptionStatus;
   trialEndDate?: string | null;

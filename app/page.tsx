@@ -1,3 +1,4 @@
+import React from "react";
 import Footer from "./components/layout/Footer";
 import Navbar from "./components/layout/Navbar";
 import Benefits from "./components/pages/Benefits";

@@ -4,7 +4,7 @@ import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { PropsWithChildren } from "react";
-import { ThemeProvider } from "./theme-provider";
+import React from "react";
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL as string;
 const clerkPublishableKey = process.env
