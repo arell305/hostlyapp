@@ -1,10 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import Confirmation from "../../../../app/confirmation/page";
+import Confirmation from "@/confirmation/page";
 
-describe("Confirmation Component", () => {
-  it("renders without crashing", () => {
+describe("Confirmation", () => {
+  it("renders Payment Form", () => {
     render(<Confirmation />);
-    // Check for the presence of the "Congratulations!" text
     expect(screen.getByText("Congratulations!")).toBeInTheDocument();
   });
 });

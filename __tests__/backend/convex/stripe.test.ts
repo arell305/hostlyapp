@@ -1,12 +1,10 @@
 import { test, expect, vi, describe, beforeEach } from "vitest";
-import { api, internal } from "../../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import Stripe from "stripe";
 import { convexTest } from "convex-test";
 import schema from "../../../convex/schema";
 import { SubscriptionStatus, SubscriptionTier } from "../../../utils/enum";
 import { ERROR_MESSAGES } from "../../../constants/errorMessages";
-import { clerkClient } from "@clerk/nextjs/server";
-import { createClerkClient } from "@clerk/backend";
 
 const mockStripe = {
   promotionCodes: {
