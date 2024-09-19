@@ -28,7 +28,7 @@ export const insertCustomerAndSubscription = internalMutation({
   },
   handler: async (ctx, args) => {
     try {
-      await ctx.db.insert("customers", {
+      const customerId = await ctx.db.insert("customers", {
         stripeCustomerId: args.stripeCustomerId,
         stripeSubscriptionId: args.stripeSubscriptionId,
         email: args.email,
@@ -39,6 +39,7 @@ export const insertCustomerAndSubscription = internalMutation({
         cancelAt: null,
         nextPayment: args.trialEndDate || getFutureISOString(30),
       });
+      return customerId;
     } catch (error) {
       console.error("Error inserting customer into the database:", error);
       throw new Error("Failed to insert customer");
@@ -95,5 +96,6 @@ export const updateCustomer = internalMutation({
     if (Object.keys(updates).length > 0) {
       await ctx.db.patch(id, updates);
     }
+    return id;
   },
 });

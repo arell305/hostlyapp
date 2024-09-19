@@ -49,10 +49,9 @@ export const validatePromoCode = action({
       apiVersion: "2024-06-20",
     });
     try {
-      const promo = await ctx.runMutation(
-        internal.promoCode.findPromoIdByCode,
-        { promoCode: args.promoCode }
-      );
+      await ctx.runQuery(internal.promoCode.findPromoIdByCode, {
+        promoCode: args.promoCode,
+      });
       const promotionCodes = await stripe.promotionCodes.list({
         code: args.promoCode,
         active: true,
@@ -84,16 +83,11 @@ export const validatePromoCode = action({
           promoCodeId: promotionCode.id,
           discount: discount,
         };
-      } else {
-        return { isValid: false, promoCodeId: null, discount: promo.discount };
       }
+      return { isValid: false, promoCodeId: null, discount: null };
     } catch (error) {
-      if (error instanceof Stripe.errors.StripeError) {
-        return { isValid: false, promoCodeId: null, discount: null };
-      } else {
-        console.error("Error validating promo code:", error);
-        return { isValid: false, promoCodeId: null, discount: null };
-      }
+      console.error("Error validating promo code:", error);
+      return { isValid: false, promoCodeId: null, discount: null };
     }
   },
 });
@@ -193,29 +187,47 @@ export const createStripeSubscription = action({
       }
 
       // Step 8: Insert or update customer and subscription info in your database
-      await ctx.runMutation(internal.customers.insertCustomerAndSubscription, {
-        stripeCustomerId,
-        stripeSubscriptionId: subscription.id,
-        email: args.email,
-        paymentMethodId: args.paymentMethodId,
-        subscriptionTier: args.subscriptionTier,
-        subscriptionStatus:
-          trialPeriodDays !== undefined
-            ? SubscriptionStatus.TRIALING
-            : SubscriptionStatus.ACTIVE,
-        trialEndDate,
-      });
+      if (existingCustomer && existingCustomer._id) {
+        // Update customer subscription to ACTIVE if they had a previous account (no trial period)
+        await ctx.runMutation(internal.customers.updateCustomer, {
+          id: existingCustomer._id, // Update using the customer's ID
+          updates: {
+            subscriptionStatus: SubscriptionStatus.ACTIVE,
+            stripeSubscriptionId: subscription.id,
+            paymentMethodId: args.paymentMethodId,
+            subscriptionTier: args.subscriptionTier,
+            trialEndDate: null, // No trial for existing customers
+          },
+        });
+      } else {
+        // Insert new customer if they don't exist
+        await ctx.runMutation(
+          internal.customers.insertCustomerAndSubscription,
+          {
+            stripeCustomerId,
+            stripeSubscriptionId: subscription.id,
+            email: args.email,
+            paymentMethodId: args.paymentMethodId,
+            subscriptionTier: args.subscriptionTier,
+            subscriptionStatus:
+              trialPeriodDays !== undefined
+                ? SubscriptionStatus.TRIALING
+                : SubscriptionStatus.ACTIVE,
+            trialEndDate,
+          }
+        );
 
-      // Step 9: Optionally, create an invitation using Clerk
-      // const clerkClient = createClerkClient({
-      //   secretKey: process.env.CLERK_SECRET_KEY,
-      // });
+        // Step 9: Create an invitation using Clerk
+        const clerkClient = createClerkClient({
+          secretKey: process.env.CLERK_SECRET_KEY,
+        });
 
-      // await clerkClient.invitations.createInvitation({
-      //   emailAddress: args.email,
-      //   redirectUrl: "https://www.hostlyapp.com/login",
-      //   ignoreExisting: true,
-      // });
+        await clerkClient.invitations.createInvitation({
+          emailAddress: args.email,
+          redirectUrl: "https://www.hostlyapp.com/login",
+          ignoreExisting: true,
+        });
+      }
 
       // Return subscription details
       return { customerId: stripeCustomerId, subscriptionId: subscription.id };

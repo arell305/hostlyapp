@@ -1,5 +1,6 @@
 import SuspenseBoundary from "@/components/layout/SuspenseBoundary";
 import PaymentForm from "./PaymentForm";
+import React from "react";
 
 const SignUpPage = () => {
   return (
