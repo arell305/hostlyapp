@@ -224,7 +224,6 @@ export const createStripeSubscription = action({
 
         await clerkClient.invitations.createInvitation({
           emailAddress: args.email,
-          redirectUrl: "https://www.hostlyapp.com/login",
           ignoreExisting: true,
         });
       }
