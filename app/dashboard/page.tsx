@@ -1,7 +1,11 @@
-import React from "react";
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
-const Dashboard = () => {
-  return <div>Dashboard</div>;
-};
-
-export default Dashboard;
+export default function Dashboard() {
+  return (
+    <div>
+      <h1>Welcome to the Dashboard</h1>
+    </div>
+  );
+}
