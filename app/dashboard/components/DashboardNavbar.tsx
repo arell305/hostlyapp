@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useOrganization } from "@clerk/nextjs";
 import Link from "next/link";
@@ -7,25 +7,42 @@ import Link from "next/link";
 interface DashboardNavbarProps {
   isOpen: boolean;
   toggleNavbar: () => void;
-  closeNavbar: () => void; // Function to close the sidebar directly
+  closeNavbar: () => void; // Ensure this is present
+  setIsOpen: (open: boolean) => void;
 }
 
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   isOpen,
   toggleNavbar,
   closeNavbar,
+  setIsOpen,
 }) => {
   const { organization } = useOrganization();
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [setIsOpen]);
+
   return (
     <nav className="bg-customDarkBlue w-full z-20 top-0 start-0 border-b border-gray-200 text-white sticky">
-      <div className="max-w-screen-xl flex flex-wrap items-center mx-auto p-4 md:justify-between">
-        {/* Menu button on the left */}
+      <div className="max-w-screen-xl flex flex-wrap items-center mx-auto p-2.5 md:justify-between">
         <div className="flex items-center">
+          {/* Menu icon button always visible */}
           <button
             onClick={toggleNavbar}
             type="button"
-            className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg md:hidden hover:border hover:border-white focus:outline-none focus:ring-1 focus:ring-white"
+            className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg hover:border hover:border-white focus:outline-none focus:ring-1 focus:ring-white"
           >
             <span className="sr-only">Open main menu</span>
             {isOpen ? (
@@ -61,24 +78,21 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             )}
           </button>
 
-          {/* Title next to the menu button on mobile */}
           <a href="#" className="text-2xl font-medium ml-3">
             {organization?.name ?? "Hostly"}
           </a>
         </div>
 
-        {/* User button on the right side */}
         <div className="flex md:order-2 space-x-3 ml-auto md:ml-0">
           <UserButton />
         </div>
 
-        {/* Sidebar for mobile nav links */}
+        {/* Sidebar */}
         <div
-          className={`fixed top-0 left-0 h-screen w-[80%] bg-customDarkBlue z-20 transform transition-transform duration-300 ${
+          className={`fixed top-0 left-0 h-screen w-[370px] bg-customDarkBlue z-20 transform transition-transform duration-300 ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           } md:hidden`}
         >
-          {/* Close button (X) inside the sidebar */}
           <div className="flex justify-between p-4">
             <h2 className="text-2xl font-medium">
               {organization?.name ?? "Hostly"}
@@ -109,7 +123,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <a
                 href="#"
                 className="block py-2 px-3 rounded"
-                onClick={closeNavbar} // Close navbar on link click
+                onClick={closeNavbar}
               >
                 Home
               </a>
@@ -119,7 +133,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 className="block py-2 px-3 rounded md:p-0 hover:underline"
                 href="/organization"
                 passHref
-                onClick={closeNavbar} // Close navbar on link click
+                onClick={closeNavbar}
               >
                 {organization?.name}
               </Link>
@@ -128,7 +142,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <a
                 href="#benefits"
                 className="block py-2 px-3 rounded"
-                onClick={closeNavbar} // Close navbar on link click
+                onClick={closeNavbar}
               >
                 Benefits
               </a>
@@ -137,7 +151,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <a
                 href="#pricing"
                 className="block py-2 px-3 rounded"
-                onClick={closeNavbar} // Close navbar on link click
+                onClick={closeNavbar}
               >
                 Pricing
               </a>

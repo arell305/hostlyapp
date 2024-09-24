@@ -24,7 +24,11 @@ const convex = new ConvexReactClient(convexUrl);
 
 export function Providers({ children }: PropsWithChildren) {
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    <ClerkProvider
+      publishableKey={clerkPublishableKey}
+      signInFallbackRedirectUrl="/login"
+      signUpFallbackRedirectUrl="/login"
+    >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         {children}
       </ConvexProviderWithClerk>

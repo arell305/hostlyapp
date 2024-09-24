@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import type { NextFetchEvent } from "next/server";
 
 export default clerkMiddleware(

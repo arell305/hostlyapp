@@ -1,11 +1,27 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import {
+  CreateOrganization,
+  OrganizationList,
+  OrganizationProfile,
+  useOrganization,
+  useUser,
+} from "@clerk/nextjs";
 
-export default function Dashboard() {
-  return (
-    <div>
-      <h1>Welcome to the Dashboard</h1>
-    </div>
-  );
-}
+// app/dashboard/page.tsx
+
+const Dashboard = () => {
+  const { isSignedIn, user, isLoaded } = useUser();
+  const { organization, isLoaded: orgLoaded } = useOrganization();
+
+  if (!isLoaded || !orgLoaded) {
+    return <div>Loading...</div>;
+  }
+
+  if (!organization) {
+    return <CreateOrganization />;
+  }
+
+  return <div>Dashboard Page</div>;
+};
+
+export default Dashboard;
