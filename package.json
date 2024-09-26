@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@clerk/backend": "^1.11.1",
+    "@clerk/clerk-sdk-node": "^5.0.44",
     "@clerk/nextjs": "^5.4.1",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
@@ -42,6 +43,7 @@
     "react-pro-sidebar": "^1.1.0",
     "react-timer-hook": "^3.0.7",
     "stripe": "^16.11.0",
+    "svix": "^1.36.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },

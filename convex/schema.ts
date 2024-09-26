@@ -29,4 +29,8 @@ export default defineSchema({
     promoId: v.string(),
     discount: v.number(),
   }),
+  users: defineTable({
+    clerkUserId: v.string(),
+    email: v.string(),
+  }),
 });
