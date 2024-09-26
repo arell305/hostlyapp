@@ -1,36 +1,81 @@
 "use client";
-import React from "react";
-import { UserButton } from "@clerk/nextjs";
-import { useOrganization } from "@clerk/nextjs";
+import React, { useState, useEffect, useCallback } from "react";
+import { TITLE } from "../../constants";
+import { SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs";
 import Link from "next/link";
 
-interface DashboardNavbarProps {
-  isOpen: boolean;
-  toggleNavbar: () => void;
-  closeNavbar: () => void; // Function to close the sidebar directly
-}
+const Navbar: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [prevScrollPos, setPrevScrollPos] = useState(0);
+  const [visible, setVisible] = useState(true);
 
-const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
-  isOpen,
-  toggleNavbar,
-  closeNavbar,
-}) => {
-  const { organization } = useOrganization();
+  const toggleNavbar = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleScroll = useCallback(() => {
+    const currentScrollPos = window.scrollY;
+
+    if (currentScrollPos > prevScrollPos && currentScrollPos > 50) {
+      setVisible(false);
+    } else {
+      setVisible(true);
+    }
+
+    setPrevScrollPos(currentScrollPos);
+  }, [prevScrollPos]);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
   return (
-    <nav className="bg-customDarkBlue w-full z-20 top-0 start-0 border-b border-gray-200 text-white sticky">
-      <div className="max-w-screen-xl flex flex-wrap items-center mx-auto p-4 md:justify-between">
-        {/* Menu button on the left */}
-        <div className="flex items-center">
+    <nav
+      className={`bg-customDarkBlue w-full z-20 top-0 start-0 border-b border-gray-200 text-white sticky transition-transform duration-300 ${
+        visible ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
+      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+        <a href="#" className="text-2xl font-medium">
+          {TITLE}
+        </a>
+        <div className="flex md:order-2 space-x-3 md:space-x-3 rtl:space-x-reverse">
+          <SignedOut>
+            <a href="/signup" className="my-auto">
+              <button
+                type="button"
+                className="bg-transparent border border-white hover:bg-white hover:text-black focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 md:py-1.5 text-center"
+              >
+                Signup
+              </button>
+            </a>
+
+            <a href="#demo" className="my-auto">
+              <button
+                type="button"
+                className="bg-customPrimaryBlue hover:bg-customSecondaryBlue hover:text-black focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 md:py-1.5 text-center"
+              >
+                Demo
+              </button>
+            </a>
+          </SignedOut>
+          <SignedIn>
+            <SignOutButton />
+          </SignedIn>
           <button
             onClick={toggleNavbar}
             type="button"
             className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg md:hidden hover:border hover:border-white focus:outline-none focus:ring-1 focus:ring-white"
+            aria-controls="navbar-sticky"
+            aria-expanded={isOpen ? "true" : "false"}
           >
             <span className="sr-only">Open main menu</span>
             {isOpen ? (
               <svg
                 className="w-5 h-5"
+                aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 14 14"
@@ -46,6 +91,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             ) : (
               <svg
                 className="w-5 h-5"
+                aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 17 14"
@@ -60,75 +106,35 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               </svg>
             )}
           </button>
-
-          {/* Title next to the menu button on mobile */}
-          <a href="#" className="text-2xl font-medium ml-3">
-            {organization?.name ?? "Hostly"}
-          </a>
         </div>
-
-        {/* User button on the right side */}
-        <div className="flex md:order-2 space-x-3 ml-auto md:ml-0">
-          <UserButton />
-        </div>
-
-        {/* Sidebar for mobile nav links */}
         <div
-          className={`fixed top-0 left-0 h-screen w-[80%] bg-customDarkBlue z-20 transform transition-transform duration-300 ${
-            isOpen ? "translate-x-0" : "-translate-x-full"
-          } md:hidden`}
+          className={`${
+            isOpen ? "block" : "hidden"
+          } items-center justify-between w-full md:flex md:w-auto md:order-1`}
+          id="navbar-sticky"
         >
-          {/* Close button (X) inside the sidebar */}
-          <div className="flex justify-between p-4">
-            <h2 className="text-2xl font-medium">
-              {organization?.name ?? "Hostly"}
-            </h2>
-            <button
-              onClick={closeNavbar}
-              className="text-white text-xl hover:text-gray-300 focus:outline-none"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <ul className="flex flex-col p-6 mt-4 space-y-4 font-medium text-white">
+          <ul className="flex flex-col p-4 md:p-0 mt-4 md:mr-6 font-medium border rounded-lg bg-transparent md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 text-white items-center">
             <li>
               <a
                 href="#"
-                className="block py-2 px-3 rounded"
-                onClick={closeNavbar} // Close navbar on link click
+                className="block py-2 px-3 rounded md:p-0 hover:underline"
+                aria-current="page"
               >
                 Home
               </a>
             </li>
             <li>
-              <Link
+              <a
+                href="#features"
                 className="block py-2 px-3 rounded md:p-0 hover:underline"
-                href="/organization"
-                passHref
-                onClick={closeNavbar} // Close navbar on link click
               >
-                {organization?.name}
-              </Link>
+                Features
+              </a>
             </li>
             <li>
               <a
                 href="#benefits"
-                className="block py-2 px-3 rounded"
-                onClick={closeNavbar} // Close navbar on link click
+                className="block py-2 px-3 rounded md:p-0 hover:underline"
               >
                 Benefits
               </a>
@@ -136,12 +142,22 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             <li>
               <a
                 href="#pricing"
-                className="block py-2 px-3 rounded"
-                onClick={closeNavbar} // Close navbar on link click
+                className="block py-2 px-3 rounded md:p-0 hover:underline"
               >
                 Pricing
               </a>
             </li>
+            <SignedOut>
+              <li>
+                <Link
+                  className="block py-2 px-3 rounded md:p-0 hover:underline"
+                  href="/sign-in"
+                  passHref
+                >
+                  Sign in
+                </Link>
+              </li>
+            </SignedOut>
           </ul>
         </div>
       </div>
@@ -149,4 +165,4 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   );
 };
 
-export default DashboardNavbar;
+export default Navbar;
