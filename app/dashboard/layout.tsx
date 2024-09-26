@@ -9,19 +9,28 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const toggleSidebar = () => {
-    setIsOpen((prev) => !prev);
+    // Only toggle sidebar for mobile view
+    if (isMobile) {
+      setIsOpen((prev) => !prev);
+    }
   };
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      const mobileView = window.innerWidth < 768;
+      setIsMobile(mobileView);
+
+      // Reset sidebar state when switching to desktop
+      if (!mobileView && isOpen) {
+        setIsOpen(false);
+      }
     };
 
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [isOpen]);
 
   return (
     <div className="relative h-screen flex flex-col">
@@ -41,7 +50,9 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* Main content area */}
         <div className="">
           <main
-            className={`relative z-10 flex-grow transition-all duration-300 ${isOpen && !isMobile ? "ml-64" : ""}`}
+            className={`relative z-10 flex-grow transition-all duration-300 ${
+              isOpen && !isMobile ? "ml-64" : ""
+            }`}
           >
             <div className="p-4">
               {children} {/* Render children here */}

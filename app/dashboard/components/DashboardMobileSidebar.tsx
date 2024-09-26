@@ -1,5 +1,5 @@
 "use client";
-import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
+import SidebarMenu from "./SidebarMenu";
 
 interface DashboardMobileSidebarProps {
   isOpen: boolean;
@@ -15,20 +15,11 @@ const DashboardMobileSidebar: React.FC<DashboardMobileSidebarProps> = ({
       className={`fixed top-0 left-0 h-full bg-customDarkBlue z-20 transition-transform duration-300 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
-      style={{ width: "250px", marginTop: "58px" }} // Adjust for navbar height
+      style={{ width: "250px", marginTop: "58px" }}
     >
-      <Sidebar style={{ height: "100vh" }}>
-        <Menu>
-          <SubMenu label="Charts">
-            <MenuItem>Pie charts</MenuItem>
-            <MenuItem>Line charts</MenuItem>
-          </SubMenu>
-          <MenuItem>Documentation</MenuItem>
-          <MenuItem>Calendar</MenuItem>
-        </Menu>
-      </Sidebar>
-      <div className="fixed inset-0 z-10" onClick={toggleSidebar}></div>{" "}
-      {/* Overlay to close sidebar */}
+      <SidebarMenu />
+
+      <div className="fixed inset-0 z-10" onClick={toggleSidebar}></div>
     </div>
   );
 };

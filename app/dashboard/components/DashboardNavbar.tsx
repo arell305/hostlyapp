@@ -5,7 +5,7 @@ import { useOrganization } from "@clerk/nextjs";
 
 interface DashboardNavbarProps {
   toggleNavbar: () => void;
-  isOpen: boolean; // Add isOpen prop to manage the state of the sidebar
+  isOpen: boolean;
 }
 
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
@@ -24,7 +24,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg hover:border hover:border-white focus:outline-none focus:ring-1 focus:ring-white md:hidden"
           >
             <span className="sr-only">Open sidebar</span>
-            {isOpen ? ( // Check if sidebar is open to toggle icon
+            {isOpen ? (
               <svg
                 className="w-5 h-5"
                 xmlns="http://www.w3.org/2000/svg"
