@@ -1,41 +1,56 @@
 "use client";
-import React, { ReactNode, useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardNavbar from "./components/DashboardNavbar";
+import DashboardMobileSidebar from "./components/DashboardMobileSidebar";
+import DashboardDesktopSidebar from "./components/DashboardDesktopSidebar";
 
-const DashboardLayout = ({ children }: { children: ReactNode }) => {
+const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const toggleNavbar = () => {
-    setIsOpen(!isOpen);
+  const toggleSidebar = () => {
+    setIsOpen((prev) => !prev);
   };
 
-  const closeNavbar = () => {
-    if (isOpen) {
-      setIsOpen(false);
-    }
-  };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
-    <div>
-      {/* Pass isOpen and toggleNavbar to DashboardNavbar */}
-      <DashboardNavbar
-        isOpen={isOpen}
-        toggleNavbar={toggleNavbar}
-        closeNavbar={closeNavbar}
-        setIsOpen={setIsOpen}
-      />
+    <div className="relative h-screen flex flex-col">
+      {/* Navbar */}
+      <DashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
+      <div className="md:flex">
+        {/* Sidebar */}
+        {isMobile ? (
+          <DashboardMobileSidebar
+            isOpen={isOpen}
+            toggleSidebar={toggleSidebar}
+          />
+        ) : (
+          <DashboardDesktopSidebar />
+        )}
 
-      {/* Dark overlay when the navbar is open */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black opacity-50 z-10"
-          onClick={closeNavbar}
-        ></div>
-      )}
-
-      <main onClick={closeNavbar}>{children}</main>
+        {/* Main content area */}
+        <div className="">
+          <main
+            className={`relative z-10 flex-grow transition-all duration-300 ${isOpen && !isMobile ? "ml-64" : ""}`}
+          >
+            <div className="p-4">
+              {children} {/* Render children here */}
+            </div>
+          </main>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default DashboardLayout;
+export default Home;
