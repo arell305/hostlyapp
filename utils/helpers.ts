@@ -1,5 +1,6 @@
 import { pricingOptions } from "../constants/pricingOptions";
 import { PricingOption } from "@/types";
+import { OrganizationJSON } from "@clerk/backend";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -46,3 +47,14 @@ export const getFutureISOString = (days: number): string => {
   today.setDate(today.getDate() + days);
   return today.toISOString();
 };
+
+export function isOrganizationJSON(data: any): data is OrganizationJSON {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    typeof data.id === "string" &&
+    typeof data.name === "string" &&
+    typeof data.slug === "string" &&
+    typeof data.created_by === "string"
+  );
+}

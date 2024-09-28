@@ -30,6 +30,7 @@ import { httpRouter } from "convex/server";
 
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
+import { isOrganizationJSON } from "../utils/helpers";
 
 const http = httpRouter();
 
@@ -51,13 +52,97 @@ http.route({
       });
       switch (result.type) {
         case "user.created":
+          // Check if a user with the same email already exists
+          const existingUser = await ctx.runQuery(
+            internal.users.findUserByEmail,
+            {
+              email: result.data.email_addresses[0]?.email_address,
+            }
+          );
+          if (existingUser && existingUser.clerkOrganizationId) {
+            // If user exists with the same email and has an organizationId, update clerkUserId
+            const updateUserPromise = ctx.runMutation(
+              internal.users.updateUser,
+              {
+                email: result.data.email_addresses[0]?.email_address,
+                clerkUserId: result.data.id,
+                acceptedInvite: true,
+              }
+            );
+
+            const addClerkUserIdPromise = ctx.runMutation(
+              internal.organizations.addClerkUserId,
+              {
+                clerkOrganizationId: existingUser.clerkOrganizationId,
+                clerkUserId: result.data.id,
+              }
+            );
+
+            // Run both mutations in parallel
+            await Promise.all([updateUserPromise, addClerkUserIdPromise]);
+            return new Response(JSON.stringify({ message: "Success" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          const existingCustomer = await ctx.runQuery(
+            internal.customers.findCustomerByEmail,
+            {
+              email: result.data.email_addresses[0]?.email_address,
+            }
+          );
+          if (existingCustomer) {
+            await ctx.runMutation(internal.users.createUser, {
+              email: result.data.email_addresses[0]?.email_address,
+              clerkUserId: result.data.id,
+              acceptedInvite: true,
+              customerId: existingCustomer._id,
+            });
+            return new Response(JSON.stringify({ message: "Success" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          // Else create a new user
           await ctx.runMutation(internal.users.createUser, {
             email: result.data.email_addresses[0]?.email_address,
             clerkUserId: result.data.id,
+            acceptedInvite: true,
           });
+
+          break;
+        case "organizationInvitation.created":
+          await ctx.runMutation(internal.users.createUser, {
+            email: result.data.email_address,
+            clerkOrganizationId: result.data.organization_id,
+            acceptedInvite: false,
+          });
+
+          break;
+
+        case "organization.created":
+          if (isOrganizationJSON(result.data)) {
+            await ctx.runMutation(internal.organizations.createOrganization, {
+              clerkOrganizationId: result.data.id,
+              name: result.data.name, // Use the name property instead of created_by
+              clerkUserIds: [result.data.created_by], // Replace with actual user IDs as needed
+            });
+
+            await ctx.runMutation(internal.users.updateUserById, {
+              clerkUserId: result.data.created_by,
+              clerkOrganizationId: result.data.id,
+            });
+          } else {
+            console.error(
+              "The result.data is not of type OrganizationJSON",
+              result.data
+            );
+          }
+          break;
       }
-      return new Response(null, {
+      return new Response(JSON.stringify({ message: "Success" }), {
         status: 200,
+        headers: { "Content-Type": "application/json" },
       });
     } catch (err) {
       console.log(err);

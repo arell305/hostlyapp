@@ -23,14 +23,24 @@ export default defineSchema({
     trialEndDate: v.union(v.string(), v.null()),
     cancelAt: v.union(v.string(), v.null()),
     nextPayment: v.string(),
-  }),
+  }).index("by_email", ["email"]),
   promoCodes: defineTable({
     promoCode: v.string(),
     promoId: v.string(),
     discount: v.number(),
   }),
   users: defineTable({
-    clerkUserId: v.string(),
+    clerkUserId: v.optional(v.string()),
     email: v.string(),
-  }),
+    clerkOrganizationId: v.optional(v.string()),
+    acceptedInvite: v.boolean(),
+    customerId: v.optional(v.string()),
+  })
+    .index("by_email", ["email"])
+    .index("by_clerkUserId", ["clerkUserId"]),
+  organizations: defineTable({
+    clerkOrganizationId: v.string(),
+    name: v.string(),
+    clerkUserIds: v.array(v.string()),
+  }).index("by_clerkOrganizationId", ["clerkOrganizationId"]),
 });

@@ -16,6 +16,7 @@ import type {
 import type * as clerk from "../clerk.js";
 import type * as customers from "../customers.js";
 import type * as http from "../http.js";
+import type * as organizations from "../organizations.js";
 import type * as promoCode from "../promoCode.js";
 import type * as stripe from "../stripe.js";
 import type * as users from "../users.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   clerk: typeof clerk;
   customers: typeof customers;
   http: typeof http;
+  organizations: typeof organizations;
   promoCode: typeof promoCode;
   stripe: typeof stripe;
   users: typeof users;

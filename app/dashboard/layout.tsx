@@ -6,7 +6,7 @@ import DashboardDesktopSidebar from "./components/DashboardDesktopSidebar";
 
 const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false); // Initialize as false
 
   const toggleSidebar = () => {
     // Only toggle sidebar for mobile view
@@ -16,6 +16,7 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   useEffect(() => {
+    // This runs only on the client side
     const handleResize = () => {
       const mobileView = window.innerWidth < 768;
       setIsMobile(mobileView);
@@ -26,7 +27,13 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       }
     };
 
+    // Initialize on mount
+    handleResize();
+
+    // Add resize listener
     window.addEventListener("resize", handleResize);
+
+    // Cleanup on unmount
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -54,9 +61,7 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               isOpen && !isMobile ? "ml-64" : ""
             }`}
           >
-            <div className="p-4">
-              {children} {/* Render children here */}
-            </div>
+            <div className="p-4">{children}</div>
           </main>
         </div>
       </div>
