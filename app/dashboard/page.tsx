@@ -6,6 +6,8 @@ import {
   useOrganization,
   useUser,
 } from "@clerk/nextjs";
+import Image from "next/image";
+import PromotionalCompaniesList from "./components/PromotionalCompaniesList";
 
 // app/dashboard/page.tsx
 
@@ -21,7 +23,21 @@ const Dashboard = () => {
     return <CreateOrganization />;
   }
 
-  return <div>Dashboard</div>;
+  if (organization.name === "Admin") {
+    return <PromotionalCompaniesList />;
+  }
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <Image
+        src={organization.imageUrl}
+        alt="imageUrl"
+        width={20}
+        height={20}
+      />
+    </div>
+  );
 };
 
 export default Dashboard;

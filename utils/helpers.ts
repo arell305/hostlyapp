@@ -55,6 +55,7 @@ export function isOrganizationJSON(data: any): data is OrganizationJSON {
     typeof data.id === "string" &&
     typeof data.name === "string" &&
     typeof data.slug === "string" &&
-    typeof data.created_by === "string"
+    typeof data.created_by === "string" &&
+    typeof data.image_url === "string"
   );
 }

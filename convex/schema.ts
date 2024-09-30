@@ -42,5 +42,8 @@ export default defineSchema({
     clerkOrganizationId: v.string(),
     name: v.string(),
     clerkUserIds: v.array(v.string()),
-  }).index("by_clerkOrganizationId", ["clerkOrganizationId"]),
+    imageUrl: v.optional(v.string()),
+  })
+    .index("by_clerkOrganizationId", ["clerkOrganizationId"])
+    .index("by_name", ["name"]),
 });

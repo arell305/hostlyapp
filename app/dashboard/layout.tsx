@@ -40,29 +40,28 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [isOpen]);
 
   return (
-    <div className="relative h-screen flex flex-col">
+    <div className="relative h-screen flex flex-col w-full">
       {/* Navbar */}
       <DashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
-      <div className="md:flex">
+      <div className="md:flex h-full">
         {/* Sidebar */}
-        {isMobile ? (
-          <DashboardMobileSidebar
-            isOpen={isOpen}
-            toggleSidebar={toggleSidebar}
-          />
-        ) : (
-          <DashboardDesktopSidebar />
-        )}
-
+        <div className="md:w-64 w-full">
+          {isMobile ? (
+            <DashboardMobileSidebar
+              isOpen={isOpen}
+              toggleSidebar={toggleSidebar}
+            />
+          ) : (
+            <DashboardDesktopSidebar />
+          )}
+        </div>
         {/* Main content area */}
-        <div className="">
-          <main
-            className={`relative z-10 flex-grow transition-all duration-300 ${
-              isOpen && !isMobile ? "ml-64" : ""
-            }`}
-          >
-            <div className="p-4">{children}</div>
-          </main>
+        <div
+          className={`relative flex-grow transition-all duration-300 ${
+            isOpen && !isMobile ? "ml-64" : ""
+          }`}
+        >
+          <main className="p-4">{children}</main>
         </div>
       </div>
     </div>

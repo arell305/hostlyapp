@@ -109,36 +109,58 @@ http.route({
             clerkUserId: result.data.id,
             acceptedInvite: true,
           });
-
-          break;
+          return new Response(JSON.stringify({ message: "Success" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
         case "organizationInvitation.created":
           await ctx.runMutation(internal.users.createUser, {
             email: result.data.email_address,
             clerkOrganizationId: result.data.organization_id,
             acceptedInvite: false,
           });
-
-          break;
+          return new Response(JSON.stringify({ message: "Success" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
 
         case "organization.created":
           if (isOrganizationJSON(result.data)) {
-            await ctx.runMutation(internal.organizations.createOrganization, {
-              clerkOrganizationId: result.data.id,
-              name: result.data.name, // Use the name property instead of created_by
-              clerkUserIds: [result.data.created_by], // Replace with actual user IDs as needed
-            });
-
-            await ctx.runMutation(internal.users.updateUserById, {
-              clerkUserId: result.data.created_by,
-              clerkOrganizationId: result.data.id,
-            });
-          } else {
-            console.error(
-              "The result.data is not of type OrganizationJSON",
-              result.data
+            const existingOrganization = await ctx.runQuery(
+              internal.organizations.getOrganizationByName,
+              { name: result.data.name }
             );
+
+            if (!existingOrganization) {
+              await ctx.runMutation(internal.organizations.createOrganization, {
+                clerkOrganizationId: result.data.id,
+                name: result.data.name, // Use the name property instead of created_by
+                clerkUserIds: [result.data.created_by], // Replace with actual user IDs as needed
+              });
+
+              await ctx.runMutation(internal.users.updateUserById, {
+                clerkUserId: result.data.created_by,
+                clerkOrganizationId: result.data.id,
+              });
+
+              return new Response(JSON.stringify({ message: "Success" }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
           }
-          break;
+          console.log("Organization already exists with ID");
+          return new Response(JSON.stringify({ message: "Success" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+
+        case "organization.updated":
+          await ctx.runMutation(internal.organizations.updateOrganization, {
+            clerkOrganizationId: result.data.id,
+            imageUrl: result.data.image_url,
+            name: result.data.name,
+          });
       }
       return new Response(JSON.stringify({ message: "Success" }), {
         status: 200,
