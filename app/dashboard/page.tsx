@@ -8,6 +8,7 @@ import {
 } from "@clerk/nextjs";
 import Image from "next/image";
 import PromotionalCompaniesList from "./components/PromotionalCompaniesList";
+import CalendarComponent from "./components/CalendarComponent";
 
 // app/dashboard/page.tsx
 
@@ -20,7 +21,7 @@ const Dashboard = () => {
   }
 
   if (!organization) {
-    return <CreateOrganization />;
+    return <CreateOrganization routing="hash" />;
   }
 
   if (organization.name === "Admin") {
@@ -29,13 +30,7 @@ const Dashboard = () => {
 
   return (
     <div>
-      <h1>Dashboard</h1>
-      <Image
-        src={organization.imageUrl}
-        alt="imageUrl"
-        width={20}
-        height={20}
-      />
+      <CalendarComponent />
     </div>
   );
 };

@@ -31,6 +31,7 @@ import { httpRouter } from "convex/server";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 import { isOrganizationJSON } from "../utils/helpers";
+import { UserRoleEnum } from "../utils/enum";
 
 const http = httpRouter();
 
@@ -97,6 +98,7 @@ http.route({
               clerkUserId: result.data.id,
               acceptedInvite: true,
               customerId: existingCustomer._id,
+              role: UserRoleEnum.PROMOTER_ADMIN,
             });
             return new Response(JSON.stringify({ message: "Success" }), {
               status: 200,
@@ -108,6 +110,7 @@ http.route({
             email: result.data.email_addresses[0]?.email_address,
             clerkUserId: result.data.id,
             acceptedInvite: true,
+            role: null,
           });
           return new Response(JSON.stringify({ message: "Success" }), {
             status: 200,
@@ -118,6 +121,7 @@ http.route({
             email: result.data.email_address,
             clerkOrganizationId: result.data.organization_id,
             acceptedInvite: false,
+            role: result.data.role,
           });
           return new Response(JSON.stringify({ message: "Success" }), {
             status: 200,

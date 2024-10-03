@@ -16,7 +16,7 @@ const SidebarMenu: React.FC = () => {
 
   return (
     <Sidebar style={{ height: "100vh" }}>
-      <Menu>
+      <Menu className="md:mt-16">
         {/* Render admin-specific menu item if the user is in the Admin organization */}
         {isAppAdmin && (
           <MenuItem>

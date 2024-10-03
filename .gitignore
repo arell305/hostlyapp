@@ -15,3 +15,5 @@ node_modules/
 .env
 
 certificates
+.DS_Store
+**/.DS_Store

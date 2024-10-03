@@ -3,6 +3,7 @@ export const UserRoleEnum = {
   PROMOTER: "promoter",
   PROMOTER_ADMIN: "promoter_admin",
   MODERATOR: "moderator",
+  PROMOTER_MANAGER: "promoter_manager",
 };
 
 export enum SubscriptionStatus {

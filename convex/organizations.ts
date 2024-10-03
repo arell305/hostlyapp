@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery } from "./_generated/server";
+import { internalMutation, internalQuery, mutation } from "./_generated/server";
 import { query, QueryCtx } from "./_generated/server";
+
 export const createOrganization = internalMutation({
   args: {
     clerkOrganizationId: v.string(),
@@ -13,6 +14,7 @@ export const createOrganization = internalMutation({
         clerkOrganizationId: args.clerkOrganizationId,
         name: args.name,
         clerkUserIds: args.clerkUserIds,
+        eventIds: [],
       });
       return organizationId;
     } catch (error) {
@@ -137,6 +139,39 @@ export const getAllOrganizations = query({
     } catch (error) {
       console.error("Error retrieving organizations:", error);
       return [];
+    }
+  },
+});
+
+export const addEventToOrganization = mutation({
+  args: {
+    clerkOrganizationId: v.string(),
+    eventIds: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const organization = await ctx.db
+        .query("organizations")
+        .filter((q) =>
+          q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
+        )
+        .first();
+
+      if (!organization) {
+        throw new Error("Organization not found");
+      }
+
+      const updatedEvents = [...(organization.eventIds || []), args.eventIds];
+
+      // Update the organization by setting the new events array
+      await ctx.db.patch(organization._id, {
+        eventIds: updatedEvents,
+      });
+
+      return { success: true, message: "Event added successfully" };
+    } catch (error) {
+      console.error("Error adding event to organization:", error);
+      throw new Error("Could not add event");
     }
   },
 });

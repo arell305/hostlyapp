@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
+import { UserRoleEnumConvex } from "./schema";
 
 export const createUser = internalMutation({
   args: {
@@ -8,6 +9,7 @@ export const createUser = internalMutation({
     clerkOrganizationId: v.optional(v.string()),
     acceptedInvite: v.boolean(),
     customerId: v.optional(v.string()),
+    role: UserRoleEnumConvex,
   },
   handler: async (ctx, args) => {
     try {
@@ -17,6 +19,7 @@ export const createUser = internalMutation({
         clerkOrganizationId: args.clerkOrganizationId,
         acceptedInvite: args.acceptedInvite,
         customerId: args.customerId,
+        role: args.role,
       });
       return userId;
     } catch (error) {
@@ -108,6 +111,16 @@ export const findUserByEmail = internalQuery({
     return await ctx.db
       .query("users")
       .filter((q) => q.eq(q.field("email"), args.email))
+      .first();
+  },
+});
+
+export const findUserByClerkId = query({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
       .first();
   },
 });

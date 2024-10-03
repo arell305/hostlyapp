@@ -1,5 +1,15 @@
 import { defineSchema, defineTable } from "convex/server";
+import { UserRoleEnum } from "../utils/enum";
 import { v } from "convex/values";
+
+export const UserRoleEnumConvex = v.union(
+  v.literal(UserRoleEnum.APP_ADMIN),
+  v.literal(UserRoleEnum.MODERATOR),
+  v.literal(UserRoleEnum.PROMOTER),
+  v.literal(UserRoleEnum.PROMOTER_ADMIN),
+  v.literal(UserRoleEnum.PROMOTER_MANAGER),
+  v.null()
+);
 
 export default defineSchema({
   subscriptions: defineTable({
@@ -35,6 +45,7 @@ export default defineSchema({
     clerkOrganizationId: v.optional(v.string()),
     acceptedInvite: v.boolean(),
     customerId: v.optional(v.string()),
+    role: UserRoleEnumConvex,
   })
     .index("by_email", ["email"])
     .index("by_clerkUserId", ["clerkUserId"]),
@@ -43,7 +54,24 @@ export default defineSchema({
     name: v.string(),
     clerkUserIds: v.array(v.string()),
     imageUrl: v.optional(v.string()),
+    eventIds: v.array(v.id("events")),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
     .index("by_name", ["name"]),
+  events: defineTable({
+    clerkOrganizationId: v.string(),
+    name: v.string(),
+    date: v.string(),
+    description: v.union(v.string(), v.null()),
+    startTime: v.union(v.string(), v.null()),
+    endTime: v.union(v.string(), v.null()),
+    guestListUploadTime: v.union(v.string(), v.null()),
+    maleTicketPrice: v.union(v.string(), v.null()),
+    femaleTicketPrice: v.union(v.string(), v.null()),
+    maleTicketCapacity: v.union(v.string(), v.null()),
+    femaleTicketCapacity: v.union(v.string(), v.null()),
+    photo: v.union(v.string(), v.null()),
+  })
+    .index("by_clerkOrganizationId", ["clerkOrganizationId"])
+    .index("by_date", ["date"]),
 });
