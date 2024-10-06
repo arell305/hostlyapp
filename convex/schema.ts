@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { UserRoleEnum } from "../utils/enum";
 import { v } from "convex/values";
+import { SubscriptionTier } from "../utils/enum";
 
 export const UserRoleEnumConvex = v.union(
   v.literal(UserRoleEnum.APP_ADMIN),
@@ -9,6 +10,12 @@ export const UserRoleEnumConvex = v.union(
   v.literal(UserRoleEnum.PROMOTER_ADMIN),
   v.literal(UserRoleEnum.PROMOTER_MANAGER),
   v.null()
+);
+
+export const SubscriptionTierConvex = v.union(
+  v.literal(SubscriptionTier.ELITE),
+  v.literal(SubscriptionTier.PLUS),
+  v.literal(SubscriptionTier.STANDARD)
 );
 
 export default defineSchema({
@@ -29,10 +36,11 @@ export default defineSchema({
     email: v.string(),
     paymentMethodId: v.string(),
     subscriptionStatus: v.string(),
-    subscriptionTier: v.string(),
+    subscriptionTier: SubscriptionTierConvex,
     trialEndDate: v.union(v.string(), v.null()),
     cancelAt: v.union(v.string(), v.null()),
     nextPayment: v.string(),
+    guestListEventCount: v.optional(v.number()),
   }).index("by_email", ["email"]),
   promoCodes: defineTable({
     promoCode: v.string(),
@@ -44,7 +52,7 @@ export default defineSchema({
     email: v.string(),
     clerkOrganizationId: v.optional(v.string()),
     acceptedInvite: v.boolean(),
-    customerId: v.optional(v.string()),
+    customerId: v.optional(v.id("customers")),
     role: UserRoleEnumConvex,
   })
     .index("by_email", ["email"])
@@ -55,6 +63,7 @@ export default defineSchema({
     clerkUserIds: v.array(v.string()),
     imageUrl: v.optional(v.string()),
     eventIds: v.array(v.id("events")),
+    customerId: v.id("customers"),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
     .index("by_name", ["name"]),

@@ -8,7 +8,7 @@ export const createUser = internalMutation({
     email: v.string(),
     clerkOrganizationId: v.optional(v.string()),
     acceptedInvite: v.boolean(),
-    customerId: v.optional(v.string()),
+    customerId: v.optional(v.id("customers")),
     role: UserRoleEnumConvex,
   },
   handler: async (ctx, args) => {

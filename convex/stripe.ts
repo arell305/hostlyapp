@@ -15,6 +15,7 @@ import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
 import { Customer } from "@/types";
 import { ERROR_MESSAGES } from "../constants/errorMessages";
 import { getFutureISOString } from "../utils/helpers";
+import { SubscriptionTierConvex } from "./schema";
 
 // export const pay = action({
 //   args: { priceId: v.string(), email: v.string() },
@@ -98,11 +99,7 @@ export const createStripeSubscription = action({
     paymentMethodId: v.string(),
     priceId: v.string(),
     promoCodeId: v.optional(v.union(v.string(), v.null())),
-    subscriptionTier: v.union(
-      v.literal("Standard"),
-      v.literal("Plus"),
-      v.literal("Elite")
-    ),
+    subscriptionTier: SubscriptionTierConvex,
   },
   handler: async (ctx, args) => {
     const stripe = new Stripe(process.env.STRIPE_KEY!, {

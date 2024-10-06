@@ -1,6 +1,7 @@
 import { pricingOptions } from "../constants/pricingOptions";
 import { PricingOption } from "@/types";
 import { OrganizationJSON } from "@clerk/backend";
+import { UserRoleEnum } from "./enum";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -59,3 +60,15 @@ export function isOrganizationJSON(data: any): data is OrganizationJSON {
     typeof data.image_url === "string"
   );
 }
+
+type UserRole = (typeof UserRoleEnum)[keyof typeof UserRoleEnum];
+
+export const canCreateEvents = (role: UserRole | null): boolean => {
+  const allowedRoles: UserRole[] = [
+    UserRoleEnum.APP_ADMIN,
+    UserRoleEnum.PROMOTER_ADMIN,
+    UserRoleEnum.PROMOTER_MANAGER,
+  ];
+
+  return role !== null && allowedRoles.includes(role);
+};

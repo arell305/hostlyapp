@@ -2,7 +2,7 @@
 
 import { FC, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isBefore, startOfDay } from "date-fns";
 import { useOrganization } from "@clerk/nextjs";
+import { SubscriptionTier } from "../../../utils/enum";
 
 const AddEventPage: FC = () => {
   const searchParams = useSearchParams();
@@ -37,8 +38,29 @@ const AddEventPage: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { organization, isLoaded: orgLoaded } = useOrganization();
 
+  const result = useQuery(api.customers.getCustomerSubscriptionTier, {
+    clerkOrganizationId: organization?.id ?? "",
+  });
   const addEvent = useMutation(api.events.addEvent);
+  const updateCustomerEvents = useMutation(
+    api.customers.updateGuestListEventCount
+  );
 
+  if (!orgLoaded || !organization) {
+    return <div>Loading organization...</div>;
+  }
+
+  if (result === undefined) {
+    return <div>Loading subscription information...</div>;
+  }
+
+  let canAddGuestList = false;
+  if (result.subscriptionTier === SubscriptionTier.ELITE) {
+    canAddGuestList = true;
+  } else if (result.subscriptionTier === SubscriptionTier.PLUS) {
+    const eventCount = result.guestListEventCount ?? 0;
+    canAddGuestList = eventCount < 4;
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!organization) {
@@ -101,7 +123,12 @@ const AddEventPage: FC = () => {
         femaleTicketCapacity: ticketSelected ? validFemaleTicketCapacity : null,
         photo: photo ? photo.name : null,
       });
-
+      if (
+        result.subscriptionTier === SubscriptionTier.PLUS &&
+        guestListSelected
+      ) {
+        updateCustomerEvents({ customerId: result.customerId });
+      }
       console.log("Event added successfully with ID:", eventId);
       // Handle success (e.g., show a success message, redirect, etc.)
     } catch (error) {
@@ -194,13 +221,16 @@ const AddEventPage: FC = () => {
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Event Type</h2>
           <div className="flex space-x-4">
-            <Button
-              type="button"
-              onClick={() => setGuestListSelected(!guestListSelected)}
-              variant={guestListSelected ? "default" : "outline"}
-            >
-              {guestListSelected ? "Remove Guest List" : "Add Guest List"}
-            </Button>
+            {canAddGuestList && (
+              <Button
+                type="button"
+                onClick={() => setGuestListSelected(!guestListSelected)}
+                variant={guestListSelected ? "default" : "outline"}
+              >
+                {guestListSelected ? "Remove Guest List" : "Add Guest List"}
+              </Button>
+            )}
+
             <Button
               type="button"
               onClick={() => setTicketSelected(!ticketSelected)}

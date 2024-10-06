@@ -10,16 +10,40 @@ export const createOrganization = internalMutation({
   },
   handler: async (ctx, args) => {
     try {
+      // Get the first clerkUserId from the array
+      const firstClerkUserId = args.clerkUserIds[0];
+
+      if (!firstClerkUserId) {
+        throw new Error("No user IDs provided for this organization");
+      }
+
+      // Query the user with the first clerkUserId
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerkUserId", (q) =>
+          q.eq("clerkUserId", firstClerkUserId)
+        )
+        .first();
+
+      if (!user || !user.customerId) {
+        throw new Error(
+          "No customer ID found for the first user in this organization"
+        );
+      }
+
+      // Insert the organization with the customerId
       const organizationId = await ctx.db.insert("organizations", {
         clerkOrganizationId: args.clerkOrganizationId,
         name: args.name,
         clerkUserIds: args.clerkUserIds,
         eventIds: [],
+        customerId: user.customerId,
       });
+
       return organizationId;
     } catch (error) {
-      console.error("Error inserting user into the database:", error);
-      throw new Error("Failed to insert user");
+      console.error("Error creating organization:", error);
+      throw new Error("Failed to create organization");
     }
   },
 });
