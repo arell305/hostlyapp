@@ -5,8 +5,23 @@ import { getAuth } from "@clerk/nextjs/server";
 import { api } from "./convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
 import { canCreateEvents } from "./utils/helpers";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
-const isCreateEventRoute = createRouteMatcher(["/create-event(.*)"]);
+function isCreateEventRoute(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  if (isDevelopment) {
+    return path.startsWith("/add-event");
+  } else {
+    const host = req.headers.get("host") || "";
+    return (
+      host.startsWith(`dashboard.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`) &&
+      path.startsWith("/add-event")
+    );
+  }
+}
 
 export default clerkMiddleware(
   async (auth, req: NextRequest, event: NextFetchEvent) => {
@@ -14,7 +29,6 @@ export default clerkMiddleware(
     const hostname = req.headers.get("host")!;
     const searchParams = req.nextUrl.searchParams.toString();
     const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
-
     const convex = new ConvexHttpClient(
       process.env.NEXT_PUBLIC_CONVEX_URL || ""
     );
@@ -22,16 +36,16 @@ export default clerkMiddleware(
     if (path.startsWith("/api")) {
       return NextResponse.next();
     }
+
     // Handle the dashboard subdomain specifically
     if (hostname === `dashboard.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`) {
       // Protect the dashboard route, redirect to sign-in if not authenticated
-      auth().protect();
 
-      // For the create-event route on the dashboard subdomain
+      auth().protect();
       if (isCreateEventRoute(req)) {
-        auth().protect((has) => {
-          return has({ role: "Admin" }) || has({ role: "Manager" });
-        });
+        if (!auth().has({ permission: "org:events:create" })) {
+          return NextResponse.redirect(new URL("/unauthorized", req.url));
+        }
       }
       // If authenticated, rewrite to the dashboard route
       return NextResponse.rewrite(
