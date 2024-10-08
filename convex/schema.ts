@@ -18,6 +18,11 @@ export const SubscriptionTierConvex = v.union(
   v.literal(SubscriptionTier.STANDARD)
 );
 
+export const GuestListNames = v.object({
+  id: v.string(),
+  name: v.string(),
+});
+
 export default defineSchema({
   subscriptions: defineTable({
     email: v.string(),
@@ -80,7 +85,13 @@ export default defineSchema({
     maleTicketCapacity: v.union(v.string(), v.null()),
     femaleTicketCapacity: v.union(v.string(), v.null()),
     photo: v.union(v.string(), v.null()),
+    guestListIds: v.array(v.id("guestLists")),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
     .index("by_date", ["date"]),
+  guestLists: defineTable({
+    names: v.array(GuestListNames),
+    eventId: v.id("events"),
+    clerkPromoterId: v.string(),
+  }),
 });

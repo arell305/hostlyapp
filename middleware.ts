@@ -7,6 +7,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { canCreateEvents } from "./utils/helpers";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { ClerkPermissionsEnum } from "@/utils/enums";
 
 function isCreateEventRoute(req: NextRequest) {
   const path = req.nextUrl.pathname;
@@ -22,6 +23,8 @@ function isCreateEventRoute(req: NextRequest) {
     );
   }
 }
+
+const isEntireGuestListRoute = createRouteMatcher(["/events/(.+)/guestlist"]);
 
 export default clerkMiddleware(
   async (auth, req: NextRequest, event: NextFetchEvent) => {
@@ -43,7 +46,19 @@ export default clerkMiddleware(
 
       auth().protect();
       if (isCreateEventRoute(req)) {
-        if (!auth().has({ permission: "org:events:create" })) {
+        if (
+          !auth().has({ permission: ClerkPermissionsEnum.ORG_EVENTS_CREATE })
+        ) {
+          return NextResponse.redirect(new URL("/unauthorized", req.url));
+        }
+      }
+
+      if (isEntireGuestListRoute(req)) {
+        if (
+          !auth().has({
+            permission: ClerkPermissionsEnum.ORG_EVENTS_VIEW_ALL_GUESTLIST,
+          })
+        ) {
           return NextResponse.redirect(new URL("/unauthorized", req.url));
         }
       }

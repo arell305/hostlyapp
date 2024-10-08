@@ -58,6 +58,10 @@ const CalendarComponent: FC = () => {
     }
   };
 
+  const handleEventClick = (eventId: string) => {
+    router.push(`/events/${eventId}`);
+  };
+
   useEffect(() => {
     if (!orgLoaded) {
       return; // Wait until the organization is loaded
@@ -107,7 +111,13 @@ const CalendarComponent: FC = () => {
         {eventsForSelectedDate && eventsForSelectedDate.length > 0 ? (
           <ul>
             {eventsForSelectedDate.map((event, index) => (
-              <li key={index}>{event.name}</li>
+              <li
+                key={index}
+                onClick={() => handleEventClick(event._id)}
+                style={{ cursor: "pointer" }}
+              >
+                {event.name}
+              </li>
             ))}
           </ul>
         ) : (

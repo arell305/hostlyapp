@@ -16,6 +16,7 @@ import type {
 import type * as clerk from "../clerk.js";
 import type * as customers from "../customers.js";
 import type * as events from "../events.js";
+import type * as guestLists from "../guestLists.js";
 import type * as http from "../http.js";
 import type * as organizations from "../organizations.js";
 import type * as promoCode from "../promoCode.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   clerk: typeof clerk;
   customers: typeof customers;
   events: typeof events;
+  guestLists: typeof guestLists;
   http: typeof http;
   organizations: typeof organizations;
   promoCode: typeof promoCode;

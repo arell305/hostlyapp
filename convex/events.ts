@@ -50,6 +50,7 @@ export const addEvent = mutation({
       maleTicketCapacity: args.maleTicketCapacity,
       femaleTicketCapacity: args.femaleTicketCapacity,
       photo: args.photo,
+      guestListIds: [],
     });
 
     // Update the organization's eventIds array
@@ -67,5 +68,18 @@ export const addEvent = mutation({
     }
 
     return eventId;
+  },
+});
+
+export const getEventById = query({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.eventId);
+
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    return event;
   },
 });
