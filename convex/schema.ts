@@ -21,6 +21,10 @@ export const SubscriptionTierConvex = v.union(
 export const GuestListNames = v.object({
   id: v.string(),
   name: v.string(),
+  attended: v.optional(v.boolean()),
+  malesInGroup: v.optional(v.number()),
+  femalesInGroup: v.optional(v.number()),
+  checkInTime: v.optional(v.string()),
 });
 
 export default defineSchema({
@@ -59,6 +63,7 @@ export default defineSchema({
     acceptedInvite: v.boolean(),
     customerId: v.optional(v.id("customers")),
     role: UserRoleEnumConvex,
+    name: v.optional(v.string()),
   })
     .index("by_email", ["email"])
     .index("by_clerkUserId", ["clerkUserId"]),

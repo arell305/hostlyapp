@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Id } from "../../../../../../convex/_generated/dataModel";
 import { api } from "../../../../../../convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
-import { FaPencilAlt, FaTrashAlt } from "react-icons/fa";
+import { FaPencilAlt, FaTrashAlt, FaCheck } from "react-icons/fa";
 import {
   Table,
   TableBody,
@@ -19,10 +19,19 @@ type GuestListManagerProps = {
   promoterId: Id<"users">;
 };
 
+interface Guest {
+  id: string;
+  name: string;
+  attended?: boolean;
+  malesInGroup?: number;
+  femalesInGroup?: number;
+}
+
 const GuestListPage = ({ eventId, promoterId }: GuestListManagerProps) => {
   const [guestNames, setGuestNames] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [isEditable, setIsEditable] = useState(false);
 
   const result = useQuery(api.guestLists.getGuestListByPromoter, {
     clerkPromoterId: promoterId,
@@ -36,6 +45,15 @@ const GuestListPage = ({ eventId, promoterId }: GuestListManagerProps) => {
     return <div>Loading...</div>;
   }
   const isEmptyGuestList = result.guestListId === null;
+
+  const totalMales = result.names.reduce(
+    (sum, guest) => sum + (guest.malesInGroup || 0),
+    0
+  );
+  const totalFemales = result.names.reduce(
+    (sum, guest) => sum + (guest.femalesInGroup || 0),
+    0
+  );
 
   const handleUpload = async () => {
     const names = guestNames
@@ -88,66 +106,104 @@ const GuestListPage = ({ eventId, promoterId }: GuestListManagerProps) => {
   };
 
   return (
-    <div>
-      <h1>Guest List Page</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Guest List Page</h1>
+      <Button onClick={() => setIsEditable(!isEditable)} className="mb-4">
+        {isEditable ? "View Mode" : "Edit Mode"}
+      </Button>
       {isEmptyGuestList ? (
         <p>No guest list added</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {result.names.map((guest) => (
-              <TableRow key={guest.id}>
-                <TableCell>
-                  {editingId === guest.id ? (
-                    <Input
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                    />
-                  ) : (
-                    guest.name
-                  )}
-                </TableCell>
-                <TableCell>
-                  {editingId === guest.id ? (
-                    <Button onClick={() => handleSave(guest.id)}>Save</Button>
-                  ) : (
+        <>
+          {!isEditable && (
+            <div className="mb-4">
+              <p>Total Males: {totalMales}</p>
+              <p>Total Females: {totalFemales}</p>
+            </div>
+          )}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                {!isEditable && (
+                  <>
+                    <TableHead>Arrived</TableHead>
+                    <TableHead>Males</TableHead>
+                    <TableHead>Females</TableHead>
+                  </>
+                )}
+                {isEditable && <TableHead>Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {result.names.map((guest: Guest) => (
+                <TableRow key={guest.id}>
+                  <TableCell>
+                    {editingId === guest.id ? (
+                      <Input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                      />
+                    ) : (
+                      guest.name
+                    )}
+                  </TableCell>
+                  {!isEditable && (
                     <>
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleEdit(guest.id, guest.name)}
-                      >
-                        <FaPencilAlt className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleDelete(guest.id)}
-                      >
-                        <FaTrashAlt className="h-4 w-4" />
-                      </Button>
+                      <TableCell>
+                        {guest.attended && (
+                          <FaCheck className="text-green-500" />
+                        )}
+                      </TableCell>
+                      <TableCell>{guest.malesInGroup || 0}</TableCell>
+                      <TableCell>{guest.femalesInGroup || 0}</TableCell>
                     </>
                   )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  {isEditable && (
+                    <TableCell>
+                      {editingId === guest.id ? (
+                        <Button onClick={() => handleSave(guest.id)}>
+                          Save
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleEdit(guest.id, guest.name)}
+                          >
+                            <FaPencilAlt className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleDelete(guest.id)}
+                          >
+                            <FaTrashAlt className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
       )}
-      <div>
-        <textarea
-          value={guestNames}
-          onChange={(e) => setGuestNames(e.target.value)}
-          placeholder="Enter guest names, one per line"
-          rows={10}
-          cols={50}
-        />
-      </div>
-      <Button onClick={handleUpload}>Upload Guest List</Button>
+      {isEditable && (
+        <div className="mt-4">
+          <textarea
+            value={guestNames}
+            onChange={(e) => setGuestNames(e.target.value)}
+            placeholder="Enter guest names, one per line"
+            rows={10}
+            cols={50}
+            className="w-full p-2 border rounded"
+          />
+          <Button onClick={handleUpload} className="mt-2">
+            Upload Guest List
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

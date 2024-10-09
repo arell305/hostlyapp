@@ -10,6 +10,7 @@ export const createUser = internalMutation({
     acceptedInvite: v.boolean(),
     customerId: v.optional(v.id("customers")),
     role: UserRoleEnumConvex,
+    name: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     try {
@@ -20,6 +21,7 @@ export const createUser = internalMutation({
         acceptedInvite: args.acceptedInvite,
         customerId: args.customerId,
         role: args.role,
+        name: args.name,
       });
       return userId;
     } catch (error) {
@@ -36,6 +38,7 @@ export const updateUser = internalMutation({
     clerkOrganizationId: v.optional(v.string()),
     newEmail: v.optional(v.string()),
     acceptedInvite: v.optional(v.boolean()), // In case you want to update the email
+    name: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     try {
@@ -56,6 +59,7 @@ export const updateUser = internalMutation({
           args.clerkOrganizationId || user.clerkOrganizationId,
         email: args.newEmail || user.email,
         acceptedInvite: args.acceptedInvite || user.acceptedInvite,
+        name: args.name || user.name,
       });
 
       return user._id;

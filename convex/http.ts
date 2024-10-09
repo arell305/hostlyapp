@@ -68,6 +68,7 @@ http.route({
                 email: result.data.email_addresses[0]?.email_address,
                 clerkUserId: result.data.id,
                 acceptedInvite: true,
+                name: `${result.data.first_name} ${result.data.last_name}`,
               }
             );
 
@@ -92,6 +93,7 @@ http.route({
               email: result.data.email_addresses[0]?.email_address,
             }
           );
+          // if the user created is a stripe customer
           if (existingCustomer) {
             await ctx.runMutation(internal.users.createUser, {
               email: result.data.email_addresses[0]?.email_address,
@@ -99,6 +101,7 @@ http.route({
               acceptedInvite: true,
               customerId: existingCustomer._id,
               role: UserRoleEnum.PROMOTER_ADMIN,
+              name: `${result.data.first_name} ${result.data.last_name}`,
             });
             return new Response(JSON.stringify({ message: "Success" }), {
               status: 200,
@@ -111,6 +114,7 @@ http.route({
             clerkUserId: result.data.id,
             acceptedInvite: true,
             role: null,
+            name: `${result.data.first_name} ${result.data.last_name}`,
           });
           return new Response(JSON.stringify({ message: "Success" }), {
             status: 200,
@@ -134,7 +138,7 @@ http.route({
               internal.organizations.getOrganizationByName,
               { name: result.data.name }
             );
-
+            // create new organization if it doesn't exist
             if (!existingOrganization) {
               await ctx.runMutation(internal.organizations.createOrganization, {
                 clerkOrganizationId: result.data.id,
@@ -180,3 +184,5 @@ http.route({
 });
 
 export default http;
+
+// In need to get subscriptionTier from customer
