@@ -5,7 +5,6 @@ import { api } from "../../convex/_generated/api";
 export function useUserRole() {
   const { user, isLoaded: isClerkLoaded } = useUser();
   const clerkUserId = user?.id;
-
   const userFromDb = useQuery(
     api.users.findUserByClerkId,
     clerkUserId ? { clerkUserId } : "skip"

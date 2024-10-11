@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/select";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { FaCheck, FaEdit, FaPlus, FaMinus, FaSearch } from "react-icons/fa";
+import { useUserRole } from "@/hooks/useUserRole";
+import { UserRoleEnum } from "@/utils/enums";
 
 interface Guest {
   id: string;
@@ -58,6 +60,9 @@ const GuestListPage: React.FC<GuestListPageProps> = ({ params }) => {
   const [femaleCount, setFemaleCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPromoter, setSelectedPromoter] = useState<string>("all");
+  const { role, isLoading } = useUserRole();
+
+  const canCheckGuests = role === UserRoleEnum.MODERATOR;
 
   const promoters = useMemo(() => {
     if (!result) return [];
@@ -174,17 +179,24 @@ const GuestListPage: React.FC<GuestListPageProps> = ({ params }) => {
           <TableCaption>List of guests for {event.name}</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead>Arrived</TableHead>
+              <TableHead></TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Promoter Name</TableHead>
-              <TableHead>Males</TableHead>
-              <TableHead>Females</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Promoter</TableHead>
+              <TableHead>M</TableHead>
+              <TableHead>F</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredGuests.map((guest: Guest) => (
-              <TableRow key={guest.id}>
+              <TableRow
+                key={guest.id}
+                {...(canCheckGuests
+                  ? {
+                      onClick: () => handleEdit(guest),
+                      className: "cursor-pointer hover:bg-gray-100",
+                    }
+                  : {})}
+              >
                 <TableCell>
                   {guest.attended ? (
                     <FaCheck className="text-green-500" />
@@ -194,15 +206,6 @@ const GuestListPage: React.FC<GuestListPageProps> = ({ params }) => {
                 <TableCell>{guest.promoterName}</TableCell>
                 <TableCell>{guest.malesInGroup || 0}</TableCell>
                 <TableCell>{guest.femalesInGroup || 0}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit(guest)}
-                  >
-                    <FaEdit className="text-blue-500" />
-                  </Button>
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>

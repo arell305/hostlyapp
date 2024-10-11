@@ -1,5 +1,10 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery, query } from "./_generated/server";
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 import { UserRoleEnumConvex } from "./schema";
 
 export const createUser = internalMutation({
@@ -126,5 +131,44 @@ export const findUserByClerkId = query({
       .query("users")
       .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
       .first();
+  },
+});
+
+export const updateUserWithPromoCode = mutation({
+  args: {
+    clerkUserId: v.string(),
+    promoCodeId: v.id("promoterPromoCode"),
+    promoCodeName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { clerkUserId, promoCodeId, promoCodeName } = args;
+
+    try {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+        .unique();
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      await ctx.db.patch(user._id, {
+        promoterPromoCode: {
+          promoCodeId: promoCodeId,
+          name: promoCodeName,
+        },
+      });
+
+      return {
+        success: true,
+        message: "User updated with promo code successfully",
+      };
+    } catch (error) {
+      console.error("Error updating user with promo code:", error);
+      throw new Error(
+        `Failed to update user with promo code: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
   },
 });

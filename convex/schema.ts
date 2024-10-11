@@ -64,6 +64,12 @@ export default defineSchema({
     customerId: v.optional(v.id("customers")),
     role: UserRoleEnumConvex,
     name: v.optional(v.string()),
+    promoterPromoCode: v.optional(
+      v.object({
+        promoCodeId: v.id("promoterPromoCode"),
+        name: v.string(),
+      })
+    ),
   })
     .index("by_email", ["email"])
     .index("by_clerkUserId", ["clerkUserId"]),
@@ -99,4 +105,9 @@ export default defineSchema({
     eventId: v.id("events"),
     clerkPromoterId: v.string(),
   }),
+  promoterPromoCode: defineTable({
+    name: v.string(),
+    clerkOrganizationId: v.string(),
+    clerkPromoterUserId: v.string(),
+  }).index("by_name", ["name"]),
 });

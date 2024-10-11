@@ -1,7 +1,12 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useOrganization } from "@clerk/nextjs";
+import { FaEdit } from "react-icons/fa";
+import { useUserRole } from "@/hooks/useUserRole";
+import { UserRoleEnum } from "@/utils/enums";
+import EditPromoCodeDialog from "./EditPromoCodeDialog";
+import PromoterUserButton from "./PromoterUseetonbutton";
 
 interface DashboardNavbarProps {
   toggleNavbar: () => void;
@@ -13,6 +18,27 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   isOpen,
 }) => {
   const { organization } = useOrganization();
+  const { role, isLoading, user } = useUserRole();
+  const [isPromoCodeModalOpen, setIsPromoCodeModalOpen] = useState(false);
+  const isPromoter = role === UserRoleEnum.PROMOTER;
+  const currentPromoCode = user?.promoterPromoCode?.name;
+  const [promoCode, setPromoCode] = useState(currentPromoCode || "");
+  const promoCodeDisplay = promoCode
+    ? `Promo Code: ${promoCode}`
+    : "Add Promo Code";
+  console.log("promo Display", promoCodeDisplay);
+
+  const handleEditPromoCode = useCallback(() => {
+    setIsPromoCodeModalOpen(true);
+  }, []);
+
+  useEffect(() => {
+    setPromoCode(currentPromoCode || "");
+  }, [currentPromoCode]);
+
+  if (isLoading) {
+    return <p>Loading</p>;
+  }
 
   return (
     <nav className="bg-customDarkBlue w-full z-20 top-0 border-b border-gray-200 text-white sticky">
@@ -61,9 +87,22 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
           </a>
         </div>
         <div className="ml-auto">
-          <UserButton />
+          {isPromoter ? (
+            <PromoterUserButton
+              promoCode={promoCode}
+              onEditPromoCode={handleEditPromoCode}
+            />
+          ) : (
+            <UserButton />
+          )}
         </div>
       </div>
+      {isPromoCodeModalOpen && (
+        <EditPromoCodeDialog
+          isOpen={isPromoCodeModalOpen}
+          setIsOpen={setIsPromoCodeModalOpen}
+        />
+      )}
     </nav>
   );
 };

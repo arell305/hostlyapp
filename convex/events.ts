@@ -84,9 +84,6 @@ export const getEventById = query({
   },
 });
 
-import { query } from "./_generated/server";
-import { v } from "convex/values";
-
 export const getEventWithGuestLists = query({
   args: { eventId: v.id("events") },
   handler: async (ctx, args) => {
