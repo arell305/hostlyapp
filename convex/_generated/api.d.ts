@@ -20,8 +20,10 @@ import type * as guestLists from "../guestLists.js";
 import type * as http from "../http.js";
 import type * as organizations from "../organizations.js";
 import type * as promoCode from "../promoCode.js";
+import type * as promoCodeUsage from "../promoCodeUsage.js";
 import type * as promoterPromoCode from "../promoterPromoCode.js";
 import type * as stripe from "../stripe.js";
+import type * as ticketInfo from "../ticketInfo.js";
 import type * as users from "../users.js";
 
 /**
@@ -40,8 +42,10 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   organizations: typeof organizations;
   promoCode: typeof promoCode;
+  promoCodeUsage: typeof promoCodeUsage;
   promoterPromoCode: typeof promoterPromoCode;
   stripe: typeof stripe;
+  ticketInfo: typeof ticketInfo;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

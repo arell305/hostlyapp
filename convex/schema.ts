@@ -80,6 +80,7 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     eventIds: v.array(v.id("events")),
     customerId: v.id("customers"),
+    promoDiscount: v.number(),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
     .index("by_name", ["name"]),
@@ -88,13 +89,10 @@ export default defineSchema({
     name: v.string(),
     date: v.string(),
     description: v.union(v.string(), v.null()),
-    startTime: v.union(v.string(), v.null()),
+    startTime: v.string(),
     endTime: v.union(v.string(), v.null()),
-    guestListUploadTime: v.union(v.string(), v.null()),
-    maleTicketPrice: v.union(v.string(), v.null()),
-    femaleTicketPrice: v.union(v.string(), v.null()),
-    maleTicketCapacity: v.union(v.string(), v.null()),
-    femaleTicketCapacity: v.union(v.string(), v.null()),
+    guestListCloseTime: v.union(v.string(), v.null()),
+    ticketInfoId: v.optional(v.id("ticketInfo")),
     photo: v.union(v.string(), v.null()),
     guestListIds: v.array(v.id("guestLists")),
   })
@@ -110,4 +108,24 @@ export default defineSchema({
     clerkOrganizationId: v.string(),
     clerkPromoterUserId: v.string(),
   }).index("by_name", ["name"]),
+  promoCodeUsage: defineTable({
+    promoCodeId: v.id("promoterPromoCode"),
+    clerkPromoterUserId: v.string(),
+    eventId: v.id("events"),
+    maleUsageCount: v.number(),
+    femaleUsageCount: v.number(),
+  })
+    .index("by_promoCode", ["promoCodeId"])
+    .index("by_event", ["eventId"])
+    .index("by_promoter", ["clerkPromoterUserId"])
+    .index("by_promoCode_and_event", ["promoCodeId", "eventId"]),
+  ticketInfo: defineTable({
+    eventId: v.id("events"),
+    maleTicketPrice: v.number(),
+    femaleTicketPrice: v.number(),
+    maleTicketCapacity: v.number(),
+    femaleTicketCapacity: v.number(),
+    totalMaleTicketsSold: v.number(),
+    totalFemaleTicketsSold: v.number(),
+  }).index("by_eventId", ["eventId"]),
 });

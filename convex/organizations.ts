@@ -38,6 +38,7 @@ export const createOrganization = internalMutation({
         clerkUserIds: args.clerkUserIds,
         eventIds: [],
         customerId: user.customerId,
+        promoDiscount: 0,
       });
 
       return organizationId;
@@ -197,5 +198,55 @@ export const addEventToOrganization = mutation({
       console.error("Error adding event to organization:", error);
       throw new Error("Could not add event");
     }
+  },
+});
+
+export const getOrganizationByClerkId = query({
+  args: {
+    clerkOrganizationId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const organization = await ctx.db
+        .query("organizations")
+        .filter((q) =>
+          q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
+        )
+        .first();
+
+      return organization || null;
+    } catch (error) {
+      console.error("Error finding organization by Clerk ID:", error);
+      return null;
+    }
+  },
+});
+
+export const updateOrganizationPromoDiscount = mutation({
+  args: {
+    clerkOrganizationId: v.string(),
+    promoDiscount: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { clerkOrganizationId, promoDiscount } = args;
+
+    // Find the organization by clerkOrganizationId
+    const organization = await ctx.db
+      .query("organizations")
+      .withIndex("by_clerkOrganizationId", (q) =>
+        q.eq("clerkOrganizationId", clerkOrganizationId)
+      )
+      .first();
+
+    if (!organization) {
+      throw new Error("Organization not found");
+    }
+
+    // Update the promoDiscount
+    const updatedOrganization = await ctx.db.patch(organization._id, {
+      promoDiscount: promoDiscount,
+    });
+
+    return updatedOrganization;
   },
 });

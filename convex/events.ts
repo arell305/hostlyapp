@@ -27,13 +27,9 @@ export const addEvent = mutation({
     name: v.string(),
     date: v.string(),
     description: v.union(v.string(), v.null()),
-    startTime: v.union(v.string(), v.null()),
+    startTime: v.string(),
     endTime: v.union(v.string(), v.null()),
-    guestListUploadTime: v.union(v.string(), v.null()),
-    maleTicketPrice: v.union(v.string(), v.null()),
-    femaleTicketPrice: v.union(v.string(), v.null()),
-    maleTicketCapacity: v.union(v.string(), v.null()),
-    femaleTicketCapacity: v.union(v.string(), v.null()),
+    guestListCloseTime: v.union(v.string(), v.null()),
     photo: v.union(v.string(), v.null()),
   },
   handler: async (ctx, args) => {
@@ -44,11 +40,7 @@ export const addEvent = mutation({
       description: args.description,
       startTime: args.startTime,
       endTime: args.endTime,
-      guestListUploadTime: args.guestListUploadTime,
-      maleTicketPrice: args.maleTicketPrice,
-      femaleTicketPrice: args.femaleTicketPrice,
-      maleTicketCapacity: args.maleTicketCapacity,
-      femaleTicketCapacity: args.femaleTicketCapacity,
+      guestListCloseTime: args.guestListCloseTime,
       photo: args.photo,
       guestListIds: [],
     });
@@ -80,7 +72,15 @@ export const getEventById = query({
       throw new Error("Event not found");
     }
 
-    return event;
+    let ticketInfo = null;
+    if (event.ticketInfoId) {
+      ticketInfo = await ctx.db.get(event.ticketInfoId);
+    }
+
+    return {
+      ...event,
+      ticketInfo,
+    };
   },
 });
 
@@ -194,5 +194,36 @@ export const updateGuestAttendance = mutation({
       success: true,
       updatedGuest: updatedNames.find((g) => g.id === guestId),
     };
+  },
+});
+
+export const updateEvent = mutation({
+  args: {
+    id: v.id("events"),
+    name: v.optional(v.string()),
+    description: v.optional(v.union(v.string(), v.null())),
+    date: v.optional(v.string()),
+    startTime: v.optional(v.union(v.string(), v.null())),
+    endTime: v.optional(v.union(v.string(), v.null())),
+    guestListCloseTime: v.optional(v.union(v.string(), v.null())),
+    photo: v.optional(v.union(v.string(), v.null())),
+  },
+  handler: async (ctx, args) => {
+    const { id, ...updateFields } = args;
+
+    // Optional: Check if the user has permission to update this event
+    // const identity = await ctx.auth.getUserIdentity();
+    // if (!identity) throw new Error("Unauthenticated");
+    // ... additional permission checks ...
+
+    // Remove undefined fields
+    const fieldsToUpdate = Object.fromEntries(
+      Object.entries(updateFields).filter(([_, v]) => v !== undefined)
+    );
+
+    // Update the event
+    const updatedEvent = await ctx.db.patch(id, fieldsToUpdate);
+
+    return updatedEvent;
   },
 });
