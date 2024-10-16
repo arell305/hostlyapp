@@ -31,6 +31,7 @@ interface EventFormProps {
   subscriptionTier?: SubscriptionTier;
   deleteTicketInfo?: (eventId: Id<"events">) => Promise<void>;
   eventId?: Id<"events">;
+  onCancelEvent?: () => Promise<void>;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -42,6 +43,7 @@ const EventForm: React.FC<EventFormProps> = ({
   subscriptionTier,
   deleteTicketInfo,
   eventId,
+  onCancelEvent,
 }) => {
   // Event state
   const [eventName, setEventName] = useState(initialEventData?.name || "");
@@ -104,6 +106,23 @@ const EventForm: React.FC<EventFormProps> = ({
     } else {
       setIsGuestListSelected(false);
     }
+  };
+
+  const handleCancelEventClick = () => {
+    setModalConfig({
+      title: "Confirm Event Cancellation",
+      message:
+        "Are you sure you want to cancel this event? This action cannot be undone.",
+      confirmText: "Cancel Event",
+      cancelText: "Keep Event",
+      onConfirm: async () => {
+        if (onCancelEvent) {
+          await onCancelEvent();
+        }
+        setShowConfirmModal(false);
+      },
+    });
+    setShowConfirmModal(true);
   };
 
   // Ticket state
@@ -448,6 +467,16 @@ const EventForm: React.FC<EventFormProps> = ({
       <Button type="submit" disabled={isLoading}>
         {isEdit ? "Update Event" : "Add Event"}
       </Button>
+      {isEdit && (
+        <Button
+          type="button"
+          onClick={handleCancelEventClick}
+          variant="destructive"
+          className="mt-4"
+        >
+          Cancel Event
+        </Button>
+      )}
       <ConfirmModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}

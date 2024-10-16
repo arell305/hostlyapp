@@ -1,17 +1,18 @@
 "use client";
 
 import { FC } from "react";
-import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useOrganization } from "@clerk/nextjs";
 import { SubscriptionTier } from "../../../utils/enum";
 import EventForm from "../components/EventForm"; // Import the EventForm component
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const AddEventPage: FC = () => {
-  const searchParams = useSearchParams();
-  const initialDate = searchParams.get("date") || "";
   const { organization, isLoaded: orgLoaded } = useOrganization();
+  const { toast } = useToast();
+  const router = useRouter();
 
   const result = useQuery(api.customers.getCustomerSubscriptionTier, {
     clerkOrganizationId: organization?.id ?? "",
@@ -58,11 +59,20 @@ const AddEventPage: FC = () => {
       ) {
         updateCustomerEvents({ customerId: result.customerId });
       }
-
+      toast({
+        title: "Event Created",
+        description: "The event has been successfully created",
+      });
+      router.push(`events/${eventId}`);
       console.log("Event added successfully with ID:", eventId);
       // Handle success (e.g., show a success message, redirect, etc.)
     } catch (error) {
       console.error("Error adding event:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create event. Please try again",
+        variant: "destructive",
+      });
       // Handle error (e.g., show an error message)
     }
   };

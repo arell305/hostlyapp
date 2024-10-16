@@ -10,6 +10,8 @@ import { ClerkRoleEnum } from "@/utils/enums";
 import { FaPencilAlt, FaSave, FaTimes } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import EventForm from "@/dashboard/components/EventForm";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 type EventProps = {
   eventId: Id<"events">;
@@ -17,6 +19,7 @@ type EventProps = {
 
 export default function EventPage({ eventId }: EventProps) {
   const eventData = useQuery(api.events.getEventById, { eventId });
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingEvent, setIsEditingEvent] = useState(false);
 
@@ -44,6 +47,8 @@ export default function EventPage({ eventId }: EventProps) {
   const deleteTicketInfoAndUpdateEvent = useMutation(
     api.ticketInfo.deleteTicketInfoAndUpdateEvent
   );
+  const cancelEvent = useMutation(api.events.cancelEvent);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (
@@ -88,6 +93,10 @@ export default function EventPage({ eventId }: EventProps) {
           });
         }
       }
+      toast({
+        title: "Event Updated",
+        description: "The event has been successfully updated",
+      });
 
       setIsEditingEvent(false);
       // Optionally, you can refetch the event data here to update the UI
@@ -101,8 +110,34 @@ export default function EventPage({ eventId }: EventProps) {
       await deleteTicketInfoAndUpdateEvent({ eventId });
       // Handle successful deletion (e.g., update UI, show success message)
     } catch (error) {
-      console.error("Error deleting ticket info:", error);
-      // Handle error (e.g., show error message to user)
+      toast({
+        title: "Error",
+        description: "Failed to update the event. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEvent = async () => {
+    try {
+      const navigationPromise = router.push("/");
+      toast({
+        title: "Event Cancelled",
+        description: "The event has been successfully cancelled.",
+      });
+      // Then cancel the event
+      await cancelEvent({ eventId });
+
+      // Wait for the navigation to complete
+      navigationPromise;
+      // Handle successful cancellation (e.g., redirect to events list)
+    } catch (error) {
+      console.error("Error cancelling event:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel the event. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -119,6 +154,7 @@ export default function EventPage({ eventId }: EventProps) {
             canAddGuestList={canUploadGuestList}
             deleteTicketInfo={handleDeleteTicketInfo} // Pass the deleteTicketInfo function
             eventId={eventId}
+            onCancelEvent={handleCancelEvent}
           />
           <Button onClick={() => setIsEditingEvent(false)} className="mt-4">
             Cancel

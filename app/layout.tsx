@@ -4,6 +4,7 @@ import "./globals.css";
 import { TITLE, DESC, META_DESC, WEBSITE } from "./constants";
 import { Providers } from "./providers";
 import React from "react";
+import { Toaster } from "@/components/ui/toaster";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -45,6 +46,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={` ${poppins.variable}`}>
         <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );

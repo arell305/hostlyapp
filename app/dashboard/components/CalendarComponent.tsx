@@ -54,7 +54,7 @@ const CalendarComponent: FC = () => {
   const handleAddEventClick = () => {
     if (selectedDate) {
       // Navigate to the Add Event page with the selected date as a query parameter
-      router.push(`/add-event?date=${selectedDate}`);
+      router.push(`/add-event`);
     }
   };
 

@@ -227,3 +227,32 @@ export const updateEvent = mutation({
     return updatedEvent;
   },
 });
+
+export const cancelEvent = mutation({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+
+    // Fetch the event to check if it has associated ticket info
+    const event = await ctx.db.get(eventId);
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // If the event has a ticketInfoId, delete the ticket info first
+    if (event.ticketInfoId) {
+      await ctx.db.delete(event.ticketInfoId);
+    }
+
+    // Delete the event
+    await ctx.db.delete(eventId);
+
+    // Optionally, you might want to delete other related data here
+    // For example, guest lists, promo code usage, etc.
+
+    return {
+      success: true,
+      message: "Event and associated data deleted successfully",
+    };
+  },
+});
