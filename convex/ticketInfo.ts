@@ -21,6 +21,7 @@ export const insertTicketInfo = mutation({
     femaleTicketPrice: v.number(),
     maleTicketCapacity: v.number(),
     femaleTicketCapacity: v.number(),
+    ticketSalesEndTime: v.string(),
   },
   handler: async (ctx, args) => {
     // Get the user's identity from Clerk
@@ -54,6 +55,7 @@ export const insertTicketInfo = mutation({
       femaleTicketCapacity: args.femaleTicketCapacity,
       totalMaleTicketsSold: 0,
       totalFemaleTicketsSold: 0,
+      ticketSalesEndTime: args.ticketSalesEndTime,
     });
 
     // Update the event with the new ticketInfoId
@@ -70,6 +72,7 @@ export const updateTicketInfo = mutation({
     femaleTicketPrice: v.number(),
     maleTicketCapacity: v.number(),
     femaleTicketCapacity: v.number(),
+    ticketSalesEndTime: v.string(),
   },
   handler: async (ctx, args) => {
     const {
@@ -78,6 +81,7 @@ export const updateTicketInfo = mutation({
       femaleTicketPrice,
       maleTicketCapacity,
       femaleTicketCapacity,
+      ticketSalesEndTime,
     } = args;
 
     // Fetch the existing ticket info
@@ -92,6 +96,7 @@ export const updateTicketInfo = mutation({
       femaleTicketPrice,
       maleTicketCapacity,
       femaleTicketCapacity,
+      ticketSalesEndTime,
     });
 
     return updatedTicketInfo;

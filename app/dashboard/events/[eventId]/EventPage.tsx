@@ -12,6 +12,12 @@ import { Button } from "@/components/ui/button";
 import EventForm from "@/dashboard/components/EventForm";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import ConfirmModal from "@/dashboard/components/ConfirmModal";
+import TicketInfo from "@/dashboard/components/TicketInfo";
+import EventInfo from "@/dashboard/components/EventInfo";
+import PromoterGuestList from "@/dashboard/components/PromoterGuestList";
+import EventGuestList from "@/dashboard/components/EventGuestList";
+import ModeratorGuestList from "@/dashboard/components/ModeratorGuestList";
 
 type EventProps = {
   eventId: Id<"events">;
@@ -22,17 +28,19 @@ export default function EventPage({ eventId }: EventProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingEvent, setIsEditingEvent] = useState(false);
+  const [activeTab, setActiveTab] = useState<
+    "event" | "guestList" | "ticketInfo"
+  >("event");
 
   const { orgRole, userId: promoterId, isLoaded } = useAuth();
 
   const canUploadGuestList = orgRole === ClerkRoleEnum.ORG_PROMOTER;
-  const canViewAllGuestList =
-    orgRole === ClerkRoleEnum.ORG_ADMIN ||
-    orgRole === ClerkRoleEnum.ORG_MODERATOR ||
-    orgRole === ClerkRoleEnum.ORG_MANAGER;
+  const canViewAllGuestList = orgRole === ClerkRoleEnum.ORG_MANAGER;
   const canEdit =
     orgRole === ClerkRoleEnum.ORG_ADMIN ||
     orgRole === ClerkRoleEnum.ORG_MANAGER;
+  const canCheckInGuests =
+    ClerkRoleEnum.ORG_MODERATOR || orgRole === ClerkRoleEnum.ORG_ADMIN;
 
   const promoCodeUsage = useQuery(
     api.promoCodeUsage.getPromoCodeUsageByPromoterAndEvent,
@@ -49,6 +57,7 @@ export default function EventPage({ eventId }: EventProps) {
   );
   const cancelEvent = useMutation(api.events.cancelEvent);
   const { toast } = useToast();
+  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
 
   useEffect(() => {
     if (
@@ -141,11 +150,20 @@ export default function EventPage({ eventId }: EventProps) {
     }
   };
 
+  const handleCancelEdit = () => {
+    setShowCancelConfirmModal(true);
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4">
       {isEditingEvent ? (
         <div>
-          <h1 className="text-3xl font-bold mb-4">Edit Event</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Edit Event</h1>
+            <Button variant="outline" onClick={handleCancelEdit}>
+              Cancel
+            </Button>
+          </div>{" "}
           <EventForm
             initialEventData={event}
             initialTicketData={ticketInfo}
@@ -156,9 +174,19 @@ export default function EventPage({ eventId }: EventProps) {
             eventId={eventId}
             onCancelEvent={handleCancelEvent}
           />
-          <Button onClick={() => setIsEditingEvent(false)} className="mt-4">
-            Cancel
-          </Button>
+          <ConfirmModal
+            isOpen={showCancelConfirmModal}
+            onClose={() => setShowCancelConfirmModal(false)}
+            onConfirm={() => {
+              setShowCancelConfirmModal(false);
+              setIsEditingEvent(false);
+              router.back(); // This navigates back to the previous page
+            }}
+            title="Confirm Cancellation"
+            message="Are you sure you want to cancel? Any unsaved changes will be discarded."
+            confirmText="Yes, Cancel"
+            cancelText="No, Continue Editing"
+          />
         </div>
       ) : (
         <>
@@ -170,79 +198,61 @@ export default function EventPage({ eventId }: EventProps) {
               </Button>
             )}
           </div>
-          <p className="text-gray-600 mb-2">Date: {event.date}</p>
-          <p className="text-gray-600 mb-2">Start Time: {event.startTime}</p>
+          <div className="flex space-x-4 mb-4">
+            <Button
+              variant={activeTab === "event" ? "default" : "outline"}
+              onClick={() => setActiveTab("event")}
+            >
+              Event
+            </Button>
+            <Button
+              variant={activeTab === "ticketInfo" ? "default" : "outline"}
+              onClick={() => setActiveTab("ticketInfo")}
+            >
+              Tickets
+            </Button>
+            <Button
+              variant={activeTab === "guestList" ? "default" : "outline"}
+              onClick={() => setActiveTab("guestList")}
+            >
+              Guest List
+            </Button>
+          </div>
 
-          {event.endTime && (
-            <p className="text-gray-600 mb-2">End Time: {event.endTime}</p>
-          )}
-          {event.description && (
-            <p className="text-gray-800 mb-4">{event.description}</p>
-          )}
-          {event.photo && (
-            <img
-              src={event.photo}
-              alt={event.name}
-              className="w-full h-64 object-cover rounded-lg mb-4"
+          {activeTab === "ticketInfo" && (
+            <TicketInfo
+              ticketInfo={ticketInfo}
+              canEdit={canEdit}
+              eventId={eventId}
+              promoterClerkId={promoterId}
             />
           )}
-          {ticketInfo && (
+          {activeTab === "event" && (
+            <EventInfo
+              event={event}
+              ticketInfo={ticketInfo}
+              canEdit={canEdit}
+            />
+          )}
+
+          {activeTab === "guestList" && (
             <>
-              <div className="bg-gray-100 p-4 rounded-lg mb-4">
-                <h2 className="text-xl font-semibold mb-2">
-                  Ticket Information
-                </h2>
-                <p className="mb-1">
-                  Male Ticket Price: ${ticketInfo.maleTicketPrice.toFixed(2)}
-                </p>
-                <p className="mb-1">
-                  Female Ticket Price: $
-                  {ticketInfo.femaleTicketPrice.toFixed(2)}
-                </p>
-                <p className="mb-1">
-                  Male Ticket Capacity: {ticketInfo.maleTicketCapacity}
-                </p>
-                <p>Female Ticket Capacity: {ticketInfo.femaleTicketCapacity}</p>
-              </div>
-              {canEdit && (
-                <div className="bg-green-100 p-4 rounded-lg mb-4">
-                  <h2 className="text-xl font-semibold mb-2">Tickets Sold</h2>
-                  <p className="mb-1">
-                    Male Tickets Sold: {ticketInfo.totalMaleTicketsSold}
-                  </p>
-                  <p>
-                    Female Tickets Sold: {ticketInfo.totalFemaleTicketsSold}
-                  </p>
-                </div>
+              {canUploadGuestList && (
+                <PromoterGuestList
+                  eventId={eventId}
+                  promoterId={promoterId || ""}
+                />
               )}
+              {canViewAllGuestList && (
+                <EventGuestList eventId={eventId} />
+                // <Link href={`/events/${eventId}/guestlist`}>
+                //   <Button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                //     View Guest List
+                //   </Button>
+                // </Link>
+              )}
+              {canCheckInGuests && <ModeratorGuestList eventId={eventId} />}
             </>
-          )}
-          {canUploadGuestList && ticketInfo && promoCodeUsage && (
-            <div className="bg-blue-100 p-4 rounded-lg mb-4">
-              <h2 className="text-xl font-semibold mb-2">
-                Your Promo Code Usage
-              </h2>
-              <p className="mb-1">
-                Male Tickets: {promoCodeUsage.maleUsageCount}
-              </p>
-              <p className="mb-1">
-                Female Tickets: {promoCodeUsage.femaleUsageCount}
-              </p>
-            </div>
-          )}
-          {canUploadGuestList && ticketInfo && (
-            <Link href={`/events/${eventId}/promoters/${promoterId}`}>
-              <Button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2">
-                Manage Guest List
-              </Button>
-            </Link>
-          )}
-          {canViewAllGuestList && (
-            <Link href={`/events/${eventId}/guestlist`}>
-              <Button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                View Guest List
-              </Button>
-            </Link>
           )}
         </>
       )}

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation } from "./_generated/server";
 import { query, QueryCtx } from "./_generated/server";
+import { UserRoleEnum } from "../utils/enum";
 
 export const createOrganization = internalMutation({
   args: {
@@ -248,5 +249,23 @@ export const updateOrganizationPromoDiscount = mutation({
     });
 
     return updatedOrganization;
+  },
+});
+
+export const getPromotersByOrganization = query({
+  args: { clerkOrganizationId: v.string() },
+  handler: async (ctx, args) => {
+    const promoters = await ctx.db
+      .query("users")
+      .filter((q) =>
+        q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
+      )
+      .filter((q) => q.eq(q.field("role"), UserRoleEnum.PROMOTER))
+      .collect();
+
+    return promoters.map((promoter) => ({
+      clerkUserId: promoter.clerkUserId,
+      name: promoter.name,
+    }));
   },
 });

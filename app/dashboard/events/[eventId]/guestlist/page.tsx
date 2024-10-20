@@ -33,6 +33,7 @@ import { Id } from "../../../../../convex/_generated/dataModel";
 import { FaCheck, FaEdit, FaPlus, FaMinus, FaSearch } from "react-icons/fa";
 import { useUserRole } from "@/hooks/useUserRole";
 import { UserRoleEnum } from "@/utils/enums";
+import { useToast } from "@/hooks/use-toast";
 
 interface Guest {
   id: string;
@@ -61,6 +62,7 @@ const GuestListPage: React.FC<GuestListPageProps> = ({ params }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPromoter, setSelectedPromoter] = useState<string>("all");
   const { role, isLoading } = useUserRole();
+  const { toast } = useToast();
 
   const canCheckGuests = role === UserRoleEnum.MODERATOR;
 
@@ -105,14 +107,28 @@ const GuestListPage: React.FC<GuestListPageProps> = ({ params }) => {
 
   const handleSave = async () => {
     if (editingGuest) {
-      await updateGuestAttendance({
-        guestListId: editingGuest.guestListId,
-        guestId: editingGuest.id,
-        attended: true,
-        malesInGroup: maleCount,
-        femalesInGroup: femaleCount,
-      });
-      setIsEditModalOpen(false);
+      try {
+        await updateGuestAttendance({
+          guestListId: editingGuest.guestListId,
+          guestId: editingGuest.id,
+          attended: true,
+          malesInGroup: maleCount,
+          femalesInGroup: femaleCount,
+        });
+        toast({
+          title: "Guest Updated",
+          description: "The guest list attendance is successfully updated",
+        });
+      } catch (error) {
+        console.error("Error Updating guests:", error);
+        toast({
+          title: "Error",
+          description: "Failed update guest. Please try again",
+          variant: "destructive",
+        });
+      } finally {
+        setIsEditModalOpen(false);
+      }
     }
   };
 

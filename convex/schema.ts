@@ -116,7 +116,7 @@ export default defineSchema({
     femaleUsageCount: v.number(),
   })
     .index("by_promoCode", ["promoCodeId"])
-    .index("by_event", ["eventId"])
+    .index("by_eventId", ["eventId"])
     .index("by_promoter", ["clerkPromoterUserId"])
     .index("by_promoCode_and_event", ["promoCodeId", "eventId"]),
   ticketInfo: defineTable({
@@ -127,5 +127,6 @@ export default defineSchema({
     femaleTicketCapacity: v.number(),
     totalMaleTicketsSold: v.number(),
     totalFemaleTicketsSold: v.number(),
+    ticketSalesEndTime: v.string(),
   }).index("by_eventId", ["eventId"]),
 });

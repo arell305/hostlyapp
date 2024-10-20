@@ -2,6 +2,7 @@ import { pricingOptions } from "../constants/pricingOptions";
 import { PricingOption } from "@/types";
 import { OrganizationJSON } from "@clerk/backend";
 import { UserRoleEnum } from "./enum";
+import { format } from "date-fns";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -71,4 +72,8 @@ export const canCreateEvents = (role: UserRole | null): boolean => {
   ];
 
   return role !== null && allowedRoles.includes(role);
+};
+
+export const formatArrivalTime = (timestamp: string) => {
+  return format(new Date(timestamp), "h:mm a");
 };

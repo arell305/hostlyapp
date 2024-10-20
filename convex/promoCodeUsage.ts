@@ -39,3 +39,26 @@ export const getPromoCodeUsageByPromoterAndEvent = query({
     };
   },
 });
+
+export const getTotalPromoCodeUsageByEvent = query({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+
+    const usages = await ctx.db
+      .query("promoCodeUsage")
+      .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+      .collect();
+
+    const totalUsage = usages.reduce(
+      (acc, usage) => {
+        acc.totalMaleUsage += usage.maleUsageCount;
+        acc.totalFemaleUsage += usage.femaleUsageCount;
+        return acc;
+      },
+      { totalMaleUsage: 0, totalFemaleUsage: 0 }
+    );
+
+    return totalUsage;
+  },
+});

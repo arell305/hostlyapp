@@ -24,6 +24,7 @@ interface EventFormProps {
     femaleTicketPrice: number;
     maleTicketCapacity: number;
     femaleTicketCapacity: number;
+    ticketSalesEndTime: string;
   } | null;
   onSubmit: (eventData: any, ticketData: any) => Promise<void>;
   isEdit: boolean;
@@ -55,8 +56,8 @@ const EventForm: React.FC<EventFormProps> = ({
   );
   const [startTime, setStartTime] = useState(initialEventData?.startTime || "");
   const [endTime, setEndTime] = useState(initialEventData?.endTime || "");
-  const [guestListCloseTime, setGuestListCloseTime] = useState(
-    initialEventData?.guestListCloseTime || ""
+  const [guestListCloseTime, setGuestListCloseTime] = useState<string | null>(
+    initialEventData?.guestListCloseTime || null
   );
   const [photo, setPhoto] = useState<File | null>(null);
 
@@ -100,6 +101,7 @@ const EventForm: React.FC<EventFormProps> = ({
         onConfirm: () => {
           setIsGuestListSelected(false);
           setShowConfirmModal(false);
+          setGuestListCloseTime(null);
         },
       });
       setShowConfirmModal(true);
@@ -139,6 +141,10 @@ const EventForm: React.FC<EventFormProps> = ({
     initialTicketData?.femaleTicketCapacity.toString() || ""
   );
 
+  const [ticketSalesEndTime, setTicketSalesEndTime] = useState(
+    initialTicketData?.ticketSalesEndTime || ""
+  );
+
   // Selection state
   const [isGuestListSelected, setIsGuestListSelected] = useState(
     !!initialEventData?.guestListCloseTime
@@ -154,6 +160,8 @@ const EventForm: React.FC<EventFormProps> = ({
     maleTicketCapacity?: string;
     femaleTicketCapacity?: string;
     startTime?: string;
+    ticketSalesEndTime?: string;
+    guestListCloseTime?: string;
   }>({});
   const [isLoading, setIsLoading] = useState(false);
   const priceRegex = /^\d*\.?\d{0,2}$/;
@@ -231,6 +239,22 @@ const EventForm: React.FC<EventFormProps> = ({
         }));
         hasErrors = true;
       }
+      if (ticketSalesEndTime.trim() === "") {
+        setErrors((prev) => ({
+          ...prev,
+          ticketSalesEndTime: "Ticket sales time must be selected",
+        }));
+      }
+    }
+
+    if (isGuestListSelected) {
+      if (guestListCloseTime === null || guestListCloseTime === "") {
+        setErrors((prev) => ({
+          ...prev,
+          guestListCloseTime: "Guest list close time must be selected.",
+        }));
+        hasErrors = true;
+      }
     }
 
     if (hasErrors || !date) {
@@ -245,9 +269,7 @@ const EventForm: React.FC<EventFormProps> = ({
         startTime: startTime.trim(),
         endTime: endTime.trim() !== "" ? endTime : null,
         guestListCloseTime:
-          isGuestListSelected && guestListCloseTime.trim() !== ""
-            ? guestListCloseTime
-            : null,
+          isGuestListSelected && guestListCloseTime ? guestListCloseTime : null,
         photo: photo ? photo.name : null,
       };
 
@@ -257,6 +279,7 @@ const EventForm: React.FC<EventFormProps> = ({
             femaleTicketPrice: parseFloat(femaleTicketPrice) || 0,
             maleTicketCapacity: parseInt(maleTicketCapacity) || 0,
             femaleTicketCapacity: parseInt(femaleTicketCapacity) || 0,
+            ticketSalesEndTime,
           }
         : null;
 
@@ -365,10 +388,13 @@ const EventForm: React.FC<EventFormProps> = ({
           <Input
             type="time"
             id="guestListCloseTime"
-            value={guestListCloseTime}
+            value={guestListCloseTime || ""}
             onChange={(e) => setGuestListCloseTime(e.target.value)}
             className="w-full max-w-[500px]"
           />
+          {errors.guestListCloseTime && (
+            <p className="text-red-500">{errors.guestListCloseTime}</p>
+          )}
         </div>
       )}
 
@@ -459,6 +485,19 @@ const EventForm: React.FC<EventFormProps> = ({
             />
             {errors.femaleTicketCapacity && (
               <p className="text-red-500">{errors.femaleTicketCapacity}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="ticketSalesEndTime">Ticket Sales End Time</Label>
+            <Input
+              type="time"
+              id="ticketSalesEndTime"
+              value={ticketSalesEndTime}
+              onChange={(e) => setTicketSalesEndTime(e.target.value)}
+              className="w-full max-w-[500px]"
+            />
+            {errors.ticketSalesEndTime && (
+              <p className="text-red-500">{errors.ticketSalesEndTime}</p>
             )}
           </div>
         </>

@@ -6,7 +6,7 @@ import { FaEdit } from "react-icons/fa";
 import { useUserRole } from "@/hooks/useUserRole";
 import { UserRoleEnum } from "@/utils/enums";
 import EditPromoCodeDialog from "./EditPromoCodeDialog";
-import PromoterUserButton from "./PromoterUseetonbutton";
+import PromoterUserButton from "./PromoterUserbutton";
 
 interface DashboardNavbarProps {
   toggleNavbar: () => void;

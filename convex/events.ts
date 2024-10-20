@@ -256,3 +256,23 @@ export const cancelEvent = mutation({
     };
   },
 });
+
+// In your Convex queries file
+export const getEventsByOrgAndMonth = query({
+  args: {
+    clerkOrganizationId: v.string(),
+    year: v.number(),
+    month: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const { clerkOrganizationId, year, month } = args;
+    const startDate = new Date(year, month - 2, 1);
+    const endDate = new Date(year, month + 1, 0);
+    return await ctx.db
+      .query("events")
+      .filter((q) => q.eq(q.field("clerkOrganizationId"), clerkOrganizationId))
+      .filter((q) => q.gte(q.field("date"), startDate.toISOString()))
+      .filter((q) => q.lte(q.field("date"), endDate.toISOString()))
+      .collect();
+  },
+});
