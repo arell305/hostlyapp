@@ -2,8 +2,9 @@ import { pricingOptions } from "../constants/pricingOptions";
 import { PricingOption } from "@/types";
 import { OrganizationJSON } from "@clerk/backend";
 import { UserRoleEnum } from "./enum";
-import { format } from "date-fns";
-
+import { parseISO } from "date-fns";
+import { toZonedTime, format } from "date-fns-tz";
+import moment from "moment-timezone";
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
   if (!option) return undefined;
@@ -76,4 +77,35 @@ export const canCreateEvents = (role: UserRole | null): boolean => {
 
 export const formatArrivalTime = (timestamp: string) => {
   return format(new Date(timestamp), "h:mm a");
+};
+
+export const formatDateTime = (dateTimeString: string): string => {
+  const pstDate = moment(dateTimeString).tz("America/Los_Angeles");
+
+  // Format the date and time
+  return pstDate.format("MMMM D, YYYY [at] h:mm A z");
+};
+
+export const utcToPstString = (utcDate: string | null) => {
+  if (!utcDate) return "";
+  return format(
+    toZonedTime(new Date(utcDate), "America/Los_Angeles"),
+    "yyyy-MM-dd'T'HH:mm",
+    { timeZone: "America/Los_Angeles" }
+  );
+};
+
+export const pstToUtc = (pstDateString: string) => {
+  const pstDate = new Date(pstDateString);
+  return pstDate.toISOString();
+};
+
+export const localToPst = (localDate: string) => {
+  // The user selects a local time, like "2024-10-25T10:00", in their local time zone.
+
+  // Now, treat that time as if it were in PST, regardless of the user's timezone.
+  const zonedPstDate = toZonedTime(localDate, "America/Los_Angeles");
+
+  // Format the PST time to a UTC string for storage
+  return zonedPstDate;
 };

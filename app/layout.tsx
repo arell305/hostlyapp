@@ -5,6 +5,9 @@ import { TITLE, DESC, META_DESC, WEBSITE } from "./constants";
 import { Providers } from "./providers";
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
+import { Settings } from "luxon";
+
+Settings.defaultZone = "America/Los_Angeles"; //
 
 const poppins = Poppins({
   subsets: ["latin"],

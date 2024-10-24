@@ -37,14 +37,14 @@ export const insertTicketInfo = mutation({
     }
 
     // Check if ticket info already exists for this event
-    const existingTicketInfo = await ctx.db
-      .query("ticketInfo")
-      .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
-      .unique();
+    // const existingTicketInfo = await ctx.db
+    //   .query("ticketInfo")
+    //   .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+    //   .unique();
 
-    if (existingTicketInfo) {
-      throw new Error("Ticket information already exists for this event");
-    }
+    // if (existingTicketInfo) {
+    //   throw new Error("Ticket information already exists for this event");
+    // }
 
     // Insert the new ticket info
     const ticketInfoId = await ctx.db.insert("ticketInfo", {

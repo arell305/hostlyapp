@@ -1,14 +1,12 @@
-import { formatArrivalTime } from "../../../utils/helpers";
+import { formatDateTime, utcToPstString } from "../../../utils/helpers";
 
 interface EventInfoProps {
   event: {
     name: string;
-    date: string;
     startTime: string;
-    endTime?: string | null;
+    endTime: string;
     description?: string | null;
     photo?: string | null;
-    guestListCloseTime?: string | null;
   };
   ticketInfo: {
     maleTicketPrice: number;
@@ -20,26 +18,27 @@ interface EventInfoProps {
     totalFemaleTicketsSold: number;
   } | null;
   canEdit: boolean;
+  guestListInfo: {
+    guestListCloseTime: string;
+  } | null;
 }
 
 const EventInfo: React.FC<EventInfoProps> = ({
   event,
   ticketInfo,
   canEdit,
+  guestListInfo,
 }) => {
   return (
     <div className="space-y-6">
       <div className="bg-gray-100 p-4 rounded-lg">
         <h2 className="text-2xl font-semibold mb-4">Event Information</h2>
         <p className="mb-2">
-          <strong>Date:</strong> {event.date}
-        </p>
-        <p className="mb-2">
-          <strong>Start Time:</strong> {event.startTime}
+          <strong>Starts:</strong> {formatDateTime(event.startTime)}
         </p>
         {event.endTime && (
           <p className="mb-2">
-            <strong>End Time:</strong> {event.endTime}
+            <strong>Ends:</strong> {formatDateTime(event.endTime)}
           </p>
         )}
         {event.description && (
@@ -47,11 +46,7 @@ const EventInfo: React.FC<EventInfoProps> = ({
             <strong>Description:</strong> {event.description}
           </p>
         )}
-        {event.guestListCloseTime && (
-          <p className="mb-2">
-            <strong>Guest List Closes:</strong> {event.guestListCloseTime}
-          </p>
-        )}
+
         {event.photo && (
           <img
             src={event.photo}
@@ -61,30 +56,46 @@ const EventInfo: React.FC<EventInfoProps> = ({
         )}
       </div>
 
-      {ticketInfo && (
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h2 className="text-2xl font-semibold mb-4">Ticket Information</h2>
+      <div className="bg-gray-100 p-4 rounded-lg">
+        <h2 className="text-2xl font-semibold mb-4">Ticket Information</h2>
+        {ticketInfo ? (
+          <div>
+            <p className="mb-2">
+              <strong>Male Ticket Price:</strong> $
+              {ticketInfo.maleTicketPrice.toFixed(2)}
+            </p>
+            <p className="mb-2">
+              <strong>Female Ticket Price:</strong> $
+              {ticketInfo.femaleTicketPrice.toFixed(2)}
+            </p>
+            <p className="mb-2">
+              <strong>Male Ticket Capacity:</strong>{" "}
+              {ticketInfo.maleTicketCapacity}
+            </p>
+            <p className="mb-2">
+              <strong>Female Ticket Capacity:</strong>{" "}
+              {ticketInfo.femaleTicketCapacity}
+            </p>
+            <p className="mb-2">
+              <strong>Ticket Sales Close:</strong>{" "}
+              {formatDateTime(ticketInfo.ticketSalesEndTime)}
+            </p>
+          </div>
+        ) : (
+          <p>No ticket option for this event.</p>
+        )}
+      </div>
+      <div className="bg-gray-100 p-4 rounded-lg">
+        <h2 className="text-2xl font-semibold mb-4">Guest List Information</h2>
+        {guestListInfo ? (
           <p className="mb-2">
-            <strong>Male Ticket Price:</strong> $
-            {ticketInfo.maleTicketPrice.toFixed(2)}
+            <strong>Guest List Closes:</strong>{" "}
+            {formatDateTime(guestListInfo.guestListCloseTime)}
           </p>
-          <p className="mb-2">
-            <strong>Female Ticket Price:</strong> $
-            {ticketInfo.femaleTicketPrice.toFixed(2)}
-          </p>
-          <p className="mb-2">
-            <strong>Male Ticket Capacity:</strong>{" "}
-            {ticketInfo.maleTicketCapacity}
-          </p>
-          <p className="mb-2">
-            <strong>Female Ticket Capacity:</strong>{" "}
-            {ticketInfo.femaleTicketCapacity}
-          </p>
-          <p className="mb-2">
-            <strong>Ticket Sales Close:</strong> {ticketInfo.ticketSalesEndTime}
-          </p>
-        </div>
-      )}
+        ) : (
+          <p>No guest list option for this event.</p>
+        )}
+      </div>
     </div>
   );
 };

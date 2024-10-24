@@ -10,6 +10,7 @@ import UpdateGuestModal from "./UpdateGuestModal";
 
 interface EventGuestListProps {
   eventId: Id<"events">;
+  isCheckInOpen: boolean;
 }
 
 interface Guest {
@@ -23,7 +24,10 @@ interface Guest {
   femalesInGroup?: number;
 }
 
-const ModeratorGuestList = ({ eventId }: EventGuestListProps) => {
+const ModeratorGuestList = ({
+  eventId,
+  isCheckInOpen,
+}: EventGuestListProps) => {
   const result = useQuery(api.events.getEventWithGuestLists, { eventId });
   const [searchTerm, setSearchTerm] = useState("");
   const updateGuestAttendance = useMutation(api.events.updateGuestAttendance);
@@ -100,6 +104,7 @@ const ModeratorGuestList = ({ eventId }: EventGuestListProps) => {
   return (
     <>
       <div className="mb-4 flex flex-col gap-4">
+        {!isCheckInOpen && <h2>No Longer able to check in guests</h2>}
         <div className="flex items-center">
           <Input
             type="text"
@@ -121,7 +126,7 @@ const ModeratorGuestList = ({ eventId }: EventGuestListProps) => {
               guest={guest}
               canEditGuests={false}
               canSeePromoterName={true}
-              canCheckInGuests={true}
+              canCheckInGuests={isCheckInOpen}
               onCheckIn={handleCheckInGuest}
             />
           ))}

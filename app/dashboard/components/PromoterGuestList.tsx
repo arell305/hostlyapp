@@ -21,6 +21,7 @@ import GuestCard from "./GuestCard";
 type GuestListManagerProps = {
   eventId: Id<"events">;
   promoterId: string;
+  isGuestListOpen: boolean;
 };
 
 interface Guest {
@@ -32,7 +33,11 @@ interface Guest {
   checkInTime?: string;
 }
 
-const GuestListPage = ({ eventId, promoterId }: GuestListManagerProps) => {
+const GuestListPage = ({
+  eventId,
+  promoterId,
+  isGuestListOpen,
+}: GuestListManagerProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
@@ -120,22 +125,25 @@ const GuestListPage = ({ eventId, promoterId }: GuestListManagerProps) => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-2">Guest List</h1>
-      {canAddGuests && (
-        <>
-          <Button
-            className="mb-2"
-            onClick={() => setIsGuestListModalOpen(true)}
-          >
-            Add to Guest List
-          </Button>
-          <AddGuestListModal
-            isOpen={isGuestListModalOpen}
-            onClose={() => setIsGuestListModalOpen(false)}
-            promoterId={promoterId}
-            eventId={eventId}
-          />
-        </>
-      )}
+      {canAddGuests &&
+        (isGuestListOpen ? (
+          <>
+            <Button
+              className="mb-2"
+              onClick={() => setIsGuestListModalOpen(true)}
+            >
+              Add to Guest List
+            </Button>
+            <AddGuestListModal
+              isOpen={isGuestListModalOpen}
+              onClose={() => setIsGuestListModalOpen(false)}
+              promoterId={promoterId}
+              eventId={eventId}
+            />
+          </>
+        ) : (
+          <p className="text-red-500 mb-2">Guest List is closed</p>
+        ))}
       <div className="mb-2">
         <Badge variant="secondary" className="mr-2">
           Males: {totalMales}

@@ -7,76 +7,86 @@ import "@mobiscroll/react/dist/css/mobiscroll.min.css";
 import {
   Datepicker,
   MbscCalendarMarked,
-  MbscDatepickerCellClickEvent,
   Page,
   setOptions,
+  momentTimezone,
 } from "@mobiscroll/react";
+import moment from "moment-timezone";
 
 setOptions({
   theme: "ios",
   themeVariant: "light",
+  timezonePlugin: momentTimezone,
 });
+momentTimezone.moment = moment;
 
 const CalendarComponent: React.FC = () => {
   const router = useRouter();
+  const todayInPST = moment().tz("America/Los_Angeles").startOf("day").toDate();
+
+  const [selected, setSelected] = useState<Date | null>(todayInPST);
   const { organization, isLoaded: orgLoaded } = useOrganization();
-  const [currentMonth, setCurrentMonth] = useState(() => new Date());
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [displayedMonth, setDisplayedMonth] = useState(() =>
+    moment().tz("America/Los_Angeles").startOf("month")
+  );
   const [displayDate, setDisplayDate] = useState<string>("");
+  const [matchingEvents, setMatchingEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!orgLoaded) return;
+    const today = moment().tz("America/Los_Angeles");
+    setDisplayDate(today.format("dddd, MMMM D, YYYY"));
+  }, [orgLoaded, organization]);
 
   const events = useQuery(api.events.getEventsByOrgAndMonth, {
     clerkOrganizationId: organization?.id || "",
-    year: currentMonth.getFullYear(),
-    month: currentMonth.getMonth() + 1,
-  });
-
-  const eventsForSelectedDate = useQuery(api.events.getEventsByOrgAndDate, {
-    clerkOrganizationId: organization?.id || "",
-    date: selectedDate,
+    year: displayedMonth.year(),
+    month: displayedMonth.month() + 1,
   });
 
   const myMarked = useMemo<MbscCalendarMarked[]>(() => {
     if (!events) return [];
-    return events.map((event) => ({
-      date: new Date(event.date),
-      color: "#ff0000", // You can customize the color
-    }));
+    return events.map((event) => {
+      const pstDate = moment(event.startTime).tz("America/Los_Angeles");
+      return {
+        date: pstDate.format("YYYY-MM-DD"),
+        color: "#ff0000",
+        event: event,
+      };
+    });
   }, [events]);
 
-  const handleDateClick = (event: MbscDatepickerCellClickEvent) => {
-    if (event.date) {
-      const formattedSelectedDate = event.date.toISOString().split("T")[0];
-      const formattedDisplayDate = event.date.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-
-      setSelectedDate(formattedSelectedDate);
-      setDisplayDate(formattedDisplayDate);
-    }
-  };
+  const uniqueDatesSet = new Set(myMarked.map((item) => item.date));
+  const uniqueDates = Array.from(uniqueDatesSet).map((date) => ({
+    date,
+    color: "#ff0000",
+  }));
 
   const handleEventClick = (eventId: string) => {
     router.push(`/events/${eventId}`);
   };
 
-  useEffect(() => {
-    if (!orgLoaded) return;
+  const selectedChange = (ev: { value: any }) => {
+    const userLocalDate = moment(ev.value).tz(moment.tz.guess());
+    const pstDate = userLocalDate
+      .tz("America/Los_Angeles", true)
+      .startOf("day");
+    const formattedDate = pstDate.format("dddd, MMMM D, YYYY");
+    const selectedDateIn = pstDate.format("YYYY-MM-DD");
+    setDisplayDate(formattedDate);
+    setSelected(pstDate.toDate());
+    const matchingEvents = myMarked.filter(
+      (event) => event.date === selectedDateIn
+    );
+    setMatchingEvents(matchingEvents);
+  };
 
-    const today = new Date();
-    const formattedToday = today.toISOString().split("T")[0];
-    const formattedDisplayToday = today.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    setSelectedDate(formattedToday);
-    setDisplayDate(formattedDisplayToday);
-  }, [orgLoaded, organization]);
+  const handleMonthChange = (event: { firstDay: Date }) => {
+    const newMonth = moment(event.firstDay)
+      .tz("America/Los_Angeles")
+      .startOf("month");
+    setDisplayedMonth(newMonth);
+  };
 
   return (
     <>
@@ -86,13 +96,13 @@ const CalendarComponent: React.FC = () => {
             <div className="mbsc-form-group-title">Events</div>
             <Datepicker
               display="inline"
-              marked={myMarked}
-              onCellClick={handleDateClick}
-              onPageChange={(event) => {
-                setCurrentMonth(event.firstDay);
-              }}
-              showOuterDays={false}
-              className="h-[100px]"
+              marked={uniqueDates}
+              dataTimezone="America/Los_Angeles"
+              displayTimezone="America/Los_Angeles"
+              onChange={selectedChange}
+              onPageChange={handleMonthChange}
+              value={selected}
+              controls={["calendar"]}
             />
           </div>
         </div>
@@ -102,20 +112,23 @@ const CalendarComponent: React.FC = () => {
         <strong>Selected Date:</strong> {displayDate}
       </div>
       <div className="events-list mt-4">
-        {eventsForSelectedDate && eventsForSelectedDate.length > 0 ? (
-          <ul>
-            {eventsForSelectedDate.map((event, index) => (
-              <li
-                key={index}
-                onClick={() => handleEventClick(event._id)}
-                style={{ cursor: "pointer" }}
-              >
-                {event.name}
-              </li>
-            ))}
-          </ul>
+        {matchingEvents.length > 0 ? (
+          <div className="events-list mt-4">
+            <h3>Matching Events:</h3>
+            <ul>
+              {matchingEvents.map((event, index) => (
+                <li
+                  key={index}
+                  onClick={() => handleEventClick(event.event._id)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {event.event.name}
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : (
-          <p>No events</p>
+          <p>No matching events found.</p>
         )}
       </div>
     </>

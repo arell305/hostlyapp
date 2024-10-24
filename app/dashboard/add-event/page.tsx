@@ -25,6 +25,9 @@ const AddEventPage: FC = () => {
     api.customers.updateGuestListEventCount
   );
   const insertTicketInfo = useMutation(api.ticketInfo.insertTicketInfo);
+  const insertGuestListInfo = useMutation(
+    api.guestListInfo.insertGuestListInfo
+  );
 
   if (!orgLoaded || !organization) {
     return <div>Loading organization...</div>;
@@ -42,7 +45,11 @@ const AddEventPage: FC = () => {
     canAddGuestList = eventCount < 4;
   }
 
-  const handleSubmit = async (eventData: any, ticketData: any) => {
+  const handleSubmit = async (
+    eventData: any,
+    ticketData: any,
+    guestListData: any
+  ) => {
     try {
       const eventId = await addEvent({
         clerkOrganizationId: organization.id,
@@ -53,6 +60,13 @@ const AddEventPage: FC = () => {
         await insertTicketInfo({
           eventId,
           ...ticketData,
+        });
+      }
+
+      if (guestListData) {
+        await insertGuestListInfo({
+          eventId,
+          ...guestListData,
         });
       }
 

@@ -63,7 +63,7 @@ const TicketInfo: React.FC<TicketInfoProps> = ({
   );
 
   if (!ticketInfo) {
-    return <p>No ticket options for this event</p>;
+    return <p>No ticket option for this event.</p>;
   }
   if (!isLoaded) {
     return <div>Loading</div>;

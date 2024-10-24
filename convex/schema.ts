@@ -87,17 +87,15 @@ export default defineSchema({
   events: defineTable({
     clerkOrganizationId: v.string(),
     name: v.string(),
-    date: v.string(),
     description: v.union(v.string(), v.null()),
     startTime: v.string(),
-    endTime: v.union(v.string(), v.null()),
-    guestListCloseTime: v.union(v.string(), v.null()),
-    ticketInfoId: v.optional(v.id("ticketInfo")),
+    endTime: v.string(),
+    ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
     photo: v.union(v.string(), v.null()),
-    guestListIds: v.array(v.id("guestLists")),
+    guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
-    .index("by_date", ["date"]),
+    .index("by_startTime", ["startTime"]),
   guestLists: defineTable({
     names: v.array(GuestListNames),
     eventId: v.id("events"),
@@ -128,5 +126,10 @@ export default defineSchema({
     totalMaleTicketsSold: v.number(),
     totalFemaleTicketsSold: v.number(),
     ticketSalesEndTime: v.string(),
+  }).index("by_eventId", ["eventId"]),
+  guestListInfo: defineTable({
+    eventId: v.id("events"),
+    guestListCloseTime: v.string(),
+    guestListIds: v.array(v.id("guestLists")),
   }).index("by_eventId", ["eventId"]),
 });

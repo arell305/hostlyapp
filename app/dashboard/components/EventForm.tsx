@@ -1,22 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { format, isBefore, startOfDay } from "date-fns";
+import { format, isBefore, isAfter, startOfDay } from "date-fns";
 import { SubscriptionTier } from "../../../utils/enum";
 import { Id } from "../../../convex/_generated/dataModel";
 import ConfirmModal from "./ConfirmModal";
+import { localToPst, pstToUtc, utcToPstString } from "../../../utils/helpers";
+import { DateTime } from "luxon";
 
 interface EventFormProps {
   initialEventData?: {
     name: string;
     description: string | null;
-    date: string;
     startTime: string;
-    endTime: string | null;
-    guestListCloseTime?: string | null;
+    endTime: string;
     photo: string | null;
   };
   initialTicketData?: {
@@ -26,11 +26,19 @@ interface EventFormProps {
     femaleTicketCapacity: number;
     ticketSalesEndTime: string;
   } | null;
-  onSubmit: (eventData: any, ticketData: any) => Promise<void>;
+  initialGuestListData?: {
+    guestListCloseTime: string;
+  } | null;
+  onSubmit: (
+    eventData: any,
+    ticketData: any,
+    guesListData: any
+  ) => Promise<void>;
   isEdit: boolean;
   canAddGuestList: boolean;
   subscriptionTier?: SubscriptionTier;
   deleteTicketInfo?: (eventId: Id<"events">) => Promise<void>;
+  deleteGuestListInfo?: (eventId: Id<"events">) => Promise<void>;
   eventId?: Id<"events">;
   onCancelEvent?: () => Promise<void>;
 }
@@ -38,6 +46,7 @@ interface EventFormProps {
 const EventForm: React.FC<EventFormProps> = ({
   initialEventData,
   initialTicketData,
+  initialGuestListData,
   onSubmit,
   isEdit,
   canAddGuestList,
@@ -45,19 +54,19 @@ const EventForm: React.FC<EventFormProps> = ({
   deleteTicketInfo,
   eventId,
   onCancelEvent,
+  deleteGuestListInfo,
 }) => {
+  const defaultTime = "22:00";
   // Event state
   const [eventName, setEventName] = useState(initialEventData?.name || "");
   const [description, setDescription] = useState(
     initialEventData?.description || ""
   );
-  const [date, setDate] = useState<Date | undefined>(
-    initialEventData?.date ? new Date(initialEventData.date) : undefined
-  );
+
   const [startTime, setStartTime] = useState(initialEventData?.startTime || "");
   const [endTime, setEndTime] = useState(initialEventData?.endTime || "");
   const [guestListCloseTime, setGuestListCloseTime] = useState<string | null>(
-    initialEventData?.guestListCloseTime || null
+    initialGuestListData?.guestListCloseTime || null
   );
   const [photo, setPhoto] = useState<File | null>(null);
 
@@ -91,7 +100,7 @@ const EventForm: React.FC<EventFormProps> = ({
   };
 
   const handleRemoveGuestList = () => {
-    if (isEdit && initialEventData?.guestListCloseTime) {
+    if (isEdit && initialGuestListData) {
       setModalConfig({
         title: "Confirm Guest List Removal",
         message:
@@ -127,6 +136,29 @@ const EventForm: React.FC<EventFormProps> = ({
     setShowConfirmModal(true);
   };
 
+  const getCurrentTimeInPST = () => {
+    const pstDate = new Date().toLocaleString("en-US", {
+      timeZone: "America/Los_Angeles",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    // Format to YYYY-MM-DDTHH:mm
+    const [date, time] = pstDate.split(", ");
+    const [month, day, year] = date.split("/");
+    // Format to YYYY-MM-DDTHH:mm
+    return `${year}-${month}-${day}T${time}`;
+  };
+
+  useEffect(() => {
+    // Set the initial startTime to the current time in PST
+    setStartTime(getCurrentTimeInPST());
+  }, []);
+
   // Ticket state
   const [maleTicketPrice, setMaleTicketPrice] = useState(
     initialTicketData?.maleTicketPrice.toString() || ""
@@ -146,20 +178,19 @@ const EventForm: React.FC<EventFormProps> = ({
   );
 
   // Selection state
-  const [isGuestListSelected, setIsGuestListSelected] = useState(
-    !!initialEventData?.guestListCloseTime
-  );
+  const [isGuestListSelected, setIsGuestListSelected] =
+    useState(!!initialGuestListData);
   const [isTicketsSelected, setIsTicketsSelected] =
     useState(!!initialTicketData);
 
   const [errors, setErrors] = useState<{
     eventName?: string;
-    date?: string;
     maleTicketPrice?: string;
     femaleTicketPrice?: string;
     maleTicketCapacity?: string;
     femaleTicketCapacity?: string;
     startTime?: string;
+    endTime?: string;
     ticketSalesEndTime?: string;
     guestListCloseTime?: string;
   }>({});
@@ -170,6 +201,7 @@ const EventForm: React.FC<EventFormProps> = ({
     e.preventDefault();
     setErrors({});
     let hasErrors = false;
+    const now = new Date();
 
     if (eventName.trim() === "") {
       setErrors((prev) => ({ ...prev, eventName: "Name must be filled." }));
@@ -182,23 +214,29 @@ const EventForm: React.FC<EventFormProps> = ({
         startTime: "Start Time must be filled.",
       }));
       hasErrors = true;
-    }
-
-    const today = startOfDay(new Date());
-    if (date) {
-      if (isBefore(date, today)) {
+    } else {
+      if (isBefore(startTime, now)) {
         setErrors((prev) => ({
           ...prev,
-          date: "Event date cannot be in the past.",
+          startTime: "Start Time cannot be in the past.",
         }));
         hasErrors = true;
       }
-    } else {
+    }
+    if (endTime.trim() === "") {
       setErrors((prev) => ({
         ...prev,
-        date: "Event date is required.",
+        endTime: "End Time must be filled.",
       }));
       hasErrors = true;
+    } else {
+      if (!isAfter(endTime, startTime)) {
+        setErrors((prev) => ({
+          ...prev,
+          endTime: "End Time must be after Start Time.",
+        }));
+        hasErrors = true;
+      }
     }
 
     if (isTicketsSelected) {
@@ -244,6 +282,13 @@ const EventForm: React.FC<EventFormProps> = ({
           ...prev,
           ticketSalesEndTime: "Ticket sales time must be selected",
         }));
+      } else if (isAfter(ticketSalesEndTime, endTime)) {
+        setErrors((prev) => ({
+          ...prev,
+          ticketSalesEndTime:
+            "Ticket sales time must be before or equal to the event end time.",
+        }));
+        hasErrors = true;
       }
     }
 
@@ -254,10 +299,17 @@ const EventForm: React.FC<EventFormProps> = ({
           guestListCloseTime: "Guest list close time must be selected.",
         }));
         hasErrors = true;
+      } else if (isAfter(guestListCloseTime, endTime)) {
+        setErrors((prev) => ({
+          ...prev,
+          guestListCloseTime:
+            "Guest list close time must be before or equal to the event end time.",
+        }));
+        hasErrors = true;
       }
     }
 
-    if (hasErrors || !date) {
+    if (hasErrors) {
       return;
     }
     setIsLoading(true);
@@ -265,11 +317,8 @@ const EventForm: React.FC<EventFormProps> = ({
       const eventData = {
         name: eventName,
         description: description.trim() !== "" ? description : null,
-        date: format(date, "yyyy-MM-dd"),
         startTime: startTime.trim(),
-        endTime: endTime.trim() !== "" ? endTime : null,
-        guestListCloseTime:
-          isGuestListSelected && guestListCloseTime ? guestListCloseTime : null,
+        endTime: endTime.trim(),
         photo: photo ? photo.name : null,
       };
 
@@ -283,21 +332,44 @@ const EventForm: React.FC<EventFormProps> = ({
           }
         : null;
 
-      await onSubmit(eventData, ticketData);
-      if (
-        isEdit &&
-        initialTicketData &&
-        !isTicketsSelected &&
-        deleteTicketInfo &&
-        eventId
-      ) {
-        await deleteTicketInfo(eventId);
-      }
+      const guesListData = isGuestListSelected
+        ? {
+            guestListCloseTime,
+          }
+        : null;
+      await onSubmit(eventData, ticketData, guesListData);
     } catch (error) {
       console.error("Error submitting event:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const utcToPstString = (utcDate: string | null) => {
+    if (!utcDate) return "";
+    return DateTime.fromISO(utcDate, { zone: "UTC" })
+      .setZone("America/Los_Angeles")
+      .toISO({ includeOffset: false }); // Exclude offset for datetime-local format
+  };
+
+  const handleDateTimeChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (value: string) => void
+  ) => {
+    const userInput = e.target.value; // e.g., "2024-10-31T19:00" for 7 PM
+
+    // Create a DateTime instance assuming the input is in PST
+    const pstDateTime = DateTime.fromISO(userInput, {
+      zone: "America/Los_Angeles",
+    });
+
+    // Log the output
+    console.log("Input treated as PST:", pstDateTime.toString());
+
+    // If you want to save it in UTC
+    const utcDateTime = pstDateTime.toUTC().toISO();
+    // Save the selected time in PST
+    setter(utcDateTime || "");
   };
 
   return (
@@ -335,37 +407,27 @@ const EventForm: React.FC<EventFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label>Event Date</Label>
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          className="rounded-md border"
-        />
-        {errors.date && <p className="text-red-500">{errors.date}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="startTime">Start Time</Label>
+        <Label htmlFor="startTime">Starts</Label>
         <Input
-          type="time"
+          type="datetime-local"
           id="startTime"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
+          value={utcToPstString(startTime) || ""}
+          onChange={(e) => handleDateTimeChange(e, setStartTime)}
           className="w-full max-w-[500px]"
         />
         {errors.startTime && <p className="text-red-500">{errors.startTime}</p>}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="endTime">End Time</Label>
+        <Label htmlFor="endTime">Ends</Label>
         <Input
-          type="time"
+          type="datetime-local"
           id="endTime"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
+          value={utcToPstString(endTime) || ""}
+          onChange={(e) => handleDateTimeChange(e, setEndTime)}
           className="w-full max-w-[500px]"
         />
+        {errors.endTime && <p className="text-red-500">{errors.endTime}</p>}
       </div>
 
       <div className="space-y-2">
@@ -386,10 +448,10 @@ const EventForm: React.FC<EventFormProps> = ({
         <div className="space-y-2">
           <Label htmlFor="guestListCloseTime">Guest List Close Time</Label>
           <Input
-            type="time"
+            type="datetime-local"
             id="guestListCloseTime"
-            value={guestListCloseTime || ""}
-            onChange={(e) => setGuestListCloseTime(e.target.value)}
+            value={utcToPstString(guestListCloseTime) || ""}
+            onChange={(e) => handleDateTimeChange(e, setGuestListCloseTime)}
             className="w-full max-w-[500px]"
           />
           {errors.guestListCloseTime && (
@@ -490,10 +552,10 @@ const EventForm: React.FC<EventFormProps> = ({
           <div className="space-y-2">
             <Label htmlFor="ticketSalesEndTime">Ticket Sales End Time</Label>
             <Input
-              type="time"
+              type="datetime-local"
               id="ticketSalesEndTime"
-              value={ticketSalesEndTime}
-              onChange={(e) => setTicketSalesEndTime(e.target.value)}
+              value={utcToPstString(ticketSalesEndTime) || ""}
+              onChange={(e) => handleDateTimeChange(e, setTicketSalesEndTime)}
               className="w-full max-w-[500px]"
             />
             {errors.ticketSalesEndTime && (

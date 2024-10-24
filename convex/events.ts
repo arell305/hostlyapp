@@ -4,7 +4,8 @@ import { query, mutation } from "./_generated/server";
 export const getEventsByOrgAndDate = query({
   args: {
     clerkOrganizationId: v.string(),
-    date: v.string(),
+    startTime: v.string(),
+    endTime: v.string(),
   },
   handler: async (ctx, args) => {
     const events = await ctx.db
@@ -12,7 +13,8 @@ export const getEventsByOrgAndDate = query({
       .filter((q) =>
         q.and(
           q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId),
-          q.eq(q.field("date"), args.date)
+          q.gte(q.field("startTime"), args.startTime),
+          q.lt(q.field("startTime"), args.endTime)
         )
       )
       .collect();
@@ -25,24 +27,19 @@ export const addEvent = mutation({
   args: {
     clerkOrganizationId: v.string(),
     name: v.string(),
-    date: v.string(),
     description: v.union(v.string(), v.null()),
     startTime: v.string(),
-    endTime: v.union(v.string(), v.null()),
-    guestListCloseTime: v.union(v.string(), v.null()),
+    endTime: v.string(),
     photo: v.union(v.string(), v.null()),
   },
   handler: async (ctx, args) => {
     const eventId = await ctx.db.insert("events", {
       clerkOrganizationId: args.clerkOrganizationId,
       name: args.name,
-      date: args.date,
       description: args.description,
       startTime: args.startTime,
       endTime: args.endTime,
-      guestListCloseTime: args.guestListCloseTime,
       photo: args.photo,
-      guestListIds: [],
     });
 
     // Update the organization's eventIds array
@@ -76,10 +73,15 @@ export const getEventById = query({
     if (event.ticketInfoId) {
       ticketInfo = await ctx.db.get(event.ticketInfoId);
     }
+    let guestListInfo = null;
+    if (event.guestListInfoId) {
+      guestListInfo = await ctx.db.get(event.guestListInfoId);
+    }
 
     return {
       ...event,
       ticketInfo,
+      guestListInfo,
     };
   },
 });
@@ -202,11 +204,11 @@ export const updateEvent = mutation({
     id: v.id("events"),
     name: v.optional(v.string()),
     description: v.optional(v.union(v.string(), v.null())),
-    date: v.optional(v.string()),
     startTime: v.optional(v.union(v.string(), v.null())),
     endTime: v.optional(v.union(v.string(), v.null())),
-    guestListCloseTime: v.optional(v.union(v.string(), v.null())),
     photo: v.optional(v.union(v.string(), v.null())),
+    ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
+    guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
   },
   handler: async (ctx, args) => {
     const { id, ...updateFields } = args;
@@ -271,8 +273,8 @@ export const getEventsByOrgAndMonth = query({
     return await ctx.db
       .query("events")
       .filter((q) => q.eq(q.field("clerkOrganizationId"), clerkOrganizationId))
-      .filter((q) => q.gte(q.field("date"), startDate.toISOString()))
-      .filter((q) => q.lte(q.field("date"), endDate.toISOString()))
+      .filter((q) => q.gte(q.field("startTime"), startDate.toISOString()))
+      .filter((q) => q.lte(q.field("startTime"), endDate.toISOString()))
       .collect();
   },
 });

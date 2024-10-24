@@ -40,7 +40,10 @@ export default function EventPage({ eventId }: EventProps) {
     orgRole === ClerkRoleEnum.ORG_ADMIN ||
     orgRole === ClerkRoleEnum.ORG_MANAGER;
   const canCheckInGuests =
-    ClerkRoleEnum.ORG_MODERATOR || orgRole === ClerkRoleEnum.ORG_ADMIN;
+    orgRole === ClerkRoleEnum.ORG_MODERATOR ||
+    orgRole === ClerkRoleEnum.ORG_ADMIN;
+
+  console.log("org role", orgRole);
 
   const promoCodeUsage = useQuery(
     api.promoCodeUsage.getPromoCodeUsageByPromoterAndEvent,
@@ -52,12 +55,15 @@ export default function EventPage({ eventId }: EventProps) {
   const updateEvent = useMutation(api.events.updateEvent);
   const updateTicketInfo = useMutation(api.ticketInfo.updateTicketInfo);
   const insertTicketInfo = useMutation(api.ticketInfo.insertTicketInfo);
-  const deleteTicketInfoAndUpdateEvent = useMutation(
-    api.ticketInfo.deleteTicketInfoAndUpdateEvent
-  );
   const cancelEvent = useMutation(api.events.cancelEvent);
   const { toast } = useToast();
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
+  const updateGuestListCloseTime = useMutation(
+    api.guestListInfo.updateGuestListCloseTime
+  );
+  const insertGuestListInfo = useMutation(
+    api.guestListInfo.insertGuestListInfo
+  );
 
   useEffect(() => {
     if (
@@ -78,30 +84,23 @@ export default function EventPage({ eventId }: EventProps) {
     return <div>Event not found</div>;
   }
 
-  const { ticketInfo, ...event } = eventData;
+  const { ticketInfo, guestListInfo, ...event } = eventData;
 
-  const handleSubmit = async (eventData: any, ticketData: any) => {
+  // Updating event
+  const handleSubmit = async (
+    updatedEventData: any,
+    updatedTicketData: any,
+    updatedGuestListData: any
+  ) => {
     try {
-      await updateEvent({
-        id: eventId,
-        ...eventData,
-      });
+      await updateEventInfo(
+        eventId,
+        eventData,
+        updatedEventData,
+        updatedTicketData,
+        updatedGuestListData
+      );
 
-      if (ticketData) {
-        if (ticketInfo) {
-          // Update existing ticket info
-          await updateTicketInfo({
-            eventId,
-            ...ticketData,
-          });
-        } else {
-          // Insert new ticket info if it doesn't exist
-          await insertTicketInfo({
-            eventId,
-            ...ticketData,
-          });
-        }
-      }
       toast({
         title: "Event Updated",
         description: "The event has been successfully updated",
@@ -111,14 +110,6 @@ export default function EventPage({ eventId }: EventProps) {
       // Optionally, you can refetch the event data here to update the UI
     } catch (error) {
       console.error("Error updating event:", error);
-    }
-  };
-
-  const handleDeleteTicketInfo = async (eventId: Id<"events">) => {
-    try {
-      await deleteTicketInfoAndUpdateEvent({ eventId });
-      // Handle successful deletion (e.g., update UI, show success message)
-    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update the event. Please try again.",
@@ -127,16 +118,97 @@ export default function EventPage({ eventId }: EventProps) {
     }
   };
 
+  async function updateEventInfo(
+    eventId: Id<"events">,
+    eventData: any,
+    updatedEventData: any,
+    updatedTicketData: any,
+    updatedGuestListData: any
+  ) {
+    // Handle ticket info
+    await handleInfoUpdate(
+      updatedTicketData,
+      eventData.ticketInfoId,
+      () =>
+        updateTicketInfo({
+          ticketInfoId: ticketInfo?._id,
+          ...updatedTicketData,
+        }),
+      () => insertTicketInfo({ eventId, ...updatedTicketData })
+    );
+
+    // Handle guest list info
+    await handleInfoUpdate(
+      updatedGuestListData,
+      eventData.guestListInfoId,
+      () =>
+        updateGuestListCloseTime({
+          guestListInfoId: guestListInfo?._id,
+          ...updatedGuestListData,
+        }),
+      () => insertGuestListInfo({ eventId, ...updatedGuestListData })
+    );
+
+    // Update event
+    await updateEvent({
+      id: eventId,
+      ...updatedEventData,
+      ...(updatedTicketData ? {} : { ticketInfoId: null }),
+      ...(updatedGuestListData ? {} : { guestListInfoId: null }),
+    });
+  }
+
+  async function handleInfoUpdate(
+    updatedData: any,
+    infoId: any,
+    updateFn: () => Promise<any>,
+    insertFn: () => Promise<any>
+  ) {
+    if (updatedData) {
+      if (infoId) {
+        await updateFn();
+      } else {
+        await insertFn();
+      }
+    }
+  }
+
+  // const handleDeleteTicketInfo = async (eventId: Id<"events">) => {
+  //   try {
+  //     await deleteTicketInfoAndUpdateEvent({ eventId });
+  //     // Handle successful deletion (e.g., update UI, show success message)
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description: "Failed to update the event. Please try again.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
+  // const handleDeleteGuestListInfo = async (eventId: Id<"events">) => {
+  //   try {
+  //     await deleteGuestListInfoAndUpdateEvent({ eventId });
+  //     // Handle successful deletion (e.g., update UI, show success message)
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description: "Failed to update the event. Please try again.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
   const handleCancelEvent = async () => {
     try {
       const navigationPromise = router.push("/");
+
+      // Then cancel the event
+      await cancelEvent({ eventId });
       toast({
         title: "Event Cancelled",
         description: "The event has been successfully cancelled.",
       });
-      // Then cancel the event
-      await cancelEvent({ eventId });
-
       // Wait for the navigation to complete
       navigationPromise;
       // Handle successful cancellation (e.g., redirect to events list)
@@ -154,6 +226,19 @@ export default function EventPage({ eventId }: EventProps) {
     setShowCancelConfirmModal(true);
   };
 
+  const now = new Date();
+  let isGuestListOpen = false;
+
+  if (guestListInfo?.guestListCloseTime) {
+    // Parse the guestListCloseTime string into a Date object
+    const guestListCloseDate = new Date(guestListInfo.guestListCloseTime);
+
+    // Compare the current time with the guest list close time
+    isGuestListOpen = now < guestListCloseDate;
+  }
+  let isCheckInOpen = now < new Date(event.endTime);
+  console.log("end", event.endTime);
+  console.log("isGuestListOpen", isGuestListOpen);
   return (
     <div className="max-w-2xl mx-auto p-4">
       {isEditingEvent ? (
@@ -167,12 +252,14 @@ export default function EventPage({ eventId }: EventProps) {
           <EventForm
             initialEventData={event}
             initialTicketData={ticketInfo}
+            initialGuestListData={guestListInfo}
             onSubmit={handleSubmit}
             isEdit={true}
             canAddGuestList={canUploadGuestList}
-            deleteTicketInfo={handleDeleteTicketInfo} // Pass the deleteTicketInfo function
+            // deleteTicketInfo={handleDeleteTicketInfo}
             eventId={eventId}
             onCancelEvent={handleCancelEvent}
+            // deleteGuestListInfo={handleDeleteGuestListInfo}
           />
           <ConfirmModal
             isOpen={showCancelConfirmModal}
@@ -180,7 +267,7 @@ export default function EventPage({ eventId }: EventProps) {
             onConfirm={() => {
               setShowCancelConfirmModal(false);
               setIsEditingEvent(false);
-              router.back(); // This navigates back to the previous page
+              router.back();
             }}
             title="Confirm Cancellation"
             message="Are you sure you want to cancel? Any unsaved changes will be discarded."
@@ -232,28 +319,31 @@ export default function EventPage({ eventId }: EventProps) {
               event={event}
               ticketInfo={ticketInfo}
               canEdit={canEdit}
+              guestListInfo={guestListInfo}
             />
           )}
 
-          {activeTab === "guestList" && (
-            <>
-              {canUploadGuestList && (
-                <PromoterGuestList
-                  eventId={eventId}
-                  promoterId={promoterId || ""}
-                />
-              )}
-              {canViewAllGuestList && (
-                <EventGuestList eventId={eventId} />
-                // <Link href={`/events/${eventId}/guestlist`}>
-                //   <Button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                //     View Guest List
-                //   </Button>
-                // </Link>
-              )}
-              {canCheckInGuests && <ModeratorGuestList eventId={eventId} />}
-            </>
-          )}
+          {activeTab === "guestList" &&
+            (guestListInfo ? (
+              <>
+                {canUploadGuestList && (
+                  <PromoterGuestList
+                    eventId={eventId}
+                    promoterId={promoterId || ""}
+                    isGuestListOpen={isGuestListOpen}
+                  />
+                )}
+                {canViewAllGuestList && <EventGuestList eventId={eventId} />}
+                {canCheckInGuests && (
+                  <ModeratorGuestList
+                    eventId={eventId}
+                    isCheckInOpen={isCheckInOpen}
+                  />
+                )}
+              </>
+            ) : (
+              <p>No guest list option for this event.</p>
+            ))}
         </>
       )}
     </div>

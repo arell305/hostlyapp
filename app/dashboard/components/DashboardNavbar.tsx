@@ -23,10 +23,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   const isPromoter = role === UserRoleEnum.PROMOTER;
   const currentPromoCode = user?.promoterPromoCode?.name;
   const [promoCode, setPromoCode] = useState(currentPromoCode || "");
-  const promoCodeDisplay = promoCode
-    ? `Promo Code: ${promoCode}`
-    : "Add Promo Code";
-  console.log("promo Display", promoCodeDisplay);
 
   const handleEditPromoCode = useCallback(() => {
     setIsPromoCodeModalOpen(true);
