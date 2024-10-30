@@ -61,9 +61,13 @@ export const addEvent = mutation({
 });
 
 export const getEventById = query({
-  args: { eventId: v.id("events") },
-  handler: async (ctx, args) => {
-    const event = await ctx.db.get(args.eventId);
+  args: { eventId: v.string() },
+  handler: async (ctx, { eventId }) => {
+    const normalizedId = ctx.db.normalizeId("events", eventId);
+    if (!normalizedId) {
+      return undefined;
+    }
+    const event = await ctx.db.get(normalizedId);
 
     if (!event) {
       throw new Error("Event not found");

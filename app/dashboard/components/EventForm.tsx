@@ -356,19 +356,19 @@ const EventForm: React.FC<EventFormProps> = ({
     e: React.ChangeEvent<HTMLInputElement>,
     setter: (value: string) => void
   ) => {
-    const userInput = e.target.value; // e.g., "2024-10-31T19:00" for 7 PM
+    const userInput = e.target.value; // e.g., "2024-11-01T02:30"
+    console.log("Original user input:", userInput);
 
-    // Create a DateTime instance assuming the input is in PST
+    // Interpret the input directly as PST (without shifting)
     const pstDateTime = DateTime.fromISO(userInput, {
       zone: "America/Los_Angeles",
     });
 
-    // Log the output
+    // Log to verify it's treated as PST
     console.log("Input treated as PST:", pstDateTime.toString());
 
-    // If you want to save it in UTC
+    // Convert to UTC for backend consistency, if needed
     const utcDateTime = pstDateTime.toUTC().toISO();
-    // Save the selected time in PST
     setter(utcDateTime || "");
   };
 

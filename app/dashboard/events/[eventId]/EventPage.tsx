@@ -24,7 +24,10 @@ type EventProps = {
 };
 
 export default function EventPage({ eventId }: EventProps) {
-  const eventData = useQuery(api.events.getEventById, { eventId });
+  const eventIdString = eventId as string;
+  const eventData = useQuery(api.events.getEventById, {
+    eventId,
+  });
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingEvent, setIsEditingEvent] = useState(false);
@@ -68,9 +71,7 @@ export default function EventPage({ eventId }: EventProps) {
   useEffect(() => {
     if (
       eventData !== undefined &&
-      (promoCodeUsage !== undefined ||
-        !canUploadGuestList ||
-        !eventData.ticketInfo)
+      (promoCodeUsage !== undefined || !canUploadGuestList)
     ) {
       setIsLoading(false);
     }
@@ -173,32 +174,6 @@ export default function EventPage({ eventId }: EventProps) {
     }
   }
 
-  // const handleDeleteTicketInfo = async (eventId: Id<"events">) => {
-  //   try {
-  //     await deleteTicketInfoAndUpdateEvent({ eventId });
-  //     // Handle successful deletion (e.g., update UI, show success message)
-  //   } catch (error) {
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to update the event. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   }
-  // };
-
-  // const handleDeleteGuestListInfo = async (eventId: Id<"events">) => {
-  //   try {
-  //     await deleteGuestListInfoAndUpdateEvent({ eventId });
-  //     // Handle successful deletion (e.g., update UI, show success message)
-  //   } catch (error) {
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to update the event. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   }
-  // };
-
   const handleCancelEvent = async () => {
     try {
       const navigationPromise = router.push("/");
@@ -237,8 +212,6 @@ export default function EventPage({ eventId }: EventProps) {
     isGuestListOpen = now < guestListCloseDate;
   }
   let isCheckInOpen = now < new Date(event.endTime);
-  console.log("end", event.endTime);
-  console.log("isGuestListOpen", isGuestListOpen);
   return (
     <div className="max-w-2xl mx-auto p-4">
       {isEditingEvent ? (
