@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useState } from "react";
+import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { useAuth } from "@clerk/clerk-react";
-import Link from "next/link";
-import { ClerkRoleEnum } from "@/utils/enums";
-import { FaPencilAlt, FaSave, FaTimes } from "react-icons/fa";
+import { FaPencilAlt } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import EventForm from "@/dashboard/components/EventForm";
 import { useRouter } from "next/navigation";
@@ -19,41 +16,23 @@ import PromoterGuestList from "@/dashboard/components/PromoterGuestList";
 import EventGuestList from "@/dashboard/components/EventGuestList";
 import ModeratorGuestList from "@/dashboard/components/ModeratorGuestList";
 
+// To do update types
 type EventProps = {
-  eventId: Id<"events">;
+  eventData: any;
+  promoterId: string;
+  permissions: any;
 };
 
-export default function EventPage({ eventId }: EventProps) {
-  const eventIdString = eventId as string;
-  const eventData = useQuery(api.events.getEventById, {
-    eventId,
-  });
+export default function EventPage({
+  eventData,
+  promoterId,
+  permissions,
+}: EventProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditingEvent, setIsEditingEvent] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "event" | "guestList" | "ticketInfo"
   >("event");
-
-  const { orgRole, userId: promoterId, isLoaded } = useAuth();
-
-  const canUploadGuestList = orgRole === ClerkRoleEnum.ORG_PROMOTER;
-  const canViewAllGuestList = orgRole === ClerkRoleEnum.ORG_MANAGER;
-  const canEdit =
-    orgRole === ClerkRoleEnum.ORG_ADMIN ||
-    orgRole === ClerkRoleEnum.ORG_MANAGER;
-  const canCheckInGuests =
-    orgRole === ClerkRoleEnum.ORG_MODERATOR ||
-    orgRole === ClerkRoleEnum.ORG_ADMIN;
-
-  console.log("org role", orgRole);
-
-  const promoCodeUsage = useQuery(
-    api.promoCodeUsage.getPromoCodeUsageByPromoterAndEvent,
-    canUploadGuestList && promoterId && eventData?.ticketInfo
-      ? { clerkPromoterUserId: promoterId, eventId }
-      : "skip"
-  );
 
   const updateEvent = useMutation(api.events.updateEvent);
   const updateTicketInfo = useMutation(api.ticketInfo.updateTicketInfo);
@@ -68,23 +47,6 @@ export default function EventPage({ eventId }: EventProps) {
     api.guestListInfo.insertGuestListInfo
   );
 
-  useEffect(() => {
-    if (
-      eventData !== undefined &&
-      (promoCodeUsage !== undefined || !canUploadGuestList)
-    ) {
-      setIsLoading(false);
-    }
-  }, [eventData, promoCodeUsage, canUploadGuestList]);
-
-  if (isLoading || !isLoaded) {
-    return <div>Loading...</div>;
-  }
-
-  if (!eventData) {
-    return <div>Event not found</div>;
-  }
-
   const { ticketInfo, guestListInfo, ...event } = eventData;
 
   // Updating event
@@ -95,7 +57,7 @@ export default function EventPage({ eventId }: EventProps) {
   ) => {
     try {
       await updateEventInfo(
-        eventId,
+        eventData._id,
         eventData,
         updatedEventData,
         updatedTicketData,
@@ -152,7 +114,7 @@ export default function EventPage({ eventId }: EventProps) {
 
     // Update event
     await updateEvent({
-      id: eventId,
+      id: eventData._id,
       ...updatedEventData,
       ...(updatedTicketData ? {} : { ticketInfoId: null }),
       ...(updatedGuestListData ? {} : { guestListInfoId: null }),
@@ -179,7 +141,7 @@ export default function EventPage({ eventId }: EventProps) {
       const navigationPromise = router.push("/");
 
       // Then cancel the event
-      await cancelEvent({ eventId });
+      await cancelEvent({ eventId: eventData._id });
       toast({
         title: "Event Cancelled",
         description: "The event has been successfully cancelled.",
@@ -228,9 +190,9 @@ export default function EventPage({ eventId }: EventProps) {
             initialGuestListData={guestListInfo}
             onSubmit={handleSubmit}
             isEdit={true}
-            canAddGuestList={canUploadGuestList}
+            canAddGuestList={permissions.canUploadGuestList}
             // deleteTicketInfo={handleDeleteTicketInfo}
-            eventId={eventId}
+            eventId={eventData._id}
             onCancelEvent={handleCancelEvent}
             // deleteGuestListInfo={handleDeleteGuestListInfo}
           />
@@ -252,7 +214,7 @@ export default function EventPage({ eventId }: EventProps) {
         <>
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold">{event.name}</h1>
-            {canEdit && (
+            {permissions.canEdit && (
               <Button onClick={() => setIsEditingEvent(true)}>
                 <FaPencilAlt className="mr-2" /> Edit Event
               </Button>
@@ -282,8 +244,8 @@ export default function EventPage({ eventId }: EventProps) {
           {activeTab === "ticketInfo" && (
             <TicketInfo
               ticketInfo={ticketInfo}
-              canEdit={canEdit}
-              eventId={eventId}
+              canEdit={permissions.canEdit}
+              eventId={eventData._id}
               promoterClerkId={promoterId}
             />
           )}
@@ -291,7 +253,7 @@ export default function EventPage({ eventId }: EventProps) {
             <EventInfo
               event={event}
               ticketInfo={ticketInfo}
-              canEdit={canEdit}
+              canEdit={permissions.canEdit}
               guestListInfo={guestListInfo}
             />
           )}
@@ -299,17 +261,19 @@ export default function EventPage({ eventId }: EventProps) {
           {activeTab === "guestList" &&
             (guestListInfo ? (
               <>
-                {canUploadGuestList && (
+                {permissions.canUploadGuestList && (
                   <PromoterGuestList
-                    eventId={eventId}
+                    eventId={eventData._id}
                     promoterId={promoterId || ""}
                     isGuestListOpen={isGuestListOpen}
                   />
                 )}
-                {canViewAllGuestList && <EventGuestList eventId={eventId} />}
-                {canCheckInGuests && (
+                {permissions.canViewAllGuestList && (
+                  <EventGuestList eventId={eventData._id} />
+                )}
+                {permissions.canCheckInGuests && (
                   <ModeratorGuestList
-                    eventId={eventId}
+                    eventId={eventData._id}
                     isCheckInOpen={isCheckInOpen}
                   />
                 )}

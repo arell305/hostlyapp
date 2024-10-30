@@ -20,10 +20,15 @@ setOptions({
 });
 momentTimezone.moment = moment;
 
-const CalendarComponent: React.FC = () => {
+type CalendarComponentProps = {
+  organizationId?: string;
+};
+
+const CalendarComponent: React.FC<CalendarComponentProps> = ({
+  organizationId,
+}) => {
   const router = useRouter();
   const todayInPST = moment().tz("America/Los_Angeles").startOf("day").toDate();
-
   const [selected, setSelected] = useState<Date | null>(todayInPST);
   const { organization, isLoaded: orgLoaded } = useOrganization();
   const [displayedMonth, setDisplayedMonth] = useState(() =>
@@ -32,14 +37,17 @@ const CalendarComponent: React.FC = () => {
   const [displayDate, setDisplayDate] = useState<string>("");
   const [matchingEvents, setMatchingEvents] = useState<any[]>([]);
 
+  // Determine which organization ID to use
+  const activeOrgId = organizationId || (orgLoaded ? organization?.id : "");
+
   useEffect(() => {
-    if (!orgLoaded) return;
+    if (!activeOrgId) return;
     const today = moment().tz("America/Los_Angeles");
     setDisplayDate(today.format("dddd, MMMM D, YYYY"));
-  }, [orgLoaded, organization]);
+  }, [activeOrgId]);
 
   const events = useQuery(api.events.getEventsByOrgAndMonth, {
-    clerkOrganizationId: organization?.id || "",
+    clerkOrganizationId: activeOrgId || "",
     year: displayedMonth.year(),
     month: displayedMonth.month() + 1,
   });

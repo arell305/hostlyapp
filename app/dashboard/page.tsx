@@ -9,12 +9,14 @@ import {
 import Image from "next/image";
 import PromotionalCompaniesList from "./components/PromotionalCompaniesList";
 import CalendarComponent from "./components/CalendarComponent";
+import { useRouter } from "next/navigation";
 
 // app/dashboard/page.tsx
 
 const Dashboard = () => {
   const { isSignedIn, user, isLoaded } = useUser();
   const { organization, isLoaded: orgLoaded } = useOrganization();
+  const router = useRouter();
 
   if (!isLoaded || !orgLoaded) {
     return <div>Loading...</div>;

@@ -65,7 +65,7 @@ export const getEventById = query({
   handler: async (ctx, { eventId }) => {
     const normalizedId = ctx.db.normalizeId("events", eventId);
     if (!normalizedId) {
-      return undefined;
+      return null;
     }
     const event = await ctx.db.get(normalizedId);
 
