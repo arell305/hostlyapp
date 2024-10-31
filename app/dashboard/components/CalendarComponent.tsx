@@ -22,10 +22,12 @@ momentTimezone.moment = moment;
 
 type CalendarComponentProps = {
   organizationId?: string;
+  companyName?: string | null;
 };
 
 const CalendarComponent: React.FC<CalendarComponentProps> = ({
   organizationId,
+  companyName,
 }) => {
   const router = useRouter();
   const todayInPST = moment().tz("America/Los_Angeles").startOf("day").toDate();
@@ -71,7 +73,11 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   }));
 
   const handleEventClick = (eventId: string) => {
-    router.push(`/events/${eventId}`);
+    if (companyName && organizationId) {
+      router.push(`/events/${eventId}?name=${companyName}`);
+    } else {
+      router.push(`/events/${eventId}`);
+    }
   };
 
   const selectedChange = (ev: { value: any }) => {
@@ -95,13 +101,13 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
       .startOf("month");
     setDisplayedMonth(newMonth);
   };
-
+  const calendarName = `${companyName ?? organization?.name} Events`;
   return (
     <>
       <Page className="max-w-[820px]">
         <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px]">
           <div className="mbsc-form-group">
-            <div className="mbsc-form-group-title">Events</div>
+            <div className="mbsc-form-group-title">{calendarName}</div>
             <Datepicker
               display="inline"
               marked={uniqueDates}

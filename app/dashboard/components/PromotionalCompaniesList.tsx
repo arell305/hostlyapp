@@ -11,8 +11,9 @@ const PromotionalCompaniesList = () => {
     return <div>Loading...</div>;
   }
 
-  const handleCompanyClick = (organizationId: string) => {
-    router.push(`/${organizationId}`);
+  const handleCompanyClick = (organizationId: string, companyName: string) => {
+    const encodedName = encodeURIComponent(companyName); // Encode the name to handle spaces and special characters
+    router.push(`/${organizationId}?name=${encodedName}`);
   };
 
   return (
@@ -25,7 +26,9 @@ const PromotionalCompaniesList = () => {
           <div
             key={company.clerkOrganizationId}
             className="mb-4 shadow-xl w-[350px] md:w-[500px] px-10 py-4 rounded-md bg-customDarkerBlue text-black font-semibold hover:bg-customLightBlue cursor-pointer flex space-x-4 md:space-x-8 justify-start items-center"
-            onClick={() => handleCompanyClick(company.clerkOrganizationId)}
+            onClick={() =>
+              handleCompanyClick(company.clerkOrganizationId, company.name)
+            }
           >
             <div className="w-[50px] h-[50px] rounded-full overflow-hidden">
               <Image
