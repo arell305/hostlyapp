@@ -214,14 +214,6 @@ const EventForm: React.FC<EventFormProps> = ({
         startTime: "Start Time must be filled.",
       }));
       hasErrors = true;
-    } else {
-      if (isBefore(startTime, now)) {
-        setErrors((prev) => ({
-          ...prev,
-          startTime: "Start Time cannot be in the past.",
-        }));
-        hasErrors = true;
-      }
     }
     if (endTime.trim() === "") {
       setErrors((prev) => ({
