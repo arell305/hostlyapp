@@ -1,25 +1,14 @@
 "use client";
-import {
-  CreateOrganization,
-  OrganizationList,
-  OrganizationProfile,
-  useOrganization,
-  useUser,
-} from "@clerk/nextjs";
-import Image from "next/image";
+import { CreateOrganization, useOrganization } from "@clerk/nextjs";
 import PromotionalCompaniesList from "./components/PromotionalCompaniesList";
 import CalendarComponent from "./components/CalendarComponent";
-import { useRouter } from "next/navigation";
-
-// app/dashboard/page.tsx
+import { CalendarLoading } from "./components/loading/CalendarLoading";
 
 const Dashboard = () => {
-  const { isSignedIn, user, isLoaded } = useUser();
   const { organization, isLoaded: orgLoaded } = useOrganization();
-  const router = useRouter();
 
-  if (!isLoaded || !orgLoaded) {
-    return <div>Loading...</div>;
+  if (!orgLoaded) {
+    return <CalendarLoading />;
   }
 
   if (!organization) {

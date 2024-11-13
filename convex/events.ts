@@ -30,7 +30,7 @@ export const addEvent = mutation({
     description: v.union(v.string(), v.null()),
     startTime: v.string(),
     endTime: v.string(),
-    photo: v.union(v.string(), v.null()),
+    photo: v.union(v.id("_storage"), v.null()),
   },
   handler: async (ctx, args) => {
     const eventId = await ctx.db.insert("events", {

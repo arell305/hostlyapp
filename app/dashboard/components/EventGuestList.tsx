@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import GuestCard from "./GuestCard";
+import DetailsSkeleton from "./loading/DetailsSkeleton";
 
 interface EventGuestListProps {
   eventId: Id<"events">;
@@ -78,7 +79,7 @@ const EventGuestList = ({ eventId }: EventGuestListProps) => {
   }, [selectedPromoter, result]);
 
   if (!result) {
-    return <div>Loading...</div>;
+    return <DetailsSkeleton />;
   }
   return (
     <>

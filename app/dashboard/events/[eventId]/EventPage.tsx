@@ -21,12 +21,14 @@ type EventProps = {
   eventData: any;
   promoterId: string;
   permissions: any;
+  displayEventPhoto?: string | null;
 };
 
 export default function EventPage({
   eventData,
   promoterId,
   permissions,
+  displayEventPhoto,
 }: EventProps) {
   const router = useRouter();
   const [isEditingEvent, setIsEditingEvent] = useState(false);
@@ -255,6 +257,7 @@ export default function EventPage({
               ticketInfo={ticketInfo}
               canEdit={permissions.canEdit}
               guestListInfo={guestListInfo}
+              displayEventPhoto={displayEventPhoto}
             />
           )}
 

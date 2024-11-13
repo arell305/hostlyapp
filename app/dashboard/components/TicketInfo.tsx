@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import DetailsSkeleton from "./loading/DetailsSkeleton";
 
 interface TicketInfoProps {
   ticketInfo: {
@@ -82,37 +83,38 @@ const TicketInfo: React.FC<TicketInfoProps> = ({
       );
     }
     return <div>No Information</div>;
-    // Or return a message that the user doesn't have permission to view this information
   }
-  if (canEdit) {
-    return (
-      <>
-        <div className="bg-green-100 p-4 rounded-lg mb-4">
-          <h2 className="text-xl font-semibold mb-2">Tickets Sold</h2>
-          <p className="mb-1">
-            Male Tickets Sold: {ticketInfo.totalMaleTicketsSold}
-          </p>
-          <p>Female Tickets Sold: {ticketInfo.totalFemaleTicketsSold}</p>
-        </div>
-        <div className="bg-pink-100 p-4 rounded-lg mb-4">
-          <h2 className="text-xl font-semibold mb-2">Promo Code Redemptions</h2>
-          <Select onValueChange={setSelectedPromoter} defaultValue="all">
-            <SelectTrigger className="w-[180px] mb-2">
-              <SelectValue placeholder="Select Promoter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Promoters</SelectItem>
-              {promoters?.map((promoter: Promoter) => (
-                <SelectItem
-                  key={promoter.clerkUserId}
-                  value={promoter.clerkUserId as string}
-                >
-                  {promoter.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {selectedPromoter === "all" && totalPromoCodeUsage && (
+
+  return (
+    <>
+      <div className="bg-green-100 p-4 rounded-lg mb-4">
+        <h2 className="text-xl font-semibold mb-2">Tickets Sold</h2>
+        <p className="mb-1">
+          Male Tickets Sold: {ticketInfo.totalMaleTicketsSold}
+        </p>
+        <p>Female Tickets Sold: {ticketInfo.totalFemaleTicketsSold}</p>
+      </div>
+      <div className="bg-pink-100 p-4 rounded-lg mb-4">
+        <h2 className="text-xl font-semibold mb-2">Promo Code Redemptions</h2>
+        <Select onValueChange={setSelectedPromoter} defaultValue="all">
+          <SelectTrigger className="w-[180px] mb-2">
+            <SelectValue placeholder="Select Promoter" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Promoters</SelectItem>
+            {promoters?.map((promoter: Promoter) => (
+              <SelectItem
+                key={promoter.clerkUserId}
+                value={promoter.clerkUserId as string}
+              >
+                {promoter.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {selectedPromoter === "all" ? (
+          totalPromoCodeUsage ? (
             <div className="mt-4">
               <h3 className="text-lg font-semibold mb-2">
                 Total Promo Code Usage
@@ -122,22 +124,25 @@ const TicketInfo: React.FC<TicketInfoProps> = ({
               </p>
               <p>Female Tickets: {totalPromoCodeUsage.totalFemaleUsage}</p>
             </div>
-          )}
-          {selectedPromoter !== "all" && selectedPromoterUsage && (
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2">
-                Selected Promoter Usage
-              </h3>
-              <p className="mb-1">
-                Male Tickets: {selectedPromoterUsage.maleUsageCount}
-              </p>
-              <p>Female Tickets: {selectedPromoterUsage.femaleUsageCount}</p>
-            </div>
-          )}
-        </div>
-      </>
-    );
-  }
+          ) : (
+            <DetailsSkeleton />
+          )
+        ) : selectedPromoterUsage ? (
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">
+              Selected Promoter Usage
+            </h3>
+            <p className="mb-1">
+              Male Tickets: {selectedPromoterUsage.maleUsageCount}
+            </p>
+            <p>Female Tickets: {selectedPromoterUsage.femaleUsageCount}</p>
+          </div>
+        ) : (
+          <DetailsSkeleton />
+        )}
+      </div>
+    </>
+  );
 };
 
 export default TicketInfo;

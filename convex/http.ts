@@ -150,7 +150,6 @@ http.route({
                 clerkUserId: result.data.created_by,
                 clerkOrganizationId: result.data.id,
               });
-
               return new Response(JSON.stringify({ message: "Success" }), {
                 status: 200,
                 headers: { "Content-Type": "application/json" },

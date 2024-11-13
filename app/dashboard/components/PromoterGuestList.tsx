@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { formatArrivalTime } from "../../../utils/helpers";
 import GuestCard from "./GuestCard";
+import DetailsSkeleton from "./loading/DetailsSkeleton";
 
 type GuestListManagerProps = {
   eventId: Id<"events">;
@@ -54,7 +55,7 @@ const GuestListPage = ({
   const { toast } = useToast();
 
   if (result === undefined) {
-    return <div>Loading...</div>;
+    return <DetailsSkeleton />;
   }
   const isEmptyGuestList = result.guestListId === null;
 

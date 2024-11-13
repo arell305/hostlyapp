@@ -20,6 +20,7 @@ import type * as guestListInfo from "../guestListInfo.js";
 import type * as guestLists from "../guestLists.js";
 import type * as http from "../http.js";
 import type * as organizations from "../organizations.js";
+import type * as photo from "../photo.js";
 import type * as promoCode from "../promoCode.js";
 import type * as promoCodeUsage from "../promoCodeUsage.js";
 import type * as promoterPromoCode from "../promoterPromoCode.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   guestLists: typeof guestLists;
   http: typeof http;
   organizations: typeof organizations;
+  photo: typeof photo;
   promoCode: typeof promoCode;
   promoCodeUsage: typeof promoCodeUsage;
   promoterPromoCode: typeof promoterPromoCode;

@@ -12,6 +12,7 @@ import {
   momentTimezone,
 } from "@mobiscroll/react";
 import moment from "moment-timezone";
+import { CalendarLoading } from "./loading/CalendarLoading"; // Import the CalendarLoading component
 
 setOptions({
   theme: "ios",
@@ -38,6 +39,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   );
   const [displayDate, setDisplayDate] = useState<string>("");
   const [matchingEvents, setMatchingEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true); // Single loading state for entire page
 
   // Determine which organization ID to use
   const activeOrgId = organizationId || (orgLoaded ? organization?.id : "");
@@ -48,11 +50,19 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     setDisplayDate(today.format("dddd, MMMM D, YYYY"));
   }, [activeOrgId]);
 
+  // Fetch events with loading state
   const events = useQuery(api.events.getEventsByOrgAndMonth, {
     clerkOrganizationId: activeOrgId || "",
     year: displayedMonth.year(),
     month: displayedMonth.month() + 1,
   });
+
+  // Handle loading state update when events are fetched
+  useEffect(() => {
+    if (events) {
+      setLoading(false); // Set loading to false when events are loaded
+    }
+  }, [events]);
 
   const myMarked = useMemo<MbscCalendarMarked[]>(() => {
     if (!events) return [];
@@ -102,49 +112,57 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     setDisplayedMonth(newMonth);
   };
   const calendarName = `${companyName ?? organization?.name} Events`;
+
   return (
     <>
-      <Page className="max-w-[820px]">
-        <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px]">
-          <div className="mbsc-form-group">
-            <div className="mbsc-form-group-title">{calendarName}</div>
-            <Datepicker
-              display="inline"
-              marked={uniqueDates}
-              dataTimezone="America/Los_Angeles"
-              displayTimezone="America/Los_Angeles"
-              onChange={selectedChange}
-              onPageChange={handleMonthChange}
-              value={selected}
-              controls={["calendar"]}
-            />
-          </div>
-        </div>
-      </Page>
+      {/* Show CalendarLoading when still loading */}
+      {loading ? (
+        <CalendarLoading />
+      ) : (
+        <>
+          <Page className="max-w-[820px]">
+            <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px]">
+              <div className="mbsc-form-group">
+                <div className="mbsc-form-group-title">{calendarName}</div>
 
-      <div className="selected-date mt-4">
-        <strong>Selected Date:</strong> {displayDate}
-      </div>
-      <div className="events-list mt-4">
-        {matchingEvents.length > 0 ? (
-          <div className="events-list mt-4">
-            <h3>Matching Events:</h3>
-            <ul>
-              {matchingEvents.map((event, index) => (
-                <li
-                  key={index}
-                  onClick={() => handleEventClick(event.event._id)}
-                  style={{ cursor: "pointer" }}
-                >
-                  {event.event.name}
-                </li>
-              ))}
-            </ul>
+                <Datepicker
+                  display="inline"
+                  marked={uniqueDates}
+                  dataTimezone="America/Los_Angeles"
+                  displayTimezone="America/Los_Angeles"
+                  onChange={selectedChange}
+                  onPageChange={handleMonthChange}
+                  value={selected}
+                  controls={["calendar"]}
+                />
+              </div>
+            </div>
+          </Page>
+          <div className="selected-date mt-4">
+            <strong>Selected Date:</strong> {displayDate}
           </div>
-        ) : (
-          <p>No matching events found.</p>
-        )}
-      </div>
+          <div className="events-list mt-4">
+            {matchingEvents.length > 0 ? (
+              <div className="events-list mt-4">
+                <h3>Matching Events:</h3>
+                <ul>
+                  {matchingEvents.map((event, index) => (
+                    <li
+                      key={index}
+                      onClick={() => handleEventClick(event.event._id)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {event.event.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p>No matching events found.</p>
+            )}
+          </div>
+        </>
+      )}
     </>
   );
 };

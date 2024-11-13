@@ -7,6 +7,7 @@ import { FaSearch } from "react-icons/fa";
 import GuestCard from "./GuestCard";
 import { toast } from "@/hooks/use-toast";
 import UpdateGuestModal from "./UpdateGuestModal";
+import DetailsSkeleton from "./loading/DetailsSkeleton";
 
 interface EventGuestListProps {
   eventId: Id<"events">;
@@ -98,7 +99,7 @@ const ModeratorGuestList = ({
   };
 
   if (!result) {
-    return <div>Loading...</div>;
+    return <DetailsSkeleton />;
   }
 
   return (

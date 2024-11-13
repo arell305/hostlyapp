@@ -21,6 +21,7 @@ interface EventInfoProps {
   guestListInfo: {
     guestListCloseTime: string;
   } | null;
+  displayEventPhoto?: string | null;
 }
 
 const EventInfo: React.FC<EventInfoProps> = ({
@@ -28,7 +29,10 @@ const EventInfo: React.FC<EventInfoProps> = ({
   ticketInfo,
   canEdit,
   guestListInfo,
+  displayEventPhoto,
 }) => {
+  console.log(event.photo);
+
   return (
     <div className="space-y-6">
       <div className="bg-gray-100 p-4 rounded-lg">
@@ -47,9 +51,9 @@ const EventInfo: React.FC<EventInfoProps> = ({
           </p>
         )}
 
-        {event.photo && (
+        {displayEventPhoto && (
           <img
-            src={event.photo}
+            src={displayEventPhoto}
             alt={event.name}
             className="w-full h-64 object-cover rounded-lg mt-4"
           />

@@ -91,7 +91,7 @@ export default defineSchema({
     startTime: v.string(),
     endTime: v.string(),
     ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
-    photo: v.union(v.string(), v.null()),
+    photo: v.union(v.id("_storage"), v.null()),
     guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])

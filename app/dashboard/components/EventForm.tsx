@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { format, isBefore, isAfter, startOfDay } from "date-fns";
+import { isAfter } from "date-fns";
 import { SubscriptionTier } from "../../../utils/enum";
 import { Id } from "../../../convex/_generated/dataModel";
 import ConfirmModal from "./ConfirmModal";
-import { localToPst, pstToUtc, utcToPstString } from "../../../utils/helpers";
 import { DateTime } from "luxon";
+import { generateUploadUrl } from "../../../convex/photo";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 interface EventFormProps {
   initialEventData?: {
@@ -17,7 +18,7 @@ interface EventFormProps {
     description: string | null;
     startTime: string;
     endTime: string;
-    photo: string | null;
+    photo: Id<"_storage"> | null;
   };
   initialTicketData?: {
     maleTicketPrice: number;
@@ -68,8 +69,14 @@ const EventForm: React.FC<EventFormProps> = ({
   const [guestListCloseTime, setGuestListCloseTime] = useState<string | null>(
     initialGuestListData?.guestListCloseTime || null
   );
-  const [photo, setPhoto] = useState<File | null>(null);
-
+  const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
+  const [photoStorageId, setPhotoStorageId] = useState<Id<"_storage"> | null>(
+    initialEventData?.photo || null
+  );
+  const [isPhotoLoading, setIsPhotoLoading] = useState<boolean>(false);
+  const displayEventPhoto = useQuery(api.photo.getFileUrl, {
+    storageId: photoStorageId,
+  });
   //modal for removal
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({
@@ -79,6 +86,41 @@ const EventForm: React.FC<EventFormProps> = ({
     cancelText: "",
     onConfirm: () => {},
   });
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (!file) {
+      console.error("No file selected");
+      return;
+    }
+
+    setIsPhotoLoading(true); // Start photo upload loading
+
+    try {
+      const postUrl = await generateUploadUrl();
+
+      const result = await fetch(postUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (result.ok) {
+        const { storageId } = await result.json();
+        setPhotoStorageId(storageId as Id<"_storage">);
+      } else {
+        console.error("Photo upload failed");
+      }
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+    } finally {
+      setIsPhotoLoading(false); // Stop loading after the upload is finished
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoStorageId(null);
+  };
 
   const handleRemoveTickets = () => {
     if (isEdit && initialTicketData) {
@@ -311,7 +353,7 @@ const EventForm: React.FC<EventFormProps> = ({
         description: description.trim() !== "" ? description : null,
         startTime: startTime.trim(),
         endTime: endTime.trim(),
-        photo: photo ? photo.name : null,
+        photo: photoStorageId || null,
       };
 
       const ticketData = isTicketsSelected
@@ -349,7 +391,6 @@ const EventForm: React.FC<EventFormProps> = ({
     setter: (value: string) => void
   ) => {
     const userInput = e.target.value; // e.g., "2024-11-01T02:30"
-    console.log("Original user input:", userInput);
 
     // Interpret the input directly as PST (without shifting)
     const pstDateTime = DateTime.fromISO(userInput, {
@@ -392,10 +433,26 @@ const EventForm: React.FC<EventFormProps> = ({
         <Input
           type="file"
           id="photo"
-          onChange={(e) => setPhoto(e.target.files ? e.target.files[0] : null)}
+          onChange={handlePhotoChange}
           accept="image/*"
           className="w-full max-w-[500px]"
         />
+        {isPhotoLoading && <div>Loading</div>}
+        {displayEventPhoto && (
+          <div className="relative mt-2 max-w-[300px]">
+            <img
+              src={displayEventPhoto}
+              alt="Event Photo"
+              className="w-full h-auto"
+            />
+            <button
+              onClick={handleRemovePhoto}
+              className="absolute top-0 right-0 bg-black text-white rounded-full p-1"
+            >
+              X
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">

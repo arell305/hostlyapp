@@ -5,14 +5,16 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useOrganization } from "@clerk/nextjs";
 import { SubscriptionTier } from "../../../utils/enum";
-import EventForm from "../components/EventForm"; // Import the EventForm component
+import EventForm from "../components/EventForm";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "../components/ConfirmModal";
+import EventInfoSkeleton from "../components/loading/EventInfoSkeleton";
 
 const AddEventPage: FC = () => {
   const { organization, isLoaded: orgLoaded } = useOrganization();
+
   const { toast } = useToast();
   const router = useRouter();
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
@@ -29,12 +31,8 @@ const AddEventPage: FC = () => {
     api.guestListInfo.insertGuestListInfo
   );
 
-  if (!orgLoaded || !organization) {
-    return <div>Loading organization...</div>;
-  }
-
-  if (result === undefined) {
-    return <div>Loading subscription information...</div>;
+  if (!orgLoaded || !organization || result === undefined) {
+    return <EventInfoSkeleton />;
   }
 
   let canAddGuestList = false;
