@@ -79,9 +79,10 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     });
   }, [events]);
 
-  const result = useQuery(api.customers.getCustomerSubscriptionTier, {
-    clerkOrganizationId: activeOrgId ?? "",
-  });
+  const result = useQuery(
+    api.customers.getCustomerSubscriptionTier,
+    activeOrgId ? { clerkOrganizationId: activeOrgId } : "skip"
+  );
 
   const uniqueDatesSet = new Set(myMarked.map((item) => item.date));
   const uniqueDates = Array.from(uniqueDatesSet).map((date) => ({
@@ -118,12 +119,10 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
       .startOf("month");
     setDisplayedMonth(newMonth);
   };
-  const calendarName = `${companyName ?? organization?.name} Events`;
   const isPlusTier = result?.subscriptionTier === SubscriptionTier.PLUS;
-
+  console.log("resut", isPlusTier);
   return (
     <>
-      {/* Show CalendarLoading when still loading */}
       {loading || !result ? (
         <CalendarLoading />
       ) : (

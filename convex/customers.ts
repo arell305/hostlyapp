@@ -124,7 +124,6 @@ export const getCustomerSubscriptionTier = query({
         q.eq("clerkOrganizationId", args.clerkOrganizationId)
       )
       .first();
-
     if (!organization) {
       throw new Error("Organization not found");
     }
@@ -193,7 +192,7 @@ export const resetGuestListEventAndPayment = internalMutation({
       );
       return;
     }
-
+    console.log("updating count");
     // Reset the guestListEventCount
     await ctx.db.patch(customerId, {
       guestListEventCount: 0,

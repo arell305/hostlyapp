@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from "react";
-
 // Utility function to format the date
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString("en-US", {
@@ -17,20 +15,12 @@ const EventSummary: React.FC<EventSummaryProps> = ({
   nextResetDate,
   numberOfEvents,
 }) => {
-  const [currentMonth, setCurrentMonth] = useState<string>("");
-
-  // Calculate the current month
-  useEffect(() => {
-    const monthName = new Date().toLocaleString("default", { month: "long" });
-    setCurrentMonth(monthName);
-  }, []);
-
-  if (numberOfEvents) {
+  if (numberOfEvents !== undefined) {
     return (
-      <div className="event-summary">
+      <div className="mb-4">
         <h2>Event Summary</h2>
         <div className="summary-item">
-          <strong>Remaining Guest List Events:</strong> {numberOfEvents - 3}
+          <strong>Remaining Guest List Events:</strong> {3 - numberOfEvents}
         </div>
         <div className="summary-item">
           <strong>Next Reset Date:</strong> {formatDate(nextResetDate)}
