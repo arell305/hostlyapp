@@ -478,20 +478,21 @@ const EventForm: React.FC<EventFormProps> = ({
         />
         {errors.endTime && <p className="text-red-500">{errors.endTime}</p>}
       </div>
-
-      <div className="space-y-2">
-        <Button
-          type="button"
-          onClick={
-            isGuestListSelected
-              ? handleRemoveGuestList
-              : () => setIsGuestListSelected(true)
-          }
-          variant={isGuestListSelected ? "default" : "outline"}
-        >
-          {isGuestListSelected ? "Remove Guest List" : "Add Guest List"}
-        </Button>
-      </div>
+      {canAddGuestList && (
+        <div className="space-y-2">
+          <Button
+            type="button"
+            onClick={
+              isGuestListSelected
+                ? handleRemoveGuestList
+                : () => setIsGuestListSelected(true)
+            }
+            variant={isGuestListSelected ? "default" : "outline"}
+          >
+            {isGuestListSelected ? "Remove Guest List" : "Add Guest List"}
+          </Button>
+        </div>
+      )}
 
       {isGuestListSelected && (
         <div className="space-y-2">

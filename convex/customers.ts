@@ -9,6 +9,8 @@ import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
 import { Customer } from "../app/types";
 import { getFutureISOString } from "../utils/helpers";
 import { SubscriptionTierConvex } from "./schema";
+import { DateTime } from "luxon";
+import { internal } from "./_generated/api";
 
 export const insertCustomerAndSubscription = internalMutation({
   args: {
@@ -30,6 +32,7 @@ export const insertCustomerAndSubscription = internalMutation({
   },
   handler: async (ctx, args) => {
     try {
+      const nextPayment = args.trialEndDate || getFutureISOString(30);
       const customerId = await ctx.db.insert("customers", {
         stripeCustomerId: args.stripeCustomerId,
         stripeSubscriptionId: args.stripeSubscriptionId,
@@ -39,8 +42,17 @@ export const insertCustomerAndSubscription = internalMutation({
         subscriptionTier: args.subscriptionTier,
         trialEndDate: args.trialEndDate,
         cancelAt: null,
-        nextPayment: args.trialEndDate || getFutureISOString(30),
+        nextPayment,
+        guestListEventCount: 0,
       });
+      await ctx.scheduler.runAt(
+        DateTime.fromISO(nextPayment).toMillis(),
+        internal.customers.resetGuestListEventAndPayment,
+        { customerId }
+      );
+      console.log(
+        `Scheduled resetGuestListEvent for customer ${customerId} at ${nextPayment}`
+      );
       return customerId;
     } catch (error) {
       console.error("Error inserting customer into the database:", error);
@@ -129,6 +141,7 @@ export const getCustomerSubscriptionTier = query({
       subscriptionTier: customer.subscriptionTier,
       guestListEventCount: customer.guestListEventCount,
       customerId: customer._id,
+      nextCycle: customer.nextPayment,
     };
   },
 });
@@ -157,7 +170,49 @@ export const updateGuestListEventCount = mutation({
 
     return {
       success: true,
-      remainingEvents: 4 - updatedCount, // Assuming a maximum of 4 events
+      remainingEvents: 3 - updatedCount, // Assuming a maximum of 4 events
     };
+  },
+});
+
+export const resetGuestListEventAndPayment = internalMutation({
+  args: { customerId: v.id("customers") },
+  handler: async (ctx, { customerId }) => {
+    // Fetch the customer's data
+    const customer = await ctx.db.get(customerId);
+
+    if (!customer) {
+      console.log(`Customer with ID ${customerId} does not exist.`);
+      return;
+    }
+
+    // Check if `nextPayment` is null and stop scheduling if it is
+    if (!customer.nextPayment) {
+      console.log(
+        `Stopping scheduler for customer ${customerId} as nextPayment is null.`
+      );
+      return;
+    }
+
+    // Reset the guestListEventCount
+    await ctx.db.patch(customerId, {
+      guestListEventCount: 0,
+    });
+
+    // Calculate the new `nextPayment` date (e.g., 1 month from now)
+    const nextPaymentDate = new Date(customer.nextPayment);
+    nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
+
+    // Update the customer’s `nextPayment` field in the database
+    await ctx.db.patch(customerId, {
+      nextPayment: nextPaymentDate.toISOString(),
+    });
+
+    // Schedule this function to run again at the new `nextPayment` date
+    await ctx.scheduler.runAt(
+      nextPaymentDate.getTime(),
+      internal.customers.resetGuestListEventAndPayment,
+      { customerId }
+    );
   },
 });

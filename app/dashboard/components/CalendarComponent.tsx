@@ -13,6 +13,8 @@ import {
 } from "@mobiscroll/react";
 import moment from "moment-timezone";
 import { CalendarLoading } from "./loading/CalendarLoading"; // Import the CalendarLoading component
+import EventStats from "./EventStats";
+import { SubscriptionTier } from "../../../utils/enum";
 
 setOptions({
   theme: "ios",
@@ -77,6 +79,10 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     });
   }, [events]);
 
+  const result = useQuery(api.customers.getCustomerSubscriptionTier, {
+    clerkOrganizationId: activeOrgId ?? "",
+  });
+
   const uniqueDatesSet = new Set(myMarked.map((item) => item.date));
   const uniqueDates = Array.from(uniqueDatesSet).map((date) => ({
     date,
@@ -113,14 +119,21 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     setDisplayedMonth(newMonth);
   };
   const calendarName = `${companyName ?? organization?.name} Events`;
+  const isPlusTier = result?.subscriptionTier === SubscriptionTier.PLUS;
 
   return (
     <>
       {/* Show CalendarLoading when still loading */}
-      {loading ? (
+      {loading || !result ? (
         <CalendarLoading />
       ) : (
         <>
+          {isPlusTier && (
+            <EventStats
+              nextResetDate={result.nextCycle}
+              numberOfEvents={result.guestListEventCount}
+            />
+          )}
           <Page className="max-w-[820px]">
             <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px]">
               <div className="mbsc-form-group">

@@ -45,8 +45,9 @@ const AddEventPage: FC = () => {
     canAddGuestList = true;
   } else if (result.subscriptionTier === SubscriptionTier.PLUS) {
     const eventCount = result.guestListEventCount ?? 0;
-    canAddGuestList = eventCount < 4;
+    canAddGuestList = eventCount < 3;
   }
+  console.log(result.subscriptionTier, "tier");
 
   const handleSubmit = async (
     eventData: any,
@@ -73,10 +74,7 @@ const AddEventPage: FC = () => {
         });
       }
 
-      if (
-        result.subscriptionTier === SubscriptionTier.PLUS &&
-        eventData.guestListCloseTime
-      ) {
+      if (result.subscriptionTier === SubscriptionTier.PLUS && guestListData) {
         updateCustomerEvents({ customerId: result.customerId });
       }
       toast({
