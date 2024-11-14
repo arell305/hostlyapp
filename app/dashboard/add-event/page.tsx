@@ -1,26 +1,31 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useOrganization } from "@clerk/nextjs";
 import { SubscriptionTier } from "../../../utils/enum";
 import EventForm from "../components/EventForm";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "../components/ConfirmModal";
 import EventInfoSkeleton from "../components/loading/EventInfoSkeleton";
 
 const AddEventPage: FC = () => {
   const { organization, isLoaded: orgLoaded } = useOrganization();
-
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
 
+  // Retrieve organizationID from query params if it exists
+  const queryOrgId = searchParams.get("organizationId");
+  const organizationId = queryOrgId || organization?.id;
+  console.log("org Id", organizationId);
+  console.log(queryOrgId, "queryOrgId");
   const result = useQuery(api.customers.getCustomerSubscriptionTier, {
-    clerkOrganizationId: organization?.id ?? "",
+    clerkOrganizationId: organizationId ?? "",
   });
   const addEvent = useMutation(api.events.addEvent);
   const updateCustomerEvents = useMutation(
@@ -50,7 +55,7 @@ const AddEventPage: FC = () => {
   ) => {
     try {
       const eventId = await addEvent({
-        clerkOrganizationId: organization.id,
+        clerkOrganizationId: organizationId,
         ...eventData,
       });
 
@@ -80,7 +85,6 @@ const AddEventPage: FC = () => {
       });
       router.push(`events/${eventId}`);
       console.log("Event added successfully with ID:", eventId);
-      // Handle success (e.g., show a success message, redirect, etc.)
     } catch (error) {
       console.error("Error adding event:", error);
       toast({
@@ -88,7 +92,6 @@ const AddEventPage: FC = () => {
         description: "Failed to create event. Please try again",
         variant: "destructive",
       });
-      // Handle error (e.g., show an error message)
     }
   };
 

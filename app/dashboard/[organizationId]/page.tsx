@@ -4,14 +4,21 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import CalendarComponent from "../components/CalendarComponent";
 import BackButton from "../components/BackButton";
 import { useOrganization } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 const page = () => {
   const { organizationId } = useParams();
   const { organization, isLoaded: orgClerkLoaded } = useOrganization();
-  const searchParams = useSearchParams(); // Get search parameters
-  const name = searchParams.get("name");
 
-  if (!organizationId || !orgClerkLoaded) {
+  const organizationFromDB = useQuery(
+    api.organizations.getOrganizationByClerkId,
+    {
+      clerkOrganizationId: organizationId as string,
+    }
+  );
+
+  if (!organizationId || !orgClerkLoaded || !organizationFromDB) {
     return <div>Loading...</div>; // or some other loading indicator
   }
 
@@ -26,7 +33,7 @@ const page = () => {
       </div>
       <CalendarComponent
         organizationId={organizationId as string}
-        companyName={name}
+        companyName={organizationFromDB.name}
       />
     </section>
   );

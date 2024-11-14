@@ -43,6 +43,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
 
   // Determine which organization ID to use
   const activeOrgId = organizationId || (orgLoaded ? organization?.id : "");
+  const displayName = companyName || (orgLoaded ? organization?.name : "");
 
   useEffect(() => {
     if (!activeOrgId) return;
@@ -123,7 +124,9 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
           <Page className="max-w-[820px]">
             <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px]">
               <div className="mbsc-form-group">
-                <div className="mbsc-form-group-title">{calendarName}</div>
+                <div className="mbsc-form-group-title">
+                  {displayName} Events
+                </div>
 
                 <Datepicker
                   display="inline"
