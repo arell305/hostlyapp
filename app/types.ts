@@ -26,4 +26,5 @@ export interface CustomerWithPayment extends Customer {
   brand?: string;
   last4?: string;
   currentSubscriptionAmount?: number;
+  discountPercentage?: number;
 }

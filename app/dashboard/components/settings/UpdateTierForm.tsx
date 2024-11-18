@@ -13,12 +13,14 @@ import { api } from "../../../../convex/_generated/api";
 import { pricingOptions } from "../../../../constants/pricingOptions";
 import { PricingOption } from "@/types";
 import { SubscriptionTier } from "../../../../utils/enum";
+import { truncatedToTwoDecimalPlaces } from "../../../../utils/helpers";
 
 interface UpdateTierFormProps {
   setIsEditingTier: React.Dispatch<React.SetStateAction<boolean>>;
   email: string;
   currentTier?: SubscriptionTier;
   onTierUpdate: (newTier: SubscriptionTier) => void;
+  discountPercentage?: number;
 }
 
 type CalculateSubscriptionUpdateResult = {
@@ -33,6 +35,7 @@ const UpdateTierForm: React.FC<UpdateTierFormProps> = ({
   email,
   currentTier,
   onTierUpdate,
+  discountPercentage,
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [proratingLoading, setProratingLoading] = useState<boolean>(true);
@@ -59,6 +62,7 @@ const UpdateTierForm: React.FC<UpdateTierFormProps> = ({
           const results = await calculateAllSubscriptionUpdates({
             email,
             currentTier,
+            percentageDiscount: discountPercentage,
           });
           setProrationDetails(results);
         } catch (err) {
@@ -151,7 +155,9 @@ const UpdateTierForm: React.FC<UpdateTierFormProps> = ({
                   </p>
                   <p>
                     New monthly rate: $
-                    {prorationDetails[option.tier].newMonthlyRate?.toFixed(2)}
+                    {truncatedToTwoDecimalPlaces(
+                      prorationDetails[option.tier].newMonthlyRate || 0
+                    )}
                   </p>
                 </div>
               )}

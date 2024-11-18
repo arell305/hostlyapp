@@ -248,12 +248,14 @@ export const getCustomerDetails = action({
     const createCustomerWithPayment = (
       brand?: string,
       last4?: string,
-      currentSubscriptionAmount?: number
+      currentSubscriptionAmount?: number,
+      discountPercentage?: number
     ): CustomerWithPayment => ({
       ...existingCustomer!,
       brand,
       last4,
       currentSubscriptionAmount,
+      discountPercentage,
     });
     const stripe = new Stripe(process.env.STRIPE_KEY!, {
       apiVersion: "2024-06-20",
@@ -278,11 +280,20 @@ export const getCustomerDetails = action({
       const currentPrice = subscription.items.data[0].price;
       const amount = currentPrice.unit_amount; // Amount in cents
 
+      // Extract discount information if available
+      let discountPercentage = 0;
+
+      if (subscription.discount) {
+        discountPercentage = subscription.discount.coupon.percent_off || 0; // Get the discount percentage directly
+      }
+      console.log("discount Per", discountPercentage);
+
       // Return customer with payment details and subscription amount if available
       return createCustomerWithPayment(
         defaultPaymentMethod?.card?.brand, // Use optional chaining to avoid undefined error
         defaultPaymentMethod?.card?.last4,
-        amount ? amount / 100 : 0 // Convert cents to dollars
+        amount ? amount / 100 : 0,
+        discountPercentage
       );
     } catch (error) {
       console.error(

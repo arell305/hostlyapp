@@ -452,12 +452,13 @@ export const calculateAllSubscriptionUpdates = action({
       v.literal(SubscriptionTier.PLUS),
       v.literal(SubscriptionTier.ELITE)
     ),
+    percentageDiscount: v.optional(v.number()),
   },
   handler: async (
     ctx,
     args
   ): Promise<Record<SubscriptionTier, CalculateSubscriptionUpdateResult>> => {
-    const { email, currentTier } = args;
+    const { email, currentTier, percentageDiscount } = args;
     const results: Record<SubscriptionTier, CalculateSubscriptionUpdateResult> =
       {
         [SubscriptionTier.STANDARD]: {
@@ -503,22 +504,28 @@ export const calculateAllSubscriptionUpdates = action({
             subscription_proration_date: Math.floor(Date.now() / 1000),
           });
 
-          let proratedAmount =
-            upcomingInvoice.amount_due -
-            (subscription.items.data[0].price.unit_amount ?? 0);
+          let minusAmount = subscription.items.data[0].price.unit_amount ?? 0;
 
-          // If proratedAmount is negative, set it to 0
-          proratedAmount = Math.max(0, proratedAmount);
-
-          const newMonthlyRate =
+          let newMonthlyRate =
             upcomingInvoice.lines.data.find(
               (line) => line.price?.id === newPriceId
             )?.amount ?? 0;
 
+          // Apply discount if provided
+          if (percentageDiscount) {
+            // Calculate discounted amounts
+            const discountFactor = 1 - percentageDiscount / 100;
+            // proratedAmount *= discountFactor; // Apply discount to prorated amount
+            newMonthlyRate *= discountFactor;
+            minusAmount *= discountFactor; // Apply discount to new monthly rate
+          }
+          let proratedAmount = upcomingInvoice.amount_due - minusAmount;
+          proratedAmount = Math.max(0, proratedAmount); // Ensure it's not negative
+
           results[tier] = {
             success: true,
-            proratedAmount: proratedAmount / 100,
-            newMonthlyRate: newMonthlyRate / 100,
+            proratedAmount: Math.max(0, proratedAmount / 100), // Ensure final values are non-negative
+            newMonthlyRate: Math.max(0, newMonthlyRate / 100),
           };
         }
       }
@@ -538,7 +545,6 @@ export const calculateAllSubscriptionUpdates = action({
     }
   },
 });
-
 function getPriceIdForTier(tier: SubscriptionTier): string {
   switch (tier) {
     case SubscriptionTier.STANDARD:

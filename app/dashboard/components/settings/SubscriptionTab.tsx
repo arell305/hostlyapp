@@ -20,6 +20,7 @@ import { FaPencilAlt } from "react-icons/fa";
 import { MdOutlineCancel } from "react-icons/md";
 import UpdatePaymentForm from "./UpdatePaymentForm";
 import UpdateTierForm from "./UpdateTierForm";
+import { truncatedToTwoDecimalPlaces } from "../../../../utils/helpers";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
@@ -181,6 +182,21 @@ const SubscriptionTab = () => {
   if (customerDetails.subscriptionStatus === SubscriptionStatus.CANCELED) {
     nextPaymentText = "Last Access Date";
   }
+  console.log("customer details", customerDetails);
+  const isDiscount =
+    customerDetails.discountPercentage &&
+    customerDetails.discountPercentage > 0 &&
+    customerDetails.currentSubscriptionAmount;
+  let dicsountedPrice = "0";
+  if (
+    customerDetails.currentSubscriptionAmount &&
+    customerDetails.discountPercentage
+  ) {
+    dicsountedPrice = truncatedToTwoDecimalPlaces(
+      customerDetails.currentSubscriptionAmount *
+        (1 - customerDetails.discountPercentage / 100)
+    );
+  }
   return (
     <>
       <div className="max-w-xl mx-auto px-4 py-6">
@@ -207,11 +223,23 @@ const SubscriptionTab = () => {
           {/* Display Current Subscription Amount */}
           <div>
             <h3 className="text-sm font-medium text-gray-500">Amount</h3>
-            <p className="text-lg font-semibold">
-              {customerDetails.currentSubscriptionAmount !== undefined
-                ? `$${customerDetails.currentSubscriptionAmount.toFixed(2)}/month`
-                : "N/A"}
-            </p>
+
+            {isDiscount && customerDetails.discountPercentage ? (
+              <>
+                <p className="text-lg font-semibold">
+                  ${dicsountedPrice}/month
+                </p>
+                <p className="text-sm text-green-600">
+                  {customerDetails.discountPercentage}% Discount Applied
+                </p>
+              </>
+            ) : (
+              <p className="text-lg font-semibold">
+                {customerDetails.currentSubscriptionAmount !== undefined
+                  ? `$${customerDetails.currentSubscriptionAmount.toFixed(2)}/month`
+                  : "N/A"}
+              </p>
+            )}
           </div>
 
           {isEditingTier ? (
@@ -224,6 +252,7 @@ const SubscriptionTab = () => {
                     email={user?.emailAddresses?.[0]?.emailAddress || ""}
                     currentTier={customerDetails.subscriptionTier}
                     onTierUpdate={handleTierUpdate}
+                    discountPercentage={customerDetails.discountPercentage}
                   />
                 </Elements>
               </div>
