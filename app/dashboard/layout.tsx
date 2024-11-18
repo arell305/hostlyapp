@@ -43,7 +43,7 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="relative h-screen flex flex-col w-full">
       {/* Navbar */}
       <DashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
-      <div className="md:flex h-full">
+      <div className="md:flex h-full mt-[50px]">
         {/* Sidebar */}
         <div className="md:w-64 w-full">
           {isMobile ? (

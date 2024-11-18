@@ -129,7 +129,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
         <>
           {isPlusTier && (
             <EventStats
-              nextResetDate={result.nextCycle}
+              nextResetDate={result.nextCycle || ""}
               numberOfEvents={result.guestListEventCount}
             />
           )}

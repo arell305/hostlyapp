@@ -19,11 +19,7 @@ const Dashboard = () => {
     return <PromotionalCompaniesList />;
   }
 
-  return (
-    <div>
-      <CalendarComponent />
-    </div>
-  );
+  return <CalendarComponent />;
 };
 
 export default Dashboard;

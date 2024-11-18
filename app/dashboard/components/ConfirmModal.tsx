@@ -1,10 +1,11 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react"; // For the loading spinner
 
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>; // Handles both sync and async actions
   title: string;
   message: string;
   confirmText: string;
@@ -20,6 +21,22 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   confirmText,
   cancelText,
 }) => {
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const handleConfirm = async () => {
+    const result = onConfirm();
+
+    // Check if the result is a Promise
+    if (result instanceof Promise) {
+      setIsLoading(true);
+      try {
+        await result; // Await the promise if it's asynchronous
+      } finally {
+        setIsLoading(false); // Reset loading state
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -28,11 +45,24 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         <p className="mb-4">{message}</p>
         <div className="flex justify-end space-x-4">
-          <Button onClick={onClose} variant="outline">
+          {/* Cancel Button */}
+          <Button onClick={onClose} variant="outline" disabled={isLoading}>
             {cancelText}
           </Button>
-          <Button onClick={onConfirm} variant="destructive">
-            {confirmText}
+          {/* Confirm Button with Loading State */}
+          <Button
+            onClick={handleConfirm}
+            variant="destructive"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <Loader2 className="animate-spin h-4 w-4" aria-hidden="true" />
+                <span>Loading...</span>
+              </div>
+            ) : (
+              confirmText
+            )}
           </Button>
         </div>
       </div>

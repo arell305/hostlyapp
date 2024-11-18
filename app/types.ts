@@ -19,4 +19,11 @@ export interface Customer {
   email: string;
   paymentMethodId: string;
   subscriptionTier: SubscriptionTier;
+  nextPayment: string | null;
+}
+
+export interface CustomerWithPayment extends Customer {
+  brand?: string;
+  last4?: string;
+  currentSubscriptionAmount?: number;
 }

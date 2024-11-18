@@ -1,16 +1,18 @@
 import { v } from "convex/values";
 import {
+  action,
   internalMutation,
   internalQuery,
   mutation,
   query,
 } from "./_generated/server";
 import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
-import { Customer } from "../app/types";
+import { Customer, CustomerWithPayment } from "../app/types";
 import { getFutureISOString } from "../utils/helpers";
 import { SubscriptionTierConvex } from "./schema";
 import { DateTime } from "luxon";
 import { internal } from "./_generated/api";
+import Stripe from "stripe";
 
 export const insertCustomerAndSubscription = internalMutation({
   args: {
@@ -65,7 +67,7 @@ export const findCustomerByEmail = internalQuery({
   args: {
     email: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Customer | null> => {
     try {
       const customer = await ctx.db
         .query("customers")
@@ -96,6 +98,7 @@ const allowedFields = {
   email: v.optional(v.string()),
   paymentMethodId: v.optional(v.string()),
   subscriptionTier: v.optional(SubscriptionTierConvex), // Adjust if SubscriptionTier has specific values
+  nextPayment: v.optional(v.union(v.string(), v.null())),
 };
 
 export const updateCustomer = internalMutation({
@@ -141,6 +144,7 @@ export const getCustomerSubscriptionTier = query({
       guestListEventCount: customer.guestListEventCount,
       customerId: customer._id,
       nextCycle: customer.nextPayment,
+      status: customer.subscriptionStatus,
     };
   },
 });
@@ -186,13 +190,15 @@ export const resetGuestListEventAndPayment = internalMutation({
     }
 
     // Check if `nextPayment` is null and stop scheduling if it is
-    if (!customer.nextPayment) {
+    if (
+      customer.subscriptionStatus === SubscriptionStatus.CANCELED ||
+      !customer.nextPayment
+    ) {
       console.log(
-        `Stopping scheduler for customer ${customerId} as nextPayment is null.`
+        `Stopping scheduler for customer ${customerId} as subscription status is canceled.`
       );
       return;
     }
-    console.log("updating count");
     // Reset the guestListEventCount
     await ctx.db.patch(customerId, {
       guestListEventCount: 0,
@@ -213,5 +219,193 @@ export const resetGuestListEventAndPayment = internalMutation({
       internal.customers.resetGuestListEventAndPayment,
       { customerId }
     );
+  },
+});
+
+export const getCustomerDetails = action({
+  args: {
+    customerEmail: v.string(),
+  },
+  handler: async (ctx, args): Promise<CustomerWithPayment | null> => {
+    let existingCustomer: Customer | null = null;
+
+    try {
+      // Fetch existing customer by email
+      existingCustomer = await ctx.runQuery(
+        internal.customers.findCustomerByEmail,
+        { email: args.customerEmail }
+      );
+    } catch (error) {
+      console.error("Error fetching customer by email:", error);
+      throw new Error("Failed to fetch customer details");
+    }
+
+    if (!existingCustomer) {
+      throw new Error("Customer not found");
+    }
+
+    // Helper function to return the customer with optional payment details
+    const createCustomerWithPayment = (
+      brand?: string,
+      last4?: string,
+      currentSubscriptionAmount?: number
+    ): CustomerWithPayment => ({
+      ...existingCustomer!,
+      brand,
+      last4,
+      currentSubscriptionAmount,
+    });
+    const stripe = new Stripe(process.env.STRIPE_KEY!, {
+      apiVersion: "2024-06-20",
+    });
+
+    try {
+      // Fetch payment methods from Stripe
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: existingCustomer.stripeCustomerId,
+        type: "card",
+      });
+
+      // Get the default payment method if available
+      const defaultPaymentMethod = paymentMethods.data[0];
+
+      // Fetch the subscription details from Stripe
+      const subscription = await stripe.subscriptions.retrieve(
+        existingCustomer.stripeSubscriptionId
+      );
+
+      // Get the current price of the subscription
+      const currentPrice = subscription.items.data[0].price;
+      const amount = currentPrice.unit_amount; // Amount in cents
+
+      // Return customer with payment details and subscription amount if available
+      return createCustomerWithPayment(
+        defaultPaymentMethod?.card?.brand, // Use optional chaining to avoid undefined error
+        defaultPaymentMethod?.card?.last4,
+        amount ? amount / 100 : 0 // Convert cents to dollars
+      );
+    } catch (error) {
+      console.error(
+        "Error fetching payment methods or subscription from Stripe:",
+        error
+      );
+    }
+
+    // Return customer without payment details as fallback
+    return createCustomerWithPayment();
+  },
+});
+export const cancelSubscription = action({
+  args: { customerEmail: v.string() },
+  handler: async (ctx, args) => {
+    let existingCustomer: Customer | null = null;
+
+    try {
+      // Fetch existing customer by email
+      existingCustomer = await ctx.runQuery(
+        internal.customers.findCustomerByEmail,
+        { email: args.customerEmail }
+      );
+    } catch (error) {
+      console.error("Error fetching customer by email:", error);
+      throw new Error("Failed to fetch customer details");
+    }
+
+    if (!existingCustomer) {
+      throw new Error("Customer not found");
+    }
+
+    // Initialize Stripe client
+    const stripe = new Stripe(process.env.STRIPE_KEY!, {
+      apiVersion: "2024-06-20",
+    });
+
+    try {
+      // Call Stripe's API to cancel the subscription but keep it active until the period ends
+      await stripe.subscriptions.update(existingCustomer.stripeSubscriptionId, {
+        cancel_at_period_end: true, // This will ensure the user can use the service until the next payment date
+      });
+
+      if (existingCustomer && existingCustomer._id) {
+        // Update customer subscription to ACTIVE if they had a previous account (no trial period)
+        await ctx.runMutation(internal.customers.updateCustomer, {
+          id: existingCustomer._id, // Update using the customer's ID
+          updates: {
+            subscriptionStatus: SubscriptionStatus.CANCELED,
+          },
+        });
+      }
+
+      return {
+        success: true,
+        message:
+          "Subscription canceled successfully, you will have access until the next payment date.",
+      };
+    } catch (err) {
+      console.error("Error canceling subscription:", err);
+      throw new Error("Failed to cancel subscription.");
+    }
+  },
+});
+
+export const resumeSubscription = action({
+  args: { customerEmail: v.string() },
+  handler: async (ctx, args) => {
+    let existingCustomer: Customer | null = null;
+
+    try {
+      // Fetch existing customer by email
+      existingCustomer = await ctx.runQuery(
+        internal.customers.findCustomerByEmail,
+        { email: args.customerEmail }
+      );
+    } catch (error) {
+      console.error("Error fetching customer by email:", error);
+      throw new Error("Failed to fetch customer details");
+    }
+
+    if (!existingCustomer) {
+      throw new Error("Customer not found");
+    }
+
+    // Initialize Stripe client
+    const stripe = new Stripe(process.env.STRIPE_KEY!, {
+      apiVersion: "2024-06-20",
+    });
+
+    try {
+      // Retrieve the subscription from Stripe using the subscription ID
+      const subscription = await stripe.subscriptions.retrieve(
+        existingCustomer.stripeSubscriptionId
+      );
+
+      if (subscription.cancel_at_period_end) {
+        // Resume the subscription by setting cancel_at_period_end to false
+        await stripe.subscriptions.update(
+          existingCustomer.stripeSubscriptionId,
+          {
+            cancel_at_period_end: false, // Resuming the subscription
+          }
+        );
+
+        // Optionally, update the subscription status in your database to "active"
+        if (existingCustomer && existingCustomer._id) {
+          // Update customer subscription to ACTIVE if they had a previous account (no trial period)
+          await ctx.runMutation(internal.customers.updateCustomer, {
+            id: existingCustomer._id, // Update using the customer's ID
+            updates: {
+              subscriptionStatus: SubscriptionStatus.ACTIVE,
+            },
+          });
+        }
+        return { success: true, message: "Subscription resumed successfully." };
+      } else {
+        // If the subscription is not canceled or it was already resumed
+        return { success: false, message: "Subscription is already active." };
+      }
+    } catch (err) {
+      console.error("Error resuming subscription:", err);
+      throw new Error("Failed to resume subscription.");
+    }
   },
 });

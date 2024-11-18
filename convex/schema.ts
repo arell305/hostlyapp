@@ -48,7 +48,7 @@ export default defineSchema({
     subscriptionTier: SubscriptionTierConvex,
     trialEndDate: v.union(v.string(), v.null()),
     cancelAt: v.union(v.string(), v.null()),
-    nextPayment: v.string(),
+    nextPayment: v.union(v.string(), v.null()),
     guestListEventCount: v.optional(v.number()),
   }).index("by_email", ["email"]),
   promoCodes: defineTable({

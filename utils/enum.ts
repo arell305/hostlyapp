@@ -21,3 +21,13 @@ export enum SubscriptionTier {
   PLUS = "Plus",
   ELITE = "Elite",
 }
+
+export const subscriptionStatusMap = {
+  active: "Active",
+  trialing: "Trial Period",
+  canceled: "Canceled",
+  incomplete: "Incomplete",
+  incomplete_expired: "Expired Trial",
+  past_due: "Past Due",
+  unpaid: "Unpaid",
+};

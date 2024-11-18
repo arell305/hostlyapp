@@ -47,7 +47,6 @@ const AddEventPage: FC = () => {
     const eventCount = result.guestListEventCount ?? 0;
     canAddGuestList = eventCount < 3;
   }
-  console.log(result.subscriptionTier, "tier");
 
   const handleSubmit = async (
     eventData: any,

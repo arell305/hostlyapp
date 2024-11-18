@@ -12,10 +12,11 @@ import {
   insertCustomerAndSubscription,
 } from "./customers";
 import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
-import { Customer } from "@/types";
+import { Customer, CustomerWithPayment } from "@/types";
 import { ERROR_MESSAGES } from "../constants/errorMessages";
 import { getFutureISOString } from "../utils/helpers";
 import { SubscriptionTierConvex } from "./schema";
+import { DateTime } from "luxon";
 
 // export const pay = action({
 //   args: { priceId: v.string(), email: v.string() },
@@ -290,3 +291,263 @@ export const createStripeSubscription = action({
 //     }
 //   },
 // });
+
+export const updateSubscriptionPaymentMethod = action({
+  args: {
+    email: v.string(),
+    newPaymentMethodId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const stripe = new Stripe(process.env.STRIPE_KEY!, {
+      apiVersion: "2024-06-20",
+    });
+
+    try {
+      const existingCustomer: Customer | null = await ctx.runQuery(
+        internal.customers.findCustomerByEmail,
+        {
+          email: args.email,
+        }
+      );
+
+      if (!existingCustomer) {
+        throw new Error("Customer not found");
+      }
+
+      await stripe.paymentMethods.attach(args.newPaymentMethodId, {
+        customer: existingCustomer.stripeCustomerId,
+      });
+
+      await stripe.customers.update(existingCustomer.stripeCustomerId, {
+        invoice_settings: {
+          default_payment_method: args.newPaymentMethodId,
+        },
+      });
+
+      if (existingCustomer.stripeSubscriptionId) {
+        await stripe.subscriptions.update(
+          existingCustomer.stripeSubscriptionId,
+          {
+            default_payment_method: args.newPaymentMethodId,
+          }
+        );
+      }
+
+      if (existingCustomer._id) {
+        await ctx.runMutation(internal.customers.updateCustomer, {
+          id: existingCustomer._id,
+          updates: {
+            paymentMethodId: args.newPaymentMethodId,
+          },
+        });
+      }
+
+      return { success: true, message: "Payment method updated successfully" };
+    } catch (error: any) {
+      console.error("Error updating payment method:", error);
+      throw new Error("Failed to update payment method");
+    }
+  },
+});
+
+export const updateSubscriptionTier = action({
+  args: {
+    email: v.string(),
+    newTier: v.union(
+      v.literal(SubscriptionTier.STANDARD),
+      v.literal(SubscriptionTier.PLUS),
+      v.literal(SubscriptionTier.ELITE)
+    ),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; message: string }> => {
+    const { email, newTier } = args;
+    const stripe = new Stripe(process.env.STRIPE_KEY!, {
+      apiVersion: "2024-06-20",
+    });
+
+    try {
+      const existingCustomer: Customer | null = await ctx.runQuery(
+        internal.customers.findCustomerByEmail,
+        { email }
+      );
+
+      if (
+        !existingCustomer ||
+        !existingCustomer.stripeSubscriptionId ||
+        !existingCustomer._id
+      ) {
+        throw new Error("Customer or subscription not found");
+      }
+
+      const subscription = await stripe.subscriptions.retrieve(
+        existingCustomer.stripeSubscriptionId
+      );
+
+      const newPriceId = getPriceIdForTier(newTier);
+
+      // Update the subscription in Stripe
+      const updatedSubscription = await stripe.subscriptions.update(
+        existingCustomer.stripeSubscriptionId,
+        {
+          items: [
+            {
+              id: subscription.items.data[0].id,
+              price: newPriceId,
+            },
+          ],
+          proration_behavior: "always_invoice", // This will prorate immediately
+        }
+      );
+      const nextPayment = getFutureISOString(30);
+
+      // Update the customer record in your database
+      await ctx.runMutation(internal.customers.updateCustomer, {
+        id: existingCustomer._id,
+        updates: {
+          subscriptionTier: newTier,
+          stripeSubscriptionId: updatedSubscription.id,
+          subscriptionStatus: SubscriptionStatus.ACTIVE,
+          nextPayment,
+        },
+      });
+
+      await ctx.scheduler.runAt(
+        DateTime.fromISO(nextPayment).toMillis(),
+        internal.customers.resetGuestListEventAndPayment,
+        { customerId: existingCustomer._id }
+      );
+
+      return {
+        success: true,
+        message: `Subscription updated to ${newTier} successfully`,
+      };
+    } catch (error) {
+      console.error("Error updating subscription:", error);
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to update subscription",
+      };
+    }
+  },
+});
+
+type CalculateSubscriptionUpdateResult = {
+  success: boolean;
+  proratedAmount?: number;
+  newMonthlyRate?: number;
+  message?: string;
+};
+
+export const calculateAllSubscriptionUpdates = action({
+  args: {
+    email: v.string(),
+    currentTier: v.union(
+      v.literal(SubscriptionTier.STANDARD),
+      v.literal(SubscriptionTier.PLUS),
+      v.literal(SubscriptionTier.ELITE)
+    ),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<Record<SubscriptionTier, CalculateSubscriptionUpdateResult>> => {
+    const { email, currentTier } = args;
+    const results: Record<SubscriptionTier, CalculateSubscriptionUpdateResult> =
+      {
+        [SubscriptionTier.STANDARD]: {
+          success: false,
+          message: "Not calculated",
+        },
+        [SubscriptionTier.PLUS]: { success: false, message: "Not calculated" },
+        [SubscriptionTier.ELITE]: { success: false, message: "Not calculated" },
+      };
+
+    try {
+      const customer = await ctx.runQuery(
+        internal.customers.findCustomerByEmail,
+        { email }
+      );
+      if (
+        !customer ||
+        !customer.stripeCustomerId ||
+        !customer.stripeSubscriptionId
+      ) {
+        throw new Error("Customer or subscription not found");
+      }
+
+      const stripe = new Stripe(process.env.STRIPE_KEY!, {
+        apiVersion: "2024-06-20",
+      });
+      const subscription = await stripe.subscriptions.retrieve(
+        customer.stripeSubscriptionId
+      );
+
+      for (const tier of Object.values(SubscriptionTier)) {
+        if (tier !== currentTier) {
+          const newPriceId = getPriceIdForTier(tier);
+          const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
+            customer: customer.stripeCustomerId,
+            subscription: customer.stripeSubscriptionId,
+            subscription_items: [
+              {
+                id: subscription.items.data[0].id,
+                price: newPriceId,
+              },
+            ],
+            subscription_proration_date: Math.floor(Date.now() / 1000),
+          });
+
+          let proratedAmount =
+            upcomingInvoice.amount_due -
+            (subscription.items.data[0].price.unit_amount ?? 0);
+
+          // If proratedAmount is negative, set it to 0
+          proratedAmount = Math.max(0, proratedAmount);
+
+          const newMonthlyRate =
+            upcomingInvoice.lines.data.find(
+              (line) => line.price?.id === newPriceId
+            )?.amount ?? 0;
+
+          results[tier] = {
+            success: true,
+            proratedAmount: proratedAmount / 100,
+            newMonthlyRate: newMonthlyRate / 100,
+          };
+        }
+      }
+
+      return results;
+    } catch (error) {
+      console.error("Error calculating subscription updates:", error);
+      return Object.fromEntries(
+        Object.values(SubscriptionTier).map((tier) => [
+          tier,
+          {
+            success: false,
+            message: "Failed to calculate subscription update",
+          },
+        ])
+      ) as Record<SubscriptionTier, CalculateSubscriptionUpdateResult>;
+    }
+  },
+});
+
+function getPriceIdForTier(tier: SubscriptionTier): string {
+  switch (tier) {
+    case SubscriptionTier.STANDARD:
+      return "price_1PxexNRv8MX5Pza1YpAG3Znt";
+    case SubscriptionTier.PLUS:
+      return "price_1PxfAnRv8MX5Pza1kFwM4gmI";
+    case SubscriptionTier.ELITE:
+      return "price_1PxfD5Rv8MX5Pza1TJKtcBHK";
+    default:
+      throw new Error("Invalid subscription tier");
+  }
+}
