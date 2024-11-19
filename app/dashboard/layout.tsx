@@ -3,6 +3,16 @@ import { useState, useEffect } from "react";
 import DashboardNavbar from "./components/DashboardNavbar";
 import DashboardMobileSidebar from "./components/DashboardMobileSidebar";
 import DashboardDesktopSidebar from "./components/DashboardDesktopSidebar";
+import SuspenseBoundary from "@/components/layout/SuspenseBoundary";
+import dynamic from "next/dynamic";
+
+const DynamicDashboardNavbar = dynamic(
+  () => import("./components/DashboardNavbar"),
+  {
+    ssr: false,
+    loading: () => <p>Loading...</p>,
+  }
+);
 
 const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,7 +52,8 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="relative h-screen flex flex-col w-full">
       {/* Navbar */}
-      <DashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
+
+      <DynamicDashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
       <div className="md:flex h-full mt-[50px]">
         {/* Sidebar */}
         <div className="md:w-64 w-full">
@@ -61,10 +72,34 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             isOpen && !isMobile ? "ml-64" : ""
           }`}
         >
-          <main className="p-4">{children}</main>
+          <div className="p-4">{children}</div>
         </div>
       </div>
     </div>
+    // <div className="p-4">
+    //   <DynamicDashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
+    //   <div className="md:flex h-full mt-[50px]">
+    //     <div className="md:w-64 w-full">
+    //       {isMobile ? (
+    //         <DashboardMobileSidebar
+    //           isOpen={isOpen}
+    //           toggleSidebar={toggleSidebar}
+    //         />
+    //       ) : (
+    //         <DashboardDesktopSidebar />
+    //       )}
+    //     </div>
+    //     {/* Main content area */}
+    //     <div
+    //       className={`relative flex-grow transition-all duration-300 ${
+    //         isOpen && !isMobile ? "ml-64" : ""
+    //       }`}
+    //     >
+    //       <div className="p-4">{children}</div>
+    //     </div>
+    //   </div>
+    //   {children}
+    // </div>
   );
 };
 

@@ -31,8 +31,6 @@ const SidebarMenu: React.FC = () => {
     }
   );
 
-  console.log("org", organizationFromDB);
-
   useEffect(() => {
     // Retrieve stored organization data from localStorage if it exists
     const storedOrgId = localStorage.getItem("selectedOrgId");
@@ -87,8 +85,8 @@ const SidebarMenu: React.FC = () => {
       <Menu className="md:mt-16">
         {isAppAdmin ? (
           <>
-            <MenuItem>
-              <Link href="/">Promotional Companies</Link>
+            <MenuItem component={<Link href="/" />}>
+              Promotional Companies
             </MenuItem>
 
             {selectedOrgName && (
@@ -113,8 +111,8 @@ const SidebarMenu: React.FC = () => {
           </>
         )}
 
-        <MenuItem>
-          <Link href="/organization">{organization?.name}</Link>
+        <MenuItem component={<Link href="/organization" />}>
+          {organization?.name}
         </MenuItem>
       </Menu>
     </Sidebar>
