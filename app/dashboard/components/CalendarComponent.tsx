@@ -120,7 +120,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     setDisplayedMonth(newMonth);
   };
   const isPlusTier = result?.subscriptionTier === SubscriptionTier.PLUS;
-  console.log("resut", isPlusTier);
+
   return (
     <>
       {loading || !result ? (
@@ -133,9 +133,9 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
               numberOfEvents={result.guestListEventCount}
             />
           )}
-          <Page className="max-w-[820px]">
-            <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px]">
-              <div className="mbsc-form-group">
+          <Page className="max-w-[820px] rounded-md">
+            <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px] ">
+              <div className="mbsc-form-group rounded-md">
                 <div className="mbsc-form-group-title">
                   {displayName} Events
                 </div>

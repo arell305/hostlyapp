@@ -76,30 +76,6 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </div>
     </div>
-    // <div className="p-4">
-    //   <DynamicDashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
-    //   <div className="md:flex h-full mt-[50px]">
-    //     <div className="md:w-64 w-full">
-    //       {isMobile ? (
-    //         <DashboardMobileSidebar
-    //           isOpen={isOpen}
-    //           toggleSidebar={toggleSidebar}
-    //         />
-    //       ) : (
-    //         <DashboardDesktopSidebar />
-    //       )}
-    //     </div>
-    //     {/* Main content area */}
-    //     <div
-    //       className={`relative flex-grow transition-all duration-300 ${
-    //         isOpen && !isMobile ? "ml-64" : ""
-    //       }`}
-    //     >
-    //       <div className="p-4">{children}</div>
-    //     </div>
-    //   </div>
-    //   {children}
-    // </div>
   );
 };
 

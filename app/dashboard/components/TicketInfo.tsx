@@ -22,9 +22,10 @@ interface TicketInfoProps {
     totalMaleTicketsSold: number;
     totalFemaleTicketsSold: number;
   } | null;
-  canEdit: boolean;
+  canViewAllTickets: boolean;
   eventId: Id<"events">;
   promoterClerkId?: string | null;
+  hasPromoCode: boolean;
 }
 
 interface Promoter {
@@ -34,34 +35,38 @@ interface Promoter {
 
 const TicketInfo: React.FC<TicketInfoProps> = ({
   ticketInfo,
-  canEdit,
+  canViewAllTickets,
   eventId,
   promoterClerkId,
+  hasPromoCode,
 }) => {
   const { organization, isLoaded } = useOrganization();
   const [selectedPromoter, setSelectedPromoter] = useState<string>("all");
-
   const promoters = useQuery(
     api.organizations.getPromotersByOrganization,
-    canEdit && organization?.id
+    canViewAllTickets && organization?.id
       ? { clerkOrganizationId: organization.id }
       : "skip"
   );
 
   const totalPromoCodeUsage = useQuery(
     api.promoCodeUsage.getTotalPromoCodeUsageByEvent,
-    canEdit ? { eventId } : "skip"
+    canViewAllTickets ? { eventId } : "skip"
   );
 
   const selectedPromoterUsage = useQuery(
     api.promoCodeUsage.getPromoCodeUsageByPromoterAndEvent,
-    (canEdit && selectedPromoter !== "all") || (!canEdit && promoterClerkId)
+    (canViewAllTickets && selectedPromoter !== "all") ||
+      (!canViewAllTickets && promoterClerkId)
       ? {
-          clerkPromoterUserId: canEdit ? selectedPromoter : promoterClerkId!,
+          clerkPromoterUserId: canViewAllTickets
+            ? selectedPromoter
+            : promoterClerkId!,
           eventId,
         }
       : "skip"
   );
+  console.log("canViewAllTickets", canViewAllTickets);
 
   if (!ticketInfo) {
     return <p>No ticket option for this event.</p>;
@@ -70,7 +75,7 @@ const TicketInfo: React.FC<TicketInfoProps> = ({
     return <div>Loading</div>;
   }
 
-  if (!canEdit) {
+  if (hasPromoCode) {
     if (selectedPromoterUsage) {
       return (
         <div className="mt-4">

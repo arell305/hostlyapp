@@ -23,8 +23,8 @@ export default function EventPageWrapper() {
   const searchParams = useSearchParams(); // Get search parameters
   const name = searchParams.get("name");
 
-  const { orgRole, userId: promoterId, isLoaded, orgId } = useAuth();
-
+  const { orgRole, userId: promoterId, isLoaded, orgId, orgSlug } = useAuth();
+  console.log("orgRole", orgRole);
   const eventData = useQuery(api.events.getEventById, { eventId });
 
   const displayEventPhoto = useQuery(api.photo.getFileUrl, {
@@ -32,7 +32,7 @@ export default function EventPageWrapper() {
   });
 
   // Check if the organization is the admin organization
-  const isAdminOrg = orgId === "org_2n2ldgira5fU0dLmzYMJURwUXiK";
+  const isAdminOrg = orgSlug === "admin";
 
   // Query permissions based on role
   const rolePermissions: Record<ClerkRoleEnumType, EventRolePermissions> = {
@@ -62,22 +62,51 @@ export default function EventPageWrapper() {
     },
   };
 
-  const permissions = isAdminOrg
-    ? {
-        canUploadGuestList: false,
-        canViewAllGuestList: false,
-        canEdit: true,
-        canCheckInGuests: true,
-      }
-    : orgRole && rolePermissions[orgRole]
-      ? rolePermissions[orgRole]
-      : {
+  let permissions =
+    isAdminOrg || orgRole === "org:admin"
+      ? {
           canUploadGuestList: false,
-          canViewAllGuestList: false,
-          canEdit: false,
+          canViewAllGuestList: true,
+          canEdit: true,
           canCheckInGuests: false,
-        };
+        }
+      : orgRole && rolePermissions[orgRole]
+        ? rolePermissions[orgRole]
+        : {
+            canUploadGuestList: false,
+            canViewAllGuestList: false,
+            canEdit: false,
+            canCheckInGuests: false,
+          };
 
+  if (orgRole === "org:promoter") {
+    permissions = {
+      canUploadGuestList: true,
+      canViewAllGuestList: false,
+      canEdit: false,
+      canCheckInGuests: false,
+    };
+  }
+
+  if (orgRole === "org:moderator") {
+    permissions = {
+      canUploadGuestList: false,
+      canViewAllGuestList: false,
+      canEdit: false,
+      canCheckInGuests: true,
+    };
+  }
+
+  if (isAdminOrg) {
+    permissions = {
+      canUploadGuestList: false,
+      canViewAllGuestList: true,
+      canEdit: false,
+      canCheckInGuests: false,
+    };
+  }
+  console.log("org role", orgRole);
+  console.log("permissions", permissions);
   if (eventData === undefined || !isLoaded || displayEventPhoto === undefined) {
     return <EventInfoSkeleton />;
   }

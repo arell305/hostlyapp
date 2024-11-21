@@ -176,6 +176,7 @@ export default function EventPage({
     isGuestListOpen = now < guestListCloseDate;
   }
   let isCheckInOpen = now < new Date(event.endTime);
+  console.log("permissions", permissions);
   return (
     <div className="max-w-2xl mx-auto p-4">
       {isEditingEvent ? (
@@ -192,7 +193,7 @@ export default function EventPage({
             initialGuestListData={guestListInfo}
             onSubmit={handleSubmit}
             isEdit={true}
-            canAddGuestList={permissions.canUploadGuestList}
+            canAddGuestListOption={permissions.canEdit}
             // deleteTicketInfo={handleDeleteTicketInfo}
             eventId={eventData._id}
             onCancelEvent={handleCancelEvent}
@@ -246,9 +247,10 @@ export default function EventPage({
           {activeTab === "ticketInfo" && (
             <TicketInfo
               ticketInfo={ticketInfo}
-              canEdit={permissions.canEdit}
+              canViewAllTickets={permissions.canViewAllGuestList}
               eventId={eventData._id}
               promoterClerkId={promoterId}
+              hasPromoCode={permissions.canUploadGuestList}
             />
           )}
           {activeTab === "event" && (

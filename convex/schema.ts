@@ -18,6 +18,11 @@ export const SubscriptionTierConvex = v.union(
   v.literal(SubscriptionTier.STANDARD)
 );
 
+export const Venue = v.object({
+  venueName: v.optional(v.string()),
+  address: v.optional(v.string()),
+});
+
 export const GuestListNames = v.object({
   id: v.string(),
   name: v.string(),
@@ -93,6 +98,7 @@ export default defineSchema({
     ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
     photo: v.union(v.id("_storage"), v.null()),
     guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
+    venue: v.optional(Venue),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
     .index("by_startTime", ["startTime"]),

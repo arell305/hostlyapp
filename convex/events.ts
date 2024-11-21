@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { Venue } from "./schema";
 
 export const getEventsByOrgAndDate = query({
   args: {
@@ -31,6 +32,7 @@ export const addEvent = mutation({
     startTime: v.string(),
     endTime: v.string(),
     photo: v.union(v.id("_storage"), v.null()),
+    venue: v.optional(Venue),
   },
   handler: async (ctx, args) => {
     const eventId = await ctx.db.insert("events", {
@@ -40,6 +42,7 @@ export const addEvent = mutation({
       startTime: args.startTime,
       endTime: args.endTime,
       photo: args.photo,
+      venue: args.venue,
     });
 
     // Update the organization's eventIds array
@@ -213,6 +216,7 @@ export const updateEvent = mutation({
     photo: v.optional(v.union(v.string(), v.null())),
     ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
     guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
+    venue: v.optional(Venue),
   },
   handler: async (ctx, args) => {
     const { id, ...updateFields } = args;

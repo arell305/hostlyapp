@@ -19,6 +19,10 @@ interface EventFormProps {
     startTime: string;
     endTime: string;
     photo: Id<"_storage"> | null;
+    venue?: {
+      venueName?: string;
+      address?: string;
+    };
   };
   initialTicketData?: {
     maleTicketPrice: number;
@@ -36,7 +40,7 @@ interface EventFormProps {
     guesListData: any
   ) => Promise<void>;
   isEdit: boolean;
-  canAddGuestList: boolean;
+  canAddGuestListOption: boolean;
   subscriptionTier?: SubscriptionTier;
   deleteTicketInfo?: (eventId: Id<"events">) => Promise<void>;
   deleteGuestListInfo?: (eventId: Id<"events">) => Promise<void>;
@@ -50,7 +54,7 @@ const EventForm: React.FC<EventFormProps> = ({
   initialGuestListData,
   onSubmit,
   isEdit,
-  canAddGuestList,
+  canAddGuestListOption,
   subscriptionTier,
   deleteTicketInfo,
   eventId,
@@ -62,6 +66,12 @@ const EventForm: React.FC<EventFormProps> = ({
   const [eventName, setEventName] = useState(initialEventData?.name || "");
   const [description, setDescription] = useState(
     initialEventData?.description || ""
+  );
+  const [venueName, setVenueName] = useState(
+    initialEventData?.venue?.venueName || ""
+  );
+  const [address, setAddress] = useState(
+    initialEventData?.venue?.address || ""
   );
 
   const [startTime, setStartTime] = useState(initialEventData?.startTime || "");
@@ -163,10 +173,10 @@ const EventForm: React.FC<EventFormProps> = ({
 
   const handleCancelEventClick = () => {
     setModalConfig({
-      title: "Confirm Event Cancellation",
+      title: "Confirm Event Deletion",
       message:
-        "Are you sure you want to cancel this event? This action cannot be undone.",
-      confirmText: "Cancel Event",
+        "Are you sure you want to delete this event? This action cannot be undone.",
+      confirmText: "Delete Event",
       cancelText: "Keep Event",
       onConfirm: async () => {
         if (onCancelEvent) {
@@ -354,6 +364,10 @@ const EventForm: React.FC<EventFormProps> = ({
         startTime: startTime.trim(),
         endTime: endTime.trim(),
         photo: photoStorageId || null,
+        venue: {
+          venueName,
+          address,
+        },
       };
 
       const ticketData = isTicketsSelected
@@ -405,6 +419,7 @@ const EventForm: React.FC<EventFormProps> = ({
     setter(utcDateTime || "");
   };
 
+  console.log("canAddGuestListOption", canAddGuestListOption);
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
@@ -456,6 +471,26 @@ const EventForm: React.FC<EventFormProps> = ({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="venueName">Venue Name</Label>
+        <Input
+          id="venueName"
+          value={venueName}
+          onChange={(e) => setVenueName(e.target.value)}
+          className="w-full max-w-[500px]"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="address">Address</Label>
+        <Input
+          id="address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          className="w-full max-w-[500px]"
+        />
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="startTime">Starts</Label>
         <Input
           type="datetime-local"
@@ -478,7 +513,7 @@ const EventForm: React.FC<EventFormProps> = ({
         />
         {errors.endTime && <p className="text-red-500">{errors.endTime}</p>}
       </div>
-      {canAddGuestList && (
+      {canAddGuestListOption && (
         <div className="space-y-2">
           <Button
             type="button"
@@ -625,7 +660,7 @@ const EventForm: React.FC<EventFormProps> = ({
           variant="destructive"
           className="mt-4"
         >
-          Cancel Event
+          Delete Event
         </Button>
       )}
       <ConfirmModal

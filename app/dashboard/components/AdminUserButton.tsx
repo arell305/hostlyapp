@@ -1,5 +1,3 @@
-// components/PromoterUserButton.tsx
-import React, { useState, useCallback, useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { FaUserGroup } from "react-icons/fa6";
@@ -26,19 +24,13 @@ const AdminUserButton: React.FC<AdminUserButtonProps> = ({
   onEditSubscription,
 }) => {
   const router = useRouter();
+
   const handleTeamClick = () => {
     router.push("/team");
   };
 
   return (
     <UserButton>
-      <UserButton.UserProfilePage
-        label="Subscription"
-        url="subscription"
-        labelIcon={<PiNewspaper />}
-      >
-        <SubscriptionTab />
-      </UserButton.UserProfilePage>
       <UserButton.MenuItems>
         <UserButton.Action
           label={"Manage Team"}
@@ -46,6 +38,13 @@ const AdminUserButton: React.FC<AdminUserButtonProps> = ({
           onClick={handleTeamClick}
         />
       </UserButton.MenuItems>
+      <UserButton.UserProfilePage
+        label="Subscription"
+        url="subscription"
+        labelIcon={<PiNewspaper />}
+      >
+        <SubscriptionTab />
+      </UserButton.UserProfilePage>
     </UserButton>
   );
 };

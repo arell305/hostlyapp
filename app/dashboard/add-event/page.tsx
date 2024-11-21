@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "../components/ConfirmModal";
 import EventInfoSkeleton from "../components/loading/EventInfoSkeleton";
+import { PLUS_GUEST_LIST_LIMIT } from "@/constants";
 
 const AddEventPage: FC = () => {
   const { organization, isLoaded: orgLoaded } = useOrganization();
@@ -22,8 +23,6 @@ const AddEventPage: FC = () => {
   // Retrieve organizationID from query params if it exists
   const queryOrgId = searchParams.get("organizationId");
   const organizationId = queryOrgId || organization?.id;
-  console.log("org Id", organizationId);
-  console.log(queryOrgId, "queryOrgId");
   const result = useQuery(api.customers.getCustomerSubscriptionTier, {
     clerkOrganizationId: organizationId ?? "",
   });
@@ -40,12 +39,12 @@ const AddEventPage: FC = () => {
     return <EventInfoSkeleton />;
   }
 
-  let canAddGuestList = false;
+  let canAddGuestListOption = false;
   if (result.subscriptionTier === SubscriptionTier.ELITE) {
-    canAddGuestList = true;
+    canAddGuestListOption = true;
   } else if (result.subscriptionTier === SubscriptionTier.PLUS) {
     const eventCount = result.guestListEventCount ?? 0;
-    canAddGuestList = eventCount < 3;
+    canAddGuestListOption = eventCount <= PLUS_GUEST_LIST_LIMIT;
   }
 
   const handleSubmit = async (
@@ -107,7 +106,7 @@ const AddEventPage: FC = () => {
       <EventForm
         onSubmit={handleSubmit}
         isEdit={false}
-        canAddGuestList={canAddGuestList}
+        canAddGuestListOption={canAddGuestListOption}
         subscriptionTier={result.subscriptionTier}
       />
       <ConfirmModal

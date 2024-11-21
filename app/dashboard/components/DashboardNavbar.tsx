@@ -8,6 +8,11 @@ import EditPromoCodeDialog from "./EditPromoCodeDialog";
 import PromoterUserButton from "./PromoterUserbutton";
 import AdminUserButton from "./AdminUserButton";
 import EditSubscriptionDialog from "./EditSubscriptionDialog";
+import { CiCirclePlus } from "react-icons/ci";
+import { FaPlus } from "react-icons/fa";
+import { FaPlus as Plus } from "react-icons/fa6";
+import { Button } from "@/components/ui/button";
+import { useParams, usePathname, useRouter } from "next/navigation";
 
 interface DashboardNavbarProps {
   toggleNavbar: () => void;
@@ -24,9 +29,13 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     const [promoCode, setPromoCode] = useState(
       user?.promoterPromoCode?.name || ""
     );
+    const router = useRouter();
 
     const isPromoter = role === UserRoleEnum.PROMOTER;
     const isAdmin = role === UserRoleEnum.PROMOTER_ADMIN;
+    const canCreateEvents =
+      role === UserRoleEnum.APP_ADMIN || UserRoleEnum.PROMOTER_ADMIN;
+    const isAppAdmin = role === UserRoleEnum.APP_ADMIN;
 
     // Update promoCode if user changes
     useEffect(() => {
@@ -41,6 +50,14 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     const toggleSubscriptionModal = useCallback(() => {
       setIsSubscriptionModalOpen((prev) => !prev);
     }, []);
+
+    const handleAddEvent = () => {
+      // const targetUrl = isAppAdmin
+      //   ? `/add-event?organizationId=${cleanOrganizationId}`
+      //   : "/add-event";
+      const targetUrl = "/add-event";
+      router.push(targetUrl);
+    };
 
     // Return early if loading
     if (isLoading) return <p>Loading</p>;
@@ -57,21 +74,30 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
               <span className="sr-only">Open sidebar</span>
               {isOpen ? <CloseIcon /> : <HamburgerIcon />}
             </button>
-            <a href="#" className="text-2xl font-medium ml-3">
+            <a href="/" className="text-2xl font-medium ml-3">
               {organization?.name ?? "Hostly"}
             </a>
           </div>
+          {/* <CiCirclePlus size={26} /> */}
           <div className="ml-auto">
-            {isAdmin ? (
-              <AdminUserButton onEditSubscription={toggleSubscriptionModal} />
-            ) : isPromoter ? (
-              <PromoterUserButton
-                promoCode={promoCode}
-                onEditPromoCode={togglePromoCodeModal}
-              />
-            ) : (
-              <UserButton />
-            )}
+            <div className="flex space-x-3">
+              {/* {canCreateEvents && (
+                <Button onClick={handleAddEvent} className="w-[100px] h-[35px]">
+                  <CiCirclePlus size={30} className="w-10 h-10 text-2xl" />
+                  <span className="pl-1"> Event</span>
+                </Button>
+              )} */}
+              {isAdmin ? (
+                <AdminUserButton onEditSubscription={toggleSubscriptionModal} />
+              ) : isPromoter ? (
+                <PromoterUserButton
+                  promoCode={promoCode}
+                  onEditPromoCode={togglePromoCodeModal}
+                />
+              ) : (
+                <UserButton />
+              )}
+            </div>
           </div>
         </div>
         {isPromoCodeModalOpen && (

@@ -3,13 +3,20 @@ import { Sidebar, Menu, MenuItem } from "react-pro-sidebar";
 import Link from "next/link";
 import { useUserRole } from "@/hooks/useUserRole";
 import { canCreateEvents } from "../../../utils/helpers";
-import { Button } from "@/components/ui/button";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { CiCirclePlus } from "react-icons/ci";
+import { IoCalendarClearOutline } from "react-icons/io5";
+import { LuUsers } from "react-icons/lu";
+import { GrRadialSelected } from "react-icons/gr";
 
-const SidebarMenu: React.FC = () => {
+interface SidebarMenuProps {
+  toggleSidebar?: () => void; // Add this prop
+}
+
+const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
   const { role, isLoading } = useUserRole();
   const pathname = usePathname();
   const { organization, isLoaded } = useOrganization();
@@ -67,17 +74,25 @@ const SidebarMenu: React.FC = () => {
   }
 
   const handleAddEvent = () => {
-    const targetUrl = isAppAdmin
-      ? `/add-event?organizationId=${cleanOrganizationId}`
-      : "/add-event";
+    const targetUrl = "/add-event";
     router.push(targetUrl);
+    if (toggleSidebar) {
+      toggleSidebar();
+    }
   };
   const isAppAdmin = organization?.name === "Admin";
   const canCreateEventsPermission = canCreateEvents(role);
 
-  const handleCompanyClick = () => {
-    const encodedName = encodeURIComponent(selectedOrgName || ""); // Encode the name to handle spaces and special characters
-    router.push(`/${selectedOrgId}?name=${encodedName}`);
+  const handleCalendarClick = () => {
+    if (isAppAdmin) {
+      const encodedName = encodeURIComponent(selectedOrgName || ""); // Encode the name to handle spaces and special characters
+      router.push(`/${selectedOrgId}?name=${encodedName}`);
+    } else {
+      router.push("/");
+    }
+    if (toggleSidebar) {
+      toggleSidebar();
+    }
   };
 
   return (
@@ -86,16 +101,23 @@ const SidebarMenu: React.FC = () => {
         {isAppAdmin ? (
           <>
             <MenuItem component={<Link href="/" />}>
-              Promotional Companies
+              <div className="flex">
+                <LuUsers size={14} className="w-6 h-6 mr-2" />
+                <p>Customers</p>
+              </div>
             </MenuItem>
 
             {selectedOrgName && (
               <>
-                <MenuItem>{selectedOrgName}</MenuItem>
-                <MenuItem>
-                  <Button onClick={handleAddEvent}>Add Event</Button>
-                </MenuItem>
-                <MenuItem onClick={handleCompanyClick}>Calendar</MenuItem>
+                <MenuItem onClick={handleCalendarClick}>
+                  <div className="flex font-bold underline">
+                    <IoCalendarClearOutline
+                      size={14}
+                      className="w-6 h-6 mr-2"
+                    />
+                    <p> {selectedOrgName}</p>
+                  </div>
+                </MenuItem>{" "}
               </>
             )}
           </>
@@ -103,17 +125,21 @@ const SidebarMenu: React.FC = () => {
           // For non-admin users, render Add Event and Calendar as usual
           <>
             {canCreateEventsPermission && (
-              <MenuItem>
-                <Button onClick={handleAddEvent}>Add Event</Button>
+              <MenuItem onClick={handleAddEvent} className="pointer">
+                <div className="flex">
+                  <CiCirclePlus size={14} className="w-6 h-6 mr-2" />
+                  <p>Add Event</p>
+                </div>
               </MenuItem>
             )}
-            <MenuItem>Calendar</MenuItem>
+            <MenuItem onClick={handleCalendarClick}>
+              <div className="flex">
+                <IoCalendarClearOutline size={14} className="w-6 h-6 mr-2" />
+                <p>Calendar</p>
+              </div>
+            </MenuItem>
           </>
         )}
-
-        <MenuItem component={<Link href="/organization" />}>
-          {organization?.name}
-        </MenuItem>
       </Menu>
     </Sidebar>
   );

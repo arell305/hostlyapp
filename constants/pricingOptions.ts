@@ -1,3 +1,4 @@
+import { PLUS_GUEST_LIST_LIMIT } from "@/constants";
 import { PricingOption } from "../app/types";
 import { SubscriptionTier } from "../utils/enum";
 
@@ -14,7 +15,7 @@ export const pricingOptions: PricingOption[] = [
     id: "prod_QpJo0GlbKBCugX",
     tier: SubscriptionTier.PLUS,
     price: "99.99",
-    description: "Unlimited Tickets & 4 Guest List Events",
+    description: `Unlimited Tickets & ${PLUS_GUEST_LIST_LIMIT} Guest List Events`,
     isFree: true,
     priceId: "price_1PxfAnRv8MX5Pza1kFwM4gmI",
   },

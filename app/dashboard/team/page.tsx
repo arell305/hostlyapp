@@ -8,7 +8,7 @@ const OrganizationProfilePage = () => (
   <OrganizationProfile routing="hash">
     <OrganizationProfile.Page
       label="Team Promo Code"
-      labelIcon="s"
+      labelIcon={<FaTicket />}
       url="promoCode"
     >
       <OrgPromoCode />

@@ -7,6 +7,10 @@ interface EventInfoProps {
     endTime: string;
     description?: string | null;
     photo?: string | null;
+    venue?: {
+      venueName?: string;
+      address?: string;
+    };
   };
   ticketInfo: {
     maleTicketPrice: number;
@@ -57,6 +61,18 @@ const EventInfo: React.FC<EventInfoProps> = ({
             alt={event.name}
             className="w-full h-64 object-cover rounded-lg mt-4"
           />
+        )}
+
+        {event.venue?.venueName && (
+          <p className="mb-2">
+            <strong>Venue Name:</strong> {event.venue.venueName}
+          </p>
+        )}
+
+        {event.venue?.address && (
+          <p className="mb-2">
+            <strong>Address:</strong> {event.venue.address}
+          </p>
         )}
       </div>
 
