@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useOrganization } from "@clerk/nextjs";
+import { useOrganization, useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import "@mobiscroll/react/dist/css/mobiscroll.min.css";
@@ -14,7 +14,8 @@ import {
 import moment from "moment-timezone";
 import { CalendarLoading } from "./loading/CalendarLoading"; // Import the CalendarLoading component
 import EventStats from "./EventStats";
-import { SubscriptionTier } from "../../../utils/enum";
+import { SubscriptionTier, UserRoleEnum } from "../../../utils/enum";
+import { useUserRole } from "@/hooks/useUserRole";
 
 setOptions({
   theme: "ios",
@@ -33,6 +34,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   companyName,
 }) => {
   const router = useRouter();
+  const { role, isLoading: isClerkLoading } = useUserRole();
   const todayInPST = moment().tz("America/Los_Angeles").startOf("day").toDate();
   const [selected, setSelected] = useState<Date | null>(todayInPST);
   const { organization, isLoaded: orgLoaded } = useOrganization();
@@ -120,14 +122,17 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     setDisplayedMonth(newMonth);
   };
   const isPlusTier = result?.subscriptionTier === SubscriptionTier.PLUS;
+  const showEventStats =
+    role === UserRoleEnum.PROMOTER_ADMIN ||
+    role === UserRoleEnum.PROMOTER_MANAGER;
 
   return (
     <>
-      {loading || !result ? (
+      {loading || !result || isClerkLoading ? (
         <CalendarLoading />
       ) : (
         <>
-          {isPlusTier && (
+          {isPlusTier && showEventStats && (
             <EventStats
               nextResetDate={result.nextCycle || ""}
               numberOfEvents={result.guestListEventCount}

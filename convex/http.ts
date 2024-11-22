@@ -120,6 +120,9 @@ http.route({
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
+        case "user.updated":
+          console.log(result.data);
+          break;
         case "organizationInvitation.created":
           await ctx.runMutation(internal.users.createUser, {
             email: result.data.email_address,

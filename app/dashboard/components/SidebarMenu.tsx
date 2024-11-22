@@ -11,6 +11,7 @@ import { CiCirclePlus } from "react-icons/ci";
 import { IoCalendarClearOutline } from "react-icons/io5";
 import { LuUsers } from "react-icons/lu";
 import { GrRadialSelected } from "react-icons/gr";
+import { FaUserGroup } from "react-icons/fa6";
 
 interface SidebarMenuProps {
   toggleSidebar?: () => void; // Add this prop
@@ -95,6 +96,14 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
     }
   };
 
+  const handleTeamClick = () => {
+    router.push("/team");
+
+    if (toggleSidebar) {
+      toggleSidebar();
+    }
+  };
+
   return (
     <Sidebar style={{ height: "100vh" }}>
       <Menu className="md:mt-16">
@@ -136,6 +145,12 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
               <div className="flex">
                 <IoCalendarClearOutline size={14} className="w-6 h-6 mr-2" />
                 <p>Calendar</p>
+              </div>
+            </MenuItem>
+            <MenuItem onClick={handleTeamClick}>
+              <div className="flex">
+                <FaUserGroup size={14} className="w-6 h-6 mr-2" />
+                <p>Team</p>
               </div>
             </MenuItem>
           </>

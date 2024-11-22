@@ -24,7 +24,6 @@ export default function EventPageWrapper() {
   const name = searchParams.get("name");
 
   const { orgRole, userId: promoterId, isLoaded, orgId, orgSlug } = useAuth();
-  console.log("orgRole", orgRole);
   const eventData = useQuery(api.events.getEventById, { eventId });
 
   const displayEventPhoto = useQuery(api.photo.getFileUrl, {
@@ -105,8 +104,6 @@ export default function EventPageWrapper() {
       canCheckInGuests: false,
     };
   }
-  console.log("org role", orgRole);
-  console.log("permissions", permissions);
   if (eventData === undefined || !isLoaded || displayEventPhoto === undefined) {
     return <EventInfoSkeleton />;
   }
