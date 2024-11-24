@@ -31,3 +31,17 @@ export const subscriptionStatusMap = {
   past_due: "Past Due",
   unpaid: "Unpaid",
 };
+
+export const roleMap: Record<string, string> = {
+  "org:promoter": "Promoter",
+  "org:moderator": "Moderator",
+  "org:manager": "Manager",
+  "org:admin": "Admin",
+};
+
+export enum UserRole {
+  Promoter = "org:promoter",
+  Moderator = "org:moderator",
+  Manager = "org:manager",
+  Admin = "org:admin",
+}

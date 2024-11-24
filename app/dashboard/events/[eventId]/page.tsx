@@ -123,10 +123,15 @@ export default function EventPageWrapper() {
 
   return (
     <section>
-      <BackButton
-        text={name ? `Back to ${name}'s Calendar` : "Back To Calendar"}
-        targetRoute={backRoute}
-      />
+      <div className="flex justify-between items-center mx-[20px] mt-2">
+        <BackButton text="Back" targetRoute={backRoute} />
+        <p className="text-lg font-bold items-center">{eventData.name}</p>
+        {permissions.canEdit ? (
+          <p className="hover:underline cursor-pointer text-blue-500">Edit</p>
+        ) : (
+          <p></p>
+        )}
+      </div>
       <EventPage
         eventData={eventData}
         permissions={permissions}

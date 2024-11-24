@@ -1,5 +1,5 @@
 import { defineSchema, defineTable } from "convex/server";
-import { UserRoleEnum } from "../utils/enum";
+import { UserRole, UserRoleEnum } from "../utils/enum";
 import { v } from "convex/values";
 import { SubscriptionTier } from "../utils/enum";
 
@@ -16,6 +16,13 @@ export const SubscriptionTierConvex = v.union(
   v.literal(SubscriptionTier.ELITE),
   v.literal(SubscriptionTier.PLUS),
   v.literal(SubscriptionTier.STANDARD)
+);
+
+export const RoleConvex = v.union(
+  v.literal(UserRole.Admin),
+  v.literal(UserRole.Moderator),
+  v.literal(UserRole.Manager),
+  v.literal(UserRole.Promoter)
 );
 
 export const Venue = v.object({

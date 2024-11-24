@@ -28,3 +28,11 @@ export interface CustomerWithPayment extends Customer {
   currentSubscriptionAmount?: number;
   discountPercentage?: number;
 }
+
+export interface Membership {
+  clerkUserId: string | null;
+  role: string;
+  firstName: string | null;
+  lastName: string | null;
+  imageUrl: string | null;
+}

@@ -49,10 +49,11 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     };
   }, [isOpen]);
 
+  // return <div className="p-4">{children}</div>;
+
   return (
     <div className="relative h-screen flex flex-col w-full">
-      {/* Navbar */}
-
+      Navbar
       <DynamicDashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
       <div className="md:flex h-full mt-[50px]">
         {/* Sidebar */}
