@@ -18,7 +18,7 @@
 
 // export default OrganizationProfilePage;
 "use client";
-import { useOrganization } from "@clerk/nextjs";
+import { useOrganization, useUser } from "@clerk/nextjs";
 import React, { useEffect, useState } from "react";
 import { OrganizationMembership } from "@clerk/clerk-sdk-node";
 import { useAction } from "convex/react";
@@ -29,6 +29,9 @@ import { UserRole } from "../../../utils/enum";
 
 const Team = () => {
   const { organization, isLoaded } = useOrganization();
+  const { user, isLoaded: isUserLoaded } = useUser();
+  const currentUserRole = user?.organizationMemberships[0].role as UserRole;
+  console.log("info", user);
   const getOrganizationMembership = useAction(
     api.clerk.getOrganizationMemberships
   );
@@ -44,14 +47,9 @@ const Team = () => {
     const fetchOrganizationalMembership = async () => {
       try {
         if (organization) {
-          console.log(
-            "Fetching memberships for organization ID:",
-            organization.id
-          );
           const result = await getOrganizationMembership({
             clerkOrgId: organization.id,
           });
-          console.log("Fetched memberships:", result);
           setOrganizationalMembership(result);
         }
       } catch (err) {
@@ -90,14 +88,13 @@ const Team = () => {
     // }
   };
 
-  if (!isLoaded || !organization) {
+  if (!isLoaded || !organization || !isUserLoaded || !user) {
     return <div>Loading...</div>;
   }
 
   if (error) {
     return <div>Error: {error}</div>;
   }
-
   return (
     <div>
       <h1>Team Members</h1>
@@ -113,6 +110,8 @@ const Team = () => {
             clerkOrgId={organization.id}
             onSaveRole={handleSaveRole}
             onDelete={handleDelete}
+            isCurrentUser={user.id === member.clerkUserId}
+            currentUserRole={currentUserRole}
           />
         ))}
       </div>

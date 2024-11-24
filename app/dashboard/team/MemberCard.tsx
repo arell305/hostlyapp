@@ -12,6 +12,8 @@ interface MemberCardProps {
   onSaveRole: (userId: string, newRole: UserRole) => void; // Callback for role change
   onDelete?: (userId: string) => void; // Callback for delete action
   clerkOrgId: string;
+  isCurrentUser: boolean;
+  currentUserRole?: UserRole;
 }
 
 const MemberCard: React.FC<MemberCardProps> = ({
@@ -21,6 +23,8 @@ const MemberCard: React.FC<MemberCardProps> = ({
   imageUrl,
   clerkUserId,
   onSaveRole,
+  isCurrentUser,
+  currentUserRole,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedRole, setSelectedRole] = useState(role);
@@ -47,7 +51,8 @@ const MemberCard: React.FC<MemberCardProps> = ({
   const closeDropdown = () => setShowOptions(false);
   const ref = useDetectClickOutside({ onTriggered: closeDropdown });
   const isAdmin = role === UserRole.Admin;
-
+  const canManageUsers =
+    currentUserRole === UserRole.Admin || currentUserRole === UserRole.Manager;
   return (
     <div className="border rounded-lg p-4 shadow-md flex items-center relative">
       {isEditing ? (
@@ -60,6 +65,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
             />
             <div className="flex-grow">
               <h2 className="text-lg font-semibold">{`${firstName} ${lastName}`}</h2>
+
               <select
                 value={selectedRole}
                 onChange={handleRoleChange}
@@ -104,7 +110,13 @@ const MemberCard: React.FC<MemberCardProps> = ({
               className="w-16 h-16 rounded-full mr-4"
             />
             <div className="flex-grow">
-              <h2 className="text-lg font-semibold">{`${firstName} ${lastName}`}</h2>
+              <h2 className="text-lg font-semibold">
+                {`${firstName} ${lastName}`}{" "}
+                {isCurrentUser && (
+                  <span className="text-green-500 text-sm">You</span>
+                )}
+              </h2>
+
               <p className="text-gray-800">{roleMap[role] || role}</p>
             </div>
           </div>
@@ -114,7 +126,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
               onClick={() => setShowOptions(!showOptions)} // Toggle options visibility
               className="inline-flex justify-center p-2 text-gray-500 hover:text-gray-700"
             >
-              {!isAdmin && <FaEllipsisV />}
+              {!isAdmin && canManageUsers && <FaEllipsisV />}
             </button>
 
             {/* Dropdown Menu */}
