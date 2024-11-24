@@ -10,6 +10,7 @@ import { v } from "convex/values";
 import { createClerkClient } from "@clerk/backend";
 import { Membership } from "@/types";
 import { RoleConvex } from "./schema";
+import { internal } from "./_generated/api";
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -69,6 +70,25 @@ export const updateOrganizationMemberships = action({
     } catch (err) {
       console.log("Failed to update organization membership: ", err);
       return { success: false, message: "Failed to update membership." };
+    }
+  },
+});
+
+export const deleteClerkUser = action({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args) => {
+    const clerkClient = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    try {
+      await clerkClient.users.deleteUser(args.clerkUserId);
+      await ctx.runMutation(internal.users.deleteFromClerk, {
+        clerkUserId: args.clerkUserId,
+      });
+      return { success: true, message: "User Deleted" };
+    } catch (err) {
+      console.log("Failed to delete user", err);
+      return { success: false, message: "Failed to delete user." };
     }
   },
 });

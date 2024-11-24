@@ -10,7 +10,7 @@ interface MemberCardProps {
   imageUrl: string;
   clerkUserId: string; // Add userId as a prop
   onSaveRole: (userId: string, newRole: UserRole) => void; // Callback for role change
-  onDelete?: (userId: string) => void; // Callback for delete action
+  onDelete: (userId: string) => void; // Callback for delete action
   clerkOrgId: string;
   isCurrentUser: boolean;
   currentUserRole?: UserRole;
@@ -25,6 +25,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
   onSaveRole,
   isCurrentUser,
   currentUserRole,
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedRole, setSelectedRole] = useState(role);
@@ -45,6 +46,10 @@ const MemberCard: React.FC<MemberCardProps> = ({
     onSaveRole(clerkUserId, selectedRole);
     setIsLoading(false);
     setIsEditing(false);
+  };
+
+  const handleDeleteUser = () => {
+    onDelete(clerkUserId);
   };
 
   // Use the hook to detect clicks outside of this component
@@ -144,9 +149,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
                   </button>
                   <button
                     onClick={() => {
-                      //   if (onDelete) {
-                      //     onDelete(clerkUserId); // Call delete function if provided
-                      //   }
+                      handleDeleteUser();
                       setShowOptions(false); // Close options after deleting
                     }}
                     className="block px-4 py-2 text-sm text-red-700 hover:bg-red-100 w-full text-left"

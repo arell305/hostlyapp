@@ -172,3 +172,22 @@ export const updateUserWithPromoCode = mutation({
     }
   },
 });
+
+export const deleteFromClerk = internalMutation({
+  args: { clerkUserId: v.string() },
+  async handler(ctx, { clerkUserId }) {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+      .first();
+
+    if (!user) {
+      throw new Error(`User with clerkUserId ${clerkUserId} not found.`);
+    }
+    try {
+      await ctx.db.delete(user._id);
+    } catch (err) {
+      console.log("Failed to delete user", err);
+    }
+  },
+});

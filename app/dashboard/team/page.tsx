@@ -26,12 +26,15 @@ import { api } from "../../../convex/_generated/api";
 import { Membership } from "@/types";
 import MemberCard from "./MemberCard";
 import { UserRole } from "../../../utils/enum";
+import ConfirmModal from "../components/ConfirmModal";
+import { useToast } from "@/hooks/use-toast";
 
 const Team = () => {
   const { organization, isLoaded } = useOrganization();
   const { user, isLoaded: isUserLoaded } = useUser();
   const currentUserRole = user?.organizationMemberships[0].role as UserRole;
-  console.log("info", user);
+  const { toast } = useToast();
+
   const getOrganizationMembership = useAction(
     api.clerk.getOrganizationMemberships
   );
@@ -41,6 +44,11 @@ const Team = () => {
   const [error, setError] = useState<string | null>(null);
   const updateOrganizationMemberships = useAction(
     api.clerk.updateOrganizationMemberships
+  );
+  const deleteClerkUser = useAction(api.clerk.deleteClerkUser);
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+  const [selectedClerkUserId, setSelectedClerkUserId] = useState<string | null>(
+    null
   );
 
   useEffect(() => {
@@ -77,15 +85,43 @@ const Team = () => {
           member.clerkUserId === clerkUserId ? { ...member, role } : member
         )
       );
+      toast({
+        title: "Role Updated",
+        description: "The role has successfully been updated",
+      });
     } catch (error) {
       console.log("err", error);
+      toast({
+        title: "Error",
+        description: "Failed to update role. Please try again",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDelete = () => {
-    // if (onDelete) {
-    //   onDelete(clerkUserId); // Call the parent function to handle deletion
-    // }
+  const handleDelete = async (clerkUserId: string) => {
+    try {
+      await deleteClerkUser({ clerkUserId });
+      setOrganizationalMembership((prevMemberships) =>
+        prevMemberships.filter((member) => member.clerkUserId !== clerkUserId)
+      );
+      toast({
+        title: "User Deleted",
+        description: "The user has successfully been deleted",
+      });
+    } catch (error) {
+      console.log("err", error);
+    }
+    toast({
+      title: "Error",
+      description: "Failed to delete user. Please try again",
+      variant: "destructive",
+    });
+  };
+
+  const openConfirmModal = (clerkUserId: string) => {
+    setSelectedClerkUserId(clerkUserId);
+    setShowConfirmModal(true);
   };
 
   if (!isLoaded || !organization || !isUserLoaded || !user) {
@@ -109,11 +145,25 @@ const Team = () => {
             clerkUserId={member.clerkUserId || ""}
             clerkOrgId={organization.id}
             onSaveRole={handleSaveRole}
-            onDelete={handleDelete}
+            onDelete={openConfirmModal}
             isCurrentUser={user.id === member.clerkUserId}
             currentUserRole={currentUserRole}
           />
         ))}
+        <ConfirmModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={() => {
+            if (selectedClerkUserId) {
+              handleDelete(selectedClerkUserId); // Call delete with clerk user ID
+            }
+            setShowConfirmModal(false);
+          }}
+          title="Confirm User Deletion"
+          message="Are you sure you want to delete this user? This action cannot be undone."
+          confirmText="Delete User"
+          cancelText="Cancel"
+        />
       </div>
     </div>
   );
