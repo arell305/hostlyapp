@@ -36,3 +36,9 @@ export interface Membership {
   lastName: string | null;
   imageUrl: string | null;
 }
+
+export interface PendingInvitationUser {
+  clerkInvitationId: string;
+  email: string;
+  role: string;
+}

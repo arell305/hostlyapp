@@ -111,3 +111,8 @@ export const localToPst = (localDate: string) => {
   // Format the PST time to a UTC string for storage
   return zonedPstDate;
 };
+
+export const isValidEmail = (email: string) => {
+  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return pattern.test(email);
+};

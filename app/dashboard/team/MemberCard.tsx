@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FaCheck, FaEllipsisV, FaTimes, FaSpinner } from "react-icons/fa"; // Import spinner icon
 import { UserRole, roleMap } from "../../../utils/enum";
 import { useDetectClickOutside } from "react-detect-click-outside";
+import { changeableRoles } from "@/utils/enums";
 
 interface MemberCardProps {
   firstName: string | null;
@@ -31,10 +32,6 @@ const MemberCard: React.FC<MemberCardProps> = ({
   const [selectedRole, setSelectedRole] = useState(role);
   const [showOptions, setShowOptions] = useState(false); // State to manage dropdown visibility
   const [isLoading, setIsLoading] = useState<boolean>(false); // Local loading state
-
-  const availableRoles = Object.values(UserRole).filter(
-    (role) => role !== UserRole.Admin
-  ); // Exclude Admin
 
   const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newRole = event.target.value as UserRole;
@@ -76,7 +73,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
                 onChange={handleRoleChange}
                 className="border rounded p-1 w-[120px]"
               >
-                {availableRoles.map((role) => (
+                {changeableRoles.map((role) => (
                   <option key={role} value={role}>
                     {roleMap[role]}
                   </option>

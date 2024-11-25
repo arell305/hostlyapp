@@ -1,3 +1,5 @@
+import { UserRole } from "../../utils/enum";
+
 export const UserRoleEnum = {
   APP_ADMIN: "admin",
   PROMOTER: "promoter",
@@ -16,3 +18,7 @@ export const ClerkPermissionsEnum = {
   ORG_EVENTS_VIEW_ALL_GUESTLIST: "org:events:view_all_guestlists",
   ORG_EVENTS_CREATE: "org:events:create",
 };
+
+export const changeableRoles = Object.values(UserRole).filter(
+  (role) => role !== UserRole.Admin
+);
