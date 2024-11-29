@@ -93,6 +93,10 @@ export const updateOrganizationMemberships = action({
         userId: args.clerkUserId,
         role: args.role,
       });
+      await ctx.runMutation(internal.users.updateUserById, {
+        clerkUserId: args.clerkUserId,
+        role: args.role,
+      });
       return { success: true, message: "Membership updated successfully." };
     } catch (err) {
       console.log("Failed to update organization membership: ", err);
@@ -166,6 +170,52 @@ export const revokeOrganizationInvitation = action({
     } catch (err) {
       console.log("Failed to revoke user", err);
       return { success: false, message: "Failed to revoke user." };
+    }
+  },
+});
+
+export const createOrganization = action({
+  args: {
+    name: v.string(),
+    clerkUserId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const clerkClient = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    try {
+      await clerkClient.organizations.createOrganization({
+        name: args.name,
+        createdBy: args.clerkUserId,
+      });
+      return { success: true, message: "Organization Created" };
+    } catch (err) {
+      console.log("Failed to create organization", err);
+      return { success: false, message: "Failed to create organization." };
+    }
+  },
+});
+
+export const updateOrganization = action({
+  args: {
+    name: v.string(),
+    clerkOrganizationId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const clerkClient = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    try {
+      await clerkClient.organizations.updateOrganization(
+        args.clerkOrganizationId,
+        {
+          name: args.name,
+        }
+      );
+      return { success: true, message: "Organization Updated" };
+    } catch (err) {
+      console.log("Failed to update organization", err);
+      return { success: false, message: "Failed to update organization." };
     }
   },
 });

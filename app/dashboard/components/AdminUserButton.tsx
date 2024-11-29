@@ -23,21 +23,8 @@ const DotIcon = () => {
 const AdminUserButton: React.FC<AdminUserButtonProps> = ({
   onEditSubscription,
 }) => {
-  const router = useRouter();
-
-  const handleTeamClick = () => {
-    router.push("/team");
-  };
-
   return (
     <UserButton>
-      <UserButton.MenuItems>
-        <UserButton.Action
-          label={"Manage Team"}
-          labelIcon={<FaUserGroup />}
-          onClick={handleTeamClick}
-        />
-      </UserButton.MenuItems>
       <UserButton.UserProfilePage
         label="Subscription"
         url="subscription"

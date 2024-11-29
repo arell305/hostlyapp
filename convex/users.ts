@@ -5,7 +5,7 @@ import {
   mutation,
   query,
 } from "./_generated/server";
-import { UserRoleEnumConvex } from "./schema";
+import { RoleConvex } from "./schema";
 
 export const createUser = internalMutation({
   args: {
@@ -14,7 +14,7 @@ export const createUser = internalMutation({
     clerkOrganizationId: v.optional(v.string()),
     acceptedInvite: v.boolean(),
     customerId: v.optional(v.id("customers")),
-    role: UserRoleEnumConvex,
+    role: v.union(RoleConvex, v.null()),
     name: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -82,6 +82,7 @@ export const updateUserById = internalMutation({
     clerkOrganizationId: v.optional(v.string()),
     newEmail: v.optional(v.string()),
     acceptedInvite: v.optional(v.boolean()), // In case you want to update the email
+    role: v.optional(RoleConvex),
   },
   handler: async (ctx, args) => {
     try {
@@ -104,6 +105,7 @@ export const updateUserById = internalMutation({
           args.clerkOrganizationId || user.clerkOrganizationId,
         email: args.newEmail || user.email,
         acceptedInvite: args.acceptedInvite || user.acceptedInvite,
+        role: args.role || user.role,
       });
 
       return user._id;

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, memo, useCallback } from "react";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useAuth } from "@clerk/nextjs";
 import { useOrganization } from "@clerk/nextjs";
 import { useUserRole } from "@/hooks/useUserRole";
 import { UserRoleEnum } from "@/utils/enums";
@@ -8,11 +8,7 @@ import EditPromoCodeDialog from "./EditPromoCodeDialog";
 import PromoterUserButton from "./PromoterUserbutton";
 import AdminUserButton from "./AdminUserButton";
 import EditSubscriptionDialog from "./EditSubscriptionDialog";
-import { CiCirclePlus } from "react-icons/ci";
-import { FaPlus } from "react-icons/fa";
-import { FaPlus as Plus } from "react-icons/fa6";
-import { Button } from "@/components/ui/button";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { UserRole } from "../../../utils/enum";
 
 interface DashboardNavbarProps {
   toggleNavbar: () => void;
@@ -22,20 +18,17 @@ interface DashboardNavbarProps {
 const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
   ({ toggleNavbar, isOpen }) => {
     const { organization } = useOrganization();
-    const { role, isLoading, user } = useUserRole();
+
+    const { isLoading, user, role } = useUserRole();
     const [isPromoCodeModalOpen, setIsPromoCodeModalOpen] = useState(false);
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
       useState(false);
     const [promoCode, setPromoCode] = useState(
       user?.promoterPromoCode?.name || ""
     );
-    const router = useRouter();
-
-    const isPromoter = role === UserRoleEnum.PROMOTER;
-    const isAdmin = role === UserRoleEnum.PROMOTER_ADMIN;
-    const canCreateEvents =
-      role === UserRoleEnum.APP_ADMIN || UserRoleEnum.PROMOTER_ADMIN;
-    const isAppAdmin = role === UserRoleEnum.APP_ADMIN;
+    const isPromoter = role === UserRole.Promoter;
+    const isPromoterAdmin =
+      role === UserRoleEnum.APP_ADMIN && organization?.name !== "Admin";
 
     // Update promoCode if user changes
     useEffect(() => {
@@ -50,14 +43,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     const toggleSubscriptionModal = useCallback(() => {
       setIsSubscriptionModalOpen((prev) => !prev);
     }, []);
-
-    const handleAddEvent = () => {
-      // const targetUrl = isAppAdmin
-      //   ? `/add-event?organizationId=${cleanOrganizationId}`
-      //   : "/add-event";
-      const targetUrl = "/add-event";
-      router.push(targetUrl);
-    };
 
     // Return early if loading
     if (isLoading) return <p>Loading</p>;
@@ -87,7 +72,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
                   <span className="pl-1"> Event</span>
                 </Button>
               )} */}
-              {isAdmin ? (
+              {isPromoterAdmin ? (
                 <AdminUserButton onEditSubscription={toggleSubscriptionModal} />
               ) : isPromoter ? (
                 <PromoterUserButton

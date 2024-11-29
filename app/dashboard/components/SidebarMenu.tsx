@@ -1,8 +1,6 @@
-import { useOrganization } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
 import { Sidebar, Menu, MenuItem } from "react-pro-sidebar";
 import Link from "next/link";
-import { useUserRole } from "@/hooks/useUserRole";
-import { canCreateEvents } from "../../../utils/helpers";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
@@ -10,17 +8,17 @@ import { api } from "../../../convex/_generated/api";
 import { CiCirclePlus } from "react-icons/ci";
 import { IoCalendarClearOutline } from "react-icons/io5";
 import { LuUsers } from "react-icons/lu";
-import { GrRadialSelected } from "react-icons/gr";
 import { FaUserGroup } from "react-icons/fa6";
+import { IoSettingsOutline } from "react-icons/io5";
+import { UserRole } from "../../../utils/enum";
 
 interface SidebarMenuProps {
   toggleSidebar?: () => void; // Add this prop
 }
 
 const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
-  const { role, isLoading } = useUserRole();
   const pathname = usePathname();
-  const { organization, isLoaded } = useOrganization();
+  const { user, organization, loaded } = useClerk();
   const router = useRouter();
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
   const [selectedOrgName, setSelectedOrgName] = useState<string | null>(null);
@@ -70,7 +68,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
     }
   }, [pathname]);
 
-  if (!isLoaded || isLoading) {
+  if (!loaded) {
     return <div>Loading...</div>;
   }
 
@@ -82,7 +80,9 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
     }
   };
   const isAppAdmin = organization?.name === "Admin";
-  const canCreateEventsPermission = canCreateEvents(role);
+  const role = user?.organizationMemberships[0]?.role;
+  const canCreateEventsPermission =
+    role === UserRole.Admin || role === UserRole.Manager;
 
   const handleCalendarClick = () => {
     if (isAppAdmin) {
@@ -98,6 +98,13 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
 
   const handleTeamClick = () => {
     router.push("/team");
+    if (toggleSidebar) {
+      toggleSidebar();
+    }
+  };
+
+  const handleTeamSettingsClick = () => {
+    router.push("/team-settings");
 
     if (toggleSidebar) {
       toggleSidebar();
@@ -115,7 +122,12 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
                 <p>Customers</p>
               </div>
             </MenuItem>
-
+            <MenuItem onClick={handleTeamClick}>
+              <div className="flex">
+                <FaUserGroup size={14} className="w-6 h-6 mr-2" />
+                <p>Team Members</p>
+              </div>
+            </MenuItem>
             {selectedOrgName && (
               <>
                 <MenuItem onClick={handleCalendarClick}>
@@ -124,14 +136,14 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
                       size={14}
                       className="w-6 h-6 mr-2"
                     />
-                    <p> {selectedOrgName}</p>
+                    <p> {selectedOrgName} Calendar</p>
                   </div>
                 </MenuItem>{" "}
               </>
             )}
           </>
         ) : (
-          // For non-admin users, render Add Event and Calendar as usual
+          // For non-app-admin users
           <>
             {canCreateEventsPermission && (
               <MenuItem onClick={handleAddEvent} className="pointer">
@@ -150,9 +162,17 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
             <MenuItem onClick={handleTeamClick}>
               <div className="flex">
                 <FaUserGroup size={14} className="w-6 h-6 mr-2" />
-                <p>Team</p>
+                <p>Team Members</p>
               </div>
             </MenuItem>
+            {canCreateEventsPermission && (
+              <MenuItem onClick={handleTeamSettingsClick} className="pointer">
+                <div className="flex">
+                  <IoSettingsOutline size={14} className="w-6 h-6 mr-2" />
+                  <p>Team Settings</p>
+                </div>
+              </MenuItem>
+            )}
           </>
         )}
       </Menu>

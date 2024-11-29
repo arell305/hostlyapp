@@ -31,7 +31,8 @@ import { httpRouter } from "convex/server";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 import { isOrganizationJSON } from "../utils/helpers";
-import { UserRoleEnum } from "../utils/enum";
+import { UserRole, UserRoleEnum } from "../utils/enum";
+import { RoleConvex } from "./schema";
 
 const http = httpRouter();
 
@@ -100,7 +101,7 @@ http.route({
               clerkUserId: result.data.id,
               acceptedInvite: true,
               customerId: existingCustomer._id,
-              role: UserRoleEnum.PROMOTER_ADMIN,
+              role: UserRole.Admin,
               name: `${result.data.first_name} ${result.data.last_name}`,
             });
             return new Response(JSON.stringify({ message: "Success" }), {
@@ -120,15 +121,12 @@ http.route({
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
-        case "user.updated":
-          console.log(result.data);
-          break;
         case "organizationInvitation.created":
           await ctx.runMutation(internal.users.createUser, {
             email: result.data.email_address,
             clerkOrganizationId: result.data.organization_id,
             acceptedInvite: false,
-            role: result.data.role,
+            role: result.data.role as UserRole,
           });
           return new Response(JSON.stringify({ message: "Success" }), {
             status: 200,
@@ -170,6 +168,10 @@ http.route({
             clerkOrganizationId: result.data.id,
             imageUrl: result.data.image_url,
             name: result.data.name,
+          });
+          return new Response(JSON.stringify({ message: "Success" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
           });
       }
       return new Response(JSON.stringify({ message: "Success" }), {

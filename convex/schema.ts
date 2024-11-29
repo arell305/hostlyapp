@@ -74,7 +74,7 @@ export default defineSchema({
     clerkOrganizationId: v.optional(v.string()),
     acceptedInvite: v.boolean(),
     customerId: v.optional(v.id("customers")),
-    role: UserRoleEnumConvex,
+    role: v.union(RoleConvex, v.null()),
     name: v.optional(v.string()),
     promoterPromoCode: v.optional(
       v.object({

@@ -1,4 +1,3 @@
-// components/EditPromoCodeDialog.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import {
@@ -10,9 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { useUser, useOrganization } from "@clerk/nextjs";
+import { useOrganization } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useUserRole } from "@/hooks/useUserRole";

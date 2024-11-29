@@ -152,6 +152,28 @@ export const getOrganizationByName = internalQuery({
   },
 });
 
+export const getOrganizationByNameQuery = query({
+  args: {
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const organization = await ctx.db
+        .query("organizations")
+        .filter((q) => q.eq(q.field("name"), args.name))
+        .first();
+
+      if (organization) {
+        return organization;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error finding organization by ClerkId:", error);
+      return null;
+    }
+  },
+});
+
 export const getAllOrganizations = query({
   handler: async (ctx: QueryCtx) => {
     try {
