@@ -1,12 +1,35 @@
-import { useQuery } from "convex/react";
-import React from "react";
+import { useAction, useQuery } from "convex/react";
+import React, { useEffect, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import CompanyCard from "./cards/CompanyCard";
+import { ClerkOrganization } from "@/types";
+import { SubscriptionStatus, SubscriptionTier } from "../../../utils/enum";
 
 const PromotionalCompaniesList = () => {
-  const companies = useQuery(api.organizations.getAllOrganizations);
   const router = useRouter();
+  const [loadingCompanies, setLoadingCompanies] = useState<boolean>(false);
+
+  const getOrganizationList = useAction(api.clerk.getOrganizationList);
+
+  const [companies, setCompanies] = useState<ClerkOrganization[]>([]); // Initialize state for companies
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      setLoadingCompanies(true);
+      try {
+        const fetchedOrganizations = await getOrganizationList(); // Call the action to get memberships
+        setCompanies(fetchedOrganizations);
+      } catch (err) {
+        console.log("Failed to fetch companies:", err);
+      } finally {
+        setLoadingCompanies(false);
+      }
+    };
+
+    fetchCompanies();
+  }, [getOrganizationList]);
 
   if (!companies) {
     return <div>Loading...</div>;
@@ -18,31 +41,27 @@ const PromotionalCompaniesList = () => {
   };
 
   return (
-    <div>
-      <h1 className="text-center text-3xl md:text-4xl mt-4 font-bold mb-4">
-        Promotional Companies
+    <div className="flex flex-col items-center justify-center md:border-2 max-w-3xl md:p-6 rounded-lg mx-auto">
+      <h1 className=" text-3xl md:text-4xl mt-2 font-bold mb-2 w-full text-center pr-[360px]">
+        Companies
       </h1>
-      <div className="flex flex-col flex-wrap justify-center items-center gap-2 p-4">
+      <div className="flex flex-col flex-wrap max-w-xl w-full ">
         {companies
           .filter((company) => company.name !== "Admin") // Filter out companies named "Admin"
           .map((company) => (
             <div
               key={company.clerkOrganizationId}
-              className="mb-4 shadow-xl w-[350px] md:w-[500px] px-10 py-4 rounded-md bg-customDarkerBlue text-black font-semibold hover:bg-customLightBlue cursor-pointer flex space-x-4 md:space-x-8 justify-start items-center"
+              className="mb-4 cursor-pointer"
               onClick={() =>
                 handleCompanyClick(company.clerkOrganizationId, company.name)
               }
             >
-              <div className="w-[50px] h-[50px] rounded-full overflow-hidden">
-                <Image
-                  src={company.imageUrl || ""}
-                  alt={`${company.name} logo`}
-                  width={50}
-                  height={50}
-                  className="object-cover"
-                />
-              </div>
-              <p className="text-xl">{company.name}</p>
+              <CompanyCard
+                imageUrl={company.imageUrl || "https://via.placeholder.com/50"} // Pass image URL
+                companyName={company.name} // Pass company name
+                status={company.publicMetadata.status as SubscriptionStatus} // Pass status, cast to SubscriptionStatus
+                tier={company.publicMetadata.tier as SubscriptionTier} // Pass tier, cast to SubscriptionTier
+              />
             </div>
           ))}
       </div>

@@ -56,7 +56,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
   const canManageUsers =
     currentUserRole === UserRole.Admin || currentUserRole === UserRole.Manager;
   return (
-    <div className="border rounded-lg p-4 shadow-md flex items-center relative">
+    <div className="border-b border-gray-300 p-4 w-full">
       {isEditing ? (
         <>
           <div className="flex-grow flex items-center">
@@ -105,7 +105,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
         </>
       ) : (
         <>
-          <div className="flex-grow flex items-center">
+          <div className="flex items-center justify-between">
             <img
               src={imageUrl}
               alt={`${firstName} ${lastName}`}
@@ -115,48 +115,50 @@ const MemberCard: React.FC<MemberCardProps> = ({
               <h2 className="text-lg font-semibold">
                 {`${firstName} ${lastName}`}{" "}
                 {isCurrentUser && (
-                  <span className="text-green-500 text-sm">You</span>
+                  <span className="text-customDarkBlue text-sm">You</span>
                 )}
               </h2>
 
               <p className="text-gray-800">{roleMap[role] || role}</p>
             </div>
           </div>
-          <div className="ml-2" ref={ref}>
-            <button
-              type="button"
-              onClick={() => setShowOptions(!showOptions)} // Toggle options visibility
-              className="inline-flex justify-center p-2 text-gray-500 hover:text-gray-700"
-            >
-              {!isAdmin && canManageUsers && <FaEllipsisV />}
-            </button>
+          {!isAdmin && canManageUsers && (
+            <div className="ml-2" ref={ref}>
+              <button
+                type="button"
+                onClick={() => setShowOptions(!showOptions)} // Toggle options visibility
+                className="inline-flex justify-center p-2 text-gray-500 hover:text-gray-700"
+              >
+                <FaEllipsisV />
+              </button>
 
-            {/* Dropdown Menu */}
-            {showOptions && (
-              <div className="absolute right-0 z-10 mt-2 w-48 bg-white border rounded-md shadow-lg">
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      setIsEditing(true);
-                      setShowOptions(false); // Close options after selecting edit
-                    }}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                  >
-                    Edit Role
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleDeleteUser();
-                      setShowOptions(false); // Close options after deleting
-                    }}
-                    className="block px-4 py-2 text-sm text-red-700 hover:bg-red-100 w-full text-left"
-                  >
-                    Delete
-                  </button>
+              {/* Dropdown Menu */}
+              {showOptions && (
+                <div className="absolute right-0 z-10 mt-2 w-48 bg-white border rounded-md shadow-lg">
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setIsEditing(true);
+                        setShowOptions(false); // Close options after selecting edit
+                      }}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                    >
+                      Edit Role
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDeleteUser();
+                        setShowOptions(false); // Close options after deleting
+                      }}
+                      className="block px-4 py-2 text-sm text-red-700 hover:bg-red-100 w-full text-left"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>

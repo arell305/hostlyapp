@@ -8,18 +8,19 @@ import { useEffect } from "react";
 
 const Dashboard = () => {
   const { organization, isLoaded: orgLoaded } = useOrganization();
+
   const router = useRouter();
+
+  console.log("Organization Loaded:", orgLoaded);
+  console.log("Organization Data:", organization);
 
   if (!orgLoaded) {
     return <CalendarLoading />;
   }
-  if (!organization) {
-    return <CreateOrganization />;
-  }
 
-  // if (!organization) {
-  //   router.push("team-settings");
-  // }
+  if (!organization) {
+    router.push("team-settings");
+  }
 
   if (organization && organization.name === "Admin") {
     return <PromotionalCompaniesList />;

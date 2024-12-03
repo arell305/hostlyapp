@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, memo, useCallback } from "react";
-import { UserButton, useAuth } from "@clerk/nextjs";
+import { UserButton, useAuth, useClerk } from "@clerk/nextjs";
 import { useOrganization } from "@clerk/nextjs";
 import { useUserRole } from "@/hooks/useUserRole";
 import { UserRoleEnum } from "@/utils/enums";
@@ -8,7 +8,8 @@ import EditPromoCodeDialog from "./EditPromoCodeDialog";
 import PromoterUserButton from "./PromoterUserbutton";
 import AdminUserButton from "./AdminUserButton";
 import EditSubscriptionDialog from "./EditSubscriptionDialog";
-import { UserRole } from "../../../utils/enum";
+import { HiOutlineMenuAlt4 } from "react-icons/hi";
+import { RiCloseLargeLine } from "react-icons/ri";
 
 interface DashboardNavbarProps {
   toggleNavbar: () => void;
@@ -17,25 +18,28 @@ interface DashboardNavbarProps {
 
 const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
   ({ toggleNavbar, isOpen }) => {
-    const { organization } = useOrganization();
+    const { user, loaded } = useClerk();
+    const { organization, isLoaded } = useOrganization();
 
-    const { isLoading, user, role } = useUserRole();
     const [isPromoCodeModalOpen, setIsPromoCodeModalOpen] = useState(false);
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
       useState(false);
-    const [promoCode, setPromoCode] = useState(
-      user?.promoterPromoCode?.name || ""
+
+    const [promoCode, setPromoCode] = useState<string>(
+      (user?.publicMetadata?.promoCode as string) || ""
     );
-    const isPromoter = role === UserRole.Promoter;
+
+    const role = user?.organizationMemberships[0]?.role;
     const isPromoterAdmin =
       role === UserRoleEnum.APP_ADMIN && organization?.name !== "Admin";
 
-    // Update promoCode if user changes
+    // Update promo code when user or loaded state changes
     useEffect(() => {
-      setPromoCode(user?.promoterPromoCode?.name || "");
-    }, [user?.promoterPromoCode?.name]);
+      if (loaded && user) {
+        setPromoCode((user.publicMetadata?.promoCode as string) || "");
+      }
+    }, [loaded, user]);
 
-    // Toggle functions for modals
     const togglePromoCodeModal = useCallback(() => {
       setIsPromoCodeModalOpen((prev) => !prev);
     }, []);
@@ -44,43 +48,57 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
       setIsSubscriptionModalOpen((prev) => !prev);
     }, []);
 
-    // Return early if loading
-    if (isLoading) return <p>Loading</p>;
+    const handlePromoCodeUpdate = (newPromoCode: string) => {
+      setPromoCode(newPromoCode);
+    };
+
+    // Show loading state until user data is loaded
+    if (!loaded) {
+      return (
+        <nav className="w-full z-10 top-0 border-b border-gray-200 fixed h-14 bg-white">
+          {/* Loading indicator can be added here */}
+        </nav>
+      );
+    }
 
     return (
-      <nav className="bg-customDarkBlue w-full z-20 top-0 border-b border-gray-200 text-white fixed">
-        <div className="flex flex-wrap items-center mx-auto p-2.5">
+      <nav
+        className={`w-full z-10 top-0 fixed h-14 transition-colors duration-300  ${isOpen ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]" : " border-b border-gray-200"}`}
+      >
+        <div className="flex items-center justify-between mx-auto p-2.5">
+          {/* Left Side: Toggle Button */}
           <div className="flex items-center">
             <button
               onClick={toggleNavbar}
               type="button"
-              className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg hover:border hover:border-white focus:outline-none focus:ring-1 focus:ring-white md:hidden"
+              className={`inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg focus:outline-none focus:ring-1 focus:ring-white transition-transform duration-300 ${isOpen ? "rotate-90" : ""} md:hidden`}
+              style={{ zIndex: 60 }}
             >
-              <span className="sr-only">Open sidebar</span>
-              {isOpen ? <CloseIcon /> : <HamburgerIcon />}
+              {isOpen ? (
+                <RiCloseLargeLine className="w-6 h-6 text-black" />
+              ) : (
+                <HiOutlineMenuAlt4 className="w-6 h-6 text-black" />
+              )}
             </button>
-            <a href="/" className="text-2xl font-medium ml-3">
+          </div>
+
+          {/* Center: Organization Name */}
+          <div className="flex-grow flex justify-center md:hidden">
+            <a href="/" className="text-2xl font-semibold font-playfair ">
               {organization?.name ?? "Hostly"}
             </a>
           </div>
-          {/* <CiCirclePlus size={26} /> */}
-          <div className="ml-auto">
+
+          {/* Right Side: User Buttons */}
+          <div className="ml-auto flex items-center">
             <div className="flex space-x-3">
-              {/* {canCreateEvents && (
-                <Button onClick={handleAddEvent} className="w-[100px] h-[35px]">
-                  <CiCirclePlus size={30} className="w-10 h-10 text-2xl" />
-                  <span className="pl-1"> Event</span>
-                </Button>
-              )} */}
               {isPromoterAdmin ? (
                 <AdminUserButton onEditSubscription={toggleSubscriptionModal} />
-              ) : isPromoter ? (
+              ) : (
                 <PromoterUserButton
                   promoCode={promoCode}
                   onEditPromoCode={togglePromoCodeModal}
                 />
-              ) : (
-                <UserButton />
               )}
             </div>
           </div>
@@ -89,6 +107,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
           <EditPromoCodeDialog
             isOpen={isPromoCodeModalOpen}
             setIsOpen={setIsPromoCodeModalOpen}
+            onPromoCodeUpdate={handlePromoCodeUpdate}
+            currentPromoCode={promoCode}
           />
         )}
         {isSubscriptionModalOpen && (
@@ -100,41 +120,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
       </nav>
     );
   }
-);
-
-// SVG Components for Icons
-const HamburgerIcon = () => (
-  <svg
-    className="w-5 h-5"
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 17 14"
-  >
-    <path
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M1 1h15M1 7h15M1 13h15"
-    />
-  </svg>
-);
-
-const CloseIcon = () => (
-  <svg
-    className="w-5 h-5"
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 14 14"
-  >
-    <path
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M1 1l12 12M13 1L1 13"
-    />
-  </svg>
 );
 
 export default DashboardNavbar;

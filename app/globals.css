@@ -4,8 +4,17 @@
 
 html,
 body {
-  font-family: var(--font-poppins);
+  font-family: var(--font-raleway);
   scroll-behavior: smooth;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-play-fair-display);
 }
 
 @layer base {

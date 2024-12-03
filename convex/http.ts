@@ -134,28 +134,28 @@ http.route({
           });
 
         case "organization.created":
-          if (isOrganizationJSON(result.data)) {
-            const existingOrganization = await ctx.runQuery(
-              internal.organizations.getOrganizationByName,
-              { name: result.data.name }
-            );
-            // create new organization if it doesn't exist
-            if (!existingOrganization) {
-              await ctx.runMutation(internal.organizations.createOrganization, {
-                clerkOrganizationId: result.data.id,
-                name: result.data.name, // Use the name property instead of created_by
-                clerkUserIds: [result.data.created_by], // Replace with actual user IDs as needed
-              });
+          // if (isOrganizationJSON(result.data)) {
+          const existingOrganization = await ctx.runQuery(
+            internal.organizations.getOrganizationByName,
+            { name: result.data.name }
+          );
+          // create new organization if it doesn't exist
+          if (!existingOrganization) {
+            await ctx.runMutation(internal.organizations.createOrganization, {
+              clerkOrganizationId: result.data.id,
+              name: result.data.name, // Use the name property instead of created_by
+              clerkUserIds: [result.data.created_by], // Replace with actual user IDs as needed
+            });
 
-              await ctx.runMutation(internal.users.updateUserById, {
-                clerkUserId: result.data.created_by,
-                clerkOrganizationId: result.data.id,
-              });
-              return new Response(JSON.stringify({ message: "Success" }), {
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-              });
-            }
+            await ctx.runMutation(internal.users.updateUserById, {
+              clerkUserId: result.data.created_by,
+              clerkOrganizationId: result.data.id,
+            });
+            return new Response(JSON.stringify({ message: "Success" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+            // }
           }
           console.log("Organization already exists with ID");
           return new Response(JSON.stringify({ message: "Success" }), {

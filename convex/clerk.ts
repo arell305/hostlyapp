@@ -8,9 +8,20 @@ import { action, internalAction } from "./_generated/server";
 import { Webhook } from "svix";
 import { v } from "convex/values";
 import { createClerkClient } from "@clerk/backend";
-import { Membership, PendingInvitationUser } from "@/types";
-import { RoleConvex } from "./schema";
+import {
+  ClerkOrganization,
+  Customer,
+  Membership,
+  PendingInvitationUser,
+} from "@/types";
+import {
+  RoleConvex,
+  SubscriptionStatusConvex,
+  SubscriptionTierConvex,
+} from "./schema";
 import { internal } from "./_generated/api";
+import { Organization } from "@clerk/nextjs/server";
+import { ClerkRoleEnum } from "@/utils/enums";
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -178,20 +189,37 @@ export const createOrganization = action({
   args: {
     name: v.string(),
     clerkUserId: v.string(),
+    email: v.string(),
   },
   handler: async (ctx, args) => {
     const clerkClient = createClerkClient({
       secretKey: process.env.CLERK_SECRET_KEY,
     });
     try {
-      await clerkClient.organizations.createOrganization({
+      const existingCustomer: Customer | null = await ctx.runQuery(
+        internal.customers.findCustomerByEmail,
+        {
+          email: args.email,
+        }
+      );
+
+      if (!existingCustomer) {
+        throw new Error("Customer not found");
+      }
+
+      const org = await clerkClient.organizations.createOrganization({
         name: args.name,
         createdBy: args.clerkUserId,
+        publicMetadata: {
+          tier: existingCustomer.subscriptionTier,
+          status: existingCustomer.subscriptionStatus,
+        },
       });
-      return { success: true, message: "Organization Created" };
+
+      return org.id;
     } catch (err) {
       console.log("Failed to create organization", err);
-      return { success: false, message: "Failed to create organization." };
+      return null;
     }
   },
 });
@@ -216,6 +244,77 @@ export const updateOrganization = action({
     } catch (err) {
       console.log("Failed to update organization", err);
       return { success: false, message: "Failed to update organization." };
+    }
+  },
+});
+
+export const updateUserMetadata = action({
+  args: {
+    clerkUserId: v.string(),
+    params: v.object({
+      promoCode: v.string(),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const clerkClient = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    try {
+      await clerkClient.users.updateUserMetadata(args.clerkUserId, {
+        publicMetadata: { ...args.params },
+      });
+      return { success: true, message: "MetaData Updated" };
+    } catch (err) {
+      console.log("Failed to update metadata", err);
+      return { success: false, message: "Failed to update metadata." };
+    }
+  },
+});
+
+export const getOrganizationList = action({
+  args: {},
+  handler: async (ctx, args): Promise<ClerkOrganization[]> => {
+    const clerkClient = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    try {
+      const { data } = await clerkClient.organizations.getOrganizationList();
+      const filteredOrganizations: ClerkOrganization[] = data.map((org) => ({
+        clerkOrganizationId: org.id,
+        name: org.name,
+        imageUrl: org.imageUrl,
+        publicMetadata: org.publicMetadata,
+      }));
+      return filteredOrganizations;
+    } catch (err) {
+      console.log("Failed to update metadata", err);
+      throw new Error("Failed to fetch organization.");
+    }
+  },
+});
+
+export const updateOrganizationMetadata = action({
+  args: {
+    clerkOrganizationId: v.string(),
+    params: v.object({
+      status: SubscriptionStatusConvex,
+      tier: SubscriptionTierConvex,
+    }),
+  },
+  handler: async (ctx, args) => {
+    const clerkClient = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    try {
+      await clerkClient.organizations.updateOrganizationMetadata(
+        args.clerkOrganizationId,
+        {
+          publicMetadata: { ...args.params },
+        }
+      );
+    } catch (err) {
+      console.log("Failed to update metadata", err);
+      return { success: false, message: "Failed to update metadata." };
     }
   },
 });

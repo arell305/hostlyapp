@@ -12,9 +12,11 @@ export const addPromoterPromoCode = mutation({
 
     try {
       // Check if the promo code name already exists in the entire table
+      const normalizedInputName = name.toLowerCase();
+
       const existingPromoCode = await ctx.db
         .query("promoterPromoCode")
-        .withIndex("by_name", (q) => q.eq("name", name))
+        .withIndex("by_name", (q) => q.eq("name", normalizedInputName))
         .unique();
 
       if (existingPromoCode) {
@@ -60,10 +62,12 @@ export const updatePromoterPromoCode = mutation({
         throw new Error("Promo code not found");
       }
 
+      const normalizedInputName = name.toLowerCase();
+
       // Check if the new name already exists (excluding the current promo code)
       const nameExists = await ctx.db
         .query("promoterPromoCode")
-        .withIndex("by_name", (q) => q.eq("name", name))
+        .withIndex("by_name", (q) => q.eq("name", normalizedInputName))
         .filter((q) => q.neq(q.field("_id"), promoCodeId))
         .unique();
 

@@ -1,5 +1,5 @@
 import { defineSchema, defineTable } from "convex/server";
-import { UserRole, UserRoleEnum } from "../utils/enum";
+import { SubscriptionStatus, UserRole, UserRoleEnum } from "../utils/enum";
 import { v } from "convex/values";
 import { SubscriptionTier } from "../utils/enum";
 
@@ -23,6 +23,16 @@ export const RoleConvex = v.union(
   v.literal(UserRole.Moderator),
   v.literal(UserRole.Manager),
   v.literal(UserRole.Promoter)
+);
+
+export const SubscriptionStatusConvex = v.union(
+  v.literal(SubscriptionStatus.ACTIVE),
+  v.literal(SubscriptionStatus.TRIALING),
+  v.literal(SubscriptionStatus.CANCELED),
+  v.literal(SubscriptionStatus.INCOMPLETE),
+  v.literal(SubscriptionStatus.INCOMPLETE_EXPIRED),
+  v.literal(SubscriptionStatus.PAST_DUE),
+  v.literal(SubscriptionStatus.UNPAID)
 );
 
 export const Venue = v.object({
@@ -56,7 +66,7 @@ export default defineSchema({
     stripeSubscriptionId: v.string(),
     email: v.string(),
     paymentMethodId: v.string(),
-    subscriptionStatus: v.string(),
+    subscriptionStatus: SubscriptionStatusConvex,
     subscriptionTier: SubscriptionTierConvex,
     trialEndDate: v.union(v.string(), v.null()),
     cancelAt: v.union(v.string(), v.null()),

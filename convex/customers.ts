@@ -9,7 +9,7 @@ import {
 import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
 import { Customer, CustomerWithPayment } from "../app/types";
 import { getFutureISOString } from "../utils/helpers";
-import { SubscriptionTierConvex } from "./schema";
+import { SubscriptionStatusConvex, SubscriptionTierConvex } from "./schema";
 import { DateTime } from "luxon";
 import { internal } from "./_generated/api";
 import Stripe from "stripe";
@@ -22,15 +22,7 @@ export const insertCustomerAndSubscription = internalMutation({
     paymentMethodId: v.string(),
     subscriptionTier: SubscriptionTierConvex,
     trialEndDate: v.union(v.string(), v.null()),
-    subscriptionStatus: v.union(
-      v.literal(SubscriptionStatus.ACTIVE),
-      v.literal(SubscriptionStatus.TRIALING),
-      v.literal(SubscriptionStatus.CANCELED),
-      v.literal(SubscriptionStatus.INCOMPLETE),
-      v.literal(SubscriptionStatus.INCOMPLETE_EXPIRED),
-      v.literal(SubscriptionStatus.PAST_DUE),
-      v.literal(SubscriptionStatus.UNPAID)
-    ),
+    subscriptionStatus: SubscriptionStatusConvex,
   },
   handler: async (ctx, args) => {
     try {
@@ -92,7 +84,7 @@ export const findCustomerByEmail = internalQuery({
 
 const allowedFields = {
   stripeCustomerId: v.optional(v.string()),
-  subscriptionStatus: v.optional(v.string()), // Adjust if SubscriptionStatus has specific values
+  subscriptionStatus: v.optional(SubscriptionStatusConvex), // Adjust if SubscriptionStatus has specific values
   trialEndDate: v.optional(v.union(v.string(), v.null())),
   stripeSubscriptionId: v.optional(v.string()),
   email: v.optional(v.string()),

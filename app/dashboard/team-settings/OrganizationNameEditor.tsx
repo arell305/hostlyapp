@@ -1,17 +1,19 @@
 // components/OrganizationNameEditor.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface OrganizationNameEditorProps {
   initialName?: string;
   onUpdate: (newName: string) => void;
+  firstTimeOnOrg: boolean;
 }
 
 const OrganizationNameEditor: React.FC<OrganizationNameEditorProps> = ({
   initialName,
   onUpdate,
+  firstTimeOnOrg,
 }) => {
   const [name, setName] = useState(initialName || "");
-  const [isEditing, setIsEditing] = useState(!initialName); // Start editing if no initial name
+  const [isEditing, setIsEditing] = useState(firstTimeOnOrg); // Start editing if no initial name
   const [error, setError] = useState<string | null>(null);
 
   const handleSave = () => {
@@ -24,12 +26,18 @@ const OrganizationNameEditor: React.FC<OrganizationNameEditorProps> = ({
     onUpdate(name);
     setIsEditing(false);
   };
+  console.log("name", initialName);
 
+  useEffect(() => {
+    if (initialName) {
+      setName(initialName);
+    }
+  }, [initialName]);
   return (
     <div>
       {isEditing ? (
         <div>
-          <h3>Create Team Name</h3>
+          <h3>Team Name</h3>
           <input
             type="text"
             value={name}

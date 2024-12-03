@@ -42,3 +42,10 @@ export interface PendingInvitationUser {
   email: string;
   role: string;
 }
+
+export interface ClerkOrganization {
+  clerkOrganizationId: string;
+  name: string;
+  imageUrl: string;
+  publicMetadata: any; // Adjust this based on your actual metadata structure
+}

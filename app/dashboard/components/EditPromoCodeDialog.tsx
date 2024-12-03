@@ -9,33 +9,40 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useOrganization } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useToast } from "@/hooks/use-toast";
 
 interface EditPromoCodeDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  onPromoCodeUpdate: (newPromoCode: string) => void;
+  currentPromoCode: string;
 }
 
 const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
   isOpen,
   setIsOpen,
+  onPromoCodeUpdate,
+  currentPromoCode,
 }) => {
   const { organization } = useOrganization();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isValid, setIsValid] = useState(true);
 
   const { user } = useUserRole();
-  const currentPromoCode = user?.promoterPromoCode?.name;
+
   const currentPromoCodeId = user?.promoterPromoCode?.promoCodeId;
 
   const [promoCode, setPromoCode] = useState(currentPromoCode || "");
 
+  const updateUserMetadata = useAction(api.clerk.updateUserMetadata);
   const addPromoCode = useMutation(api.promoterPromoCode.addPromoterPromoCode);
   const updateUserWithPromoCode = useMutation(
     api.users.updateUserWithPromoCode
@@ -50,33 +57,29 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
     setIsValid(true);
   }, [currentPromoCode, isOpen]);
 
-  const validatePromoCode = (code: string) => {
-    return !code.includes(" ");
-  };
-
   const handlePromoCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newCode = e.target.value;
     setPromoCode(newCode);
-    setIsValid(validatePromoCode(newCode));
-    if (!validatePromoCode(newCode)) {
-      setError("Promo code cannot contain spaces");
-    } else {
-      setError(null);
-    }
   };
 
   const handleSave = async () => {
     if (!user || !organization || !user.clerkUserId) {
-      console.error("User or organization not available");
+      setError("User or organization not available");
       return;
     }
-    if (!isValid) {
-      setError("Please enter a valid promo code without spaces");
+    if (!promoCode.trim()) {
+      setError("Promo code cannot be empty");
+      return;
+    }
+
+    if (promoCode.includes(" ")) {
+      setError("Promo code cannot contain spaces");
       return;
     }
 
     setIsLoading(true);
     setError(null);
+
     try {
       let result;
       if (currentPromoCode && currentPromoCodeId) {
@@ -93,11 +96,27 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
           clerkPromoterUserId: user.clerkUserId,
         });
       }
+      // update user with the promocode
+      await Promise.all([
+        updateUserWithPromoCode({
+          clerkUserId: user.clerkUserId,
+          promoCodeId: result.promoCodeId,
+          promoCodeName: promoCode,
+        }),
+        updateUserMetadata({
+          clerkUserId: user.clerkUserId,
+          params: {
+            promoCode,
+          },
+        }),
+      ]);
 
-      await updateUserWithPromoCode({
-        clerkUserId: user.clerkUserId,
-        promoCodeId: result.promoCodeId,
-        promoCodeName: promoCode,
+      // Call the new prop function to update the state in DashboardNavbar
+      onPromoCodeUpdate(promoCode);
+
+      toast({
+        title: "Promo Code updated",
+        description: "Promo code has successfully been updated",
       });
       setIsOpen(false);
     } catch (error) {
@@ -110,6 +129,11 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
         setError(errorMessage);
       } else {
         setError("An error has occurred. Please try again");
+        toast({
+          title: "Error",
+          description: "Failed to updated promo code. Please try again",
+          variant: "destructive",
+        });
       }
     } finally {
       setIsLoading(false);
@@ -122,7 +146,7 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent>
+      <DialogContent className="rounded-[10px]">
         <DialogHeader>
           <DialogTitle>
             {currentPromoCode ? "Edit Promo Code" : "Add Promo Code"}
@@ -138,22 +162,29 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        <Input
+        <input
           value={promoCode}
           onChange={handlePromoCodeChange}
           placeholder="Enter promo code"
-          className={`my-4 ${!isValid ? "border-red-500" : ""}`}
+          className={`w-full border-b-2 bg-transparent py-1 text-gray-800 focus:outline-none 
+          ${error ? "border-red-500" : "border-gray-300"} 
+          focus:border-customDarkBlue`} // className={` focus:border-blue-500 ${!isValid ? "border-red-500" : "border-gray-300"} outline-none my-4`}
           disabled={isLoading}
         />
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-center space-x-10">
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={() => setIsOpen(false)}
             disabled={isLoading}
+            className="font-semibold  w-[140px]"
           >
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isLoading || !isValid}>
+          <Button
+            className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
+            onClick={handleSave}
+            disabled={isLoading || !isValid}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

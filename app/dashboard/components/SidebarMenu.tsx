@@ -112,8 +112,21 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
   };
 
   return (
-    <Sidebar style={{ height: "100vh" }}>
-      <Menu className="md:mt-16">
+    <Sidebar
+      className="h-screen bg-customPrimaryBlue "
+      style={{
+        width: "320px",
+        borderTopRightRadius: "1rem", // Top-right corner rounding
+        borderBottomRightRadius: "1rem", // Bottom-right corner rounding
+        overflow: "hidden",
+      }}
+    >
+      <div className="mt-3 ml-6 mb-4">
+        <a href="/" className="text-2xl font-semibold font-playfair  ">
+          {organization?.name ?? "Hostly"}
+        </a>
+      </div>
+      <Menu>
         {isAppAdmin ? (
           <>
             <MenuItem component={<Link href="/" />}>

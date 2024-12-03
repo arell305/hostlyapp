@@ -33,6 +33,8 @@ import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "@/hooks/use-toast";
 import InviteUser from "./InviteUser";
 import PendingUserCard from "./PendingUserCard";
+import { PiPlusCircle } from "react-icons/pi";
+import InviteUserModal from "../components/modals/InviteUserModal";
 
 const Team = () => {
   const { organization, isLoaded } = useOrganization();
@@ -63,6 +65,7 @@ const Team = () => {
   const [loadingMembers, setLoadingMembers] = useState<boolean>(false);
   const [loadingPendingUsers, setLoadingPendingUsers] =
     useState<boolean>(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
 
   const canManageUsers =
     currentUserRole === UserRole.Admin || currentUserRole === UserRole.Manager;
@@ -173,6 +176,10 @@ const Team = () => {
     setShowConfirmModal(true);
   };
 
+  const closeModal = () => {
+    setIsInviteModalOpen(false);
+  };
+
   if (!isLoaded || !organization || !isUserLoaded || !user) {
     return <div>Loading...</div>;
   }
@@ -181,28 +188,47 @@ const Team = () => {
     return <div>Error: {error}</div>;
   }
   return (
-    <div>
-      <h1>Team Members</h1>
+    <div className="flex flex-col items-center justify-center md:border-2 max-w-3xl md:p-6 rounded-lg mx-auto">
+      <div className="flex justify-between items-center w-full mb-4 px-10">
+        <h1 className="text-3xl md:text-4xl font-bold">Team Members</h1>
+        {canManageUsers && (
+          <PiPlusCircle
+            onClick={() => setIsInviteModalOpen(true)}
+            className="text-3xl cursor-pointer"
+          />
+        )}
+      </div>
       {canManageUsers && (
         <>
-          <div className="tabs space-x-4">
-            <button
-              className={`tab ${activeTab === "active" ? "active" : ""}`}
-              onClick={() => setActiveTab("active")}
-            >
-              Active Members
-            </button>
-            <button
-              className={`tab ${activeTab === "pending" ? "active" : ""}`}
-              onClick={() => setActiveTab("pending")}
-            >
-              Pending Users
-            </button>
+          <div className="relative w-full mb-4">
+            <div className="flex justify-between w-full">
+              <button
+                className={`tab pb-2 flex-1 text-center ${activeTab === "active" ? "active" : ""}`}
+                onClick={() => setActiveTab("active")}
+              >
+                Active Members
+              </button>
+              <button
+                className={`tab pb-2 flex-1 text-center ${activeTab === "pending" ? "active" : ""}`}
+                onClick={() => setActiveTab("pending")}
+              >
+                Pending Users
+              </button>
+            </div>
+            {/* Underline element */}
+            <div
+              className={`absolute rounded bottom-0 left-0 h-1 bg-customDarkBlue transition-all duration-300 ease-in-out`}
+              style={{
+                width: activeTab === "active" ? "50%" : "50%",
+                transform:
+                  activeTab === "active" ? "translateX(0)" : "translateX(100%)",
+              }}
+            />
           </div>
-          <InviteUser
+          {/* <InviteUser
             organizationId={organization.id}
             inviterUserId={user.id}
-          />
+          /> */}
         </>
       )}
       {activeTab === "active" && (
@@ -210,7 +236,7 @@ const Team = () => {
           {loadingMembers ? (
             <p>Loading active members...</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+            <div className="w-full">
               {organizationalMembership.map((member) => (
                 <MemberCard
                   key={member.clerkUserId} // Use userId as key
@@ -268,6 +294,14 @@ const Team = () => {
             </div>
           )}
         </>
+      )}
+      {isInviteModalOpen && (
+        <InviteUserModal
+          isOpen={isInviteModalOpen}
+          onClose={closeModal}
+          clerkOrganizationId={organization.id}
+          inviterUserClerkId={user.id}
+        />
       )}
     </div>
   );

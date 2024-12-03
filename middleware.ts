@@ -35,6 +35,11 @@ export default clerkMiddleware(
     const convex = new ConvexHttpClient(
       process.env.NEXT_PUBLIC_CONVEX_URL || ""
     );
+
+    if (path.startsWith("/favicon_io")) {
+      return NextResponse.next();
+    }
+
     // If it's an API route, skip Clerk middleware and continue
     if (path.startsWith("/api")) {
       return NextResponse.next();

@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DashboardNavbar from "./components/DashboardNavbar";
 import DashboardMobileSidebar from "./components/DashboardMobileSidebar";
 import DashboardDesktopSidebar from "./components/DashboardDesktopSidebar";
-import SuspenseBoundary from "@/components/layout/SuspenseBoundary";
 import dynamic from "next/dynamic";
 
 const DynamicDashboardNavbar = dynamic(
@@ -17,11 +16,22 @@ const DynamicDashboardNavbar = dynamic(
 const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false); // Initialize as false
+  const sidebarRef = useRef<HTMLDivElement | null>(null); // Ref for sidebar
 
   const toggleSidebar = () => {
     // Only toggle sidebar for mobile view
     if (isMobile) {
       setIsOpen((prev) => !prev);
+    }
+  };
+
+  // Close sidebar if clicking outside of it
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      sidebarRef.current &&
+      !sidebarRef.current.contains(event.target as Node)
+    ) {
+      setIsOpen(false);
     }
   };
 
@@ -43,21 +53,22 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // Add resize listener
     window.addEventListener("resize", handleResize);
 
+    // Add click listener for closing sidebar
+    document.addEventListener("mousedown", handleClickOutside);
+
     // Cleanup on unmount
     return () => {
       window.removeEventListener("resize", handleResize);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
 
-  // return <div className="p-4">{children}</div>;
-
   return (
     <div className="relative h-screen flex flex-col w-full">
-      Navbar
       <DynamicDashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
       <div className="md:flex h-full mt-[50px]">
         {/* Sidebar */}
-        <div className="md:w-64 w-full">
+        <div ref={sidebarRef}>
           {isMobile ? (
             <DashboardMobileSidebar
               isOpen={isOpen}
@@ -68,12 +79,8 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           )}
         </div>
         {/* Main content area */}
-        <div
-          className={`relative flex-grow transition-all duration-300 ${
-            isOpen && !isMobile ? "ml-64" : ""
-          }`}
-        >
-          <div className="p-4">{children}</div>
+        <div className={`relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}>
+          <div className={`p-4`}>{children}</div>
         </div>
       </div>
     </div>

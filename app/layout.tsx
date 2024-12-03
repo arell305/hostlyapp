@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Poppins, Playfair_Display, Raleway } from "next/font/google";
 import "./globals.css";
 import { TITLE, DESC, META_DESC, WEBSITE } from "./constants";
 import { Providers } from "./providers";
@@ -9,10 +9,16 @@ import { Settings } from "luxon";
 
 Settings.defaultZone = "America/Los_Angeles"; //
 
-const poppins = Poppins({
+const playFairDisplay = Playfair_Display({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-poppins",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-play-fair-display",
+});
+
+const raleway = Raleway({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-raleway",
 });
 
 export const metadata: Metadata = {
@@ -30,7 +36,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "favicon_io/andrioid-chrome-512x512.png",
+        url: "/favicon_io/android-chrome-512x512.png",
         width: 1200,
         height: 630,
         alt: "computer favicon",
@@ -47,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={` ${poppins.variable}`}>
+      <body className={`${raleway.variable} ${playFairDisplay.variable} `}>
         <Providers>{children}</Providers>
         <Toaster />
       </body>
