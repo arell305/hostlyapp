@@ -10,6 +10,7 @@ import AdminUserButton from "./AdminUserButton";
 import EditSubscriptionDialog from "./EditSubscriptionDialog";
 import { HiOutlineMenuAlt4 } from "react-icons/hi";
 import { RiCloseLargeLine } from "react-icons/ri";
+import { UserRole } from "../../../utils/enum";
 
 interface DashboardNavbarProps {
   toggleNavbar: () => void;
@@ -30,8 +31,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     );
 
     const role = user?.organizationMemberships[0]?.role;
+    console.log("role", role);
     const isPromoterAdmin =
-      role === UserRoleEnum.APP_ADMIN && organization?.name !== "Admin";
+      role === UserRole.Admin && organization?.name !== "Admin";
 
     // Update promo code when user or loaded state changes
     useEffect(() => {
@@ -63,7 +65,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
 
     return (
       <nav
-        className={`w-full z-10 top-0 fixed h-14 transition-colors duration-300  ${isOpen ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]" : " border-b border-gray-200"}`}
+        className={`w-full bg-white z-10 top-0 fixed h-14 transition-colors duration-300  ${isOpen ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]" : " border-b border-gray-200"}`}
       >
         <div className="flex items-center justify-between mx-auto p-2.5">
           {/* Left Side: Toggle Button */}

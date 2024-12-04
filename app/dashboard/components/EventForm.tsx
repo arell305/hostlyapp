@@ -11,7 +11,8 @@ import { DateTime } from "luxon";
 import { generateUploadUrl } from "../../../convex/photo";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-
+import { Loader2 } from "lucide-react";
+import { BsFillXCircleFill } from "react-icons/bs";
 interface EventFormProps {
   initialEventData?: {
     name: string;
@@ -46,6 +47,7 @@ interface EventFormProps {
   deleteGuestListInfo?: (eventId: Id<"events">) => Promise<void>;
   eventId?: Id<"events">;
   onCancelEvent?: () => Promise<void>;
+  onCancel: () => void;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -60,6 +62,7 @@ const EventForm: React.FC<EventFormProps> = ({
   eventId,
   onCancelEvent,
   deleteGuestListInfo,
+  onCancel,
 }) => {
   const defaultTime = "22:00";
   // Event state
@@ -547,14 +550,24 @@ const EventForm: React.FC<EventFormProps> = ({
       <div className="space-y-2">
         <Button
           type="button"
+          className="relative rounded-[20px] border border-customDarkBlue text-customDarkBlue"
           onClick={
             isTicketsSelected
               ? handleRemoveTickets
               : () => setIsTicketsSelected(true)
           }
-          variant={isTicketsSelected ? "default" : "outline"}
+          variant="outline"
+          // variant={isTicketsSelected ? "default" : "outline"}
         >
           {isTicketsSelected ? "Remove Tickets" : "Add Tickets"}
+          {isTicketsSelected && (
+            <span
+              className="absolute -top-2 -right-2.5 cursor-pointer "
+              onClick={handleRemoveTickets}
+            >
+              <BsFillXCircleFill className="text-customDarkBlue text-xl " />
+            </span>
+          )}
         </Button>
       </div>
 
@@ -648,10 +661,36 @@ const EventForm: React.FC<EventFormProps> = ({
           </div>
         </>
       )}
-
+      {/* 
       <Button type="submit" disabled={isLoading}>
         {isEdit ? "Update Event" : "Add Event"}
-      </Button>
+      </Button> */}
+      <div className="flex justify-center space-x-10">
+        <Button
+          variant="ghost"
+          onClick={onCancel}
+          disabled={isLoading}
+          className="font-semibold  w-[140px]"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : isEdit ? (
+            "Update Event"
+          ) : (
+            "Add Event"
+          )}
+        </Button>
+      </div>
       {isEdit && (
         <Button
           type="button"

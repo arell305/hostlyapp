@@ -22,3 +22,8 @@ export const ClerkPermissionsEnum = {
 export const changeableRoles = Object.values(UserRole).filter(
   (role) => role !== UserRole.Admin
 );
+
+export enum TeamSettingsModalType {
+  TeamName = "teamName",
+  PromoDiscount = "promoDiscount",
+}

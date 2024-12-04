@@ -79,7 +79,7 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           )}
         </div>
         {/* Main content area */}
-        <div className={`relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}>
+        <div className={` relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}>
           <div className={`p-4`}>{children}</div>
         </div>
       </div>

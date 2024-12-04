@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -72,9 +71,9 @@ const InviteUserModal: React.FC<UpdateGuestModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="w-[90vw] md:min-w-0 rounded">
         <DialogHeader>
-          <DialogTitle>Invite User</DialogTitle>
+          <DialogTitle className="flex">Invite User</DialogTitle>
         </DialogHeader>
         <input
           type="email"
@@ -98,7 +97,7 @@ const InviteUserModal: React.FC<UpdateGuestModalProps> = ({
           ))}
         </select>
         {inviteError && <p className="text-red-500">{inviteError}</p>}
-        <DialogFooter className="flex justify-center space-x-10">
+        <div className="flex justify-center space-x-10">
           <Button
             disabled={isLoading}
             variant="ghost"
@@ -122,7 +121,7 @@ const InviteUserModal: React.FC<UpdateGuestModalProps> = ({
               "Invite"
             )}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

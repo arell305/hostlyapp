@@ -1,6 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react"; // For the loading spinner
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -40,20 +46,28 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full">
-        <h2 className="text-xl font-bold mb-4">{title}</h2>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-white p-6 rounded-lg max-w-md w-full">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
         <p className="mb-4">{message}</p>
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-center space-x-10">
           {/* Cancel Button */}
-          <Button onClick={onClose} variant="outline" disabled={isLoading}>
+          <Button
+            onClick={onClose}
+            variant="ghost"
+            disabled={isLoading}
+            className="font-semibold  w-[140px]"
+          >
             {cancelText}
           </Button>
           {/* Confirm Button with Loading State */}
           <Button
             onClick={handleConfirm}
-            variant="destructive"
+            variant="default"
             disabled={isLoading}
+            className="bg-altRed rounded-[20px] w-[140px] font-semibold"
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">
@@ -65,8 +79,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             )}
           </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

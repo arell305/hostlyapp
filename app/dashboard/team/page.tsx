@@ -1,29 +1,6 @@
-// "use client";
-
-// import { OrganizationProfile } from "@clerk/nextjs";
-// import { FaTicket } from "react-icons/fa6";
-// import OrgPromoCode from "./OrgPromoCode";
-
-// const OrganizationProfilePage = () => (
-//   <OrganizationProfile routing="hash">
-//     <OrganizationProfile.Page
-//       label="Team Promo Code"
-//       labelIcon={<FaTicket />}
-//       url="promoCode"
-//     >
-//       <OrgPromoCode />
-//     </OrganizationProfile.Page>
-//   </OrganizationProfile>
-// );
-
-// export default OrganizationProfilePage;
 "use client";
 import { useOrganization, useUser } from "@clerk/nextjs";
 import React, { useEffect, useState } from "react";
-import {
-  OrganizationInvitation,
-  OrganizationMembership,
-} from "@clerk/clerk-sdk-node";
 import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Membership, PendingInvitationUser } from "@/types";
@@ -31,7 +8,6 @@ import MemberCard from "./MemberCard";
 import { UserRole } from "../../../utils/enum";
 import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "@/hooks/use-toast";
-import InviteUser from "./InviteUser";
 import PendingUserCard from "./PendingUserCard";
 import { PiPlusCircle } from "react-icons/pi";
 import InviteUserModal from "../components/modals/InviteUserModal";
@@ -57,6 +33,7 @@ const Team = () => {
   );
   const deleteClerkUser = useAction(api.clerk.deleteClerkUser);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+
   const [selectedClerkUserId, setSelectedClerkUserId] = useState<string | null>(
     null
   );
@@ -225,10 +202,6 @@ const Team = () => {
               }}
             />
           </div>
-          {/* <InviteUser
-            organizationId={organization.id}
-            inviterUserId={user.id}
-          /> */}
         </>
       )}
       {activeTab === "active" && (
@@ -239,7 +212,7 @@ const Team = () => {
             <div className="w-full">
               {organizationalMembership.map((member) => (
                 <MemberCard
-                  key={member.clerkUserId} // Use userId as key
+                  key={member.clerkUserId}
                   firstName={member.firstName}
                   lastName={member.lastName}
                   role={member.role as UserRole}
@@ -257,7 +230,7 @@ const Team = () => {
                 onClose={() => setShowConfirmModal(false)}
                 onConfirm={() => {
                   if (selectedClerkUserId) {
-                    handleDelete(selectedClerkUserId); // Call delete with clerk user ID
+                    handleDelete(selectedClerkUserId);
                   }
                   setShowConfirmModal(false);
                 }}
@@ -275,22 +248,18 @@ const Team = () => {
           {loadingPendingUsers ? (
             <p>Loading pending users members...</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-              {pendingUsers.length > 0 ? (
-                pendingUsers.map((pendingUser) => (
-                  <PendingUserCard
-                    key={pendingUser.clerkInvitationId}
-                    clerkInvitationId={pendingUser.clerkInvitationId}
-                    email={pendingUser.email}
-                    role={pendingUser.role}
-                    clerkUserId={user.id}
-                    clerkOrgId={organization.id}
-                    onRevoke={handleRevokeSuccess}
-                  />
-                ))
-              ) : (
-                <p>No pending users at the moment.</p>
-              )}
+            <div className="w-full">
+              {pendingUsers.map((pendingUser) => (
+                <PendingUserCard
+                  key={pendingUser.clerkInvitationId}
+                  clerkInvitationId={pendingUser.clerkInvitationId}
+                  email={pendingUser.email}
+                  role={pendingUser.role}
+                  clerkUserId={user.id}
+                  clerkOrgId={organization.id}
+                  onRevoke={handleRevokeSuccess}
+                />
+              ))}
             </div>
           )}
         </>

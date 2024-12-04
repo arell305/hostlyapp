@@ -1,9 +1,10 @@
-// PendingUserCard.tsx
 import { useAction } from "convex/react";
 import React, { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { FaEllipsisV } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
+import { roleMap } from "../../../utils/enum";
+import ConfirmModal from "../components/ConfirmModal";
 
 interface PendingUserCardProps {
   clerkInvitationId: string;
@@ -26,13 +27,19 @@ const PendingUserCard: React.FC<PendingUserCardProps> = ({
     api.clerk.revokeOrganizationInvitation
   );
   const [showMenu, setShowMenu] = useState<boolean>(false);
+  const [showRevokeConfirmModal, setShowRevokeConfirmModal] =
+    useState<boolean>(false);
   const { toast } = useToast();
 
-  const handleRevoke = async () => {
+  const handleRevoke = () => {
+    setShowRevokeConfirmModal(true);
+  };
+
+  const handleRevokeConfirmation = async () => {
     try {
       await revokeOrganizationInvitation({
         clerkOrgId,
-        clerkUserId, // Pass appropriate user ID if needed
+        clerkUserId,
         clerkInvitationId,
       });
       onRevoke(clerkInvitationId);
@@ -48,23 +55,23 @@ const PendingUserCard: React.FC<PendingUserCardProps> = ({
         variant: "destructive",
       });
     } finally {
-      setShowMenu(false); // Close menu after action
+      setShowMenu(false);
     }
   };
 
   return (
-    <div className="border p-4 rounded shadow-md relative">
-      <h3 className="font-bold">{email}</h3>
-      <p>Role: {role}</p>
-
-      {/* Ellipsis Icon */}
-      <div className="absolute top-2 right-2">
+    <div className="border-b border-gray-300 p-4 w-full flex items-center justify-between">
+      <div>
+        <h3 className="font-bold">{email}</h3>
+        <p>{roleMap[role]}</p>
+      </div>
+      <div className="">
         <FaEllipsisV
           onClick={() => setShowMenu((prev) => !prev)}
           className="cursor-pointer"
         />
         {showMenu && (
-          <div className="absolute right-0 bg-white shadow-md rounded mt-1">
+          <div className="absolute right-4 bg-white shadow-md rounded border">
             <button
               onClick={handleRevoke}
               className="block px-4 py-2 text-red-600 hover:bg-gray-200"
@@ -74,6 +81,17 @@ const PendingUserCard: React.FC<PendingUserCardProps> = ({
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={showRevokeConfirmModal}
+        onClose={() => setShowRevokeConfirmModal(false)}
+        onConfirm={() => {
+          handleRevokeConfirmation();
+        }}
+        title="Confirm User Revocation"
+        message="Are you sure you want to revote this invitation? This action cannot be undone."
+        confirmText="Revoke User"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

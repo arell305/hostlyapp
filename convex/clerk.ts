@@ -297,8 +297,9 @@ export const updateOrganizationMetadata = action({
   args: {
     clerkOrganizationId: v.string(),
     params: v.object({
-      status: SubscriptionStatusConvex,
-      tier: SubscriptionTierConvex,
+      status: v.optional(SubscriptionStatusConvex),
+      tier: v.optional(SubscriptionTierConvex),
+      promoDiscount: v.optional(v.number()),
     }),
   },
   handler: async (ctx, args) => {
@@ -306,10 +307,21 @@ export const updateOrganizationMetadata = action({
       secretKey: process.env.CLERK_SECRET_KEY,
     });
     try {
+      const currentOrganization =
+        await clerkClient.organizations.getOrganization({
+          organizationId: args.clerkOrganizationId,
+        });
+      const currentMetadata = currentOrganization.publicMetadata || {};
+
+      const updatedMetadata = {
+        ...currentMetadata,
+        ...args.params, // This will include status, tier, and promoCodeAmount if provided
+      };
+
       await clerkClient.organizations.updateOrganizationMetadata(
         args.clerkOrganizationId,
         {
-          publicMetadata: { ...args.params },
+          publicMetadata: updatedMetadata,
         }
       );
     } catch (err) {
