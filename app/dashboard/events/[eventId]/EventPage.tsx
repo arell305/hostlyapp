@@ -15,13 +15,17 @@ import EventInfo from "@/dashboard/components/EventInfo";
 import PromoterGuestList from "@/dashboard/components/PromoterGuestList";
 import EventGuestList from "@/dashboard/components/EventGuestList";
 import ModeratorGuestList from "@/dashboard/components/ModeratorGuestList";
-
+import { ActiveTab } from "../../../../utils/enum";
+import TabsNav from "./TabsNav";
 // To do update types
 type EventProps = {
   eventData: any;
   promoterId: string;
   permissions: any;
   displayEventPhoto?: string | null;
+  isEditing: boolean;
+  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  onCancelEdit: () => void;
 };
 
 export default function EventPage({
@@ -29,12 +33,12 @@ export default function EventPage({
   promoterId,
   permissions,
   displayEventPhoto,
+  isEditing,
+  setIsEditing,
+  onCancelEdit,
 }: EventProps) {
   const router = useRouter();
-  const [isEditingEvent, setIsEditingEvent] = useState(false);
-  const [activeTab, setActiveTab] = useState<
-    "event" | "guestList" | "ticketInfo"
-  >("event");
+  const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.VIEW);
 
   const updateEvent = useMutation(api.events.updateEvent);
   const updateTicketInfo = useMutation(api.ticketInfo.updateTicketInfo);
@@ -71,7 +75,7 @@ export default function EventPage({
         description: "The event has been successfully updated",
       });
 
-      setIsEditingEvent(false);
+      setIsEditing(false);
       // Optionally, you can refetch the event data here to update the UI
     } catch (error) {
       console.error("Error updating event:", error);
@@ -161,10 +165,6 @@ export default function EventPage({
     }
   };
 
-  const handleCancelEdit = () => {
-    setShowCancelConfirmModal(true);
-  };
-
   const now = new Date();
   let isGuestListOpen = false;
 
@@ -176,17 +176,10 @@ export default function EventPage({
     isGuestListOpen = now < guestListCloseDate;
   }
   let isCheckInOpen = now < new Date(event.endTime);
-  console.log("permissions", permissions);
   return (
     <div className="max-w-2xl mx-auto p-4">
-      {isEditingEvent ? (
+      {isEditing ? (
         <div>
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Edit Event</h1>
-            <Button variant="outline" onClick={handleCancelEdit}>
-              Cancel
-            </Button>
-          </div>{" "}
           <EventForm
             initialEventData={event}
             initialTicketData={ticketInfo}
@@ -195,56 +188,16 @@ export default function EventPage({
             isEdit={true}
             canAddGuestListOption={permissions.canEdit}
             // deleteTicketInfo={handleDeleteTicketInfo}
-            eventId={eventData._id}
-            onCancelEvent={handleCancelEvent}
+
+            onCancelEdit={onCancelEdit}
             // deleteGuestListInfo={handleDeleteGuestListInfo}
-          />
-          <ConfirmModal
-            isOpen={showCancelConfirmModal}
-            onClose={() => setShowCancelConfirmModal(false)}
-            onConfirm={() => {
-              setShowCancelConfirmModal(false);
-              setIsEditingEvent(false);
-              router.back();
-            }}
-            title="Confirm Cancellation"
-            message="Are you sure you want to cancel? Any unsaved changes will be discarded."
-            confirmText="Yes, Cancel"
-            cancelText="No, Continue Editing"
           />
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-3xl font-bold">{event.name}</h1>
-            {permissions.canEdit && (
-              <Button onClick={() => setIsEditingEvent(true)}>
-                <FaPencilAlt className="mr-2" /> Edit Event
-              </Button>
-            )}
-          </div>
-          <div className="flex space-x-4 mb-4">
-            <Button
-              variant={activeTab === "event" ? "default" : "outline"}
-              onClick={() => setActiveTab("event")}
-            >
-              Event
-            </Button>
-            <Button
-              variant={activeTab === "ticketInfo" ? "default" : "outline"}
-              onClick={() => setActiveTab("ticketInfo")}
-            >
-              Tickets
-            </Button>
-            <Button
-              variant={activeTab === "guestList" ? "default" : "outline"}
-              onClick={() => setActiveTab("guestList")}
-            >
-              Guest List
-            </Button>
-          </div>
+          <TabsNav activeTab={activeTab} onTabChange={setActiveTab} />
 
-          {activeTab === "ticketInfo" && (
+          {activeTab === ActiveTab.TICKET_INFO && (
             <TicketInfo
               ticketInfo={ticketInfo}
               canViewAllTickets={permissions.canViewAllGuestList}
@@ -253,7 +206,7 @@ export default function EventPage({
               hasPromoCode={permissions.canUploadGuestList}
             />
           )}
-          {activeTab === "event" && (
+          {activeTab === ActiveTab.VIEW && (
             <EventInfo
               event={event}
               ticketInfo={ticketInfo}
@@ -263,7 +216,7 @@ export default function EventPage({
             />
           )}
 
-          {activeTab === "guestList" &&
+          {activeTab === ActiveTab.GUEST_LIST &&
             (guestListInfo ? (
               <>
                 {permissions.canUploadGuestList && (

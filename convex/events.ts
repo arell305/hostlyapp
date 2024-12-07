@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { Venue } from "./schema";
+import { GetEventByIdResponse } from "@/types";
+import { ResponseStatus } from "../utils/enum";
 
 export const getEventsByOrgAndDate = query({
   args: {
@@ -65,31 +67,87 @@ export const addEvent = mutation({
 
 export const getEventById = query({
   args: { eventId: v.string() },
-  handler: async (ctx, { eventId }) => {
-    const normalizedId = ctx.db.normalizeId("events", eventId);
-    if (!normalizedId) {
-      return null;
-    }
-    const event = await ctx.db.get(normalizedId);
+  handler: async (ctx, { eventId }): Promise<GetEventByIdResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: "User is not authenticated.",
+        };
+      }
 
-    if (!event) {
-      throw new Error("Event not found");
-    }
+      const normalizedId = ctx.db.normalizeId("events", eventId);
+      if (!normalizedId) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: "Event Not Found",
+        };
+      }
 
-    let ticketInfo = null;
-    if (event.ticketInfoId) {
-      ticketInfo = await ctx.db.get(event.ticketInfoId);
-    }
-    let guestListInfo = null;
-    if (event.guestListInfoId) {
-      guestListInfo = await ctx.db.get(event.guestListInfoId);
-    }
+      const event = await ctx.db.get(normalizedId);
+      if (!event) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: "Event Not Found",
+        };
+      }
 
-    return {
-      ...event,
-      ticketInfo,
-      guestListInfo,
-    };
+      const ticketInfoPromise = event.ticketInfoId
+        ? ctx.db.get(event.ticketInfoId)
+        : Promise.resolve(null);
+
+      const guestListInfoPromise = event.guestListInfoId
+        ? ctx.db.get(event.guestListInfoId)
+        : Promise.resolve(null);
+
+      const userPromise = ctx.db
+        .query("users")
+        .withIndex("by_clerkUserId", (q) =>
+          q.eq("clerkUserId", identity.id as string)
+        )
+        .unique();
+
+      // Use Promise.all to fetch all data concurrently
+      const [ticketInfo, guestListInfo, user] = await Promise.all([
+        ticketInfoPromise,
+        guestListInfoPromise,
+        userPromise,
+      ]);
+
+      // Perform the authorization check
+      if (user?.clerkOrganizationId !== event.clerkOrganizationId) {
+        return {
+          status: ResponseStatus.UNAUTHORIZED,
+          data: null,
+          error: "User does not belong to the organization of the event",
+        };
+      }
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          event,
+          ticketInfo,
+          guestListInfo,
+        },
+        error: null,
+      };
+    } catch (error) {
+      console.error("Error fetching event data:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.";
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
   },
 });
 

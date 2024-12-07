@@ -104,7 +104,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
           </div>
         </>
       ) : (
-        <>
+        <div className="flex justify-between items-center">
           <div className="flex items-center justify-between">
             <img
               src={imageUrl}
@@ -159,7 +159,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
               )}
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

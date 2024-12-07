@@ -24,7 +24,7 @@ const BackButton: React.FC<BackButtonProps> = ({
   return (
     <span
       onClick={handleBackClick}
-      className="cursor-pointer text-blue-500 hover:underline"
+      className="cursor-pointer text-customDarkBlue font-semibold hover:underline font-raleway text-base"
     >
       {text}
     </span>

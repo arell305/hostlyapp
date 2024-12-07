@@ -13,41 +13,26 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Loader2 } from "lucide-react";
 import { BsFillXCircleFill } from "react-icons/bs";
+import { EventData, EventFormData, GuestListInfo, TicketInfo } from "@/types";
+import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+
 interface EventFormProps {
-  initialEventData?: {
-    name: string;
-    description: string | null;
-    startTime: string;
-    endTime: string;
-    photo: Id<"_storage"> | null;
-    venue?: {
-      venueName?: string;
-      address?: string;
-    };
-  };
-  initialTicketData?: {
-    maleTicketPrice: number;
-    femaleTicketPrice: number;
-    maleTicketCapacity: number;
-    femaleTicketCapacity: number;
-    ticketSalesEndTime: string;
-  } | null;
-  initialGuestListData?: {
-    guestListCloseTime: string;
-  } | null;
+  initialEventData?: EventData;
+  initialTicketData?: TicketInfo | null;
+  initialGuestListData?: GuestListInfo | null;
   onSubmit: (
     eventData: any,
     ticketData: any,
     guesListData: any
   ) => Promise<void>;
   isEdit: boolean;
-  canAddGuestListOption: boolean;
+  canAddGuestListOption?: boolean;
   subscriptionTier?: SubscriptionTier;
   deleteTicketInfo?: (eventId: Id<"events">) => Promise<void>;
   deleteGuestListInfo?: (eventId: Id<"events">) => Promise<void>;
-  eventId?: Id<"events">;
-  onCancelEvent?: () => Promise<void>;
-  onCancel: () => void;
+  // onCancelEvent?: () => Promise<void>;
+  onCancelEdit?: () => void;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -56,16 +41,31 @@ const EventForm: React.FC<EventFormProps> = ({
   initialGuestListData,
   onSubmit,
   isEdit,
-  canAddGuestListOption,
+  canAddGuestListOption, // use Clerk
   subscriptionTier,
   deleteTicketInfo,
-  eventId,
-  onCancelEvent,
+  // onCancelEvent,
   deleteGuestListInfo,
-  onCancel,
+  onCancelEdit,
 }) => {
-  const defaultTime = "22:00";
-  // Event state
+  const [formData, setFormData] = useState<EventFormData>({
+    eventName: initialEventData?.name || "",
+    description: initialEventData?.description || "",
+    venueName: initialEventData?.venue?.venueName || "",
+    address: initialEventData?.venue?.address || "",
+    startTime: initialEventData?.startTime || "",
+    endTime: initialEventData?.endTime || "",
+    guestListCloseTime: initialGuestListData?.guestListCloseTime || null,
+    maleTicketPrice: initialTicketData?.maleTicketPrice.toString() || null,
+    femaleTicketPrice: initialTicketData?.femaleTicketPrice.toString() || null,
+    maleTicketCapacity:
+      initialTicketData?.maleTicketCapacity.toString() || null,
+    femaleTicketCapacity:
+      initialTicketData?.femaleTicketCapacity.toString() || null,
+    ticketSalesEndTime: initialTicketData?.ticketSalesEndTime || null,
+    photoStorageId: initialEventData?.photo || null,
+  });
+
   const [eventName, setEventName] = useState(initialEventData?.name || "");
   const [description, setDescription] = useState(
     initialEventData?.description || ""
@@ -99,6 +99,8 @@ const EventForm: React.FC<EventFormProps> = ({
     cancelText: "",
     onConfirm: () => {},
   });
+  const cancelEvent = useMutation(api.events.cancelEvent);
+  const router = useRouter();
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
@@ -174,7 +176,29 @@ const EventForm: React.FC<EventFormProps> = ({
     }
   };
 
-  const handleCancelEventClick = () => {
+  const onDeleteEvent = async () => {
+    console.log("id", initialEventData?._id);
+    try {
+      const navigationPromise = router.push("/");
+      if (initialEventData) {
+        await cancelEvent({ eventId: initialEventData?._id });
+        toast({
+          title: "Event Cancelled",
+          description: "The event has been successfully cancelled.",
+        });
+        navigationPromise;
+      }
+    } catch (error) {
+      console.error("Error cancelling event:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel the event. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteEvent = () => {
     setModalConfig({
       title: "Confirm Event Deletion",
       message:
@@ -182,9 +206,8 @@ const EventForm: React.FC<EventFormProps> = ({
       confirmText: "Delete Event",
       cancelText: "Keep Event",
       onConfirm: async () => {
-        if (onCancelEvent) {
-          await onCancelEvent();
-        }
+        await onDeleteEvent();
+
         setShowConfirmModal(false);
       },
     });
@@ -424,13 +447,17 @@ const EventForm: React.FC<EventFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="eventName">Event Name</Label>
+      <div className="space-y-2 flex flex-col">
+        <Label htmlFor="eventName" className="font-bold font-playfair text-xl">
+          Name*
+        </Label>
         <Input
           id="eventName"
           value={eventName}
           onChange={(e) => setEventName(e.target.value)}
           className="w-full max-w-[500px]"
+          error={errors.eventName}
+          placeholder="Enter event name"
         />
         {errors.eventName && <p className="text-red-500">{errors.eventName}</p>}
       </div>
@@ -442,9 +469,10 @@ const EventForm: React.FC<EventFormProps> = ({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full max-w-[500px]"
+          placeholder="Add a description for your event."
         />
       </div>
-
+      {/* 
       <div className="space-y-2">
         <Label htmlFor="photo">Event Photo</Label>
         <Input
@@ -470,9 +498,54 @@ const EventForm: React.FC<EventFormProps> = ({
             </button>
           </div>
         )}
+      </div> */}
+      <div className="space-y-2">
+        <Label htmlFor="photo" className="font-bold">
+          Event Photo
+        </Label>
+
+        {/* Hidden file input */}
+        <input
+          type="file"
+          id="photo"
+          onChange={handlePhotoChange}
+          accept="image/*"
+          className="hidden" // Hide the default file input
+        />
+
+        {/* Custom upload button */}
+        <label
+          htmlFor="photo"
+          className="focus:border-customDarkBlue w-full max-w-[500px] border-2 border-dashed border-gray-300 h-[300px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg"
+        >
+          {displayEventPhoto ? (
+            <img
+              src={displayEventPhoto}
+              alt="Event Photo"
+              className="w-full h-full object-cover rounded-lg"
+            />
+          ) : (
+            <span className="text-gray-500">Upload Photo</span>
+          )}
+
+          {/* Loading indicator */}
+          {isPhotoLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white opacity-75">
+              Loading...
+            </div>
+          )}
+
+          {/* Remove button */}
+          {displayEventPhoto && (
+            <BsFillXCircleFill
+              onClick={handleRemovePhoto}
+              className="absolute -top-[22px] -right-[22px] text-4xl rounded-full p-1"
+            />
+          )}
+        </label>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 flex flex-col">
         <Label htmlFor="venueName">Venue Name</Label>
         <Input
           id="venueName"
@@ -482,7 +555,7 @@ const EventForm: React.FC<EventFormProps> = ({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 flex flex-col">
         <Label htmlFor="address">Address</Label>
         <Input
           id="address"
@@ -492,26 +565,28 @@ const EventForm: React.FC<EventFormProps> = ({
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="startTime">Starts</Label>
+      <div className="space-y-2 flex flex-col">
+        <Label htmlFor="startTime">Starts*</Label>
         <Input
           type="datetime-local"
           id="startTime"
           value={utcToPstString(startTime) || ""}
           onChange={(e) => handleDateTimeChange(e, setStartTime)}
           className="w-full max-w-[500px]"
+          error={errors.startTime}
         />
         {errors.startTime && <p className="text-red-500">{errors.startTime}</p>}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="endTime">Ends</Label>
+      <div className="space-y-2 flex flex-col">
+        <Label htmlFor="endTime">Ends*</Label>
         <Input
           type="datetime-local"
           id="endTime"
           value={utcToPstString(endTime) || ""}
           onChange={(e) => handleDateTimeChange(e, setEndTime)}
           className="w-full max-w-[500px]"
+          error={errors.endTime}
         />
         {errors.endTime && <p className="text-red-500">{errors.endTime}</p>}
       </div>
@@ -519,27 +594,38 @@ const EventForm: React.FC<EventFormProps> = ({
         <div className="space-y-2">
           <Button
             type="button"
+            className={`relative rounded-[20px] border border-customDarkBlue 
+            ${isGuestListSelected ? "bg-customDarkBlue text-white" : "text-customDarkBlue"}`}
             onClick={
               isGuestListSelected
                 ? handleRemoveGuestList
                 : () => setIsGuestListSelected(true)
             }
-            variant={isGuestListSelected ? "default" : "outline"}
+            variant="outline"
           >
             {isGuestListSelected ? "Remove Guest List" : "Add Guest List"}
+            {isGuestListSelected && (
+              <span
+                className="absolute -top-2 -right-[8px] cursor-pointer"
+                onClick={handleRemoveTickets}
+              >
+                <BsFillXCircleFill className="text-black text-xl " />
+              </span>
+            )}
           </Button>
         </div>
       )}
 
       {isGuestListSelected && (
-        <div className="space-y-2">
-          <Label htmlFor="guestListCloseTime">Guest List Close Time</Label>
+        <div className="space-y-2 flex flex-col">
+          <Label htmlFor="guestListCloseTime">Guest List Close Time*</Label>
           <Input
             type="datetime-local"
             id="guestListCloseTime"
             value={utcToPstString(guestListCloseTime) || ""}
             onChange={(e) => handleDateTimeChange(e, setGuestListCloseTime)}
             className="w-full max-w-[500px]"
+            error={errors.guestListCloseTime}
           />
           {errors.guestListCloseTime && (
             <p className="text-red-500">{errors.guestListCloseTime}</p>
@@ -550,22 +636,22 @@ const EventForm: React.FC<EventFormProps> = ({
       <div className="space-y-2">
         <Button
           type="button"
-          className="relative rounded-[20px] border border-customDarkBlue text-customDarkBlue"
+          className={`relative rounded-[20px] border border-customDarkBlue 
+      ${isTicketsSelected ? "bg-customDarkBlue text-white" : "text-customDarkBlue"}`}
           onClick={
             isTicketsSelected
               ? handleRemoveTickets
               : () => setIsTicketsSelected(true)
           }
           variant="outline"
-          // variant={isTicketsSelected ? "default" : "outline"}
         >
           {isTicketsSelected ? "Remove Tickets" : "Add Tickets"}
           {isTicketsSelected && (
             <span
-              className="absolute -top-2 -right-2.5 cursor-pointer "
+              className="absolute -top-2 -right-[8px] cursor-pointer"
               onClick={handleRemoveTickets}
             >
-              <BsFillXCircleFill className="text-customDarkBlue text-xl " />
+              <BsFillXCircleFill className="text-black text-xl" />
             </span>
           )}
         </Button>
@@ -573,8 +659,8 @@ const EventForm: React.FC<EventFormProps> = ({
 
       {isTicketsSelected && (
         <>
-          <div className="space-y-2">
-            <Label htmlFor="maleTicketPrice">Male Ticket Price</Label>
+          <div className="space-y-2 flex flex-col">
+            <Label htmlFor="maleTicketPrice">Male Ticket Price*</Label>
             <Input
               type="number"
               id="maleTicketPrice"
@@ -588,14 +674,15 @@ const EventForm: React.FC<EventFormProps> = ({
               className="w-full max-w-[500px]"
               min="0"
               defaultValue="0"
+              error={errors.maleTicketPrice}
             />
             {errors.maleTicketPrice && (
               <p className="text-red-500">{errors.maleTicketPrice}</p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="femaleTicketPrice">Female Ticket Price</Label>
+          <div className="space-y-2 flex flex-col">
+            <Label htmlFor="femaleTicketPrice">Female Ticket Price*</Label>
             <Input
               type="number"
               id="femaleTicketPrice"
@@ -609,14 +696,15 @@ const EventForm: React.FC<EventFormProps> = ({
               className="w-full max-w-[500px]"
               min="0"
               defaultValue="0"
+              error={errors.femaleTicketPrice}
             />
             {errors.femaleTicketPrice && (
               <p className="text-red-500">{errors.femaleTicketPrice}</p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="maleTicketCapacity">Male Ticket Capacity</Label>
+          <div className="space-y-2 flex flex-col">
+            <Label htmlFor="maleTicketCapacity">Male Ticket Capacity*</Label>
             <Input
               type="number"
               id="maleTicketCapacity"
@@ -625,14 +713,17 @@ const EventForm: React.FC<EventFormProps> = ({
               className="w-full max-w-[500px]"
               min="0"
               defaultValue="0"
+              error={errors.maleTicketCapacity}
             />
             {errors.maleTicketCapacity && (
               <p className="text-red-500">{errors.maleTicketCapacity}</p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="femaleTicketCapacity">Female Ticket Capacity</Label>
+          <div className="space-y-2 flex flex-col">
+            <Label htmlFor="femaleTicketCapacity">
+              Female Ticket Capacity*
+            </Label>
             <Input
               type="number"
               id="femaleTicketCapacity"
@@ -641,19 +732,21 @@ const EventForm: React.FC<EventFormProps> = ({
               className="w-full max-w-[500px]"
               min="0"
               defaultValue="0"
+              error={errors.femaleTicketCapacity}
             />
             {errors.femaleTicketCapacity && (
               <p className="text-red-500">{errors.femaleTicketCapacity}</p>
             )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="ticketSalesEndTime">Ticket Sales End Time</Label>
+          <div className="space-y-2 flex flex-col">
+            <Label htmlFor="ticketSalesEndTime">Ticket Sales End Time*</Label>
             <Input
               type="datetime-local"
               id="ticketSalesEndTime"
               value={utcToPstString(ticketSalesEndTime) || ""}
               onChange={(e) => handleDateTimeChange(e, setTicketSalesEndTime)}
               className="w-full max-w-[500px]"
+              error={errors.ticketSalesEndTime}
             />
             {errors.ticketSalesEndTime && (
               <p className="text-red-500">{errors.ticketSalesEndTime}</p>
@@ -665,19 +758,24 @@ const EventForm: React.FC<EventFormProps> = ({
       <Button type="submit" disabled={isLoading}>
         {isEdit ? "Update Event" : "Add Event"}
       </Button> */}
-      <div className="flex justify-center space-x-10">
+      <div
+        className={`flex ${isEdit ? "flex-col" : "flex-row"} items-center justify-center  space-y-2`}
+      >
+        {" "}
         <Button
-          variant="ghost"
-          onClick={onCancel}
+          variant="secondary"
+          type="button"
+          onClick={onCancelEdit}
           disabled={isLoading}
-          className="font-semibold  w-[140px]"
+          size={isEdit ? "tripleButtons" : "doubelButtons"}
         >
-          Cancel
+          Cancel Editing
         </Button>
         <Button
           type="submit"
-          className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
           disabled={isLoading}
+          size={isEdit ? "tripleButtons" : "doubelButtons"}
+          variant="default"
         >
           {isLoading ? (
             <>
@@ -690,17 +788,17 @@ const EventForm: React.FC<EventFormProps> = ({
             "Add Event"
           )}
         </Button>
+        {isEdit && (
+          <Button
+            type="button"
+            onClick={handleDeleteEvent}
+            variant="destructive"
+            size="tripleButtons"
+          >
+            Delete Event
+          </Button>
+        )}
       </div>
-      {isEdit && (
-        <Button
-          type="button"
-          onClick={handleCancelEventClick}
-          variant="destructive"
-          className="mt-4"
-        >
-          Delete Event
-        </Button>
-      )}
       <ConfirmModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}

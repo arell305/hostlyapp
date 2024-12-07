@@ -45,3 +45,17 @@ export enum UserRole {
   Manager = "org:manager",
   Admin = "org:admin",
 }
+
+export enum ActiveTab {
+  VIEW = "view",
+  GUEST_LIST = "guestList",
+  TICKET_INFO = "ticketInfo",
+}
+
+export enum ResponseStatus {
+  SUCCESS = "success",
+  NOT_FOUND = "not_found",
+  ERROR = "error",
+  UNAUTHORIZED = "unauthorized",
+  UNAUTHENTICATED = "unauthenticated",
+}
