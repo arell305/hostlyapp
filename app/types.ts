@@ -67,7 +67,7 @@ export interface QueryResponse {
 }
 
 export interface TicketInfo {
-  eventId: Id<"events">; // Reference to the event
+  eventId: Id<"events">;
   maleTicketPrice: number;
   femaleTicketPrice: number;
   maleTicketCapacity: number;
@@ -77,11 +77,14 @@ export interface TicketInfo {
   ticketSalesEndTime: string;
 }
 
+export type TicketInfoWithoutEventId = Omit<TicketInfo, "eventId">;
+
 export interface GuestListInfo {
   eventId: Id<"events">; // Reference to the event
   guestListCloseTime: string;
   guestListIds: Id<"guestLists">[]; // Array of guest list IDs
 }
+export type GuestListInfoWithoutEventId = Omit<GuestListInfo, "eventId">;
 
 export interface EventData {
   _id: Id<"events">;
@@ -108,6 +111,26 @@ export interface GetEventByIdResponse {
   } | null;
   error?: string | null;
 }
+export interface PromoCodeUsage {
+  _id: Id<"promoCodeUsage">; // Unique identifier for the promo code usage
+  _creationTime: number; // Timestamp for when the usage was created
+  promoCodeId: Id<"promoterPromoCode">; // Reference to the associated promo code
+  eventId: Id<"events">; // Reference to the associated event
+  clerkPromoterUserId: string; // ID of the promoter using the promo code
+  maleUsageCount: number; // Count of male usages
+  femaleUsageCount: number; // Count of female usages
+}
+
+export interface TotalUsage {
+  totalMaleUsage: number;
+  totalFemaleUsage: number;
+}
+
+export interface GetTotalPromoCodeUsageByEventResponse {
+  status: ResponseStatus;
+  data: TotalUsage | null;
+  error?: string | null;
+}
 
 export interface EventFormData {
   eventName: string;
@@ -123,4 +146,28 @@ export interface EventFormData {
   maleTicketCapacity?: string | null;
   femaleTicketCapacity?: string | null;
   ticketSalesEndTime?: string | null;
+}
+
+export interface getPromotersByOrganizationResponse {
+  status: ResponseStatus;
+  data: Promoter[] | null;
+  error?: string;
+}
+
+export interface Promoter {
+  clerkUserId?: string;
+  name?: string;
+}
+
+export interface PromoCodeUsageData {
+  promoterId: string;
+  maleUsageCount: number;
+  femaleUsageCount: number;
+  promoCodeId: Id<"promoterPromoCode"> | null;
+}
+
+export interface GetPromoCodeUsageByPromoterAndEventResponse {
+  status: ResponseStatus;
+  data: PromoCodeUsageData | null;
+  error?: string;
 }

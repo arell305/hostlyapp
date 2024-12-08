@@ -27,3 +27,10 @@ export enum TeamSettingsModalType {
   TeamName = "teamName",
   PromoDiscount = "promoDiscount",
 }
+
+export enum ErrorMessages {
+  UNAUTHENTICATED = "User is not authenticated.",
+  FORBIDDEN = "User does not belong to the organization of the event.",
+  GENERIC_ERROR = "An unexpected error occurred.",
+  NOT_FOUND = "Not found.",
+}

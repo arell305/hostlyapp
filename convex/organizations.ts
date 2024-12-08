@@ -1,7 +1,9 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation } from "./_generated/server";
 import { query, QueryCtx } from "./_generated/server";
-import { UserRoleEnum } from "../utils/enum";
+import { ResponseStatus, UserRole, UserRoleEnum } from "../utils/enum";
+import { Promoter, getPromotersByOrganizationResponse } from "@/types";
+import { ErrorMessages } from "@/utils/enums";
 
 export const createOrganization = internalMutation({
   args: {
@@ -276,18 +278,51 @@ export const updateOrganizationPromoDiscount = mutation({
 
 export const getPromotersByOrganization = query({
   args: { clerkOrganizationId: v.string() },
-  handler: async (ctx, args) => {
-    const promoters = await ctx.db
-      .query("users")
-      .filter((q) =>
-        q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
-      )
-      .filter((q) => q.eq(q.field("role"), UserRoleEnum.PROMOTER))
-      .collect();
 
-    return promoters.map((promoter) => ({
-      clerkUserId: promoter.clerkUserId,
-      name: promoter.name,
-    }));
+  handler: async (ctx, args): Promise<getPromotersByOrganizationResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+
+      if (identity.clerk_org_id !== args.clerkOrganizationId) {
+        return {
+          status: ResponseStatus.UNAUTHORIZED,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
+
+      const promoters = await ctx.db
+        .query("users")
+        .filter((q) =>
+          q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
+        )
+        .filter((q) => q.eq(q.field("role"), UserRole.Promoter))
+        .collect();
+      const formattedPromoters: Promoter[] = promoters.map((promoter) => ({
+        clerkUserId: promoter.clerkUserId,
+        name: promoter.name,
+      }));
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: formattedPromoters,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
   },
 });

@@ -3,6 +3,8 @@ import { query, mutation } from "./_generated/server";
 import { Venue } from "./schema";
 import { GetEventByIdResponse } from "@/types";
 import { ResponseStatus } from "../utils/enum";
+import { ErrorMessages } from "@/utils/enums";
+import { ERROR_MESSAGES } from "../constants/errorMessages";
 
 export const getEventsByOrgAndDate = query({
   args: {
@@ -74,7 +76,7 @@ export const getEventById = query({
         return {
           status: ResponseStatus.UNAUTHENTICATED,
           data: null,
-          error: "User is not authenticated.",
+          error: ErrorMessages.UNAUTHENTICATED,
         };
       }
 
@@ -83,7 +85,7 @@ export const getEventById = query({
         return {
           status: ResponseStatus.NOT_FOUND,
           data: null,
-          error: "Event Not Found",
+          error: ErrorMessages.NOT_FOUND,
         };
       }
 
@@ -92,7 +94,15 @@ export const getEventById = query({
         return {
           status: ResponseStatus.NOT_FOUND,
           data: null,
-          error: "Event Not Found",
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+
+      if (identity.clerk_org_id !== event.clerkOrganizationId) {
+        return {
+          status: ResponseStatus.UNAUTHORIZED,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
         };
       }
 
@@ -104,28 +114,11 @@ export const getEventById = query({
         ? ctx.db.get(event.guestListInfoId)
         : Promise.resolve(null);
 
-      const userPromise = ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) =>
-          q.eq("clerkUserId", identity.id as string)
-        )
-        .unique();
-
       // Use Promise.all to fetch all data concurrently
-      const [ticketInfo, guestListInfo, user] = await Promise.all([
+      const [ticketInfo, guestListInfo] = await Promise.all([
         ticketInfoPromise,
         guestListInfoPromise,
-        userPromise,
       ]);
-
-      // Perform the authorization check
-      if (user?.clerkOrganizationId !== event.clerkOrganizationId) {
-        return {
-          status: ResponseStatus.UNAUTHORIZED,
-          data: null,
-          error: "User does not belong to the organization of the event",
-        };
-      }
 
       return {
         status: ResponseStatus.SUCCESS,
@@ -137,11 +130,9 @@ export const getEventById = query({
         error: null,
       };
     } catch (error) {
-      console.error("Error fetching event data:", error);
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred.";
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
       return {
         status: ResponseStatus.ERROR,
         data: null,

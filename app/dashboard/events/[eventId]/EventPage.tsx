@@ -10,7 +10,7 @@ import EventForm from "@/dashboard/components/EventForm";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import ConfirmModal from "@/dashboard/components/ConfirmModal";
-import TicketInfo from "@/dashboard/components/TicketInfo";
+import TicketInfo from "@/dashboard/components/TicketInfoTab";
 import EventInfo from "@/dashboard/components/EventInfo";
 import PromoterGuestList from "@/dashboard/components/PromoterGuestList";
 import EventGuestList from "@/dashboard/components/EventGuestList";
@@ -197,7 +197,7 @@ export default function EventPage({
         <>
           <TabsNav activeTab={activeTab} onTabChange={setActiveTab} />
 
-          {activeTab === ActiveTab.TICKET_INFO && (
+          {/* {activeTab === ActiveTab.TICKET_INFO && (
             <TicketInfo
               ticketInfo={ticketInfo}
               canViewAllTickets={permissions.canViewAllGuestList}
@@ -205,7 +205,7 @@ export default function EventPage({
               promoterClerkId={promoterId}
               hasPromoCode={permissions.canUploadGuestList}
             />
-          )}
+          )} */}
           {activeTab === ActiveTab.VIEW && (
             <EventInfo
               event={event}

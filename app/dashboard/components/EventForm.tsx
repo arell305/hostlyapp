@@ -48,24 +48,6 @@ const EventForm: React.FC<EventFormProps> = ({
   deleteGuestListInfo,
   onCancelEdit,
 }) => {
-  const [formData, setFormData] = useState<EventFormData>({
-    eventName: initialEventData?.name || "",
-    description: initialEventData?.description || "",
-    venueName: initialEventData?.venue?.venueName || "",
-    address: initialEventData?.venue?.address || "",
-    startTime: initialEventData?.startTime || "",
-    endTime: initialEventData?.endTime || "",
-    guestListCloseTime: initialGuestListData?.guestListCloseTime || null,
-    maleTicketPrice: initialTicketData?.maleTicketPrice.toString() || null,
-    femaleTicketPrice: initialTicketData?.femaleTicketPrice.toString() || null,
-    maleTicketCapacity:
-      initialTicketData?.maleTicketCapacity.toString() || null,
-    femaleTicketCapacity:
-      initialTicketData?.femaleTicketCapacity.toString() || null,
-    ticketSalesEndTime: initialTicketData?.ticketSalesEndTime || null,
-    photoStorageId: initialEventData?.photo || null,
-  });
-
   const [eventName, setEventName] = useState(initialEventData?.name || "");
   const [description, setDescription] = useState(
     initialEventData?.description || ""
@@ -472,33 +454,7 @@ const EventForm: React.FC<EventFormProps> = ({
           placeholder="Add a description for your event."
         />
       </div>
-      {/* 
-      <div className="space-y-2">
-        <Label htmlFor="photo">Event Photo</Label>
-        <Input
-          type="file"
-          id="photo"
-          onChange={handlePhotoChange}
-          accept="image/*"
-          className="w-full max-w-[500px]"
-        />
-        {isPhotoLoading && <div>Loading</div>}
-        {displayEventPhoto && (
-          <div className="relative mt-2 max-w-[300px]">
-            <img
-              src={displayEventPhoto}
-              alt="Event Photo"
-              className="w-full h-auto"
-            />
-            <button
-              onClick={handleRemovePhoto}
-              className="absolute top-0 right-0 bg-black text-white rounded-full p-1"
-            >
-              X
-            </button>
-          </div>
-        )}
-      </div> */}
+
       <div className="space-y-2">
         <Label htmlFor="photo" className="font-bold">
           Event Photo

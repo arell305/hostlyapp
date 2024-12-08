@@ -184,6 +184,7 @@ import EventIdContent from "./EventIdContent";
 // }
 
 export default function EventPageWrapper() {
+  const { has } = useAuth();
   const params = useParams();
   const eventId = params.eventId as string;
 
@@ -193,7 +194,7 @@ export default function EventPageWrapper() {
   const isAppAdmin = organization?.slug === "admin";
 
   // Check loading state
-  if (!loaded) {
+  if (!loaded || !has) {
     return <EventInfoSkeleton />;
   }
 
@@ -225,7 +226,6 @@ export default function EventPageWrapper() {
   if (!data || !organization) {
     return <NotFound text={"event"} />; // Or handle it in another way
   }
-
   // Final return with all required props
   return (
     <EventIdContent
@@ -233,6 +233,7 @@ export default function EventPageWrapper() {
       isAppAdmin={isAppAdmin}
       organization={organization}
       user={user}
+      has={has}
     />
   );
 }
