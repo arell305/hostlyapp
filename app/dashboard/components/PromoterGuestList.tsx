@@ -2,69 +2,66 @@ import React, { useState } from "react";
 import { Id } from "../../../convex/_generated/dataModel";
 import { api } from "../../../convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
-import {
-  FaPencilAlt,
-  FaTrashAlt,
-  FaCheck,
-  FaTimes,
-  FaCheckCircle,
-} from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import AddGuestListModal from "./AddGuestList";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { formatArrivalTime } from "../../../utils/helpers";
 import GuestCard from "./GuestCard";
 import DetailsSkeleton from "./loading/DetailsSkeleton";
+import { GuestListNameSchema } from "@/types";
+import { DateTime } from "luxon";
+import { FiClock } from "react-icons/fi";
+import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";
+import { PiPlusCircle } from "react-icons/pi";
 
 type GuestListManagerProps = {
   eventId: Id<"events">;
-  promoterId: string;
+  promoterId: string | null;
   isGuestListOpen: boolean;
+  guestListCloseTime: string;
 };
 
-interface Guest {
-  id: string;
-  name: string;
-  attended?: boolean;
-  malesInGroup?: number;
-  femalesInGroup?: number;
-  checkInTime?: string;
-}
-
-const GuestListPage = ({
+const PromoterGuestListPage = ({
   eventId,
   promoterId,
   isGuestListOpen,
+  guestListCloseTime,
 }: GuestListManagerProps) => {
+  if (!promoterId) {
+    return <p>Error in promoterId</p>;
+  }
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
-  const [isEditMode, setIsEditMode] = useState(false);
   const [isGuestListModalOpen, setIsGuestListModalOpen] = useState(false);
-  const canAddGuests = true;
-  const canEditGuests = true;
-
-  const result = useQuery(api.guestLists.getGuestListByPromoter, {
-    clerkPromoterId: promoterId,
-    eventId,
-  });
+  const formattedGuestListCloseTime = DateTime.fromISO(
+    guestListCloseTime
+  ).toFormat("MMMM dd, yyyy hh:mm a");
+  const getGuestListByPromoterResponse = useQuery(
+    api.guestLists.getGuestListByPromoter,
+    {
+      clerkPromoterId: promoterId,
+      eventId,
+    }
+  );
   const updateGuestName = useMutation(api.guestLists.updateGuestName);
   const deleteGuestName = useMutation(api.guestLists.deleteGuestName);
   const { toast } = useToast();
 
-  if (result === undefined) {
+  if (getGuestListByPromoterResponse === undefined) {
     return <DetailsSkeleton />;
   }
-  const isEmptyGuestList = result.guestListId === null;
 
-  const totalMales = result.names.reduce(
-    (sum: number, guest: Guest) => sum + (guest.malesInGroup || 0),
+  const isEmptyGuestList =
+    getGuestListByPromoterResponse.data?.guestListId === null;
+
+  const totalMales = getGuestListByPromoterResponse.data?.names.reduce(
+    (sum: number, guest: GuestListNameSchema) =>
+      sum + (guest.malesInGroup || 0),
     0
   );
-  const totalFemales = result.names.reduce(
-    (sum: number, guest: Guest) => sum + (guest.femalesInGroup || 0),
+  const totalFemales = getGuestListByPromoterResponse.data?.names.reduce(
+    (sum: number, guest: GuestListNameSchema) =>
+      sum + (guest.femalesInGroup || 0),
     0
   );
 
@@ -84,7 +81,7 @@ const GuestListPage = ({
     }
     try {
       await updateGuestName({
-        guestListId: result.guestListId!,
+        guestListId: getGuestListByPromoterResponse.data?.guestListId!,
         guestId: id,
         newName: editName,
       });
@@ -106,7 +103,7 @@ const GuestListPage = ({
   const handleDelete = async (id: string) => {
     try {
       await deleteGuestName({
-        guestListId: result.guestListId!,
+        guestListId: getGuestListByPromoterResponse.data?.guestListId!,
         guestId: id,
       });
       toast({
@@ -125,16 +122,16 @@ const GuestListPage = ({
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-2">Guest List</h1>
-      {canAddGuests &&
-        (isGuestListOpen ? (
+      <div className="flex justify-between">
+        <h1 className="text-2xl font-bold mb-2">Guest List</h1>
+
+        {isGuestListOpen ? (
           <>
-            <Button
-              className="mb-2"
+            <PiPlusCircle
+              className="text-3xl cursor-pointer"
               onClick={() => setIsGuestListModalOpen(true)}
-            >
-              Add to Guest List
-            </Button>
+            />
+
             <AddGuestListModal
               isOpen={isGuestListModalOpen}
               onClose={() => setIsGuestListModalOpen(false)}
@@ -144,36 +141,47 @@ const GuestListPage = ({
           </>
         ) : (
           <p className="text-red-500 mb-2">Guest List is closed</p>
-        ))}
-      <div className="mb-2">
-        <Badge variant="secondary" className="mr-2">
-          Males: {totalMales}
-        </Badge>
-        <Badge variant="secondary">Females: {totalFemales}</Badge>
+        )}
+      </div>
+      <div className="mb-2 pb-2 border-b border-altGray">
+        <div className="flex items-center space-x-1">
+          <FiClock />
+          <p>Guest List Closes: {formattedGuestListCloseTime}</p>
+        </div>
+        <div className="flex items-center space-x-1">
+          <TbCircleLetterM />
+          <p>Males Attended: {totalMales}</p>
+        </div>
+        <div className="flex items-center space-x-1">
+          <TbCircleLetterF />
+          <p>Females Attended: {totalFemales}</p>
+        </div>
       </div>
       {isEmptyGuestList ? (
         <p>No guest list added</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {result.names.map((guest: Guest) => (
-            <GuestCard
-              key={guest.id}
-              guest={guest}
-              editingId={editingId}
-              editName={editName}
-              canEditGuests={canEditGuests}
-              onEdit={handleEdit}
-              onSave={handleSave}
-              onDelete={handleDelete}
-              onCancelEdit={() => setEditingId(null)}
-              setEditName={setEditName}
-              canCheckInGuests={false}
-            />
-          ))}
+        <div className="">
+          {getGuestListByPromoterResponse.data?.names.map(
+            (guest: GuestListNameSchema) => (
+              <GuestCard
+                key={guest.id}
+                guest={guest}
+                editingId={editingId}
+                editName={editName}
+                canEditGuests={isGuestListOpen}
+                onEdit={handleEdit}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                onCancelEdit={() => setEditingId(null)}
+                setEditName={setEditName}
+                canCheckInGuests={false}
+              />
+            )
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default GuestListPage;
+export default PromoterGuestListPage;

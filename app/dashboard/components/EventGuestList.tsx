@@ -13,46 +13,49 @@ import {
 } from "@/components/ui/select";
 import GuestCard from "./GuestCard";
 import DetailsSkeleton from "./loading/DetailsSkeleton";
+import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";
+import { GuestWithPromoter } from "@/types";
 
 interface EventGuestListProps {
   eventId: Id<"events">;
 }
 
-interface Guest {
-  id: string;
-  name: string;
-  promoterId: string;
-  guestListId: Id<"guestLists">;
-  promoterName: string;
-  attended?: boolean;
-  malesInGroup?: number;
-  femalesInGroup?: number;
-}
-
 const EventGuestList = ({ eventId }: EventGuestListProps) => {
-  const result = useQuery(api.events.getEventWithGuestLists, { eventId });
+  const getEventWithGuestListsResponse = useQuery(
+    api.events.getEventWithGuestLists,
+    { eventId }
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPromoter, setSelectedPromoter] = useState<string>("all");
-  const [guests, setGuests] = useState<Guest[]>([]);
+  const [guests, setGuests] = useState<GuestWithPromoter[]>([]);
 
-  const promoters = useMemo(() => {
-    if (!result) return [];
+  const promoters: string[] = useMemo(() => {
+    if (!getEventWithGuestListsResponse || !getEventWithGuestListsResponse.data)
+      return [];
     return Array.from(
-      new Set(result.guests.map((guest) => guest.promoterName))
+      new Set(
+        getEventWithGuestListsResponse.data.guests.map(
+          (guest) => guest.promoterName
+        )
+      )
     );
-  }, [result]);
+  }, [getEventWithGuestListsResponse]);
 
   const filteredGuests = useMemo(() => {
-    if (!result) return [];
-    return result.guests.filter(
+    if (!getEventWithGuestListsResponse || !getEventWithGuestListsResponse.data)
+      return [];
+    return getEventWithGuestListsResponse.data.guests.filter(
       (guest) =>
         guest.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
         (selectedPromoter === "all" || guest.promoterName === selectedPromoter)
     );
-  }, [result, searchTerm, selectedPromoter]);
+  }, [getEventWithGuestListsResponse, searchTerm, selectedPromoter]);
 
   const totals = useMemo(() => {
-    const guests = selectedPromoter === "all" ? result?.guests : filteredGuests;
+    const guests =
+      selectedPromoter === "all"
+        ? getEventWithGuestListsResponse?.data?.guests
+        : filteredGuests;
     if (!guests) return { totalMales: 0, totalFemales: 0 };
 
     const totalMales = guests.reduce(
@@ -64,36 +67,38 @@ const EventGuestList = ({ eventId }: EventGuestListProps) => {
       0
     );
     return { totalMales, totalFemales };
-  }, [result, filteredGuests, selectedPromoter]);
+  }, [getEventWithGuestListsResponse, filteredGuests, selectedPromoter]);
 
   useEffect(() => {
-    if (selectedPromoter === "all" && result) {
-      setGuests(result.guests);
-    } else if (result) {
-      const filteredGuests = result.guests.filter(
-        (guest) => guest.promoterName === selectedPromoter
-      );
+    if (
+      selectedPromoter === "all" &&
+      getEventWithGuestListsResponse &&
+      getEventWithGuestListsResponse.data
+    ) {
+      setGuests(getEventWithGuestListsResponse.data.guests);
+    } else if (
+      getEventWithGuestListsResponse &&
+      getEventWithGuestListsResponse.data
+    ) {
+      const filteredGuests =
+        getEventWithGuestListsResponse &&
+        getEventWithGuestListsResponse.data.guests.filter(
+          (guest) => guest.promoterName === selectedPromoter
+        );
       setGuests(filteredGuests);
       // Console log filtered guests
     }
-  }, [selectedPromoter, result]);
+  }, [selectedPromoter, getEventWithGuestListsResponse]);
 
-  if (!result) {
+  if (getEventWithGuestListsResponse === undefined) {
     return <DetailsSkeleton />;
   }
+  console.log("data", getEventWithGuestListsResponse);
+
   return (
-    <>
-      <div className="mb-4 flex flex-col gap-4">
-        <div className="flex items-center">
-          <Input
-            type="text"
-            placeholder="Search guests..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="mr-2"
-          />
-          <FaSearch className="text-gray-400" />
-        </div>
+    <div className="mb-4 flex flex-col">
+      <div>
+        <h2 className="text-xl font-semibold mb-2">Headcount</h2>
         <Select value={selectedPromoter} onValueChange={setSelectedPromoter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by promoter" />
@@ -107,18 +112,31 @@ const EventGuestList = ({ eventId }: EventGuestListProps) => {
             ))}
           </SelectContent>
         </Select>
-        <div>
-          <div>
-            {selectedPromoter === "all" ? "All Promoters" : selectedPromoter} -
-            Total Males: {totals.totalMales}
+        <div className="mb-3 border-b border-altGray">
+          <div className="flex">
+            <TbCircleLetterM className="text-2xl pr-1" />
+            <p>Males Attended: {totals.totalMales}</p>
           </div>
-          <div>
-            {selectedPromoter === "all" ? "All Promoters" : selectedPromoter} -
-            Total Females: {totals.totalFemales}
+          <div className="flex">
+            <TbCircleLetterF className="text-2xl pr-1" />
+            <p className="pb-2">Females Attended: {totals.totalFemales}</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredGuests.map((guest: Guest) => (
+      </div>
+      <div>
+        <h2 className="text-xl font-semibold mb-2">Guests</h2>
+        <div className="flex items-center">
+          <FaSearch className="text-gray-400 mr-2" />
+          <Input
+            type="text"
+            placeholder="Search guests..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1" // Allow input to take available space
+          />
+        </div>
+        <div className="">
+          {filteredGuests.map((guest: GuestWithPromoter) => (
             <GuestCard
               key={guest.id}
               guest={guest}
@@ -128,7 +146,7 @@ const EventGuestList = ({ eventId }: EventGuestListProps) => {
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

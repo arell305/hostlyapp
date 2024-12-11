@@ -116,3 +116,18 @@ export const isValidEmail = (email: string) => {
   const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return pattern.test(email);
 };
+
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
+};
+
+export const formatDateMDY = (dateString: string): string => {
+  return moment(dateString).format("MMMM D, YYYY");
+};
+
+export const formatTime = (dateString: string): string => {
+  return `${moment(dateString).format("h:mm A")}`;
+};

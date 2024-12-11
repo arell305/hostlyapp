@@ -1,8 +1,17 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { Venue } from "./schema";
-import { GetEventByIdResponse } from "@/types";
-import { ResponseStatus } from "../utils/enum";
+import {
+  AllGuestSchema,
+  EventSchema,
+  GetEventByIdResponse,
+  GetEventWithGuestListsResponse,
+  GuestListNameSchema,
+  GuestListSchema,
+  Promoters,
+  UpdateGuestAttendanceResponse,
+} from "@/types";
+import { ResponseStatus, UserRole } from "../utils/enum";
 import { ErrorMessages } from "@/utils/enums";
 import { ERROR_MESSAGES } from "../constants/errorMessages";
 
@@ -98,13 +107,13 @@ export const getEventById = query({
         };
       }
 
-      if (identity.clerk_org_id !== event.clerkOrganizationId) {
-        return {
-          status: ResponseStatus.UNAUTHORIZED,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      // if (identity.clerk_org_id !== event.clerkOrganizationId) {
+      //   return {
+      //     status: ResponseStatus.UNAUTHORIZED,
+      //     data: null,
+      //     error: ErrorMessages.FORBIDDEN,
+      //   };
+      // }
 
       const ticketInfoPromise = event.ticketInfoId
         ? ctx.db.get(event.ticketInfoId)
@@ -144,67 +153,96 @@ export const getEventById = query({
 
 export const getEventWithGuestLists = query({
   args: { eventId: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<GetEventWithGuestListsResponse> => {
     const { eventId } = args;
 
-    // Fetch the event
-    const event = await ctx.db.get(eventId);
-    if (!event) {
-      throw new Error("Event not found");
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+
+      // if (identity.clerk_org_id !== eventId) {
+      //   return {
+      //     status: ResponseStatus.UNAUTHORIZED,
+      //     data: null,
+      //     error: ErrorMessages.FORBIDDEN,
+      //   };
+      // }
+      const event: EventSchema | null = await ctx.db.get(eventId);
+      if (!event) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+      const guestLists: GuestListSchema[] = await ctx.db
+        .query("guestLists")
+        .filter((q) => q.eq(q.field("eventId"), eventId))
+        .collect();
+
+      const promoterIds: string[] = Array.from(
+        new Set(guestLists.map((gl) => gl.clerkPromoterId))
+      );
+      const promoters: Promoters[] = await Promise.all(
+        promoterIds.map(async (promoterId) => {
+          const user = await ctx.db
+            .query("users")
+            .filter((q) => q.eq(q.field("clerkUserId"), promoterId))
+            .first();
+          return { id: promoterId, name: user?.name || "Unknown" };
+        })
+      );
+      const promoterMap: Map<string, string> = new Map(
+        promoters.map((p) => [p.id, p.name])
+      );
+
+      const allGuests: AllGuestSchema[] = guestLists.flatMap((guestList) =>
+        guestList.names.map((guest) => ({
+          ...guest,
+          promoterId: guestList.clerkPromoterId,
+          promoterName: promoterMap.get(guestList.clerkPromoterId) || "Unknown",
+          guestListId: guestList._id,
+        }))
+      );
+
+      const totalMales: number = allGuests.reduce(
+        (sum, guest) => sum + (guest.malesInGroup || 0),
+        0
+      );
+      const totalFemales: number = allGuests.reduce(
+        (sum, guest) => sum + (guest.femalesInGroup || 0),
+        0
+      );
+
+      const sortedGuests: AllGuestSchema[] = allGuests.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          event,
+          guests: sortedGuests,
+          totalMales,
+          totalFemales,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
-
-    // Fetch all guest lists associated with this event
-    const guestLists = await ctx.db
-      .query("guestLists")
-      .filter((q) => q.eq(q.field("eventId"), eventId))
-      .collect();
-
-    // Fetch promoter information
-    const promoterIds = Array.from(
-      new Set(guestLists.map((gl) => gl.clerkPromoterId))
-    );
-    const promoters = await Promise.all(
-      promoterIds.map(async (promoterId) => {
-        const user = await ctx.db
-          .query("users")
-          .filter((q) => q.eq(q.field("clerkUserId"), promoterId))
-          .first();
-        return { id: promoterId, name: user?.name || "Unknown" };
-      })
-    );
-
-    // Create a map of promoter IDs to names for quick lookup
-    const promoterMap = new Map(promoters.map((p) => [p.id, p.name]));
-
-    // Combine all guest names from all guest lists, sort them, and add promoter info
-    const allGuests = guestLists.flatMap((guestList) =>
-      guestList.names.map((guest) => ({
-        ...guest,
-        promoterId: guestList.clerkPromoterId,
-        promoterName: promoterMap.get(guestList.clerkPromoterId) || "Unknown",
-        guestListId: guestList._id,
-      }))
-    );
-
-    // Calculate totals
-    const totalMales = allGuests.reduce(
-      (sum, guest) => sum + (guest.malesInGroup || 0),
-      0
-    );
-    const totalFemales = allGuests.reduce(
-      (sum, guest) => sum + (guest.femalesInGroup || 0),
-      0
-    );
-
-    // Sort the guests alphabetically by name
-    const sortedGuests = allGuests.sort((a, b) => a.name.localeCompare(b.name));
-
-    return {
-      event,
-      guests: sortedGuests,
-      totalMales,
-      totalFemales,
-    };
   },
 });
 
@@ -216,42 +254,85 @@ export const updateGuestAttendance = mutation({
     malesInGroup: v.number(),
     femalesInGroup: v.number(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<UpdateGuestAttendanceResponse> => {
     const { guestListId, guestId, attended, malesInGroup, femalesInGroup } =
       args;
 
-    // Fetch the current guest list
-    const guestList = await ctx.db.get(guestListId);
-    if (!guestList) {
-      throw new Error("Guest list not found");
-    }
-
-    // Find and update the specific guest
-    const updatedNames = guestList.names.map((guest) => {
-      if (guest.id === guestId) {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
         return {
-          ...guest,
-          attended,
-          malesInGroup,
-          femalesInGroup,
-          // Only set checkInTime if it's not already set and the guest is now attending
-          checkInTime:
-            guest.checkInTime ||
-            (attended ? new Date().toISOString() : undefined),
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
         };
       }
-      return guest;
-    });
 
-    // Update the guest list without recalculating totals
-    await ctx.db.patch(guestListId, {
-      names: updatedNames,
-    });
+      const role: UserRole = identity.role as UserRole;
+      if (role !== UserRole.Moderator) {
+        return {
+          status: ResponseStatus.UNAUTHORIZED,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
 
-    return {
-      success: true,
-      updatedGuest: updatedNames.find((g) => g.id === guestId),
-    };
+      const guestList: GuestListSchema | null = await ctx.db.get(guestListId);
+      if (!guestList) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+
+      const updatedNames: GuestListNameSchema[] = guestList.names.map(
+        (guest) => {
+          if (guest.id === guestId) {
+            return {
+              ...guest,
+              attended,
+              malesInGroup,
+              femalesInGroup,
+              // Only set checkInTime if it's not already set and the guest is now attending
+              checkInTime:
+                guest.checkInTime ||
+                (attended ? new Date().toISOString() : undefined),
+            };
+          }
+          return guest;
+        }
+      );
+      await ctx.db.patch(guestListId, {
+        names: updatedNames,
+      });
+      const updatedGuest: GuestListNameSchema | undefined = updatedNames.find(
+        (g) => g.id === guestId
+      );
+      if (!updatedGuest) {
+        // Handle the case where the guest was not found
+        console.error(`Guest with ID ${guestId} not found.`);
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: updatedGuest,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
   },
 });
 

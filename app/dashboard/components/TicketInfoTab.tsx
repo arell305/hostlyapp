@@ -127,7 +127,7 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
         <h2 className="text-xl font-semibold mb-2">Promo Code Usage</h2>
 
         <Select onValueChange={setSelectedPromoter} defaultValue="all">
-          <SelectTrigger className="w-[75%] sm:w-[240px] mb-2">
+          <SelectTrigger className=" mb-2">
             <SelectValue placeholder="Select Promoter" />
           </SelectTrigger>
           <SelectContent>

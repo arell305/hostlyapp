@@ -1,6 +1,19 @@
+import { ErrorMessages } from "@/utils/enums";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { nanoid } from "nanoid";
+import { ResponseStatus, UserRole } from "../utils/enum";
+import {
+  AddGuestListResponse,
+  DeleteGuestNameResponse,
+  EventSchema,
+  GetGuestListByPromoterResponse,
+  GuestListNameSchema,
+  GuestListSchema,
+  NewGuest,
+  UpdateGuestNameResponse,
+} from "@/types";
+import { Id } from "./_generated/dataModel";
 
 export const addGuestList = mutation({
   args: {
@@ -8,48 +21,90 @@ export const addGuestList = mutation({
     clerkPromoterId: v.string(),
     eventId: v.id("events"),
   },
-  handler: async (ctx, args) => {
-    const event = await ctx.db.get(args.eventId);
-    if (!event) {
-      throw new Error("Event not found");
-    }
+  handler: async (ctx, args): Promise<AddGuestListResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
 
-    const newGuestObjects = args.newNames.map((name) => ({
-      id: `guest_${nanoid()}`,
-      name,
-    }));
+      if (identity.role !== UserRole.Promoter) {
+        return {
+          status: ResponseStatus.UNAUTHORIZED,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
+      const event: EventSchema | null = await ctx.db.get(args.eventId);
+      if (!event) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
 
-    const existingGuestList = await ctx.db
-      .query("guestLists")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("clerkPromoterId"), args.clerkPromoterId),
-          q.eq(q.field("eventId"), args.eventId)
+      const newGuestObjects: NewGuest[] = args.newNames.map((name) => ({
+        id: `guest_${nanoid()}`,
+        name,
+      }));
+
+      const existingGuestList: GuestListSchema | null = await ctx.db
+        .query("guestLists")
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("clerkPromoterId"), args.clerkPromoterId),
+            q.eq(q.field("eventId"), args.eventId)
+          )
         )
-      )
-      .first();
+        .first();
 
-    if (existingGuestList) {
-      const updatedNames = [...existingGuestList.names, ...newGuestObjects];
-      await ctx.db.patch(existingGuestList._id, {
-        names: updatedNames,
-      });
+      if (existingGuestList) {
+        const updatedNames: NewGuest[] = [
+          ...existingGuestList.names,
+          ...newGuestObjects,
+        ];
+        await ctx.db.patch(existingGuestList._id, {
+          names: updatedNames,
+        });
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: {
+            guestListId: existingGuestList._id,
+            names: updatedNames,
+          },
+        };
+      }
+      const newGuestListId: Id<"guestLists"> = await ctx.db.insert(
+        "guestLists",
+        {
+          names: newGuestObjects,
+          clerkPromoterId: args.clerkPromoterId,
+          eventId: args.eventId,
+        }
+      );
+
       return {
-        guestListId: existingGuestList._id,
-        names: updatedNames,
+        status: ResponseStatus.NOT_FOUND,
+        data: {
+          guestListId: newGuestListId,
+          names: newGuestObjects,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
       };
     }
-
-    const newGuestListId = await ctx.db.insert("guestLists", {
-      names: newGuestObjects,
-      clerkPromoterId: args.clerkPromoterId,
-      eventId: args.eventId,
-    });
-
-    return {
-      guestListId: newGuestListId,
-      names: newGuestObjects,
-    };
   },
 });
 
@@ -58,25 +113,54 @@ export const getGuestListByPromoter = query({
     clerkPromoterId: v.string(),
     eventId: v.id("events"),
   },
-  handler: async (ctx, args) => {
-    const guestList = await ctx.db
-      .query("guestLists")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("clerkPromoterId"), args.clerkPromoterId),
-          q.eq(q.field("eventId"), args.eventId)
+  handler: async (ctx, args): Promise<GetGuestListByPromoterResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      // validate user
+
+      const guestList: GuestListSchema | null = await ctx.db
+        .query("guestLists")
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("clerkPromoterId"), args.clerkPromoterId),
+            q.eq(q.field("eventId"), args.eventId)
+          )
         )
-      )
-      .first();
+        .first();
 
-    if (!guestList) {
-      return { guestListId: null, names: [] };
+      if (!guestList) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+      // validate user belongs to org
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          guestListId: guestList._id,
+          names: guestList.names,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
-
-    return {
-      guestListId: guestList._id,
-      names: guestList.names,
-    };
   },
 });
 
@@ -86,33 +170,70 @@ export const updateGuestName = mutation({
     guestId: v.string(),
     newName: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<UpdateGuestNameResponse> => {
     const { guestListId, guestId, newName } = args;
 
-    // Get the guest list directly using the ID
-    const guestList = await ctx.db.get(guestListId);
-
-    if (!guestList) {
-      throw new Error("Guest list not found");
-    }
-
-    // Find the guest in the names array and update their name
-    const updatedNames = guestList.names.map((guest) => {
-      if (guest.id === guestId) {
-        return { ...guest, name: newName };
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
       }
-      return guest;
-    });
 
-    // Update the guest list with the new names array
-    await ctx.db.patch(guestListId, {
-      names: updatedNames,
-    });
+      if (identity.role !== UserRole.Promoter) {
+        return {
+          status: ResponseStatus.UNAUTHORIZED,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
+      const guestList: GuestListSchema | null = await ctx.db.get(guestListId);
 
-    return {
-      guestListId,
-      updatedGuest: updatedNames.find((guest) => guest.id === guestId),
-    };
+      if (!guestList) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+
+      const updatedNames: GuestListNameSchema[] = guestList.names.map(
+        (guest) => {
+          if (guest.id === guestId) {
+            return { ...guest, name: newName };
+          }
+          return guest;
+        }
+      );
+
+      await ctx.db.patch(guestListId, {
+        names: updatedNames,
+      });
+
+      const updatedGuest: GuestListNameSchema | undefined = updatedNames.find(
+        (guest) => guest.id === guestId
+      );
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          guestListId,
+          updatedGuest: updatedGuest,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
   },
 });
 
@@ -121,36 +242,69 @@ export const deleteGuestName = mutation({
     guestListId: v.id("guestLists"),
     guestId: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<DeleteGuestNameResponse> => {
     const { guestListId, guestId } = args;
 
-    // Get the guest list directly using the ID
-    const guestList = await ctx.db.get(guestListId);
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
 
-    if (!guestList) {
-      throw new Error("Guest list not found");
+      if (identity.role !== UserRole.Promoter) {
+        return {
+          status: ResponseStatus.UNAUTHORIZED,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
+
+      const guestList: GuestListSchema | null = await ctx.db.get(guestListId);
+
+      if (!guestList) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+
+      const updatedNames: GuestListNameSchema[] = guestList.names.filter(
+        (guest) => guest.id !== guestId
+      );
+      if (updatedNames.length === guestList.names.length) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: "Guest not found in the list",
+        };
+      }
+      await ctx.db.patch(guestListId, {
+        names: updatedNames,
+      });
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          guestListId,
+          deletedGuestId: guestId,
+          remainingGuestsCount: updatedNames.length,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
-
-    // Filter out the guest with the matching ID
-    const updatedNames = guestList.names.filter(
-      (guest) => guest.id !== guestId
-    );
-
-    // If the guest wasn't found, throw an error
-    if (updatedNames.length === guestList.names.length) {
-      throw new Error("Guest not found in the list");
-    }
-
-    // Update the guest list with the new names array
-    await ctx.db.patch(guestListId, {
-      names: updatedNames,
-    });
-
-    return {
-      guestListId,
-      deletedGuestId: guestId,
-      remainingGuestsCount: updatedNames.length,
-    };
   },
 });
 

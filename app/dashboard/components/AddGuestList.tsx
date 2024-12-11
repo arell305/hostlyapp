@@ -11,6 +11,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 interface AddGuestListModalProps {
   isOpen: boolean;
@@ -25,7 +26,8 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
   promoterId,
   eventId,
 }) => {
-  const [guestNames, setGuestNames] = useState("");
+  const [guestNames, setGuestNames] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const addGuestList = useMutation(api.guestLists.addGuestList);
   const { toast } = useToast();
 
@@ -35,6 +37,7 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
       .map((name) => name.trim())
       .filter((name) => name !== "");
     try {
+      setLoading(true);
       await addGuestList({
         newNames: names,
         clerkPromoterId: promoterId,
@@ -53,16 +56,18 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
         description: "Failed to add guests. Please try again",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="">
         <DialogHeader>
           <DialogTitle>Upload Guest List</DialogTitle>
         </DialogHeader>
-        <textarea
+        <Textarea
           value={guestNames}
           onChange={(e) => setGuestNames(e.target.value)}
           placeholder="Enter guest names, one per line"
@@ -70,10 +75,12 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
           className="w-full p-2 border rounded mb-4"
         />
         <DialogFooter>
-          <Button onClick={onClose} variant="outline">
+          <Button onClick={onClose} variant="ghost">
             Cancel
           </Button>
-          <Button onClick={handleSubmitGuestList}>Submit Guest List</Button>
+          <Button onClick={handleSubmitGuestList} disabled={loading}>
+            {loading ? "Adding..." : "Add Guests"}{" "}
+          </Button>{" "}
         </DialogFooter>
       </DialogContent>
     </Dialog>

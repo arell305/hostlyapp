@@ -19,6 +19,8 @@ import { Id } from "../../../../convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { toast } from "@/hooks/use-toast";
+import GuestListTab from "./GuestListTab";
+import ViewTab from "../ViewTab";
 
 interface EventIdContentProps {
   data: {
@@ -168,6 +170,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           onSubmit={handleSaveEvent}
           isEdit={isEditing}
           onCancelEdit={handleCancelEdit}
+          canAddGuestListOption={true} // add logic
         />
       ) : (
         <>
@@ -180,6 +183,17 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
               promoterClerkId={promoterId}
               clerkOrganizationId={organization.id}
             />
+          )}
+          {activeTab === ActiveTab.GUEST_LIST && (
+            <GuestListTab
+              guestListInfo={data.guestListInfo}
+              has={has}
+              eventData={data.event}
+              promoterClerkId={promoterId}
+            />
+          )}
+          {activeTab === ActiveTab.VIEW && (
+            <ViewTab eventData={data.event} ticketData={data.ticketInfo} />
           )}
         </>
       )}

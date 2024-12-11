@@ -8,52 +8,52 @@ import GuestCard from "./GuestCard";
 import { toast } from "@/hooks/use-toast";
 import UpdateGuestModal from "./UpdateGuestModal";
 import DetailsSkeleton from "./loading/DetailsSkeleton";
+import { GetEventWithGuestListsResponse, GuestWithPromoter } from "@/types";
 
 interface EventGuestListProps {
   eventId: Id<"events">;
   isCheckInOpen: boolean;
 }
 
-interface Guest {
-  id: string;
-  name: string;
-  promoterId: string;
-  guestListId: Id<"guestLists">;
-  promoterName: string;
-  attended?: boolean;
-  malesInGroup?: number;
-  femalesInGroup?: number;
-}
-
 const ModeratorGuestList = ({
   eventId,
   isCheckInOpen,
 }: EventGuestListProps) => {
-  const result = useQuery(api.events.getEventWithGuestLists, { eventId });
-  const [searchTerm, setSearchTerm] = useState("");
+  const getEventWithGuestListsResponse = useQuery(
+    api.events.getEventWithGuestLists,
+    { eventId }
+  );
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const updateGuestAttendance = useMutation(api.events.updateGuestAttendance);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedGuest, setSelectedGuest] = useState<GuestWithPromoter | null>(
+    null
+  );
   const filteredGuests = useMemo(() => {
-    if (!result) return [];
-    return result.guests.filter((guest) =>
+    if (!getEventWithGuestListsResponse || !getEventWithGuestListsResponse.data)
+      return [];
+    return getEventWithGuestListsResponse.data.guests.filter((guest) =>
       guest.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [result, searchTerm]);
+  }, [getEventWithGuestListsResponse, searchTerm]);
 
   const totals = useMemo(() => {
-    if (!result?.guests) return { totalMales: 0, totalFemales: 0 };
+    if (!getEventWithGuestListsResponse?.data?.guests)
+      return { totalMales: 0, totalFemales: 0 };
 
-    const totalMales = result.guests.reduce(
-      (sum, guest) => sum + (guest.malesInGroup || 0),
-      0
-    );
-    const totalFemales = result.guests.reduce(
-      (sum, guest) => sum + (guest.femalesInGroup || 0),
-      0
-    );
+    const totalMales: number =
+      getEventWithGuestListsResponse?.data?.guests.reduce(
+        (sum, guest) => sum + (guest.malesInGroup || 0),
+        0
+      );
+    const totalFemales: number =
+      getEventWithGuestListsResponse?.data?.guests.reduce(
+        (sum, guest) => sum + (guest.femalesInGroup || 0),
+        0
+      );
     return { totalMales, totalFemales };
-  }, [result]);
+  }, [getEventWithGuestListsResponse?.data]);
 
   const handleCheckInGuest = (guestId: string) => {
     const guest = filteredGuests.find((g) => g.id === guestId);
@@ -73,7 +73,7 @@ const ModeratorGuestList = ({
     maleCount: number,
     femaleCount: number
   ) => {
-    if (selectedGuest) {
+    if (selectedGuest && selectedGuest.guestListId) {
       try {
         await updateGuestAttendance({
           guestListId: selectedGuest.guestListId,
@@ -98,7 +98,7 @@ const ModeratorGuestList = ({
     }
   };
 
-  if (!result) {
+  if (getEventWithGuestListsResponse === undefined) {
     return <DetailsSkeleton />;
   }
 
@@ -120,8 +120,8 @@ const ModeratorGuestList = ({
           <div>Total Males: {totals.totalMales}</div>
           <div>Total Females: {totals.totalFemales}</div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredGuests.map((guest: Guest) => (
+        <div className="">
+          {filteredGuests.map((guest: GuestWithPromoter) => (
             <GuestCard
               key={guest.id}
               guest={guest}
