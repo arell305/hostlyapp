@@ -16,6 +16,9 @@ import { CalendarLoading } from "./loading/CalendarLoading"; // Import the Calen
 import EventStats from "./EventStats";
 import { SubscriptionTier, UserRoleEnum } from "../../../utils/enum";
 import { useUserRole } from "@/hooks/useUserRole";
+import { EventSchema } from "@/types";
+import { PiPlusCircle } from "react-icons/pi";
+import EventPreview from "./calendar/EventPreview";
 
 setOptions({
   theme: "ios",
@@ -42,7 +45,9 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     moment().tz("America/Los_Angeles").startOf("month")
   );
   const [displayDate, setDisplayDate] = useState<string>("");
-  const [matchingEvents, setMatchingEvents] = useState<any[]>([]);
+  const [matchingEvents, setMatchingEvents] = useState<MbscCalendarMarked[]>(
+    []
+  );
   const [loading, setLoading] = useState<boolean>(true); // Single loading state for entire page
 
   // Determine which organization ID to use
@@ -52,11 +57,11 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   useEffect(() => {
     if (!activeOrgId) return;
     const today = moment().tz("America/Los_Angeles");
-    setDisplayDate(today.format("dddd, MMMM D, YYYY"));
+    setDisplayDate(today.format("ddd MMM DD, YYYY"));
   }, [activeOrgId]);
 
   // Fetch events with loading state
-  const events = useQuery(api.events.getEventsByOrgAndMonth, {
+  const eventsResponse = useQuery(api.events.getEventsByOrgAndMonth, {
     clerkOrganizationId: activeOrgId || "",
     year: displayedMonth.year(),
     month: displayedMonth.month() + 1,
@@ -64,14 +69,14 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
 
   // Handle loading state update when events are fetched
   useEffect(() => {
-    if (events) {
+    if (eventsResponse) {
       setLoading(false); // Set loading to false when events are loaded
     }
-  }, [events]);
+  }, [eventsResponse]);
 
   const myMarked = useMemo<MbscCalendarMarked[]>(() => {
-    if (!events) return [];
-    return events.map((event) => {
+    if (!eventsResponse?.data) return [];
+    return eventsResponse?.data.eventData.map((event: EventSchema) => {
       const pstDate = moment(event.startTime).tz("America/Los_Angeles");
       return {
         date: pstDate.format("YYYY-MM-DD"),
@@ -79,7 +84,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
         event: event,
       };
     });
-  }, [events]);
+  }, [eventsResponse]);
 
   const result = useQuery(
     api.customers.getCustomerSubscriptionTier,
@@ -89,7 +94,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   const uniqueDatesSet = new Set(myMarked.map((item) => item.date));
   const uniqueDates = Array.from(uniqueDatesSet).map((date) => ({
     date,
-    color: "#ff0000",
+    color: "#324E78",
   }));
 
   const handleEventClick = (eventId: string) => {
@@ -109,7 +114,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     const selectedDateIn = pstDate.format("YYYY-MM-DD");
     setDisplayDate(formattedDate);
     setSelected(pstDate.toDate());
-    const matchingEvents = myMarked.filter(
+    const matchingEvents: MbscCalendarMarked[] = myMarked.filter(
       (event) => event.date === selectedDateIn
     );
     setMatchingEvents(matchingEvents);
@@ -127,7 +132,11 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     role === UserRoleEnum.PROMOTER_MANAGER;
 
   return (
-    <>
+    <div className="flex flex-col justify-center max-w-3xl md:p-6 rounded-lg mx-auto">
+      <div className="flex justify-between mb-4 items-center">
+        <h1 className="font-bold text-3xl">Events</h1>
+        <PiPlusCircle className="text-4xl" />
+      </div>
       {loading || !result || isClerkLoading ? (
         <CalendarLoading />
       ) : (
@@ -139,11 +148,11 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
             />
           )}
           <Page className="max-w-[820px] rounded-md">
-            <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px] ">
+            <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px]">
               <div className="mbsc-form-group rounded-md">
-                <div className="mbsc-form-group-title">
-                  {displayName} Events
-                </div>
+                {/* <div className="mbsc-form-group-title">
+                    {displayName} Events
+                  </div> */}
 
                 <Datepicker
                   display="inline"
@@ -158,32 +167,31 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
               </div>
             </div>
           </Page>
-          <div className="selected-date mt-4">
-            <strong>Selected Date:</strong> {displayDate}
-          </div>
-          <div className="events-list mt-4">
-            {matchingEvents.length > 0 ? (
-              <div className="events-list mt-4">
-                <h3>Matching Events:</h3>
-                <ul>
-                  {matchingEvents.map((event, index) => (
-                    <li
-                      key={index}
-                      onClick={() => handleEventClick(event.event._id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {event.event.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p>No matching events found.</p>
-            )}
+          <div className="mt-8 ">
+            <div className="selected-date mt-4">
+              <h1 className="font-bold text-3xl flex flex-col md:flex-row">
+                Selected Date:{" "}
+                <span className="font-normal md:pl-2">{displayDate}</span>
+              </h1>
+            </div>
+            <div className="events-list mt-4">
+              {matchingEvents.length > 0 ? (
+                <>
+                  <h3 className="font-bold text-3xl">Matching Events:</h3>
+                  <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-8">
+                    {matchingEvents.map((event: MbscCalendarMarked) => {
+                      return <EventPreview eventData={event.event} />;
+                    })}
+                  </div>
+                </>
+              ) : (
+                <p>No events for the selected date.</p>
+              )}
+            </div>
           </div>
         </>
       )}
-    </>
+    </div>
   );
 };
 

@@ -1,6 +1,9 @@
-import { ClerkRoleEnum } from "@/utils/enums";
+import { ClerkRoleEnum, ErrorMessages } from "@/utils/enums";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { EventSchema, InsertTicektResponse, TicketInfoSchema } from "@/types";
+import { ResponseStatus } from "../utils/enum";
+import { Id } from "./_generated/dataModel";
 
 // Query to get ticket info by ID (as we discussed earlier)
 export const getTicketInfoById = query({
@@ -23,45 +26,52 @@ export const insertTicketInfo = mutation({
     femaleTicketCapacity: v.number(),
     ticketSalesEndTime: v.string(),
   },
-  handler: async (ctx, args) => {
-    // Get the user's identity from Clerk
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthenticated");
+  handler: async (ctx, args): Promise<InsertTicektResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+
+      const event: EventSchema | null = await ctx.db.get(args.eventId);
+      if (!event) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+
+      const ticketInfoId: Id<"ticketInfo"> = await ctx.db.insert("ticketInfo", {
+        eventId: args.eventId,
+        maleTicketPrice: args.maleTicketPrice,
+        femaleTicketPrice: args.femaleTicketPrice,
+        maleTicketCapacity: args.maleTicketCapacity,
+        femaleTicketCapacity: args.femaleTicketCapacity,
+        totalMaleTicketsSold: 0,
+        totalFemaleTicketsSold: 0,
+        ticketSalesEndTime: args.ticketSalesEndTime,
+      });
+      await ctx.db.patch(args.eventId, { ticketInfoId });
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: ticketInfoId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
-
-    // Check if the event exists
-    const event = await ctx.db.get(args.eventId);
-    if (!event) {
-      throw new Error("Event not found");
-    }
-
-    // Check if ticket info already exists for this event
-    // const existingTicketInfo = await ctx.db
-    //   .query("ticketInfo")
-    //   .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
-    //   .unique();
-
-    // if (existingTicketInfo) {
-    //   throw new Error("Ticket information already exists for this event");
-    // }
-
-    // Insert the new ticket info
-    const ticketInfoId = await ctx.db.insert("ticketInfo", {
-      eventId: args.eventId,
-      maleTicketPrice: args.maleTicketPrice,
-      femaleTicketPrice: args.femaleTicketPrice,
-      maleTicketCapacity: args.maleTicketCapacity,
-      femaleTicketCapacity: args.femaleTicketCapacity,
-      totalMaleTicketsSold: 0,
-      totalFemaleTicketsSold: 0,
-      ticketSalesEndTime: args.ticketSalesEndTime,
-    });
-
-    // Update the event with the new ticketInfoId
-    await ctx.db.patch(args.eventId, { ticketInfoId });
-
-    return ticketInfoId;
   },
 });
 
@@ -83,48 +93,74 @@ export const updateTicketInfo = mutation({
       femaleTicketCapacity,
       ticketSalesEndTime,
     } = args;
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
 
-    // Fetch the existing ticket info
-    const existingTicketInfo = await ctx.db.get(ticketInfoId);
-    if (!existingTicketInfo) {
-      throw new Error("Ticket info not found");
+      const existingTicketInfo: TicketInfoSchema | null =
+        await ctx.db.get(ticketInfoId);
+      if (!existingTicketInfo) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+      await ctx.db.patch(ticketInfoId, {
+        maleTicketPrice,
+        femaleTicketPrice,
+        maleTicketCapacity,
+        femaleTicketCapacity,
+        ticketSalesEndTime,
+      });
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          ticketInfoId: existingTicketInfo._id,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
-
-    // Update the ticket info
-    const updatedTicketInfo = await ctx.db.patch(ticketInfoId, {
-      maleTicketPrice,
-      femaleTicketPrice,
-      maleTicketCapacity,
-      femaleTicketCapacity,
-      ticketSalesEndTime,
-    });
-
-    return updatedTicketInfo;
   },
 });
 
-export const deleteTicketInfoAndUpdateEvent = mutation({
-  args: { eventId: v.id("events") },
-  handler: async (ctx, args) => {
-    const { eventId } = args;
+// export const deleteTicketInfoAndUpdateEvent = mutation({
+//   args: { eventId: v.id("events") },
+//   handler: async (ctx, args) => {
+//     const { eventId } = args;
 
-    // Find the ticketInfo associated with the event
-    const ticketInfo = await ctx.db
-      .query("ticketInfo")
-      .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
-      .unique();
+//     // Find the ticketInfo associated with the event
+//     const ticketInfo = await ctx.db
+//       .query("ticketInfo")
+//       .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+//       .unique();
 
-    if (ticketInfo) {
-      // Delete the ticketInfo
-      await ctx.db.delete(ticketInfo._id);
-    }
+//     if (ticketInfo) {
+//       // Delete the ticketInfo
+//       await ctx.db.delete(ticketInfo._id);
+//     }
 
-    // Update the event to set ticketInfo to undefined
-    await ctx.db.patch(eventId, { ticketInfoId: undefined });
+//     // Update the event to set ticketInfo to undefined
+//     await ctx.db.patch(eventId, { ticketInfoId: undefined });
 
-    return {
-      success: true,
-      message: "TicketInfo deleted and event updated successfully",
-    };
-  },
-});
+//     return {
+//       success: true,
+//       message: "TicketInfo deleted and event updated successfully",
+//     };
+//   },
+// });

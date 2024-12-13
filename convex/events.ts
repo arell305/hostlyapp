@@ -2,40 +2,47 @@ import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { Venue } from "./schema";
 import {
+  AddEventResponse,
   AllGuestSchema,
+  CancelEventResponse,
   EventSchema,
   GetEventByIdResponse,
   GetEventWithGuestListsResponse,
+  GetEventsByOrgAndMonthResponse,
   GuestListNameSchema,
   GuestListSchema,
+  OrganizationsSchema,
   Promoters,
+  UpdateEventFields,
+  UpdateEventResponse,
   UpdateGuestAttendanceResponse,
 } from "@/types";
 import { ResponseStatus, UserRole } from "../utils/enum";
 import { ErrorMessages } from "@/utils/enums";
 import { ERROR_MESSAGES } from "../constants/errorMessages";
+import { Id } from "./_generated/dataModel";
 
-export const getEventsByOrgAndDate = query({
-  args: {
-    clerkOrganizationId: v.string(),
-    startTime: v.string(),
-    endTime: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const events = await ctx.db
-      .query("events")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId),
-          q.gte(q.field("startTime"), args.startTime),
-          q.lt(q.field("startTime"), args.endTime)
-        )
-      )
-      .collect();
+// export const getEventsByOrgAndDate = query({
+//   args: {
+//     clerkOrganizationId: v.string(),
+//     startTime: v.string(),
+//     endTime: v.string(),
+//   },
+//   handler: async (ctx, args) => {
+//     const events: EventSchema[] = await ctx.db
+//       .query("events")
+//       .filter((q) =>
+//         q.and(
+//           q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId),
+//           q.gte(q.field("startTime"), args.startTime),
+//           q.lt(q.field("startTime"), args.endTime)
+//         )
+//       )
+//       .collect();
 
-    return events || [];
-  },
-});
+//     return events || [];
+//   },
+// });
 
 export const addEvent = mutation({
   args: {
@@ -47,32 +54,75 @@ export const addEvent = mutation({
     photo: v.union(v.id("_storage"), v.null()),
     venue: v.optional(Venue),
   },
-  handler: async (ctx, args) => {
-    const eventId = await ctx.db.insert("events", {
-      clerkOrganizationId: args.clerkOrganizationId,
-      name: args.name,
-      description: args.description,
-      startTime: args.startTime,
-      endTime: args.endTime,
-      photo: args.photo,
-      venue: args.venue,
-    });
+  handler: async (ctx, args): Promise<AddEventResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      const role: UserRole = identity.role as UserRole;
+      if (role !== UserRole.Admin && role !== UserRole.Manager) {
+        return {
+          status: ResponseStatus.UNAUTHORIZED,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
 
-    // Update the organization's eventIds array
-    const organization = await ctx.db
-      .query("organizations")
-      .withIndex("by_clerkOrganizationId", (q) =>
-        q.eq("clerkOrganizationId", args.clerkOrganizationId)
-      )
-      .first();
+      const eventId: Id<"events"> = await ctx.db.insert("events", {
+        clerkOrganizationId: args.clerkOrganizationId,
+        name: args.name,
+        description: args.description,
+        startTime: args.startTime,
+        endTime: args.endTime,
+        photo: args.photo,
+        venue: args.venue,
+      });
+      const organization: OrganizationsSchema | null = await ctx.db
+        .query("organizations")
+        .withIndex("by_clerkOrganizationId", (q) =>
+          q.eq("clerkOrganizationId", args.clerkOrganizationId)
+        )
+        .first();
 
-    if (organization) {
+      if (!organization) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+
+      if (organization.clerkOrganizationId !== identity.clerk_org_id) {
+        return {
+          status: ResponseStatus.UNAUTHORIZED,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
+
       await ctx.db.patch(organization._id, {
         eventIds: [...organization.eventIds, eventId],
       });
-    }
 
-    return eventId;
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: eventId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
   },
 });
 
@@ -348,52 +398,87 @@ export const updateEvent = mutation({
     guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
     venue: v.optional(Venue),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<UpdateEventResponse> => {
     const { id, ...updateFields } = args;
 
-    // Optional: Check if the user has permission to update this event
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Unauthenticated");
-    // ... additional permission checks ...
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      const fieldsToUpdate: UpdateEventFields = Object.fromEntries(
+        Object.entries(updateFields).filter(([_, v]) => v !== undefined)
+      );
+      await ctx.db.patch(id, fieldsToUpdate);
 
-    // Remove undefined fields
-    const fieldsToUpdate = Object.fromEntries(
-      Object.entries(updateFields).filter(([_, v]) => v !== undefined)
-    );
-
-    // Update the event
-    const updatedEvent = await ctx.db.patch(id, fieldsToUpdate);
-
-    return updatedEvent;
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          eventId: args.id,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
   },
 });
 
 export const cancelEvent = mutation({
   args: { eventId: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<CancelEventResponse> => {
     const { eventId } = args;
 
-    // Fetch the event to check if it has associated ticket info
-    const event = await ctx.db.get(eventId);
-    if (!event) {
-      throw new Error("Event not found");
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+
+      const event: EventSchema | null = await ctx.db.get(eventId);
+      if (!event) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+
+      if (event.ticketInfoId) {
+        await ctx.db.delete(event.ticketInfoId);
+      }
+      if (event.guestListInfoId) await ctx.db.delete(event.guestListInfoId);
+      await ctx.db.delete(eventId);
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          eventId,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
-
-    // If the event has a ticketInfoId, delete the ticket info first
-    if (event.ticketInfoId) {
-      await ctx.db.delete(event.ticketInfoId);
-    }
-
-    // Delete the event
-    await ctx.db.delete(eventId);
-
-    // Optionally, you might want to delete other related data here
-    // For example, guest lists, promo code usage, etc.
-
-    return {
-      success: true,
-      message: "Event and associated data deleted successfully",
-    };
   },
 });
 
@@ -404,15 +489,44 @@ export const getEventsByOrgAndMonth = query({
     year: v.number(),
     month: v.number(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<GetEventsByOrgAndMonthResponse> => {
     const { clerkOrganizationId, year, month } = args;
     const startDate = new Date(year, month - 2, 1);
     const endDate = new Date(year, month + 1, 0);
-    return await ctx.db
-      .query("events")
-      .filter((q) => q.eq(q.field("clerkOrganizationId"), clerkOrganizationId))
-      .filter((q) => q.gte(q.field("startTime"), startDate.toISOString()))
-      .filter((q) => q.lte(q.field("startTime"), endDate.toISOString()))
-      .collect();
+
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      const events: EventSchema[] = await ctx.db
+        .query("events")
+        .filter((q) =>
+          q.eq(q.field("clerkOrganizationId"), clerkOrganizationId)
+        )
+        .filter((q) => q.gte(q.field("startTime"), startDate.toISOString()))
+        .filter((q) => q.lte(q.field("startTime"), endDate.toISOString()))
+        .collect();
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          eventData: events,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
   },
 });

@@ -12,6 +12,13 @@ import { Button } from "@/components/ui/button";
 import ConfirmModal from "../components/ConfirmModal";
 import EventInfoSkeleton from "../components/loading/EventInfoSkeleton";
 import { PLUS_GUEST_LIST_LIMIT } from "@/constants";
+import {
+  AddEventResponse,
+  EventFormInput,
+  GuestListFormInput,
+  TicketFormInput,
+} from "@/types";
+import { Id } from "../../../convex/_generated/dataModel";
 
 const AddEventPage: FC = () => {
   const { organization, isLoaded: orgLoaded } = useOrganization();
@@ -48,24 +55,43 @@ const AddEventPage: FC = () => {
   }
 
   const handleSubmit = async (
-    eventData: any,
-    ticketData: any,
-    guestListData: any
+    eventData: EventFormInput,
+    ticketData: TicketFormInput,
+    guestListData: GuestListFormInput
   ) => {
     try {
-      const eventId = await addEvent({
+      if (!organizationId) {
+        toast({
+          title: "Error",
+          description: "Failed to create event. Please try again",
+          variant: "destructive",
+        });
+        return;
+      }
+      const addEventResponse: AddEventResponse = await addEvent({
         clerkOrganizationId: organizationId,
         ...eventData,
       });
 
-      if (ticketData) {
+      const eventId: Id<"events"> | null = addEventResponse.data; // This should be a string
+      if (addEventResponse.error && eventId !== null) {
+        console.log("error", addEventResponse.error);
+        toast({
+          title: "Error",
+          description: "Failed to create event. Please try again",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (ticketData && eventId) {
         await insertTicketInfo({
           eventId,
           ...ticketData,
         });
       }
 
-      if (guestListData) {
+      if (guestListData && eventId) {
         await insertGuestListInfo({
           eventId,
           ...guestListData,
@@ -75,12 +101,17 @@ const AddEventPage: FC = () => {
       if (result.subscriptionTier === SubscriptionTier.PLUS && guestListData) {
         updateCustomerEvents({ customerId: result.customerId });
       }
+
       toast({
         title: "Event Created",
         description: "The event has been successfully created",
       });
-      router.push(`events/${eventId}`);
-      console.log("Event added successfully with ID:", eventId);
+      const urlEventId: string = eventId as string;
+
+      // Ensure you're pushing a string to the router
+      router.push(`events/${urlEventId}`);
+
+      console.log("Event added successfully with ID:", urlEventId);
     } catch (error) {
       console.error("Error adding event:", error);
       toast({

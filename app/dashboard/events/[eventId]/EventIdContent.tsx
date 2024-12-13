@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { UserResource, OrganizationResource } from "@clerk/types";
 import {
   EventData,
-  EventFormData,
   GuestListInfo,
   GuestListInfoWithoutEventId,
   TicketInfo,
@@ -13,7 +12,6 @@ import ConfirmModal from "@/dashboard/components/ConfirmModal";
 import TabsNav from "./TabsNav";
 import { ActiveTab, UserRole } from "../../../../utils/enum";
 import EventForm from "@/dashboard/components/EventForm";
-import EventInfo from "@/dashboard/components/EventInfo";
 import TicketInfoTab from "@/dashboard/components/TicketInfoTab";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { useMutation } from "convex/react";

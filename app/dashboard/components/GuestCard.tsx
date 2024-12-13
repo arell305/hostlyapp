@@ -147,20 +147,10 @@
 // export default GuestCard;
 
 import React, { useState } from "react";
-import {
-  FaEllipsisV,
-  FaCheck,
-  FaTimes,
-  FaCheckCircle,
-  FaUserCheck,
-  FaSpinner,
-  FaArrowRight,
-} from "react-icons/fa";
-import { CardContent } from "@/components/ui/card";
+import { FaEllipsisV, FaCheckCircle } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { formatArrivalTime } from "../../../utils/helpers";
-import { GuestListNameSchema, GuestWithPromoter } from "@/types";
+import { GuestWithPromoter } from "@/types";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { Badge } from "@/components/ui/badge";
 
@@ -181,14 +171,10 @@ interface GuestCardProps {
 
 const GuestCard: React.FC<GuestCardProps> = ({
   guest,
-  editingId,
-  editName,
   canEditGuests,
   onEdit,
   onSave,
   onDelete,
-  onCancelEdit,
-  setEditName,
   canSeePromoterName,
   canCheckInGuests,
   onCheckIn,

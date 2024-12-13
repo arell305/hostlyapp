@@ -6,13 +6,23 @@ import {
   mutation,
   query,
 } from "./_generated/server";
-import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
-import { Customer, CustomerWithPayment } from "../app/types";
+import {
+  ResponseStatus,
+  SubscriptionStatus,
+  SubscriptionTier,
+} from "../utils/enum";
+import {
+  Customer,
+  CustomerSchema,
+  CustomerWithPayment,
+  UpdateListEventCountResponse,
+} from "../app/types";
 import { getFutureISOString } from "../utils/helpers";
 import { SubscriptionStatusConvex, SubscriptionTierConvex } from "./schema";
 import { DateTime } from "luxon";
 import { internal } from "./_generated/api";
 import Stripe from "stripe";
+import { ErrorMessages } from "@/utils/enums";
 
 export const insertCustomerAndSubscription = internalMutation({
   args: {
@@ -143,30 +153,53 @@ export const getCustomerSubscriptionTier = query({
 
 export const updateGuestListEventCount = mutation({
   args: { customerId: v.id("customers") },
-  handler: async (ctx, args) => {
-    // Fetch the customer from the database
-    const customer = await ctx.db.get(args.customerId);
+  handler: async (ctx, args): Promise<UpdateListEventCountResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
 
-    // Check if the customer exists
-    if (!customer) {
-      throw new Error("Customer not found");
+      const customer: CustomerSchema | null = await ctx.db.get(args.customerId);
+
+      if (!customer) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+      if (customer.subscriptionTier !== SubscriptionTier.PLUS) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: "Not on Plus tier",
+        };
+      }
+      const updatedCount: number = (customer.guestListEventCount || 0) + 1;
+      await ctx.db.patch(args.customerId, {
+        guestListEventCount: updatedCount,
+      });
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          remaingEvents: updatedCount,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
-
-    // Ensure the customer is on the Plus subscription tier
-    if (customer.subscriptionTier !== SubscriptionTier.PLUS) {
-      throw new Error("Customer is not on the Plus tier");
-    }
-
-    // Increment the guest list event count
-    const updatedCount = (customer.guestListEventCount || 0) + 1;
-
-    // Update the customer's guest list event count in the database
-    await ctx.db.patch(args.customerId, { guestListEventCount: updatedCount });
-
-    return {
-      success: true,
-      remainingEvents: 3 - updatedCount, // Assuming a maximum of 4 events
-    };
   },
 });
 

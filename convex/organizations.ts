@@ -193,38 +193,38 @@ export const getAllOrganizations = query({
   },
 });
 
-export const addEventToOrganization = mutation({
-  args: {
-    clerkOrganizationId: v.string(),
-    eventIds: v.id("events"),
-  },
-  handler: async (ctx, args) => {
-    try {
-      const organization = await ctx.db
-        .query("organizations")
-        .filter((q) =>
-          q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
-        )
-        .first();
+// export const addEventToOrganization = mutation({
+//   args: {
+//     clerkOrganizationId: v.string(),
+//     eventIds: v.id("events"),
+//   },
+//   handler: async (ctx, args) => {
+//     try {
+//       const organization = await ctx.db
+//         .query("organizations")
+//         .filter((q) =>
+//           q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
+//         )
+//         .first();
 
-      if (!organization) {
-        throw new Error("Organization not found");
-      }
+//       if (!organization) {
+//         throw new Error("Organization not found");
+//       }
 
-      const updatedEvents = [...(organization.eventIds || []), args.eventIds];
+//       const updatedEvents = [...(organization.eventIds || []), args.eventIds];
 
-      // Update the organization by setting the new events array
-      await ctx.db.patch(organization._id, {
-        eventIds: updatedEvents,
-      });
+//       // Update the organization by setting the new events array
+//       await ctx.db.patch(organization._id, {
+//         eventIds: updatedEvents,
+//       });
 
-      return { success: true, message: "Event added successfully" };
-    } catch (error) {
-      console.error("Error adding event to organization:", error);
-      throw new Error("Could not add event");
-    }
-  },
-});
+//       return { success: true, message: "Event added successfully" };
+//     } catch (error) {
+//       console.error("Error adding event to organization:", error);
+//       throw new Error("Could not add event");
+//     }
+//   },
+// });
 
 export const getOrganizationByClerkId = query({
   args: {

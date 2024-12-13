@@ -320,3 +320,170 @@ export interface GuestWithPromoter {
   femalesInGroup?: number;
   checkInTime?: string;
 }
+
+export interface GuestCheckIn {
+  id: string;
+  name: string;
+  malesInGroup?: number;
+  femalesInGroup?: number;
+}
+
+export interface OrganizationsSchema {
+  _id: Id<"organizations">;
+  clerkOrganizationId: string;
+  name: string;
+  clerkUserIds: string[];
+  imageUrl?: string;
+  eventIds: Id<"events">[];
+  customerId: string;
+  promoDiscount: number;
+}
+
+export interface AddEventResponse {
+  status: ResponseStatus;
+  data: Id<"events"> | null;
+  error?: string | null;
+}
+
+export interface EventFormInput {
+  name: string;
+  description: string | null;
+  startTime: string;
+  endTime: string;
+  photo: Id<"_storage"> | null;
+  venue?: VenueSchema; // Replace `Venue` with its actual type definition if needed
+}
+
+export interface EventSchema {
+  _id: Id<"events">; // Assuming this is the ID type for events
+  clerkOrganizationId: string;
+  name: string;
+  description: string | null;
+  startTime: string; // ISO date string
+  endTime: string; // ISO date string
+  ticketInfoId?: Id<"ticketInfo"> | null;
+  photo?: Id<"_storage"> | null;
+  guestListInfoId?: Id<"guestListInfo"> | null;
+  venue?: VenueSchema; // Define Venue type as needed
+}
+
+export interface InsertTicektResponse {
+  status: ResponseStatus;
+  data: Id<"ticketInfo"> | null;
+  error?: string | null;
+}
+
+export interface TicketFormInput {
+  maleTicketPrice: number;
+  femaleTicketPrice: number;
+  maleTicketCapacity: number;
+  femaleTicketCapacity: number;
+  ticketSalesEndTime: string;
+}
+
+export interface InsertGuestListResponse {
+  status: ResponseStatus;
+  data: Id<"guestListInfo"> | null;
+  error?: string | null;
+}
+
+export interface GuestListFormInput {
+  guestListCloseTime: string;
+}
+
+export interface UpdateListEventCountResponse {
+  status: ResponseStatus;
+  data: UpdateGuestListEventCountData | null;
+  error?: string | null;
+}
+
+export interface UpdateGuestListEventCountData {
+  remaingEvents: number;
+}
+
+export interface CustomerSchema {
+  _id: Id<"customers">;
+  stripeCustomerId: string;
+  subscriptionStatus: SubscriptionStatus;
+  trialEndDate?: string | null;
+  stripeSubscriptionId: string;
+  email: string;
+  paymentMethodId: string;
+  subscriptionTier: SubscriptionTier;
+  nextPayment: string | null;
+  cancelAt: string | null;
+  guestListEventCount?: number;
+}
+
+export interface UpdateTicketInfoResponse {
+  status: ResponseStatus;
+  data: UpdateTicketInfoData | null;
+  error?: string | null;
+}
+
+export interface UpdateTicketInfoData {
+  ticketInfoId: Id<"ticketInfo">;
+}
+
+export interface TicketInfoSchema {
+  _id: Id<"ticketInfo">;
+  eventId: Id<"events">;
+  maleTicketPrice: number;
+  femaleTicketPrice: number;
+  maleTicketCapacity: number;
+  femaleTicketCapacity: number;
+  totalMaleTicketsSold: number;
+  totalFemaleTicketsSold: number;
+  ticketSalesEndTime: string;
+}
+
+export interface UpdateGuestListCloseTimeResponse {
+  status: ResponseStatus;
+  data: UpdateGuestListCloseTimeData | null;
+  error?: string | null;
+}
+
+export interface UpdateGuestListCloseTimeData {
+  guestListInfoId: Id<"guestListInfo">;
+}
+
+export interface UpdateEventResponse {
+  status: ResponseStatus;
+  data: UpdateEventData | null;
+  error?: string | null;
+}
+
+export interface UpdateEventData {
+  eventId: Id<"events">;
+}
+
+export interface UpdateEventFields {
+  name?: string;
+  description?: string | null;
+  startTime?: string;
+  endTime?: string;
+  photo?: Id<"_storage"> | null;
+  ticketInfoId?: Id<"ticketInfo"> | null;
+  guestListInfoId?: Id<"guestListInfo"> | null;
+  venue?: VenueSchema;
+}
+
+export interface CancelEventResponse {
+  status: ResponseStatus;
+  data: UpdateEventData | null;
+  error?: string | null;
+}
+
+export interface CancelEventData {
+  eventId: Id<"events">;
+}
+
+export interface GetEventsByOrgAndMonthResponse {
+  status: ResponseStatus;
+  data: GetEventsByOrgAndMonthData | null;
+  error?: string | null;
+}
+
+export interface GetEventsByOrgAndMonthData {
+  eventData: EventSchema[];
+}

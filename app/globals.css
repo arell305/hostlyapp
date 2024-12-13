@@ -103,3 +103,90 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   -moz-appearance: textfield; /* For Firefox */
 }
+
+.mbsc-calendar-marked {
+  width: 20px; /* Adjust the width as needed */
+  height: 20px; /* Adjust the height as needed */
+  border-radius: 50%; /* Make it circular */
+  background-color: #324e78; /* Use your custom color */
+  border: 2px solid white; /* Optional: add a border for better visibility */
+}
+
+.mbsc-calendar-marked:hover {
+  transform: scale(1.2); /* Optional: scale up on hover for effect */
+}
+
+.mbsc-calendar-title {
+  color: black;
+  font-size: 20px !important;
+  font-family: "Playfair Display", serif;
+  font-weight: 600;
+}
+
+.mbsc-calendar-header {
+  padding: 12px;
+  border-top: 0px !important;
+  border-bottom: 1px solid black; /* Correctly specify the border thickness, style, and color */
+}
+.mbsc-flex {
+  display: flex;
+}
+
+/* Left arrow: move to the first position */
+.mbsc-calendar-button-prev {
+  order: 1;
+  color: black;
+}
+
+/* Title: move to the second position */
+.mbsc-calendar-title-wrapper {
+  order: 2;
+  display: flex; /* Use flexbox for layout */
+  justify-content: center;
+}
+
+/* Right arrow: move to the third position */
+.mbsc-calendar-button-next {
+  order: 3;
+  color: black;
+}
+.mbsc-calendar-mark {
+  height: 10px;
+  width: 10px;
+}
+/* mbsc-calendar-button mbsc-reset mbsc-font mbsc-button mbsc-ios mbsc-ltr mbsc-button-flat */
+.mbsc-button-icon {
+  color: black;
+}
+
+.mbsc-calendar-button {
+  text-align: center;
+}
+
+.mbsc-calendar-table {
+  padding-top: 16px;
+}
+
+.mbsc-ios .mbsc-selected .mbsc-calendar-cell-text {
+  background: #324e78 !important;
+  border-color: #324e78 !important;
+  color: white !important;
+}
+
+.mbsc-page {
+  background-color: transparent !important;
+  /* border: 2px solid black; */
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.mbsc-ios .mbsc-datepicker-inline {
+  border-bottom: 0px solid black !important; /* Correctly specify the border thickness, style, and color */
+}
+.mbsc-ios .mbsc-datepicker-inline {
+  border-top: 0px solid black !important; /* Correctly specify the border thickness, style, and color */
+}
+
+.mbsc-calendar-today {
+  color: #324e78 !important;
+  font-weight: 600;
+}

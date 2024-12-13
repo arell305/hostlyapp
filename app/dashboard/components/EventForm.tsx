@@ -455,7 +455,7 @@ const EventForm: React.FC<EventFormProps> = ({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 relative">
         <Label htmlFor="photo" className="font-bold">
           Event Photo
         </Label>
@@ -470,35 +470,38 @@ const EventForm: React.FC<EventFormProps> = ({
         />
 
         {/* Custom upload button */}
-        <label
-          htmlFor="photo"
-          className="focus:border-customDarkBlue w-full max-w-[500px] border-2 border-dashed border-gray-300 h-[300px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg"
-        >
-          {displayEventPhoto ? (
-            <img
-              src={displayEventPhoto}
-              alt="Event Photo"
-              className="w-full h-full object-cover rounded-lg"
-            />
-          ) : (
-            <span className="text-gray-500">Upload Photo</span>
-          )}
+        <div className="flex">
+          <label
+            htmlFor="photo"
+            className="focus:border-customDarkBlue  w-[300px] border-2 border-dashed border-gray-300 h-[450px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg"
+          >
+            {isPhotoLoading ? (
+              // Loading indicator
+              <div className="absolute inset-0 flex items-center justify-center bg-white opacity-75">
+                Loading...
+              </div>
+            ) : displayEventPhoto ? (
+              <img
+                src={displayEventPhoto}
+                alt="Event Photo"
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <span className="text-gray-500">Upload Photo</span>
+            )}
 
-          {/* Loading indicator */}
-          {isPhotoLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white opacity-75">
-              Loading...
-            </div>
-          )}
-
-          {/* Remove button */}
+            {/* Remove button */}
+          </label>
           {displayEventPhoto && (
             <BsFillXCircleFill
-              onClick={handleRemovePhoto}
-              className="absolute -top-[22px] -right-[22px] text-4xl rounded-full p-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemovePhoto();
+              }}
+              className=" text-4xl rounded-full p-1 cursor-pointer z-10 -ml-4 -mt-3"
             />
           )}
-        </label>
+        </div>
       </div>
 
       <div className="space-y-2 flex flex-col">
