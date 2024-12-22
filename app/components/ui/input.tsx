@@ -12,7 +12,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          "w-full border-b-2 bg-transparent py-1 text-gray-800 focus:outline-none",
+          "rounded-none w-full border-b-2 bg-transparent py-1 text-gray-800 focus:outline-none",
           error ? "border-red-500" : "border-gray-300",
           "focus:border-customDarkBlue",
           className

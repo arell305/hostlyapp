@@ -131,3 +131,7 @@ export const formatDateMDY = (dateString: string): string => {
 export const formatTime = (dateString: string): string => {
   return `${moment(dateString).format("h:mm A")}`;
 };
+
+export const formatToTimeAndShortDate = (dateString: string): string => {
+  return `${moment(dateString).tz("America/Los_Angeles").format("h:mmA M/D/YY").toLowerCase()}`;
+};

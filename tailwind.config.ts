@@ -16,7 +16,7 @@ const config: Config = {
       },
       colors: {
         altBlack: "#343434",
-        altGray: "EFEFEF",
+        altGray: "#EFEFEF",
         altRed: "#C62828",
         customLightGray: "#EFEFEF",
         customLightBlue: "#BFE9FF",

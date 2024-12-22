@@ -21,7 +21,7 @@ const EventPreview: React.FC<EventPreviewProps> = ({ eventData }) => {
 
   return (
     <Link href={`/events/${eventData._id}`} className="">
-      <div className="w-[180px] h-[400px] shadow cursor-pointer hover:bg-gray-100 p-2 rounded-md transition duration-200 bg-white">
+      <div className="w-[190px] h-[400px] shadow cursor-pointer hover:bg-gray-100 p-2 rounded-md transition duration-200 bg-white">
         {displayEventPhoto === undefined && <EventFormSkeleton />}
         {displayEventPhoto === null ? (
           <div className="w-full h-[217px] mb-2 bg-gray-200 rounded-lg animate-pulse"></div>

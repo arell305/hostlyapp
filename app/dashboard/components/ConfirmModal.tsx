@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface ConfirmModalProps {
+export interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void | Promise<void>; // Handles both sync and async actions
@@ -16,6 +16,13 @@ interface ConfirmModalProps {
   message: string;
   confirmText: string;
   cancelText: string;
+  confirmVariant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -26,6 +33,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   message,
   confirmText,
   cancelText,
+  confirmVariant,
 }) => {
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -47,7 +55,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white p-6 rounded-lg max-w-md w-full">
+      <DialogContent className="w-[90vw] md:min-w-0 rounded-xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -65,9 +73,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           {/* Confirm Button with Loading State */}
           <Button
             onClick={handleConfirm}
-            variant="default"
+            variant={confirmVariant}
             disabled={isLoading}
-            className="bg-altRed rounded-[20px] w-[140px] font-semibold"
+            className="rounded-[20px] w-[140px] font-semibold"
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">

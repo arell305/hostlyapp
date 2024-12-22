@@ -23,22 +23,24 @@ const TeamSettings = () => {
   }
 
   return (
-    <div className="justify-center md:border-2 max-w-3xl md:p-6 rounded-lg mx-auto ">
-      <h1 className="text-3xl md:text-4xl font-bold mb-3">Team Settings</h1>
+    <div className="justify-center md:border-2 max-w-3xl rounded-lg mx-auto mt-1.5 md:shadow">
+      <h1 className="pt-6 pl-4 text-3xl md:text-4xl font-bold mb-3">
+        Team Settings
+      </h1>
 
       <div
         onClick={() => setActiveModal(TeamSettingsModalType.TeamName)}
-        className="flex justify-between border-b hover:cursor-pointer"
+        className="px-4 flex justify-between border-b cursor-pointer hover:bg-gray-100 py-3"
       >
-        <div>
-          <p className="font-bold">Team Name: </p>
-          <p className="pb-1 text-altBlack">
+        <div className="">
+          <h3 className="text-sm font-medium text-gray-500">Team Name: </h3>
+          <p className="text-lg font-semibold">
             {organization?.name || "Not Set"}
           </p>
         </div>
 
         <div className="flex items-center">
-          <RiArrowRightSLine size={14} />
+          <RiArrowRightSLine className="text-2xl" />
         </div>
       </div>
 
@@ -54,18 +56,20 @@ const TeamSettings = () => {
       {organization && (
         <div
           onClick={() => setActiveModal(TeamSettingsModalType.PromoDiscount)}
-          className="flex justify-between border-b hover:cursor-pointer"
+          className="px-4 flex justify-between border-b cursor-pointer hover:bg-gray-100 py-3"
         >
           <div>
-            <p className="font-bold pt-1">Promo Discount Amount: </p>
-            <p className="pb-1 text-altBlack">
+            <h3 className="text-sm font-medium text-gray-500">
+              Promo Discount Amount:{" "}
+            </h3>
+            <p className="text-lg font-semibold">
               {(organization?.publicMetadata?.promoDiscount as string) ||
                 "Not Set"}
             </p>
           </div>
 
           <div className="flex items-center">
-            <RiArrowRightSLine size={14} />
+            <RiArrowRightSLine className="text-2xl" />
           </div>
         </div>
       )}

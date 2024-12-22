@@ -15,12 +15,21 @@ import GuestCard from "./GuestCard";
 import DetailsSkeleton from "./loading/DetailsSkeleton";
 import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";
 import { GuestWithPromoter } from "@/types";
+import { FiClock } from "react-icons/fi";
+import { formatToTimeAndShortDate } from "../../../utils/helpers";
+import moment from "moment";
 
 interface EventGuestListProps {
   eventId: Id<"events">;
+  endTime: string;
+  guestListCloseTime: string;
 }
 
-const EventGuestList = ({ eventId }: EventGuestListProps) => {
+const EventGuestList = ({
+  eventId,
+  endTime,
+  guestListCloseTime,
+}: EventGuestListProps) => {
   const getEventWithGuestListsResponse = useQuery(
     api.events.getEventWithGuestLists,
     { eventId }
@@ -90,15 +99,34 @@ const EventGuestList = ({ eventId }: EventGuestListProps) => {
     }
   }, [selectedPromoter, getEventWithGuestListsResponse]);
 
+  const now = moment();
+  const hasEnded = now.isAfter(moment(endTime));
+  const guestListClosed = now.isAfter(moment(guestListCloseTime));
+
   if (getEventWithGuestListsResponse === undefined) {
     return <DetailsSkeleton />;
   }
-  console.log("data", getEventWithGuestListsResponse);
 
   return (
     <div className="mb-4 flex flex-col">
       <div>
         <h2 className="text-xl font-semibold mb-2">Headcount</h2>
+        {hasEnded ? (
+          <div className="flex text-gray-500">
+            <FiClock className="text-2xl pr-1 " />
+            <p className={" mb-1"}>
+              Event Ended: {formatToTimeAndShortDate(endTime)}
+            </p>
+          </div>
+        ) : (
+          <div className="flex">
+            <FiClock className="text-2xl pr-1 400" />
+            <p className={"mb-1"}>
+              Event Ends: {formatToTimeAndShortDate(endTime)}
+            </p>
+          </div>
+        )}
+
         <Select value={selectedPromoter} onValueChange={setSelectedPromoter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by promoter" />
@@ -125,6 +153,22 @@ const EventGuestList = ({ eventId }: EventGuestListProps) => {
       </div>
       <div>
         <h2 className="text-xl font-semibold mb-2">Guests</h2>
+        {guestListClosed ? (
+          <div className="flex text-gray-500">
+            <FiClock className="text-2xl pr-1 " />
+            <p className={" mb-1"}>
+              RSVP closed: ${formatToTimeAndShortDate(guestListCloseTime)}
+            </p>
+          </div>
+        ) : (
+          <div className="flex">
+            <FiClock className="text-2xl pr-1 400" />
+            <p className={"mb-1"}>
+              RSVP closes: {formatToTimeAndShortDate(guestListCloseTime)}
+            </p>
+          </div>
+        )}
+
         <div className="flex items-center">
           <FaSearch className="text-gray-400 mr-2" />
           <Input

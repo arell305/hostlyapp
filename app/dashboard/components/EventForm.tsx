@@ -16,6 +16,9 @@ import { BsFillXCircleFill } from "react-icons/bs";
 import { EventData, EventFormData, GuestListInfo, TicketInfo } from "@/types";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import GooglePlacesAutocomplete from "react-google-places-autocomplete";
+import PropsValue from "react-google-places-autocomplete";
+import { FaTimes } from "react-icons/fa";
 
 interface EventFormProps {
   initialEventData?: EventData;
@@ -35,6 +38,18 @@ interface EventFormProps {
   onCancelEdit?: () => void;
 }
 
+interface AddressValue {
+  label: string; // The display value of the address
+  value: {
+    description: string; // Full address as a string
+    place_id: string; // Google Place ID
+    structured_formatting: {
+      main_text: string; // Main part of the address
+      secondary_text: string; // Additional details of the address
+    };
+  };
+}
+
 const EventForm: React.FC<EventFormProps> = ({
   initialEventData,
   initialTicketData,
@@ -48,6 +63,21 @@ const EventForm: React.FC<EventFormProps> = ({
   deleteGuestListInfo,
   onCancelEdit,
 }) => {
+  // GOOGLE
+  const [value, setValue] = useState<AddressValue | null>(null);
+  const handleSelect = (value: AddressValue | null) => {
+    setValue(value);
+    if (value) {
+      setAddress(value.label);
+    }
+  };
+  const clearInput = () => {
+    setValue(null);
+    if (value) {
+      setAddress(value.label);
+    }
+  };
+
   const [eventName, setEventName] = useState(initialEventData?.name || "");
   const [description, setDescription] = useState(
     initialEventData?.description || ""
@@ -84,6 +114,10 @@ const EventForm: React.FC<EventFormProps> = ({
   const cancelEvent = useMutation(api.events.cancelEvent);
   const router = useRouter();
 
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const handleFocus = () => setIsCalendarOpen(true);
+  const handleBlur = () => setIsCalendarOpen(false);
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
     if (!file) {
@@ -159,7 +193,6 @@ const EventForm: React.FC<EventFormProps> = ({
   };
 
   const onDeleteEvent = async () => {
-    console.log("id", initialEventData?._id);
     try {
       const navigationPromise = router.push("/");
       if (initialEventData) {
@@ -428,103 +461,168 @@ const EventForm: React.FC<EventFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2 flex flex-col">
-        <Label htmlFor="eventName" className="font-bold font-playfair text-xl">
-          Name*
-        </Label>
-        <Input
-          id="eventName"
-          value={eventName}
-          onChange={(e) => setEventName(e.target.value)}
-          className="w-full max-w-[500px]"
-          error={errors.eventName}
-          placeholder="Enter event name"
-        />
-        {errors.eventName && <p className="text-red-500">{errors.eventName}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full max-w-[500px]"
-          placeholder="Add a description for your event."
-        />
-      </div>
-
-      <div className="space-y-2 relative">
-        <Label htmlFor="photo" className="font-bold">
-          Event Photo
-        </Label>
-
-        {/* Hidden file input */}
-        <input
-          type="file"
-          id="photo"
-          onChange={handlePhotoChange}
-          accept="image/*"
-          className="hidden" // Hide the default file input
-        />
-
-        {/* Custom upload button */}
-        <div className="flex">
-          <label
-            htmlFor="photo"
-            className="focus:border-customDarkBlue  w-[300px] border-2 border-dashed border-gray-300 h-[450px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg"
+    <>
+      {isCalendarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40"
+          onClick={() => setIsCalendarOpen(false)} // Close on clicking outside
+        ></div>
+      )}
+      <form onSubmit={handleSubmit} className=" p-4">
+        <div className="flex flex-col mb-4">
+          <Label
+            htmlFor="eventName"
+            className="font-bold font-playfair text-xl"
           >
-            {isPhotoLoading ? (
-              // Loading indicator
-              <div className="absolute inset-0 flex items-center justify-center bg-white opacity-75">
-                Loading...
-              </div>
-            ) : displayEventPhoto ? (
-              <img
-                src={displayEventPhoto}
-                alt="Event Photo"
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <span className="text-gray-500">Upload Photo</span>
-            )}
-
-            {/* Remove button */}
-          </label>
-          {displayEventPhoto && (
-            <BsFillXCircleFill
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemovePhoto();
-              }}
-              className=" text-4xl rounded-full p-1 cursor-pointer z-10 -ml-4 -mt-3"
-            />
+            Name*
+          </Label>
+          <Input
+            id="eventName"
+            value={eventName}
+            onChange={(e) => setEventName(e.target.value)}
+            className="w-full max-w-[500px]"
+            error={errors.eventName}
+            placeholder="Enter event name"
+          />
+          {errors.eventName && (
+            <p className="text-red-500">{errors.eventName}</p>
           )}
         </div>
-      </div>
 
-      <div className="space-y-2 flex flex-col">
-        <Label htmlFor="venueName">Venue Name</Label>
-        <Input
-          id="venueName"
-          value={venueName}
-          onChange={(e) => setVenueName(e.target.value)}
-          className="w-full max-w-[500px]"
-        />
-      </div>
+        <div className="mb-4">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full max-w-[500px]"
+            placeholder="Add a description for your event."
+          />
+        </div>
 
-      <div className="space-y-2 flex flex-col">
-        <Label htmlFor="address">Address</Label>
-        <Input
-          id="address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="w-full max-w-[500px]"
-        />
-      </div>
+        <div className="mb-4 relative">
+          <Label htmlFor="photo" className="font-bold">
+            Event Photo
+          </Label>
 
-      <div className="space-y-2 flex flex-col">
+          {/* Hidden file input */}
+          <input
+            type="file"
+            id="photo"
+            onChange={handlePhotoChange}
+            accept="image/*"
+            className="hidden" // Hide the default file input
+          />
+
+          {/* Custom upload button */}
+          <div className="flex">
+            <label
+              htmlFor="photo"
+              className="focus:border-customDarkBlue  w-[300px] border-2 border-dashed border-gray-300 h-[450px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg"
+            >
+              {isPhotoLoading ? (
+                // Loading indicator
+                <div className="absolute inset-0 flex items-center justify-center bg-white opacity-75">
+                  Loading...
+                </div>
+              ) : displayEventPhoto ? (
+                <img
+                  src={displayEventPhoto}
+                  alt="Event Photo"
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              ) : (
+                <span className="text-gray-500">Upload Photo</span>
+              )}
+
+              {/* Remove button */}
+            </label>
+            {displayEventPhoto && (
+              <BsFillXCircleFill
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemovePhoto();
+                }}
+                className=" text-4xl rounded-full p-1 cursor-pointer z-10 -ml-4 -mt-3"
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="mb-4 flex flex-col ">
+          <Label htmlFor="venueName">Venue Name*</Label>
+          <Input
+            id="venueName"
+            value={venueName}
+            onChange={(e) => setVenueName(e.target.value)}
+            className="w-full max-w-[500px]"
+            placeholder="Enter venue name"
+          />
+        </div>
+
+        <div className="mb-4 flex flex-col relative justify-center ">
+          <Label htmlFor="address" className="font-semibold">
+            Address*
+          </Label>
+          <GooglePlacesAutocomplete
+            apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+            selectProps={{
+              value,
+              onChange: handleSelect,
+              placeholder: "Enter an address",
+              styles: {
+                control: (provided, state) => ({
+                  ...provided,
+                  border: "0px",
+                  borderBottom: `2px solid ${state.isFocused ? "#324E78" : "#D1D5DB"}`,
+                  backgroundColor: "transparent",
+                  padding: "0.25rem 0",
+                  boxShadow: "none",
+                  "&:hover": {
+                    borderBottomColor: state.isFocused ? "#324E78" : "#D1D5DB",
+                  },
+                  maxWidth: "500px",
+                }),
+                input: (provided) => ({
+                  ...provided,
+                  color: "#374151",
+                }),
+                placeholder: (provided) => ({
+                  ...provided,
+                  color: "#9CA3AF",
+                }),
+                singleValue: (provided) => ({
+                  ...provided,
+                  color: "#374151",
+                }),
+                dropdownIndicator: (provided) => ({
+                  ...provided,
+                  display: "none",
+                }),
+                menu: (provided) => ({
+                  ...provided,
+                  zIndex: 9999, // Ensures suggestions appear above everything
+                  position: "absolute", // Avoids inheriting parent position
+                }),
+                menuPortal: (provided) => ({
+                  ...provided,
+                  zIndex: 9999, // Required for React-Select portals
+                }),
+              },
+            }}
+          />
+          {/* Clear Button */}
+          {value && (
+            <button
+              type="button"
+              onClick={clearInput}
+              className="absolute right-0 top-10 p-2 text-gray-500 hover:text-gray-700"
+            >
+              <FaTimes />
+            </button>
+          )}
+        </div>
+        {/* <div className="space-y-2 flex flex-col">
         <Label htmlFor="startTime">Starts*</Label>
         <Input
           type="datetime-local"
@@ -535,239 +633,258 @@ const EventForm: React.FC<EventFormProps> = ({
           error={errors.startTime}
         />
         {errors.startTime && <p className="text-red-500">{errors.startTime}</p>}
-      </div>
+      </div> */}
+        <div className="mb-4 flex flex-col relative z-50">
+          <Label htmlFor="startTime">Starts*</Label>
+          <Input
+            type="datetime-local"
+            id="startTime"
+            value={utcToPstString(startTime) || ""}
+            onChange={(e) => handleDateTimeChange(e, setStartTime)}
+            className={`w-full max-w-[500px] ${isCalendarOpen ? "" : ""}`}
+            error={errors.startTime}
+          />
+          {errors.startTime && (
+            <p className="text-red-500">{errors.startTime}</p>
+          )}
+        </div>
 
-      <div className="space-y-2 flex flex-col">
-        <Label htmlFor="endTime">Ends*</Label>
-        <Input
-          type="datetime-local"
-          id="endTime"
-          value={utcToPstString(endTime) || ""}
-          onChange={(e) => handleDateTimeChange(e, setEndTime)}
-          className="w-full max-w-[500px]"
-          error={errors.endTime}
-        />
-        {errors.endTime && <p className="text-red-500">{errors.endTime}</p>}
-      </div>
-      {canAddGuestListOption && (
-        <div className="space-y-2">
+        <div className="mb-4 flex flex-col">
+          <Label htmlFor="endTime">Ends*</Label>
+          <Input
+            type="datetime-local"
+            id="endTime"
+            value={utcToPstString(endTime) || ""}
+            onChange={(e) => handleDateTimeChange(e, setEndTime)}
+            className="w-full max-w-[500px]"
+            error={errors.endTime}
+          />
+          {errors.endTime && <p className="text-red-500">{errors.endTime}</p>}
+        </div>
+        {canAddGuestListOption && (
+          <div className="mb-4">
+            <Button
+              type="button"
+              className={`w-[160px]  relative rounded-[20px] border border-customDarkBlue 
+            text-customDarkBlue ${isGuestListSelected ? "bg-gray-100" : ""}`}
+              onClick={
+                isGuestListSelected
+                  ? handleRemoveGuestList
+                  : () => setIsGuestListSelected(true)
+              }
+              variant="outline"
+            >
+              {isGuestListSelected ? "Remove Guest List" : "Add Guest List"}
+              {isGuestListSelected && (
+                <span
+                  className="absolute -top-2 -right-[9px] cursor-pointer"
+                  onClick={handleRemoveTickets}
+                >
+                  <BsFillXCircleFill className="text-customDarkBlue  text-xl " />
+                </span>
+              )}
+            </Button>
+          </div>
+        )}
+
+        {isGuestListSelected && (
+          <div className="mb-4 flex flex-col">
+            <Label htmlFor="guestListCloseTime">Guest List Close Time*</Label>
+            <Input
+              type="datetime-local"
+              id="guestListCloseTime"
+              value={utcToPstString(guestListCloseTime) || ""}
+              onChange={(e) => handleDateTimeChange(e, setGuestListCloseTime)}
+              className="w-full max-w-[500px]"
+              error={errors.guestListCloseTime}
+            />
+            {errors.guestListCloseTime && (
+              <p className="text-red-500">{errors.guestListCloseTime}</p>
+            )}
+          </div>
+        )}
+
+        <div className="mb-4 ">
           <Button
             type="button"
-            className={`relative rounded-[20px] border border-customDarkBlue 
-            ${isGuestListSelected ? "bg-customDarkBlue text-white" : "text-customDarkBlue"}`}
+            className={`${isTicketsSelected ? "bg-gray-100" : ""} w-[160px] 0 relative rounded-[20px] border border-customDarkBlue 
+       text-customDarkBlue`}
             onClick={
-              isGuestListSelected
-                ? handleRemoveGuestList
-                : () => setIsGuestListSelected(true)
+              isTicketsSelected
+                ? handleRemoveTickets
+                : () => setIsTicketsSelected(true)
             }
             variant="outline"
           >
-            {isGuestListSelected ? "Remove Guest List" : "Add Guest List"}
-            {isGuestListSelected && (
+            {isTicketsSelected ? "Remove Tickets" : "Add Tickets"}
+            {isTicketsSelected && (
               <span
-                className="absolute -top-2 -right-[8px] cursor-pointer"
+                className="absolute -top-2 -right-[9px] cursor-pointer"
                 onClick={handleRemoveTickets}
               >
-                <BsFillXCircleFill className="text-black text-xl " />
+                <BsFillXCircleFill className="text-customDarkBlue text-xl" />
               </span>
             )}
           </Button>
         </div>
-      )}
 
-      {isGuestListSelected && (
-        <div className="space-y-2 flex flex-col">
-          <Label htmlFor="guestListCloseTime">Guest List Close Time*</Label>
-          <Input
-            type="datetime-local"
-            id="guestListCloseTime"
-            value={utcToPstString(guestListCloseTime) || ""}
-            onChange={(e) => handleDateTimeChange(e, setGuestListCloseTime)}
-            className="w-full max-w-[500px]"
-            error={errors.guestListCloseTime}
-          />
-          {errors.guestListCloseTime && (
-            <p className="text-red-500">{errors.guestListCloseTime}</p>
-          )}
-        </div>
-      )}
+        {isTicketsSelected && (
+          <>
+            <div className="mb-4 flex flex-col">
+              <Label htmlFor="maleTicketPrice">Male Ticket Price*</Label>
+              <Input
+                type="number"
+                id="maleTicketPrice"
+                value={maleTicketPrice}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (priceRegex.test(value) || value === "") {
+                    setMaleTicketPrice(value);
+                  }
+                }}
+                className="w-full max-w-[500px]"
+                min="0"
+                defaultValue="0"
+                error={errors.maleTicketPrice}
+                placeholder="Enter male ticket price"
+              />
+              {errors.maleTicketPrice && (
+                <p className="text-red-500">{errors.maleTicketPrice}</p>
+              )}
+            </div>
 
-      <div className="space-y-2">
-        <Button
-          type="button"
-          className={`relative rounded-[20px] border border-customDarkBlue 
-      ${isTicketsSelected ? "bg-customDarkBlue text-white" : "text-customDarkBlue"}`}
-          onClick={
-            isTicketsSelected
-              ? handleRemoveTickets
-              : () => setIsTicketsSelected(true)
-          }
-          variant="outline"
-        >
-          {isTicketsSelected ? "Remove Tickets" : "Add Tickets"}
-          {isTicketsSelected && (
-            <span
-              className="absolute -top-2 -right-[8px] cursor-pointer"
-              onClick={handleRemoveTickets}
-            >
-              <BsFillXCircleFill className="text-black text-xl" />
-            </span>
-          )}
-        </Button>
-      </div>
+            <div className="mb-4 flex flex-col">
+              <Label htmlFor="femaleTicketPrice">Female Ticket Price*</Label>
+              <Input
+                type="number"
+                id="femaleTicketPrice"
+                value={femaleTicketPrice}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (priceRegex.test(value) || value === "") {
+                    setFemaleTicketPrice(value);
+                  }
+                }}
+                className="w-full max-w-[500px]"
+                min="0"
+                defaultValue="0"
+                error={errors.femaleTicketPrice}
+                placeholder="Enter female ticket price"
+              />
+              {errors.femaleTicketPrice && (
+                <p className="text-red-500">{errors.femaleTicketPrice}</p>
+              )}
+            </div>
 
-      {isTicketsSelected && (
-        <>
-          <div className="space-y-2 flex flex-col">
-            <Label htmlFor="maleTicketPrice">Male Ticket Price*</Label>
-            <Input
-              type="number"
-              id="maleTicketPrice"
-              value={maleTicketPrice}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (priceRegex.test(value) || value === "") {
-                  setMaleTicketPrice(value);
-                }
-              }}
-              className="w-full max-w-[500px]"
-              min="0"
-              defaultValue="0"
-              error={errors.maleTicketPrice}
-            />
-            {errors.maleTicketPrice && (
-              <p className="text-red-500">{errors.maleTicketPrice}</p>
-            )}
-          </div>
+            <div className="mb-4 flex flex-col">
+              <Label htmlFor="maleTicketCapacity">Male Ticket Capacity*</Label>
+              <Input
+                type="number"
+                id="maleTicketCapacity"
+                value={maleTicketCapacity}
+                onChange={(e) => setMaleTicketCapacity(e.target.value)}
+                className="w-full max-w-[500px]"
+                min="0"
+                defaultValue="0"
+                error={errors.maleTicketCapacity}
+                placeholder="Enter male ticket capacity"
+              />
+              {errors.maleTicketCapacity && (
+                <p className="text-red-500">{errors.maleTicketCapacity}</p>
+              )}
+            </div>
 
-          <div className="space-y-2 flex flex-col">
-            <Label htmlFor="femaleTicketPrice">Female Ticket Price*</Label>
-            <Input
-              type="number"
-              id="femaleTicketPrice"
-              value={femaleTicketPrice}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (priceRegex.test(value) || value === "") {
-                  setFemaleTicketPrice(value);
-                }
-              }}
-              className="w-full max-w-[500px]"
-              min="0"
-              defaultValue="0"
-              error={errors.femaleTicketPrice}
-            />
-            {errors.femaleTicketPrice && (
-              <p className="text-red-500">{errors.femaleTicketPrice}</p>
-            )}
-          </div>
-
-          <div className="space-y-2 flex flex-col">
-            <Label htmlFor="maleTicketCapacity">Male Ticket Capacity*</Label>
-            <Input
-              type="number"
-              id="maleTicketCapacity"
-              value={maleTicketCapacity}
-              onChange={(e) => setMaleTicketCapacity(e.target.value)}
-              className="w-full max-w-[500px]"
-              min="0"
-              defaultValue="0"
-              error={errors.maleTicketCapacity}
-            />
-            {errors.maleTicketCapacity && (
-              <p className="text-red-500">{errors.maleTicketCapacity}</p>
-            )}
-          </div>
-
-          <div className="space-y-2 flex flex-col">
-            <Label htmlFor="femaleTicketCapacity">
-              Female Ticket Capacity*
-            </Label>
-            <Input
-              type="number"
-              id="femaleTicketCapacity"
-              value={femaleTicketCapacity}
-              onChange={(e) => setFemaleTicketCapacity(e.target.value)}
-              className="w-full max-w-[500px]"
-              min="0"
-              defaultValue="0"
-              error={errors.femaleTicketCapacity}
-            />
-            {errors.femaleTicketCapacity && (
-              <p className="text-red-500">{errors.femaleTicketCapacity}</p>
-            )}
-          </div>
-          <div className="space-y-2 flex flex-col">
-            <Label htmlFor="ticketSalesEndTime">Ticket Sales End Time*</Label>
-            <Input
-              type="datetime-local"
-              id="ticketSalesEndTime"
-              value={utcToPstString(ticketSalesEndTime) || ""}
-              onChange={(e) => handleDateTimeChange(e, setTicketSalesEndTime)}
-              className="w-full max-w-[500px]"
-              error={errors.ticketSalesEndTime}
-            />
-            {errors.ticketSalesEndTime && (
-              <p className="text-red-500">{errors.ticketSalesEndTime}</p>
-            )}
-          </div>
-        </>
-      )}
-      {/* 
+            <div className="mb-4 flex flex-col">
+              <Label htmlFor="femaleTicketCapacity">
+                Female Ticket Capacity*
+              </Label>
+              <Input
+                type="number"
+                id="femaleTicketCapacity"
+                value={femaleTicketCapacity}
+                onChange={(e) => setFemaleTicketCapacity(e.target.value)}
+                className="w-full max-w-[500px]"
+                min="0"
+                defaultValue="0"
+                error={errors.femaleTicketCapacity}
+                placeholder="Enter female ticket capacity"
+              />
+              {errors.femaleTicketCapacity && (
+                <p className="text-red-500">{errors.femaleTicketCapacity}</p>
+              )}
+            </div>
+            <div className="mb-4 flex flex-col">
+              <Label htmlFor="ticketSalesEndTime">Ticket Sales End Time*</Label>
+              <Input
+                type="datetime-local"
+                id="ticketSalesEndTime"
+                value={utcToPstString(ticketSalesEndTime) || ""}
+                onChange={(e) => handleDateTimeChange(e, setTicketSalesEndTime)}
+                className="w-full max-w-[500px]"
+                error={errors.ticketSalesEndTime}
+              />
+              {errors.ticketSalesEndTime && (
+                <p className="text-red-500">{errors.ticketSalesEndTime}</p>
+              )}
+            </div>
+          </>
+        )}
+        {/* 
       <Button type="submit" disabled={isLoading}>
         {isEdit ? "Update Event" : "Add Event"}
       </Button> */}
-      <div
-        className={`flex ${isEdit ? "flex-col" : "flex-row"} items-center justify-center  space-y-2`}
-      >
-        {" "}
-        <Button
-          variant="secondary"
-          type="button"
-          onClick={onCancelEdit}
-          disabled={isLoading}
-          size={isEdit ? "tripleButtons" : "doubelButtons"}
+        <div
+          className={`flex ${isEdit ? "flex-col gap-y-1.5" : "flex-row gap-x-2"} items-center justify-center`}
         >
-          Cancel Editing
-        </Button>
-        <Button
-          type="submit"
-          disabled={isLoading}
-          size={isEdit ? "tripleButtons" : "doubelButtons"}
-          variant="default"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : isEdit ? (
-            "Update Event"
-          ) : (
-            "Add Event"
-          )}
-        </Button>
-        {isEdit && (
+          {" "}
           <Button
+            variant={isEdit ? "secondary" : "ghost"}
             type="button"
-            onClick={handleDeleteEvent}
-            variant="destructive"
-            size="tripleButtons"
+            onClick={onCancelEdit}
+            disabled={isLoading}
+            size={isEdit ? "tripleButtons" : "doubelButtons"}
           >
-            Delete Event
+            {isEdit ? "Cancel Editing" : "Cancel"}
           </Button>
-        )}
-      </div>
-      <ConfirmModal
-        isOpen={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
-        onConfirm={modalConfig.onConfirm}
-        title={modalConfig.title}
-        message={modalConfig.message}
-        confirmText={modalConfig.confirmText}
-        cancelText={modalConfig.cancelText}
-      />
-    </form>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            size={isEdit ? "tripleButtons" : "doubelButtons"}
+            variant="default"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : isEdit ? (
+              "Update Event"
+            ) : (
+              "Create"
+            )}
+          </Button>
+          {isEdit && (
+            <Button
+              type="button"
+              onClick={handleDeleteEvent}
+              variant="destructive"
+              size="tripleButtons"
+            >
+              Delete Event
+            </Button>
+          )}
+        </div>
+        <ConfirmModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={modalConfig.onConfirm}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmText={modalConfig.confirmText}
+          cancelText={modalConfig.cancelText}
+        />
+      </form>
+    </>
   );
 };
 

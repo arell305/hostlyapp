@@ -50,7 +50,13 @@ const GuestListTab: React.FC<GuestListTabProps> = ({
           guestListCloseTime={guestListInfo.guestListCloseTime}
         />
       )}
-      {canViewAllGuestList && <EventGuestList eventId={eventData._id} />}
+      {canViewAllGuestList && (
+        <EventGuestList
+          eventId={eventData._id}
+          endTime={eventData.endTime}
+          guestListCloseTime={guestListInfo.guestListCloseTime}
+        />
+      )}
       {canCheckInGuests && (
         <ModeratorGuestList
           eventId={eventData._id}

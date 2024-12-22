@@ -64,9 +64,9 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [isOpen]);
 
   return (
-    <div className="relative h-screen flex flex-col w-full">
+    <div className="relative  flex flex-col w-full">
       <DynamicDashboardNavbar toggleNavbar={toggleSidebar} isOpen={isOpen} />
-      <div className="md:flex h-full mt-[50px]">
+      <div className="md:flex mt-[50px] overflow-hidden">
         {/* Sidebar */}
         <div ref={sidebarRef}>
           {isMobile ? (
@@ -80,7 +80,7 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
         {/* Main content area */}
         <div className={` relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}>
-          <div className={`p-4`}>{children}</div>
+          <div className={``}>{children}</div>
         </div>
       </div>
     </div>

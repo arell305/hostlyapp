@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useOrganization, useUser } from "@clerk/nextjs";
+import { Protect, useOrganization, useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import "@mobiscroll/react/dist/css/mobiscroll.min.css";
@@ -19,6 +19,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { EventSchema } from "@/types";
 import { PiPlusCircle } from "react-icons/pi";
 import EventPreview from "./calendar/EventPreview";
+import Link from "next/link";
 
 setOptions({
   theme: "ios",
@@ -57,7 +58,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   useEffect(() => {
     if (!activeOrgId) return;
     const today = moment().tz("America/Los_Angeles");
-    setDisplayDate(today.format("ddd MMM DD, YYYY"));
+    setDisplayDate(today.format("dddd, MMM DD, YYYY"));
   }, [activeOrgId]);
 
   // Fetch events with loading state
@@ -110,7 +111,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     const pstDate = userLocalDate
       .tz("America/Los_Angeles", true)
       .startOf("day");
-    const formattedDate = pstDate.format("dddd, MMMM D, YYYY");
+    const formattedDate = pstDate.format("dddd, MMM DD, YYYY");
     const selectedDateIn = pstDate.format("YYYY-MM-DD");
     setDisplayDate(formattedDate);
     setSelected(pstDate.toDate());
@@ -133,10 +134,15 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
 
   return (
     <div className="flex flex-col justify-center max-w-3xl md:p-6 rounded-lg mx-auto">
-      <div className="flex justify-between mb-4 items-center">
+      <div className="flex justify-between mb-6 mt-2 items-center">
         <h1 className="font-bold text-3xl">Events</h1>
-        <PiPlusCircle className="text-4xl" />
+        <Protect condition={(has) => has({ permission: "org:events:create" })}>
+          <Link href="/add-event">
+            <PiPlusCircle className="text-4xl" />
+          </Link>
+        </Protect>
       </div>
+
       {loading || !result || isClerkLoading ? (
         <CalendarLoading />
       ) : (
@@ -147,8 +153,11 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
               numberOfEvents={result.guestListEventCount}
             />
           )}
-          <Page className="max-w-[820px] rounded-md">
-            <div className="mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px]">
+          <Page className="max-w-[820px] h-[420px] rounded-md">
+            {/* <div className="font-medium flex rounded items-center justify-center md:justify-start bg-customDarkBlue text-white text-xl font-raleway p-4 border-b border-black">
+              {displayDate}
+            </div> */}
+            <div className="-mt-4 mbsc-col-sm-12 mbsc-col-md-4 max-w-[800px]">
               <div className="mbsc-form-group rounded-md">
                 {/* <div className="mbsc-form-group-title">
                     {displayName} Events
@@ -168,22 +177,24 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
             </div>
           </Page>
           <div className="mt-8 ">
-            <div className="selected-date mt-4">
-              <h1 className="font-bold text-3xl flex flex-col md:flex-row">
+            {/* <div className="selected-date mt-4 mb-10">
+              <h1 className="font-bold text-2xl md:text-3xl flex flex-col md:flex-row">
                 Selected Date:{" "}
-                <span className="font-normal md:pl-2">{displayDate}</span>
+                <span className="font-normal md:pl-2 text-xl md:text-3xl font-playfair text-altGray">
+                  {displayDate}
+                </span>
               </h1>
-            </div>
+            </div> */}
             <div className="events-list mt-4">
+              <h3 className="font-bold text-2xl md:text-3xl mb-4 font-playfair">
+                {displayDate} Events:
+              </h3>
               {matchingEvents.length > 0 ? (
-                <>
-                  <h3 className="font-bold text-3xl">Matching Events:</h3>
-                  <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-8">
-                    {matchingEvents.map((event: MbscCalendarMarked) => {
-                      return <EventPreview eventData={event.event} />;
-                    })}
-                  </div>
-                </>
+                <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-8">
+                  {matchingEvents.map((event: MbscCalendarMarked) => {
+                    return <EventPreview eventData={event.event} />;
+                  })}
+                </div>
               ) : (
                 <p>No events for the selected date.</p>
               )}

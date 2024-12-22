@@ -1,7 +1,7 @@
 import { UserButton } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { FaUserGroup } from "react-icons/fa6";
-import SubscriptionTab from "./settings/SubscriptionTab";
+
 import { PiNewspaper } from "react-icons/pi";
 
 interface AdminUserButtonProps {
@@ -23,15 +23,16 @@ const DotIcon = () => {
 const AdminUserButton: React.FC<AdminUserButtonProps> = ({
   onEditSubscription,
 }) => {
+  const router = useRouter();
   return (
     <UserButton>
-      <UserButton.UserProfilePage
-        label="Subscription"
-        url="subscription"
-        labelIcon={<PiNewspaper />}
-      >
-        <SubscriptionTab />
-      </UserButton.UserProfilePage>
+      <UserButton.MenuItems>
+        <UserButton.Action
+          onClick={() => router.push("subscription")}
+          label="Manage subscription"
+          labelIcon={<PiNewspaper />}
+        ></UserButton.Action>{" "}
+      </UserButton.MenuItems>
     </UserButton>
   );
 };

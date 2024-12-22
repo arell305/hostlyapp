@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,111 +7,95 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { useAction } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { UserRole, roleMap } from "../../../../utils/enum";
-import { isValidEmail } from "../../../../utils/helpers";
-import { changeableRoles } from "@/utils/enums";
 import { Loader2 } from "lucide-react";
+import { UserRole, roleMap } from "../../../../utils/enum";
+import { changeableRoles } from "@/utils/enums";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
-interface UpdateGuestModalProps {
+interface InviteUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  clerkOrganizationId: string;
-  inviterUserClerkId: string;
+  inviteEmail: string;
+  setInviteEmail: (email: string) => void;
+  inviteRole: UserRole;
+  setInviteRole: (role: UserRole) => void;
+  inviteError: string | null;
+  setInviteError: (error: string | null) => void;
+  isLoading: boolean;
+  onSubmit: () => void;
 }
 
-const InviteUserModal: React.FC<UpdateGuestModalProps> = ({
+const InviteUserModal: React.FC<InviteUserModalProps> = ({
   isOpen,
   onClose,
-  clerkOrganizationId,
-  inviterUserClerkId,
+  inviteEmail,
+  setInviteEmail,
+  inviteRole,
+  setInviteRole,
+  inviteError,
+  setInviteError,
+  isLoading,
+  onSubmit,
 }) => {
-  const [inviteEmail, setInviteEmail] = useState<string>("");
-  const [inviteRole, setInviteRole] = useState<UserRole>(UserRole.Promoter);
-  const [inviteError, setInviteError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { toast } = useToast();
-  const createClerkInvitation = useAction(api.clerk.createClerkInvitation);
-
-  const handleSave = async () => {
-    if (!isValidEmail(inviteEmail)) {
-      setInviteError("Please enter a valid email address.");
-      return;
-    }
-    setIsLoading(true);
-
-    try {
-      const result = await createClerkInvitation({
-        clerkOrgId: clerkOrganizationId,
-        clerkUserId: inviterUserClerkId,
-        role: inviteRole,
-        email: inviteEmail,
-      });
-
-      if (result.success) {
-        toast({
-          title: "Invitation Sent",
-          description: result.message,
-        });
-        onClose();
-      }
-    } catch (error) {
-      console.error("Failed to send invitation:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send invitation.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] md:min-w-0 rounded">
+      <DialogContent className="w-[90vw] md:min-w-0 rounded ">
         <DialogHeader>
           <DialogTitle className="flex">Invite User</DialogTitle>
         </DialogHeader>
-        <input
-          type="email"
-          placeholder="Enter email"
-          value={inviteEmail}
-          onChange={(e) => setInviteEmail(e.target.value)}
-          className={`w-full border-b-2 bg-transparent py-1 text-gray-800 focus:outline-none 
-          ${inviteError ? "border-red-500" : "border-gray-300"} 
-          focus:border-customDarkBlue`}
-        />
-
-        <select
-          value={inviteRole}
-          onChange={(e) => setInviteRole(e.target.value as UserRole)}
-          className="border rounded px-4 py-2  w-[180px] focus:border-customDarkBlue focus:outline-none"
+        <div className="space-y-4">
+          <Input
+            type="email"
+            placeholder="Enter email"
+            value={inviteEmail}
+            onChange={(e) => {
+              setInviteEmail(e.target.value);
+              setInviteError(null);
+            }}
+            className={inviteError ? "border-red-500" : ""}
+          />
+          <Select
+            onValueChange={(value) => setInviteRole(value as UserRole)}
+            value={inviteRole}
+          >
+            <SelectTrigger className="w-[180px] mt-4">
+              <SelectValue placeholder="Select a role" />
+            </SelectTrigger>
+            <SelectContent>
+              {changeableRoles.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {roleMap[role]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <p
+          className={`text-sm mt-1 ${inviteError ? "text-red-500" : "text-transparent"}`}
         >
-          {changeableRoles.map((role) => (
-            <option key={role} value={role}>
-              {roleMap[role]}
-            </option>
-          ))}
-        </select>
-        {inviteError && <p className="text-red-500">{inviteError}</p>}
-        <div className="flex justify-center space-x-10">
+          {inviteError || "Placeholder to maintain height"}
+        </p>
+        <DialogFooter>
           <Button
             disabled={isLoading}
             variant="ghost"
             onClick={onClose}
-            className="font-semibold  w-[140px]"
+            className="font-semibold w-[140px]"
           >
             Cancel
           </Button>
           <Button
             className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
-            onClick={handleSave}
+            onClick={onSubmit}
             disabled={isLoading}
           >
-            {" "}
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -121,7 +105,7 @@ const InviteUserModal: React.FC<UpdateGuestModalProps> = ({
               "Invite"
             )}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

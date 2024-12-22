@@ -190,3 +190,23 @@ input[type="number"] {
   color: #324e78 !important;
   font-weight: 600;
 }
+
+.css-13rtw1x-placeholder {
+  margin-left: 0px !important;
+}
+
+.css-1fdsijx-ValueContainer {
+  padding: 0px !important;
+}
+
+.css-152397a-control {
+  border-radius: 0px !important;
+}
+
+.ps-menu-button:hover {
+  background-color: #f7fafc !important; /* Equivalent to Tailwind's gray-100 */
+}
+
+.dialog-footer {
+  margin-top: 0 !important;
+}

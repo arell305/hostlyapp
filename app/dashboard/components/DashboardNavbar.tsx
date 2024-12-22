@@ -65,7 +65,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
 
     return (
       <nav
-        className={`w-full bg-white z-10 top-0 fixed h-14 transition-colors duration-300  ${isOpen ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]" : " border-b border-gray-200"}`}
+        className={`w-full shadow md:shadow-none bg-white z-10 top-0 fixed h-14 transition-colors duration-300 md:border-none ${isOpen ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]" : " border-b border-gray-200"}`}
       >
         <div className="flex items-center justify-between mx-auto p-2.5">
           {/* Left Side: Toggle Button */}

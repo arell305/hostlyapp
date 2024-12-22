@@ -127,23 +127,22 @@ const AddEventPage: FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 md:border-2 max-w-3xl md:p-6 rounded-lg">
-      <div className="flex items-center justify-between mb-6">
+    <div className="justify-center md:border-2 max-w-3xl rounded-lg mx-auto mt-1.5 md:shadow mb-20">
+      <div className="flex justify-between items-baseline mt-2 pt-6 px-4">
+        <h1 className="font-bold text-3xl">Add Event</h1>
         <p
           className="font-semibold hover:underline hover:cursor-pointer text-customDarkBlue"
           onClick={handleCancel}
         >
-          Back
+          Cancel
         </p>
-        <h1 className="text-xl font-raleway font-bold text-center flex-grow">
-          Add Event
-        </h1>
       </div>
       <EventForm
         onSubmit={handleSubmit}
         isEdit={false}
         canAddGuestListOption={canAddGuestListOption}
         subscriptionTier={result.subscriptionTier}
+        onCancelEdit={handleCancel}
       />
       <ConfirmModal
         isOpen={showCancelConfirmModal}

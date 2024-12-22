@@ -12,9 +12,12 @@ import {
   SubscriptionTier,
 } from "../utils/enum";
 import {
+  CancelSubscriptionResponse,
   Customer,
   CustomerSchema,
   CustomerWithPayment,
+  GetCustomerDetailsResponse,
+  ResumeSubscriptionResponse,
   UpdateListEventCountResponse,
 } from "../app/types";
 import { getFutureISOString } from "../utils/helpers";
@@ -69,9 +72,9 @@ export const findCustomerByEmail = internalQuery({
   args: {
     email: v.string(),
   },
-  handler: async (ctx, args): Promise<Customer | null> => {
+  handler: async (ctx, args): Promise<CustomerSchema | null> => {
     try {
-      const customer = await ctx.db
+      const customer: CustomerSchema | null = await ctx.db
         .query("customers")
         .filter((q) => q.eq(q.field("email"), args.email))
         .first();
@@ -81,7 +84,7 @@ export const findCustomerByEmail = internalQuery({
         return {
           ...customer,
           subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus, // Cast or map the status
-        } as Customer; // Ensure the returned type is the `Customer` interface
+        }; // Ensure the returned type is the `Customer` interface
       }
 
       return null;
@@ -251,57 +254,56 @@ export const getCustomerDetails = action({
   args: {
     customerEmail: v.string(),
   },
-  handler: async (ctx, args): Promise<CustomerWithPayment | null> => {
-    let existingCustomer: Customer | null = null;
-
+  handler: async (ctx, args): Promise<GetCustomerDetailsResponse> => {
     try {
-      // Fetch existing customer by email
-      existingCustomer = await ctx.runQuery(
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+
+      const existingCustomer: CustomerSchema | null = await ctx.runQuery(
         internal.customers.findCustomerByEmail,
         { email: args.customerEmail }
       );
-    } catch (error) {
-      console.error("Error fetching customer by email:", error);
-      throw new Error("Failed to fetch customer details");
-    }
+      if (!existingCustomer) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+      const createCustomerWithPayment = (
+        brand?: string,
+        last4?: string,
+        currentSubscriptionAmount?: number,
+        discountPercentage?: number
+      ): CustomerWithPayment => ({
+        ...existingCustomer!,
+        brand,
+        last4,
+        currentSubscriptionAmount,
+        discountPercentage,
+      });
+      const stripe = new Stripe(process.env.STRIPE_KEY!, {
+        apiVersion: "2024-06-20",
+      });
 
-    if (!existingCustomer) {
-      throw new Error("Customer not found");
-    }
-
-    // Helper function to return the customer with optional payment details
-    const createCustomerWithPayment = (
-      brand?: string,
-      last4?: string,
-      currentSubscriptionAmount?: number,
-      discountPercentage?: number
-    ): CustomerWithPayment => ({
-      ...existingCustomer!,
-      brand,
-      last4,
-      currentSubscriptionAmount,
-      discountPercentage,
-    });
-    const stripe = new Stripe(process.env.STRIPE_KEY!, {
-      apiVersion: "2024-06-20",
-    });
-
-    try {
-      // Fetch payment methods from Stripe
-      const paymentMethods = await stripe.paymentMethods.list({
+      const paymentMethods: Stripe.Response<
+        Stripe.ApiList<Stripe.PaymentMethod>
+      > = await stripe.paymentMethods.list({
         customer: existingCustomer.stripeCustomerId,
         type: "card",
       });
+      const defaultPaymentMethod: Stripe.PaymentMethod = paymentMethods.data[0];
 
-      // Get the default payment method if available
-      const defaultPaymentMethod = paymentMethods.data[0];
-
-      // Fetch the subscription details from Stripe
-      const subscription = await stripe.subscriptions.retrieve(
-        existingCustomer.stripeSubscriptionId
-      );
-
-      // Get the current price of the subscription
+      const subscription: Stripe.Response<Stripe.Subscription> =
+        await stripe.subscriptions.retrieve(
+          existingCustomer.stripeSubscriptionId
+        );
       const currentPrice = subscription.items.data[0].price;
       const amount = currentPrice.unit_amount; // Amount in cents
 
@@ -311,109 +313,118 @@ export const getCustomerDetails = action({
       if (subscription.discount) {
         discountPercentage = subscription.discount.coupon.percent_off || 0; // Get the discount percentage directly
       }
-      console.log("discount Per", discountPercentage);
 
-      // Return customer with payment details and subscription amount if available
-      return createCustomerWithPayment(
-        defaultPaymentMethod?.card?.brand, // Use optional chaining to avoid undefined error
-        defaultPaymentMethod?.card?.last4,
-        amount ? amount / 100 : 0,
-        discountPercentage
-      );
+      const customerWithPayment: CustomerWithPayment =
+        createCustomerWithPayment(
+          defaultPaymentMethod?.card?.brand, // Use optional chaining to avoid undefined error
+          defaultPaymentMethod?.card?.last4,
+          amount ? amount / 100 : 0,
+          discountPercentage
+        );
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          customerData: customerWithPayment,
+        },
+      };
     } catch (error) {
-      console.error(
-        "Error fetching payment methods or subscription from Stripe:",
-        error
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
-
-    // Return customer without payment details as fallback
-    return createCustomerWithPayment();
   },
 });
 export const cancelSubscription = action({
   args: { customerEmail: v.string() },
-  handler: async (ctx, args) => {
-    let existingCustomer: Customer | null = null;
-
+  handler: async (ctx, args): Promise<CancelSubscriptionResponse> => {
     try {
-      // Fetch existing customer by email
-      existingCustomer = await ctx.runQuery(
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.UNAUTHENTICATED,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+
+      const existingCustomer: CustomerSchema | null = await ctx.runQuery(
         internal.customers.findCustomerByEmail,
         { email: args.customerEmail }
       );
-    } catch (error) {
-      console.error("Error fetching customer by email:", error);
-      throw new Error("Failed to fetch customer details");
-    }
 
-    if (!existingCustomer) {
-      throw new Error("Customer not found");
-    }
+      if (!existingCustomer) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
 
-    // Initialize Stripe client
-    const stripe = new Stripe(process.env.STRIPE_KEY!, {
-      apiVersion: "2024-06-20",
-    });
-
-    try {
-      // Call Stripe's API to cancel the subscription but keep it active until the period ends
-      await stripe.subscriptions.update(existingCustomer.stripeSubscriptionId, {
-        cancel_at_period_end: true, // This will ensure the user can use the service until the next payment date
+      const stripe = new Stripe(process.env.STRIPE_KEY!, {
+        apiVersion: "2024-06-20",
       });
 
-      if (existingCustomer && existingCustomer._id) {
-        // Update customer subscription to ACTIVE if they had a previous account (no trial period)
-        await ctx.runMutation(internal.customers.updateCustomer, {
-          id: existingCustomer._id, // Update using the customer's ID
+      await Promise.all([
+        stripe.subscriptions.update(existingCustomer.stripeSubscriptionId, {
+          cancel_at_period_end: true,
+        }),
+        ctx.runMutation(internal.customers.updateCustomer, {
+          id: existingCustomer._id,
           updates: {
             subscriptionStatus: SubscriptionStatus.CANCELED,
           },
-        });
-      }
+        }),
+      ]);
 
       return {
-        success: true,
-        message:
-          "Subscription canceled successfully, you will have access until the next payment date.",
+        status: ResponseStatus.SUCCESS,
+        data: {
+          id: existingCustomer._id,
+        },
       };
-    } catch (err) {
-      console.error("Error canceling subscription:", err);
-      throw new Error("Failed to cancel subscription.");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });
 
 export const resumeSubscription = action({
   args: { customerEmail: v.string() },
-  handler: async (ctx, args) => {
-    let existingCustomer: Customer | null = null;
-
+  handler: async (ctx, args): Promise<ResumeSubscriptionResponse> => {
     try {
       // Fetch existing customer by email
-      existingCustomer = await ctx.runQuery(
+      const existingCustomer: CustomerSchema | null = await ctx.runQuery(
         internal.customers.findCustomerByEmail,
         { email: args.customerEmail }
       );
-    } catch (error) {
-      console.error("Error fetching customer by email:", error);
-      throw new Error("Failed to fetch customer details");
-    }
+      if (!existingCustomer) {
+        return {
+          status: ResponseStatus.NOT_FOUND,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+      const stripe = new Stripe(process.env.STRIPE_KEY!, {
+        apiVersion: "2024-06-20",
+      });
 
-    if (!existingCustomer) {
-      throw new Error("Customer not found");
-    }
-
-    // Initialize Stripe client
-    const stripe = new Stripe(process.env.STRIPE_KEY!, {
-      apiVersion: "2024-06-20",
-    });
-
-    try {
-      // Retrieve the subscription from Stripe using the subscription ID
-      const subscription = await stripe.subscriptions.retrieve(
-        existingCustomer.stripeSubscriptionId
-      );
+      const subscription: Stripe.Response<Stripe.Subscription> =
+        await stripe.subscriptions.retrieve(
+          existingCustomer.stripeSubscriptionId
+        );
 
       if (subscription.cancel_at_period_end) {
         // Resume the subscription by setting cancel_at_period_end to false
@@ -434,14 +445,29 @@ export const resumeSubscription = action({
             },
           });
         }
-        return { success: true, message: "Subscription resumed successfully." };
+        return {
+          status: ResponseStatus.SUCCESS,
+          data: {
+            id: existingCustomer._id,
+          },
+        };
       } else {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: "Subscription is already active.",
+        };
         // If the subscription is not canceled or it was already resumed
-        return { success: false, message: "Subscription is already active." };
       }
-    } catch (err) {
-      console.error("Error resuming subscription:", err);
-      throw new Error("Failed to resume subscription.");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });

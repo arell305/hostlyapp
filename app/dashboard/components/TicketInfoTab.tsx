@@ -15,6 +15,9 @@ import DetailsSkeleton from "./loading/DetailsSkeleton";
 import { UserRole } from "../../../utils/enum";
 import { TbCircleLetterM } from "react-icons/tb";
 import { TbCircleLetterF } from "react-icons/tb";
+import { FiClock } from "react-icons/fi";
+import moment from "moment";
+import { formatToTimeAndShortDate } from "../../../utils/helpers";
 
 interface TicketInfoTabProps {
   ticketData?: TicketInfo | null;
@@ -103,11 +106,33 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
     }
     return <div>No Information</div>;
   }
+  const now = moment();
+  const hasTicketsSalesEnded = now.isAfter(
+    moment(ticketData.ticketSalesEndTime)
+  );
 
   return (
     <>
       <div className="border-b mb-2 pb-2">
         <h2 className="text-xl font-semibold mb-2">Sales</h2>
+        {hasTicketsSalesEnded ? (
+          <div className="flex text-gray-500">
+            <FiClock className="text-2xl pr-1 " />
+            <p className={"mb-1"}>
+              Ticket Sales Ended:{" "}
+              {formatToTimeAndShortDate(ticketData.ticketSalesEndTime)}
+            </p>
+          </div>
+        ) : (
+          <div className="flex">
+            <FiClock className="text-2xl pr-1 400" />
+            <p className={"mb-1"}>
+              Ticket Sales Ends:{" "}
+              {formatToTimeAndShortDate(ticketData.ticketSalesEndTime)}
+            </p>
+          </div>
+        )}
+
         <div className="flex">
           <TbCircleLetterM className="text-2xl pr-1" />
           <p className="mb-1">

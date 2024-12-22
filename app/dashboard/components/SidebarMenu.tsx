@@ -136,7 +136,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
               </div>
             </MenuItem>
             <MenuItem onClick={handleTeamClick}>
-              <div className="flex">
+              <div className="flex ">
                 <FaUserGroup size={14} className="w-6 h-6 mr-2" />
                 <p>Team Members</p>
               </div>
@@ -159,7 +159,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
           // For non-app-admin users
           <>
             {canCreateEventsPermission && (
-              <MenuItem onClick={handleAddEvent} className="pointer">
+              <MenuItem onClick={handleAddEvent} className="pointer ">
                 <div className="flex">
                   <CiCirclePlus size={14} className="w-6 h-6 mr-2" />
                   <p>Add Event</p>

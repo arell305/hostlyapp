@@ -1,3 +1,4 @@
+import { PaymentMethod } from "@stripe/stripe-js";
 import { Id } from "../convex/_generated/dataModel";
 import {
   ActiveTab,
@@ -486,4 +487,89 @@ export interface GetEventsByOrgAndMonthResponse {
 
 export interface GetEventsByOrgAndMonthData {
   eventData: EventSchema[];
+}
+
+export interface GetCustomerDetailsResponse {
+  status: ResponseStatus;
+  data: GetCustomerDetailsData | null;
+  error?: string | null;
+}
+export interface GetCustomerDetailsData {
+  customerData: CustomerWithPayment;
+}
+
+export interface CancelSubscriptionResponse {
+  status: ResponseStatus;
+  data: CancelSubscriptionData | null;
+  error?: string | null;
+}
+
+export interface CancelSubscriptionData {
+  id: Id<"customers">;
+}
+
+export interface ResumeSubscriptionResponse {
+  status: ResponseStatus;
+  data: ResumeSubscriptionData | null;
+  error?: string | null;
+}
+
+export interface ResumeSubscriptionData {
+  id: Id<"customers">;
+}
+
+export interface GetOrganizationMembershipsResponse {
+  status: ResponseStatus;
+  data: GetOrganizationMembershipsData | null;
+  error?: string | null;
+}
+
+export interface GetOrganizationMembershipsData {
+  memberships: Membership[];
+}
+
+export interface GetOrganizationMembershipsResponse {
+  status: ResponseStatus;
+  data: GetOrganizationMembershipsData | null;
+  error?: string | null;
+}
+
+export interface GetPendingInvitationListResponse {
+  status: ResponseStatus;
+  data: GetPendingInvitationListData | null;
+  error?: string | null;
+}
+
+export interface GetPendingInvitationListData {
+  pendingInvitationUsers: PendingInvitationUser[];
+}
+
+export interface RevokeOrganizationInvitationResponse {
+  status: ResponseStatus;
+  data: RevokeOrganizationInvitationData | null;
+  error?: string | null;
+}
+
+export interface RevokeOrganizationInvitationData {
+  clerkInvitationId: string;
+}
+
+export interface CreateClerkInvitationResponse {
+  status: ResponseStatus;
+  data: CreateClerkInvitationData | null;
+  error?: string | null;
+}
+
+export interface CreateClerkInvitationData {
+  clerkInvitationId: string;
+}
+
+export interface DeleteClerkUserResponse {
+  status: ResponseStatus;
+  data: DeleteClerkUserData | null;
+  error?: string | null;
+}
+
+export interface DeleteClerkUserData {
+  clerkUserId: string;
 }
