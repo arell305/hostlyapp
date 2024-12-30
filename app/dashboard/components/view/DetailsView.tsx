@@ -1,4 +1,4 @@
-import { EventData } from "@/types";
+import { EventData } from "@/types/types";
 import React from "react";
 import { MdOutlineCalendarToday } from "react-icons/md";
 import { FiClock } from "react-icons/fi";

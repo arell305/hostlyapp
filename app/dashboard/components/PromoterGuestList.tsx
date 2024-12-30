@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import GuestCard from "./GuestCard";
 import DetailsSkeleton from "./loading/DetailsSkeleton";
-import { GuestListNameSchema } from "@/types";
+import { GuestListNameSchema } from "@/types/types";
 import { DateTime } from "luxon";
 import { FiClock } from "react-icons/fi";
 import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";

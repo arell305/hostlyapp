@@ -1,11 +1,13 @@
 import { PaymentMethod } from "@stripe/stripe-js";
-import { Id } from "../convex/_generated/dataModel";
+import { Id } from "../../convex/_generated/dataModel";
 import {
   ActiveTab,
   ResponseStatus,
   SubscriptionStatus,
   SubscriptionTier,
-} from "../utils/enum";
+  UserRole,
+} from "../../utils/enum";
+import { ErrorMessages } from "./enums";
 
 export interface PricingOption {
   id: string;
@@ -336,7 +338,7 @@ export interface OrganizationsSchema {
   clerkUserIds: string[];
   imageUrl?: string;
   eventIds: Id<"events">[];
-  customerId: string;
+  customerId: Id<"customers">;
   promoDiscount: number;
 }
 
@@ -564,12 +566,42 @@ export interface CreateClerkInvitationData {
   clerkInvitationId: string;
 }
 
-export interface DeleteClerkUserResponse {
-  status: ResponseStatus;
-  data: DeleteClerkUserData | null;
-  error?: string | null;
+export type FindUserByClerkIdResponse =
+  | FindUserByClerkIdSuccess
+  | ErrorResponse;
+
+export interface FindUserByClerkIdData {
+  user: UserSchema;
 }
 
-export interface DeleteClerkUserData {
-  clerkUserId: string;
+export interface UserSchema {
+  _id: Id<"users">;
+  clerkUserId?: string;
+  email: string;
+  clerkOrganizationId?: string;
+  acceptedInvite: boolean;
+  customerId?: Id<"customers">;
+  role: UserRole | null;
+  name?: string;
+  promoterPromoCode?: {
+    promoCodeId: Id<"promoterPromoCode">;
+    name: string;
+  };
+}
+
+export interface ErrorResponse {
+  status: ResponseStatus.ERROR;
+  data: null;
+  error: ErrorMessages | string;
+}
+
+export interface FindUserByClerkIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: FindUserByClerkIdData;
+}
+
+export interface OrganizationPublicMetadata {
+  status?: SubscriptionStatus | undefined;
+  promoDiscount?: number | undefined;
+  tier?: SubscriptionTier | undefined;
 }

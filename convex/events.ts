@@ -16,9 +16,9 @@ import {
   UpdateEventFields,
   UpdateEventResponse,
   UpdateGuestAttendanceResponse,
-} from "@/types";
+} from "@/types/types";
 import { ResponseStatus, UserRole } from "../utils/enum";
-import { ErrorMessages } from "@/utils/enums";
+import { ErrorMessages } from "@/types/enums";
 import { ERROR_MESSAGES } from "../constants/errorMessages";
 import { Id } from "./_generated/dataModel";
 
@@ -59,7 +59,7 @@ export const addEvent = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -67,7 +67,7 @@ export const addEvent = mutation({
       const role: UserRole = identity.role as UserRole;
       if (role !== UserRole.Admin && role !== UserRole.Manager) {
         return {
-          status: ResponseStatus.UNAUTHORIZED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.FORBIDDEN,
         };
@@ -91,7 +91,7 @@ export const addEvent = mutation({
 
       if (!organization) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -99,7 +99,7 @@ export const addEvent = mutation({
 
       if (organization.clerkOrganizationId !== identity.clerk_org_id) {
         return {
-          status: ResponseStatus.UNAUTHORIZED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.FORBIDDEN,
         };
@@ -133,7 +133,7 @@ export const getEventById = query({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -142,7 +142,7 @@ export const getEventById = query({
       const normalizedId = ctx.db.normalizeId("events", eventId);
       if (!normalizedId) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -151,7 +151,7 @@ export const getEventById = query({
       const event = await ctx.db.get(normalizedId);
       if (!event) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -210,7 +210,7 @@ export const getEventWithGuestLists = query({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -226,7 +226,7 @@ export const getEventWithGuestLists = query({
       const event: EventSchema | null = await ctx.db.get(eventId);
       if (!event) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -312,7 +312,7 @@ export const updateGuestAttendance = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -321,7 +321,7 @@ export const updateGuestAttendance = mutation({
       const role: UserRole = identity.role as UserRole;
       if (role !== UserRole.Moderator) {
         return {
-          status: ResponseStatus.UNAUTHORIZED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.FORBIDDEN,
         };
@@ -330,7 +330,7 @@ export const updateGuestAttendance = mutation({
       const guestList: GuestListSchema | null = await ctx.db.get(guestListId);
       if (!guestList) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -363,7 +363,7 @@ export const updateGuestAttendance = mutation({
         // Handle the case where the guest was not found
         console.error(`Guest with ID ${guestId} not found.`);
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -405,7 +405,7 @@ export const updateEvent = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -443,7 +443,7 @@ export const cancelEvent = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -452,7 +452,7 @@ export const cancelEvent = mutation({
       const event: EventSchema | null = await ctx.db.get(eventId);
       if (!event) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -498,7 +498,7 @@ export const getEventsByOrgAndMonth = query({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };

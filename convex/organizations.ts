@@ -2,8 +2,16 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation } from "./_generated/server";
 import { query, QueryCtx } from "./_generated/server";
 import { ResponseStatus, UserRole, UserRoleEnum } from "../utils/enum";
-import { Promoter, getPromotersByOrganizationResponse } from "@/types";
-import { ErrorMessages } from "@/utils/enums";
+import {
+  OrganizationsSchema,
+  Promoter,
+  getPromotersByOrganizationResponse,
+} from "@/types/types";
+import { ErrorMessages } from "@/types/enums";
+import {
+  GetAllOrganizationsResponse,
+  ListOrganizations,
+} from "@/types/convex-types";
 
 export const createOrganization = internalMutation({
   args: {
@@ -177,18 +185,42 @@ export const getOrganizationByNameQuery = query({
 });
 
 export const getAllOrganizations = query({
-  handler: async (ctx: QueryCtx) => {
+  handler: async (ctx): Promise<GetAllOrganizationsResponse> => {
     try {
-      const organizations = await ctx.db.query("organizations").collect(); // Collect all matching results
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
 
-      return organizations.map((org) => ({
+      const organizations: OrganizationsSchema[] = await ctx.db
+        .query("organizations")
+        .collect();
+
+      const returnedData: ListOrganizations[] = organizations.map((org) => ({
         clerkOrganizationId: org.clerkOrganizationId,
         name: org.name,
         imageUrl: org.imageUrl,
       }));
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          organizations: returnedData,
+        },
+      };
     } catch (error) {
-      console.error("Error retrieving organizations:", error);
-      return [];
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });
@@ -247,7 +279,36 @@ export const getOrganizationByClerkId = query({
   },
 });
 
-export const updateOrganizationPromoDiscount = mutation({
+// export const updateOrganizationPromoDiscount = mutation({
+//   args: {
+//     clerkOrganizationId: v.string(),
+//     promoDiscount: v.optional(v.number()),
+//   },
+//   handler: async (ctx, args) => {
+//     const { clerkOrganizationId, promoDiscount } = args;
+
+//     // Find the organization by clerkOrganizationId
+//     const organization = await ctx.db
+//       .query("organizations")
+//       .withIndex("by_clerkOrganizationId", (q) =>
+//         q.eq("clerkOrganizationId", clerkOrganizationId)
+//       )
+//       .first();
+
+//     if (!organization) {
+//       throw new Error("Organization not found");
+//     }
+
+//     // Update the promoDiscount
+//     const updatedOrganization = await ctx.db.patch(organization._id, {
+//       promoDiscount: promoDiscount,
+//     });
+
+//     return updatedOrganization;
+//   },
+// });
+
+export const updateOrganizationPromoDiscount = internalMutation({
   args: {
     clerkOrganizationId: v.string(),
     promoDiscount: v.optional(v.number()),
@@ -284,7 +345,7 @@ export const getPromotersByOrganization = query({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -292,7 +353,7 @@ export const getPromotersByOrganization = query({
 
       if (identity.clerk_org_id !== args.clerkOrganizationId) {
         return {
-          status: ResponseStatus.UNAUTHORIZED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.FORBIDDEN,
         };

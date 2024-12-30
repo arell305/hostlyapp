@@ -11,14 +11,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "../components/ConfirmModal";
 import EventInfoSkeleton from "../components/loading/EventInfoSkeleton";
-import { PLUS_GUEST_LIST_LIMIT } from "@/constants";
+import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
 import {
   AddEventResponse,
   EventFormInput,
   GuestListFormInput,
   TicketFormInput,
-} from "@/types";
+} from "@/types/types";
 import { Id } from "../../../convex/_generated/dataModel";
+import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
 
 const AddEventPage: FC = () => {
   const { organization, isLoaded: orgLoaded } = useOrganization();
@@ -126,9 +127,14 @@ const AddEventPage: FC = () => {
     setShowCancelConfirmModal(true);
   };
 
+  const handleConfirmCancel = () => {
+    setShowCancelConfirmModal(false);
+    router.back();
+  };
+
   return (
-    <div className="justify-center md:border-2 max-w-3xl rounded-lg mx-auto mt-1.5 md:shadow mb-20">
-      <div className="flex justify-between items-baseline mt-2 pt-6 px-4">
+    <div className="justify-center max-w-3xl mx-auto mt-1.5 mb-20">
+      <div className="flex justify-between items-baseline pt-4 md:pt-0 px-4">
         <h1 className="font-bold text-3xl">Add Event</h1>
         <p
           className="font-semibold hover:underline hover:cursor-pointer text-customDarkBlue"
@@ -144,17 +150,32 @@ const AddEventPage: FC = () => {
         subscriptionTier={result.subscriptionTier}
         onCancelEdit={handleCancel}
       />
-      <ConfirmModal
+      {/* <ConfirmModal
         isOpen={showCancelConfirmModal}
         onClose={() => setShowCancelConfirmModal(false)}
-        onConfirm={() => {
-          setShowCancelConfirmModal(false);
-          router.back(); // This navigates back to the previous page
-        }}
+        onConfirm={handleConfirmCancel}
         title="Confirm Cancellation"
         message="Are you sure you want to cancel? Any unsaved changes will be discarded."
         confirmText="Yes, Cancel"
         cancelText="No, Continue Editing"
+      /> */}
+      <ResponsiveConfirm
+        isOpen={showCancelConfirmModal}
+        title="Confirm Cancellation"
+        confirmText="Yes, Cancel"
+        cancelText="No, Continue"
+        content="Are you sure you want to cancel? Any unsaved changes will be discarded."
+        confirmVariant="destructive"
+        error={null}
+        isLoading={false}
+        modalProps={{
+          onClose: () => setShowCancelConfirmModal(false),
+          onConfirm: handleConfirmCancel,
+        }}
+        drawerProps={{
+          onSubmit: handleConfirmCancel,
+          onOpenChange: (open) => setShowCancelConfirmModal(open),
+        }}
       />
     </div>
   );

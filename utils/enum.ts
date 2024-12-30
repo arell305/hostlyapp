@@ -54,8 +54,5 @@ export enum ActiveTab {
 
 export enum ResponseStatus {
   SUCCESS = "success",
-  NOT_FOUND = "not_found",
   ERROR = "error",
-  UNAUTHORIZED = "unauthorized",
-  UNAUTHENTICATED = "unauthenticated",
 }

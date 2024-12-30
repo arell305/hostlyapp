@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 import { UserRole, roleMap } from "../../../../utils/enum";
-import { changeableRoles } from "@/utils/enums";
+import { changeableRoles } from "@/types/enums";
 import {
   Select,
   SelectTrigger,

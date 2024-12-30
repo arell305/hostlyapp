@@ -70,6 +70,7 @@ http.route({
                 clerkUserId: result.data.id,
                 acceptedInvite: true,
                 name: `${result.data.first_name} ${result.data.last_name}`,
+                imageUrl: result.data.image_url,
               }
             );
 

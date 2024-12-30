@@ -1,6 +1,6 @@
 import React from "react";
 import { ActiveTab } from "../../../../utils/enum";
-import { Tab } from "@/types";
+import { Tab } from "@/types/types";
 
 interface TabProps {
   label: string;

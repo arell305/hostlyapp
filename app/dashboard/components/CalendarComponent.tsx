@@ -16,7 +16,7 @@ import { CalendarLoading } from "./loading/CalendarLoading"; // Import the Calen
 import EventStats from "./EventStats";
 import { SubscriptionTier, UserRoleEnum } from "../../../utils/enum";
 import { useUserRole } from "@/hooks/useUserRole";
-import { EventSchema } from "@/types";
+import { EventSchema } from "@/types/types";
 import { PiPlusCircle } from "react-icons/pi";
 import EventPreview from "./calendar/EventPreview";
 import Link from "next/link";
@@ -133,12 +133,15 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     role === UserRoleEnum.PROMOTER_MANAGER;
 
   return (
-    <div className="flex flex-col justify-center max-w-3xl md:p-6 rounded-lg mx-auto">
-      <div className="flex justify-between mb-6 mt-2 items-center">
-        <h1 className="font-bold text-3xl">Events</h1>
+    <div className="flex flex-col justify-center max-w-3xl md:p-0 pt-4 rounded-lg mx-auto mt-1.5 px-4 md:px-0">
+      <div className="flex justify-between mb-6 items-center ">
+        <h1 className="font-bold text-3xl ">Events</h1>
         <Protect condition={(has) => has({ permission: "org:events:create" })}>
           <Link href="/add-event">
-            <PiPlusCircle className="text-4xl" />
+            <p className="font-semibold  hover:cursor-pointer text-customDarkBlue">
+              Create
+            </p>
+            {/* <PiPlusCircle className="text-4xl" /> */}
           </Link>
         </Protect>
       </div>

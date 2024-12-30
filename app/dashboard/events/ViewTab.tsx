@@ -1,4 +1,4 @@
-import { EventData, TicketInfo } from "@/types";
+import { EventData, TicketInfo } from "@/types/types";
 import React from "react";
 import About from "../components/view/About";
 import TicketView from "../components/view/Tickets";

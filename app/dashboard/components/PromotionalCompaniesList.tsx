@@ -4,7 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import CompanyCard from "./cards/CompanyCard";
-import { ClerkOrganization } from "@/types";
+import { ClerkOrganization } from "@/types/types";
 import { SubscriptionStatus, SubscriptionTier } from "../../../utils/enum";
 
 const PromotionalCompaniesList = () => {

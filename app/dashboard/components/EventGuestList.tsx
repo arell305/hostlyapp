@@ -14,7 +14,7 @@ import {
 import GuestCard from "./GuestCard";
 import DetailsSkeleton from "./loading/DetailsSkeleton";
 import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";
-import { GuestWithPromoter } from "@/types";
+import { GuestWithPromoter } from "@/types/types";
 import { FiClock } from "react-icons/fi";
 import { formatToTimeAndShortDate } from "../../../utils/helpers";
 import moment from "moment";

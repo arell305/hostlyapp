@@ -18,6 +18,8 @@ type CommonProps = {
     | "secondary"
     | "ghost"
     | "link";
+  error: string | null;
+  isLoading: boolean;
 };
 
 type ResponsiveConfirmProps = CommonProps & {

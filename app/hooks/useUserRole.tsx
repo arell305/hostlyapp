@@ -17,7 +17,7 @@ export function useUserRole() {
   }
 
   return {
-    role: userFromDb?.role ?? null,
+    role: userFromDb.data?.user.role ?? null,
     isLoading: false,
     user: userFromDb,
   };

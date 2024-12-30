@@ -113,16 +113,14 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
 
   return (
     <Sidebar
-      className="h-screen bg-customPrimaryBlue "
+      className="h-screen bg-blue-200 "
       style={{
         width: "320px",
-        borderTopRightRadius: "1rem", // Top-right corner rounding
-        borderBottomRightRadius: "1rem", // Bottom-right corner rounding
         overflow: "hidden",
       }}
     >
-      <div className="mt-3 ml-6 mb-4">
-        <a href="/" className="text-2xl font-semibold font-playfair  ">
+      <div className="mt-3 ml-6 mb-1">
+        <a href="/" className="text-2xl font-semibold ">
           {organization?.name ?? "Hostly"}
         </a>
       </div>

@@ -15,7 +15,7 @@ import {
   isValidEmail,
   truncatedToTwoDecimalPlaces,
 } from "../../../../utils/helpers";
-import { changeableRoles } from "@/utils/enums";
+import { changeableRoles } from "@/types/enums";
 import { Loader2 } from "lucide-react";
 import {
   Elements,
@@ -25,9 +25,11 @@ import {
 } from "@stripe/react-stripe-js";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { PricingOption } from "@/types";
+import { PricingOption } from "@/types/types";
 import { pricingOptions } from "../../../../constants/pricingOptions";
 import EventInfoSkeleton from "../loading/EventInfoSkeleton";
+import useMediaQuery from "@/hooks/useMediaQuery";
+import BaseDrawer from "../drawer/BaseDrawer";
 
 interface UpdateTierModalProps {
   isOpen: boolean;
@@ -74,6 +76,7 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
   const updateOrganizationMetadata = useAction(
     api.clerk.updateOrganizationMetadata
   );
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   useEffect(() => {
     const fetchProrationDetails = async () => {
@@ -106,9 +109,7 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
     }
   }, [currentTier]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
+  const handleSubmit = async () => {
     if (selectedPlan?.tier === currentTier) {
       return onClose();
     }
@@ -135,7 +136,7 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
         // Use Promise.all to execute both promises
         const [result, orgUpdateResult] = await Promise.all(promises);
 
-        if (result && result.success) {
+        if (result) {
           onTierUpdate(selectedPlan.tier); // Call the callback with the new tier
         }
         onClose();
@@ -152,20 +153,26 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
   // if (proratingLoading) {
   //   return <div>loading...</div>;
   // }
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] md:min-w-0 rounded-xl">
-        <DialogHeader>
-          <DialogTitle className="flex">Update Plan</DialogTitle>
-        </DialogHeader>
+  if (!isDesktop) {
+    return (
+      <BaseDrawer
+        isOpen={isOpen}
+        onOpenChange={onClose}
+        title="Update Plan"
+        description={`Update your subscription`}
+        confirmText={isLoading ? "Saving..." : "Save"}
+        cancelText="Cancel"
+        onSubmit={handleSubmit}
+        error={error}
+        isLoading={isLoading}
+      >
         {proratingLoading ? (
           <EventInfoSkeleton />
         ) : (
           pricingOptions.map((option) => (
             <div
               key={option.id}
-              className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-100 ${
+              className={`mx-4 mb-2 p-4 border rounded-lg cursor-pointer h-[130px] hover:bg-gray-100 ${
                 selectedPlan?.id === option.id
                   ? "border-customDarkBlue bg-blue-50 "
                   : "border-gray-300"
@@ -204,7 +211,72 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
         )}
         {error && <p className="text-red-500">{error}</p>}
 
-        <div className="text-xs mb-4">
+        <div className="text-xs px-8">
+          {" "}
+          If you are currently on a trial period, it will conclude upon updating
+          status. Consequently, your next payment date will be adjusted to
+          reflect today's date.{" "}
+        </div>
+      </BaseDrawer>
+    );
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="w-[90vw] md:min-w-0 rounded-xl">
+        <DialogHeader>
+          <DialogTitle className="flex">Update Plan</DialogTitle>
+        </DialogHeader>
+        {proratingLoading ? (
+          <EventInfoSkeleton />
+        ) : (
+          <div className="">
+            {pricingOptions.map((option) => (
+              <div
+                key={option.id}
+                className={`mb-3 h-[130px] p-4 border rounded-lg cursor-pointer hover:bg-gray-100 ${
+                  selectedPlan?.id === option.id
+                    ? "border-customDarkBlue bg-blue-50 "
+                    : "border-gray-300"
+                }`}
+                onClick={() => setSelectedPlan(option)}
+              >
+                <div className="flex justify-between">
+                  <h3 className="text-xl font-semibold">{option.tier}</h3>
+                  {option.tier === currentTier && (
+                    <span className="text-sm text-customDarkBlue">
+                      Current Plan
+                    </span>
+                  )}
+                </div>
+                {option.tier === currentTier && (
+                  <p className="text-gray-600">${option.price}/month</p>
+                )}
+                <p className="text-sm text-gray-500">{option.description}</p>
+                {option.tier !== currentTier &&
+                  prorationDetails[option.tier]?.success && (
+                    <div className="mt-2 text-sm">
+                      <p>
+                        Prorated amount: $
+                        {prorationDetails[option.tier].proratedAmount?.toFixed(
+                          2
+                        )}
+                      </p>
+                      <p>
+                        New monthly rate: $
+                        {truncatedToTwoDecimalPlaces(
+                          prorationDetails[option.tier].newMonthlyRate || 0
+                        )}
+                      </p>
+                    </div>
+                  )}
+              </div>
+            ))}
+          </div>
+        )}
+        {error && <p className="text-red-500">{error}</p>}
+
+        <div className="text-xs mb-4 pl-2">
           {" "}
           If you are currently on a trial period, it will conclude upon updating
           status. Consequently, your next payment date will be adjusted to

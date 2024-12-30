@@ -9,6 +9,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import BaseDrawer from "@/dashboard/components/drawer/BaseDrawer";
 import ResponsiveConfirm from "@/dashboard/components/responsive/ResponsiveConfirm";
+import { PiTrashSimple } from "react-icons/pi";
 
 interface PendingUserCardProps {
   clerkInvitationId: string;
@@ -27,46 +28,10 @@ const PendingUserCard: React.FC<PendingUserCardProps> = ({
   clerkUserId,
   onRevoke,
 }) => {
-  const [showMenu, setShowMenu] = useState<boolean>(false);
-  const [showResponsiveConfirm, setShowResponsiveConfirm] =
-    useState<boolean>(false);
-  const { toast } = useToast();
-
-  // Create refs for the menu and its trigger
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const menuTriggerRef = useRef<HTMLDivElement | null>(null);
-
-  const handleRevoke = () => {
-    setShowResponsiveConfirm(true);
-    setShowMenu(false);
+  const handleClick = (event: React.MouseEvent<SVGElement, MouseEvent>) => {
+    event.preventDefault();
+    onRevoke(clerkInvitationId);
   };
-
-  const handleRevokeConfirmation = async () => {
-    onRevoke(clerkInvitationId); // Call the parent handler with the ID
-    setShowResponsiveConfirm(false);
-  };
-
-  // Handle clicks outside of the menu
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node) &&
-        menuTriggerRef.current &&
-        !menuTriggerRef.current.contains(event.target as Node)
-      ) {
-        setShowMenu(false);
-      }
-    };
-
-    // Add event listener
-    document.addEventListener("mousedown", handleClickOutside);
-
-    // Clean up event listener on unmount
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [menuRef, menuTriggerRef]);
 
   return (
     <div className="border-b border-gray-300 p-4 w-full flex items-center justify-between">
@@ -74,35 +39,12 @@ const PendingUserCard: React.FC<PendingUserCardProps> = ({
         <h3 className="font-bold">{email}</h3>
         <p>{roleMap[role]}</p>
       </div>
-      <div ref={menuTriggerRef}>
-        <FaEllipsisV
-          onClick={() => setShowMenu((prev) => !prev)}
-          className="cursor-pointer"
-        />
-        {showMenu &&
-          createPortal(
-            <div
-              ref={menuRef}
-              style={{
-                position: "absolute",
-                top: menuTriggerRef.current?.getBoundingClientRect().bottom,
-                left: menuTriggerRef.current?.getBoundingClientRect().right,
-                transform: "translateX(-100%)",
-              }}
-              className="z-50 w-48 bg-white border rounded-md shadow-lg"
-            >
-              <button
-                onClick={handleRevoke}
-                className="block px-4 py-2 text-altRed hover:bg-gray-200 w-full text-left"
-              >
-                Revoke Invitation
-              </button>
-            </div>,
-            document.body
-          )}
-      </div>
+      <PiTrashSimple
+        onClick={handleClick}
+        className="cursor-pointer text-2xl  text-gray-800 hover:text-gray-500"
+      />
 
-      <ResponsiveConfirm
+      {/* <ResponsiveConfirm
         isOpen={showResponsiveConfirm}
         title="Confirm User Revocation"
         confirmText="Revoke User"
@@ -117,7 +59,7 @@ const PendingUserCard: React.FC<PendingUserCardProps> = ({
           onOpenChange: (open: boolean) => setShowResponsiveConfirm(open),
           onSubmit: handleRevokeConfirmation,
         }}
-      />
+      /> */}
     </div>
   );
 };

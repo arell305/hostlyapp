@@ -3,7 +3,7 @@ import { useClerk, useOrganization, useUser } from "@clerk/nextjs";
 import React, { useEffect, useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Membership, PendingInvitationUser } from "@/types";
+import { Membership, PendingInvitationUser } from "@/types/types";
 import MemberCard from "./MemberCard";
 import { ResponseStatus, UserRole } from "../../../utils/enum";
 import ConfirmModal from "../components/ConfirmModal";
@@ -14,6 +14,7 @@ import InviteUserModal from "../components/modals/InviteUserModal";
 import SkeletonMemberCard from "../components/loading/MemberCardSkeleton";
 import ResponsiveConfirm from "@/dashboard/components/responsive/ResponsiveConfirm";
 import ResponsiveInviteUser from "../components/responsive/ResponsiveInviteUser";
+import { Button } from "@/components/ui/button";
 
 const Team = () => {
   const { organization, user, loaded } = useClerk();
@@ -33,6 +34,10 @@ const Team = () => {
 
   const deleteClerkUser = useAction(api.clerk.deleteClerkUser);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false);
+  const [errorRevoke, setErrorRevoke] = useState<string | null>(null);
+  const [isRevokeLoading, setIsRevokeLoading] = useState<boolean>(false);
+  const [revokeUserId, setRevokeUserId] = useState<string | null>(null);
 
   const [selectedClerkUserId, setSelectedClerkUserId] = useState<string | null>(
     null
@@ -83,44 +88,51 @@ const Team = () => {
     );
   };
 
-  const handleDelete = async (clerkUserId: string) => {
-    try {
-      const result = await deleteClerkUser({ clerkUserId });
-      setOrganizationalMembership((prevMemberships) =>
-        prevMemberships.filter((member) => member.clerkUserId !== clerkUserId)
-      );
-      if (result.status === ResponseStatus.SUCCESS) {
-        toast({
-          title: "User Deleted",
-          description: "The user has successfully been deleted",
-        });
-      } else if (result.status === ResponseStatus.ERROR) {
-        toast({
-          title: "Error",
-          description: "Failed to delete user. Please try again",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.log("err", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete user. Please try again",
-        variant: "destructive",
-      });
-    }
-  };
+  // const handleDelete = async (clerkUserId: string) => {
+  //   try {
+  //     const result = await deleteClerkUser({ clerkUserId });
+  //     setOrganizationalMembership((prevMemberships) =>
+  //       prevMemberships.filter((member) => member.clerkUserId !== clerkUserId)
+  //     );
+  //     if (result.status === ResponseStatus.SUCCESS) {
+  //       toast({
+  //         title: "User Deleted",
+  //         description: "The user has successfully been deleted",
+  //       });
+  //     } else if (result.status === ResponseStatus.ERROR) {
+  //       toast({
+  //         title: "Error",
+  //         description: "Failed to delete user. Please try again",
+  //         variant: "destructive",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.log("err", error);
+  //     toast({
+  //       title: "Error",
+  //       description: "Failed to delete user. Please try again",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
   const revokeOrganizationInvitation = useAction(
     api.clerk.revokeOrganizationInvitation
   );
 
-  const handleRevoke = async (clerkInvitationId: string) => {
+  const handleShowRevokeConfirmation = (clerkInvitationId: string) => {
+    setRevokeUserId(clerkInvitationId);
+    setShowRevokeConfirm(true);
+  };
+
+  const handleRevokeConfirmation = async () => {
     try {
-      if (organization && user) {
+      setIsRevokeLoading(true);
+      if (organization && user && revokeUserId) {
+        setIsRevokeLoading(true);
         const result = await revokeOrganizationInvitation({
           clerkOrgId: organization.id,
           clerkUserId: user.id,
-          clerkInvitationId,
+          clerkInvitationId: revokeUserId,
         });
 
         if (result.status === ResponseStatus.SUCCESS) {
@@ -129,21 +141,17 @@ const Team = () => {
             title: "Invitation Revoked",
             description: "The invitation has successfully been revoked.",
           });
+          setShowRevokeConfirm(false);
+          fetchData();
         } else {
-          toast({
-            title: "Error",
-            description: "Failed to revoke invitation. Please try again.",
-            variant: "destructive",
-          });
+          setErrorRevoke(result.error || "Failed to revoke invitation");
         }
       }
     } catch (error) {
+      setErrorRevoke("Failed to revoke invitation");
       console.error("Failed to revoke invitation:", error);
-      toast({
-        title: "Error",
-        description: "Failed to revoke invitation. Please try again.",
-        variant: "destructive",
-      });
+    } finally {
+      setIsRevokeLoading(false);
     }
   };
 
@@ -177,13 +185,20 @@ const Team = () => {
   }
   return (
     <div className="justify-center  max-w-3xl  mx-auto mt-1.5 md:min-h-[300px]">
-      <div className="flex justify-between items-center w-full px-4 pt-6 mb-4">
+      <div className="flex justify-between items-center w-full px-4 pt-4 md:pt-0 mb-4">
         <h1 className=" text-3xl md:text-4xl font-bold ">Team Members</h1>
         {canManageUsers && (
-          <PiPlusCircle
+          <p
             onClick={() => setIsInviteModalOpen(true)}
-            className="text-4xl cursor-pointer text-gray-800 hover:text-gray-500"
-          />
+            className="font-semibold  hover:cursor-pointer text-customDarkBlue"
+          >
+            Invite
+          </p>
+
+          // <PiPlusCircle
+          //   onClick={() => setIsInviteModalOpen(true)}
+          //   className="text-4xl cursor-pointer text-gray-800 hover:text-gray-500"
+          // />
         )}
       </div>
       {canManageUsers && (
@@ -194,7 +209,7 @@ const Team = () => {
                 className={` tab pb-2 flex-1 text-center ${activeTab === "active" ? "active" : "hover:underline"}`}
                 onClick={() => setActiveTab("active")}
               >
-                Active Members
+                Active Users
               </button>
               <button
                 className={` tab pb-2 flex-1 text-center ${activeTab === "pending" ? "active" : "hover:underline"}`}
@@ -225,15 +240,11 @@ const Team = () => {
               role={member.role as UserRole}
               imageUrl={member.imageUrl || ""}
               clerkUserId={member.clerkUserId || ""}
-              clerkOrgId={organization.id}
-              onSaveRole={handleSaveRole}
-              onDelete={openConfirmModal}
               isCurrentUser={user.id === member.clerkUserId}
-              currentUserRole={currentUserRole}
             />
           ))}
 
-          <ResponsiveConfirm
+          {/* <ResponsiveConfirm
             isOpen={showConfirmModal}
             title="Confirm User Deletion"
             confirmText="Delete User"
@@ -258,7 +269,7 @@ const Team = () => {
                 setShowConfirmModal(false);
               },
             }}
-          />
+          /> */}
         </div>
       )}
       {activeTab === "pending" && (
@@ -274,7 +285,7 @@ const Team = () => {
                 role={pendingUser.role}
                 clerkUserId={user.id}
                 clerkOrgId={organization.id}
-                onRevoke={handleRevoke}
+                onRevoke={handleShowRevokeConfirmation}
               />
             ))
           )}
@@ -286,6 +297,24 @@ const Team = () => {
         clerkOrganizationId={organization.id}
         inviterUserClerkId={user.id}
         onInviteSuccess={handleInviteSuccess}
+      />
+      <ResponsiveConfirm
+        isOpen={showRevokeConfirm}
+        title="Confirm User Revocation"
+        confirmText="Revoke User"
+        cancelText="Cancel"
+        content="Are you sure you want to revoke this invitation? This action cannot be undone."
+        confirmVariant="destructive"
+        modalProps={{
+          onClose: () => setShowRevokeConfirm(false),
+          onConfirm: handleRevokeConfirmation,
+        }}
+        drawerProps={{
+          onOpenChange: (open: boolean) => setShowRevokeConfirm(open),
+          onSubmit: handleRevokeConfirmation,
+        }}
+        error={errorRevoke}
+        isLoading={isRevokeLoading}
       />
     </div>
   );

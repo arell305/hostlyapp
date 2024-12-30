@@ -1,7 +1,11 @@
-import { ClerkRoleEnum, ErrorMessages } from "@/utils/enums";
+import { ClerkRoleEnum, ErrorMessages } from "@/types/enums";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { EventSchema, InsertTicektResponse, TicketInfoSchema } from "@/types";
+import {
+  EventSchema,
+  InsertTicektResponse,
+  TicketInfoSchema,
+} from "@/types/types";
 import { ResponseStatus } from "../utils/enum";
 import { Id } from "./_generated/dataModel";
 

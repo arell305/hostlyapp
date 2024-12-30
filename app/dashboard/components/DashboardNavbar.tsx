@@ -3,7 +3,7 @@ import React, { useState, useEffect, memo, useCallback } from "react";
 import { UserButton, useAuth, useClerk } from "@clerk/nextjs";
 import { useOrganization } from "@clerk/nextjs";
 import { useUserRole } from "@/hooks/useUserRole";
-import { UserRoleEnum } from "@/utils/enums";
+import { UserRoleEnum } from "@/types/enums";
 import EditPromoCodeDialog from "./EditPromoCodeDialog";
 import PromoterUserButton from "./PromoterUserbutton";
 import AdminUserButton from "./AdminUserButton";
@@ -65,9 +65,14 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
 
     return (
       <nav
-        className={`w-full shadow md:shadow-none bg-white z-10 top-0 fixed h-14 transition-colors duration-300 md:border-none ${isOpen ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]" : " border-b border-gray-200"}`}
+        className={`w-full items-center shadow md:shadow-none md:border-none bg-white z-10 top-0 fixed h-12 transition-colors duration-300  ${isOpen ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]" : " border-b border-gray-200"}`}
       >
-        <div className="flex items-center justify-between mx-auto p-2.5">
+        <div className="flex h-full items-center justify-between mx-auto p-2.5">
+          <div className="flex-grow  md:block hidden">
+            <a href="/" className="text-2xl font-semibold font-playfair pl-4">
+              {organization?.name ?? "Hostly"}
+            </a>
+          </div>
           {/* Left Side: Toggle Button */}
           <div className="flex items-center">
             <button

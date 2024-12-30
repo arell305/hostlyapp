@@ -13,7 +13,12 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Loader2 } from "lucide-react";
 import { BsFillXCircleFill } from "react-icons/bs";
-import { EventData, EventFormData, GuestListInfo, TicketInfo } from "@/types";
+import {
+  EventData,
+  EventFormData,
+  GuestListInfo,
+  TicketInfo,
+} from "@/types/types";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";

@@ -4,7 +4,7 @@ import useModal from "../../hooks/useModal";
 import TermsModal from "../modals/TermsModal";
 import PrivacyModal from "../modals/PrivacyModal";
 import CreditsModal from "../modals/CreditsModal";
-import { EMAIL, PHONE, PHONE_HREF, TITLE } from "../../constants";
+import { EMAIL, PHONE, PHONE_HREF, TITLE } from "../../types/constants";
 import { faEnvelope, faPhone } from "@fortawesome/free-solid-svg-icons";
 
 const Footer: React.FC = () => {

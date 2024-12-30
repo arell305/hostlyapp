@@ -7,7 +7,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { canCreateEvents } from "./utils/helpers";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ClerkPermissionsEnum } from "@/utils/enums";
+import { ClerkPermissionsEnum } from "@/types/enums";
 
 function isCreateEventRoute(req: NextRequest) {
   const path = req.nextUrl.pathname;

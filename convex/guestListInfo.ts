@@ -4,8 +4,8 @@ import {
   EventSchema,
   InsertGuestListResponse,
   UpdateGuestListCloseTimeResponse,
-} from "@/types";
-import { ErrorMessages } from "@/utils/enums";
+} from "@/types/types";
+import { ErrorMessages } from "@/types/enums";
 import { ResponseStatus } from "../utils/enum";
 import { Id } from "./_generated/dataModel";
 

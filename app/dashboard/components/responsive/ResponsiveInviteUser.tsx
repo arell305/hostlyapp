@@ -7,7 +7,7 @@ import { isValidEmail } from "../../../../utils/helpers";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import InviteUserModal from "../modals/InviteUserModal";
 import InviteUserDrawer from "../drawer/InviteUserDrawer";
-import { PendingInvitationUser } from "@/types";
+import { PendingInvitationUser } from "@/types/types";
 
 interface ResponsiveInviteUserProps {
   isOpen: boolean;

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import BackButton from "@/dashboard/components/BackButton";
-import { EventData, GuestListInfo, TicketInfo } from "@/types";
+import { EventData, GuestListInfo, TicketInfo } from "@/types/types";
 import { Protect } from "@clerk/nextjs";
 import { useState } from "react";
 

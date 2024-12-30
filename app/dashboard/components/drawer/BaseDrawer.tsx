@@ -21,6 +21,7 @@ export interface BaseDrawerProps {
   cancelText: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  isLoading: boolean;
   confirmVariant?:
     | "default"
     | "destructive"
@@ -28,6 +29,7 @@ export interface BaseDrawerProps {
     | "secondary"
     | "ghost"
     | "link";
+  error: string | null;
 }
 
 const BaseDrawer: React.FC<BaseDrawerProps> = ({
@@ -40,21 +42,9 @@ const BaseDrawer: React.FC<BaseDrawerProps> = ({
   isOpen,
   onOpenChange,
   confirmVariant = "default",
+  isLoading,
+  error,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async () => {
-    const result = onSubmit();
-    if (result instanceof Promise) {
-      setIsLoading(true);
-      try {
-        await result;
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerContent>
@@ -62,11 +52,16 @@ const BaseDrawer: React.FC<BaseDrawerProps> = ({
           <Button style={{ display: "none" }} />
         </DrawerTrigger>
         <DrawerHeader>
-          <DrawerTitle>{title}</DrawerTitle>
+          <DrawerTitle className="mb-2">{title}</DrawerTitle>
           <DrawerDescription>{description}</DrawerDescription>
         </DrawerHeader>
         {children}
-        <DrawerFooter className="flex flex-row gap-0">
+        <p
+          className={`pl-4 text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
+        >
+          {error || "Placeholder to maintain height"}
+        </p>{" "}
+        <DrawerFooter className="flex flex-row gap-2 mb-6 mt-2">
           <DrawerClose className="flex-1">
             <Button variant="ghost" className="w-full" disabled={isLoading}>
               {cancelText}
@@ -74,7 +69,7 @@ const BaseDrawer: React.FC<BaseDrawerProps> = ({
           </DrawerClose>
           <Button
             variant={confirmVariant}
-            onClick={handleSubmit}
+            onClick={onSubmit}
             className="flex-1"
             disabled={isLoading}
           >

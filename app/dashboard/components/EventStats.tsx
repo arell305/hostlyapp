@@ -1,4 +1,4 @@
-import { PLUS_GUEST_LIST_LIMIT } from "@/constants";
+import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
 import React from "react";
 import { IoCalendarClearOutline } from "react-icons/io5";
 import { MdListAlt } from "react-icons/md";

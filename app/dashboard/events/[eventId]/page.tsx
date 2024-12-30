@@ -203,14 +203,14 @@ export default function EventPageWrapper() {
     return <EventInfoSkeleton />;
   }
 
-  // Check for various response statuses
-  if (getEventByIdResponse?.status === ResponseStatus.NOT_FOUND) {
-    return <NotFound text={"event"} />;
-  }
+  // // Check for various response statuses
+  // if (getEventByIdResponse?.status === ResponseStatus.NOT_FOUND) {
+  //   return <NotFound text={"event"} />;
+  // }
 
-  if (getEventByIdResponse?.status === ResponseStatus.UNAUTHORIZED) {
-    return <UnauthorizedComponent />;
-  }
+  // if (getEventByIdResponse?.status === ResponseStatus.UNAUTHORIZED) {
+  //   return <UnauthorizedComponent />;
+  // }
 
   if (
     (getEventByIdResponse?.status === ResponseStatus.ERROR &&

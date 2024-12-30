@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { TicketInfo } from "@/types";
+import { TicketInfo } from "@/types/types";
 import React, { useState } from "react";
 import { CiCircleMinus, CiCirclePlus } from "react-icons/ci";
 import { formatCurrency } from "../../../../utils/helpers";

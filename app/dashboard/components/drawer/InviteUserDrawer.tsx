@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { UserRole, roleMap } from "../../../../utils/enum";
-import { changeableRoles } from "@/utils/enums";
+import { changeableRoles } from "@/types/enums";
 import {
   Select,
   SelectTrigger,
@@ -47,6 +47,8 @@ const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({
       onSubmit={onSubmit}
       confirmText={isLoading ? "Inviting..." : "Invite"}
       cancelText="Cancel"
+      error={inviteError}
+      isLoading={isLoading}
     >
       <div className="space-y-4 px-4">
         <Input
@@ -74,11 +76,6 @@ const InviteUserDrawer: React.FC<InviteUserDrawerProps> = ({
             ))}
           </SelectContent>
         </Select>
-        <p
-          className={`text-sm mt-1 ${inviteError ? "text-red-500" : "text-transparent"}`}
-        >
-          {inviteError || "Placeholder to maintain height"}
-        </p>
       </div>
     </BaseDrawer>
   );

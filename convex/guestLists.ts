@@ -1,4 +1,4 @@
-import { ErrorMessages } from "@/utils/enums";
+import { ErrorMessages } from "@/types/enums";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { nanoid } from "nanoid";
@@ -12,7 +12,7 @@ import {
   GuestListSchema,
   NewGuest,
   UpdateGuestNameResponse,
-} from "@/types";
+} from "@/types/types";
 import { Id } from "./_generated/dataModel";
 
 export const addGuestList = mutation({
@@ -26,7 +26,7 @@ export const addGuestList = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -34,7 +34,7 @@ export const addGuestList = mutation({
 
       if (identity.role !== UserRole.Promoter) {
         return {
-          status: ResponseStatus.UNAUTHORIZED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.FORBIDDEN,
         };
@@ -42,7 +42,7 @@ export const addGuestList = mutation({
       const event: EventSchema | null = await ctx.db.get(args.eventId);
       if (!event) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -72,7 +72,7 @@ export const addGuestList = mutation({
           names: updatedNames,
         });
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: {
             guestListId: existingGuestList._id,
             names: updatedNames,
@@ -89,7 +89,7 @@ export const addGuestList = mutation({
       );
 
       return {
-        status: ResponseStatus.NOT_FOUND,
+        status: ResponseStatus.ERROR,
         data: {
           guestListId: newGuestListId,
           names: newGuestObjects,
@@ -118,7 +118,7 @@ export const getGuestListByPromoter = query({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -137,7 +137,7 @@ export const getGuestListByPromoter = query({
 
       if (!guestList) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -177,7 +177,7 @@ export const updateGuestName = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -185,7 +185,7 @@ export const updateGuestName = mutation({
 
       if (identity.role !== UserRole.Promoter) {
         return {
-          status: ResponseStatus.UNAUTHORIZED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.FORBIDDEN,
         };
@@ -194,7 +194,7 @@ export const updateGuestName = mutation({
 
       if (!guestList) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -249,7 +249,7 @@ export const deleteGuestName = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -257,7 +257,7 @@ export const deleteGuestName = mutation({
 
       if (identity.role !== UserRole.Promoter) {
         return {
-          status: ResponseStatus.UNAUTHORIZED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.FORBIDDEN,
         };
@@ -267,7 +267,7 @@ export const deleteGuestName = mutation({
 
       if (!guestList) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -278,7 +278,7 @@ export const deleteGuestName = mutation({
       );
       if (updatedNames.length === guestList.names.length) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: "Guest not found in the list",
         };

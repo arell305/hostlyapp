@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins, Playfair_Display, Raleway } from "next/font/google";
 import "./globals.css";
-import { TITLE, DESC, META_DESC, WEBSITE } from "./constants";
+import { TITLE, DESC, META_DESC, WEBSITE } from "./types/constants";
 import { Providers } from "./providers";
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";

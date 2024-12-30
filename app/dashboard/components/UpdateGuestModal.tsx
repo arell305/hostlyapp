@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { CiCirclePlus } from "react-icons/ci";
 import { CiCircleMinus } from "react-icons/ci";
-import { GuestCheckIn } from "@/types";
+import { GuestCheckIn } from "@/types/types";
 
 interface UpdateGuestModalProps {
   isOpen: boolean;

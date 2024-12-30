@@ -1,4 +1,4 @@
-import { ErrorMessages } from "@/utils/enums";
+import { ErrorMessages } from "@/types/enums";
 import { ResponseStatus } from "../utils/enum";
 import { query } from "./_generated/server";
 import { v } from "convex/values";
@@ -8,7 +8,7 @@ import {
   PromoCodeUsage,
   PromoCodeUsageData,
   TotalUsage,
-} from "@/types";
+} from "@/types/types";
 
 export const getPromoCodeUsageByPromoterAndEvent = query({
   args: {

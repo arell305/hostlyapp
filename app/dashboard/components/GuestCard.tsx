@@ -150,7 +150,7 @@ import React, { useState } from "react";
 import { FaEllipsisV, FaCheckCircle } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { formatArrivalTime } from "../../../utils/helpers";
-import { GuestWithPromoter } from "@/types";
+import { GuestWithPromoter } from "@/types/types";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { Badge } from "@/components/ui/badge";
 

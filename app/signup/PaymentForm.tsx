@@ -24,7 +24,7 @@ import {
 import { api } from "../../convex/_generated/api";
 import { useAction } from "convex/react";
 import { useRouter } from "next/navigation";
-import { PricingOption } from "@/types";
+import { PricingOption } from "@/types/types";
 import { ERROR_MESSAGES } from "../../constants/errorMessages";
 
 const stripePromise = loadStripe(

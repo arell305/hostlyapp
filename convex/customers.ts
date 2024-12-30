@@ -19,13 +19,13 @@ import {
   GetCustomerDetailsResponse,
   ResumeSubscriptionResponse,
   UpdateListEventCountResponse,
-} from "../app/types";
+} from "../app/types/types";
 import { getFutureISOString } from "../utils/helpers";
 import { SubscriptionStatusConvex, SubscriptionTierConvex } from "./schema";
 import { DateTime } from "luxon";
 import { internal } from "./_generated/api";
 import Stripe from "stripe";
-import { ErrorMessages } from "@/utils/enums";
+import { ErrorMessages } from "@/types/enums";
 
 export const insertCustomerAndSubscription = internalMutation({
   args: {
@@ -161,7 +161,7 @@ export const updateGuestListEventCount = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -171,7 +171,7 @@ export const updateGuestListEventCount = mutation({
 
       if (!customer) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -259,7 +259,7 @@ export const getCustomerDetails = action({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -271,7 +271,7 @@ export const getCustomerDetails = action({
       );
       if (!existingCustomer) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -347,7 +347,7 @@ export const cancelSubscription = action({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -360,7 +360,7 @@ export const cancelSubscription = action({
 
       if (!existingCustomer) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -412,7 +412,7 @@ export const resumeSubscription = action({
       );
       if (!existingCustomer) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };

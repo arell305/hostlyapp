@@ -1,4 +1,4 @@
-import { EventData, GuestListInfo } from "@/types";
+import { EventData, GuestListInfo } from "@/types/types";
 import React from "react";
 import PromoterGuestList from "@/dashboard/components/PromoterGuestList";
 import EventGuestList from "@/dashboard/components/EventGuestList";

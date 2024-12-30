@@ -6,7 +6,7 @@ import {
   GuestListInfoWithoutEventId,
   TicketInfo,
   TicketInfoWithoutEventId,
-} from "@/types";
+} from "@/types/types";
 import TopRowNav from "./TopRowNav";
 import ConfirmModal from "@/dashboard/components/ConfirmModal";
 import TabsNav from "./TabsNav";

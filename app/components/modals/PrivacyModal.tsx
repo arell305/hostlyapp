@@ -1,4 +1,4 @@
-import { TITLE, UPDATED_DATE } from "../../constants";
+import { TITLE, UPDATED_DATE } from "../../types/constants";
 
 interface ModalProps {
   handleClose: () => void;

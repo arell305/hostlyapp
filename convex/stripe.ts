@@ -12,7 +12,7 @@ import {
   insertCustomerAndSubscription,
 } from "./customers";
 import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
-import { Customer, CustomerWithPayment } from "@/types";
+import { Customer, CustomerWithPayment } from "@/types/types";
 import { ERROR_MESSAGES } from "../constants/errorMessages";
 import { getFutureISOString } from "../utils/helpers";
 import { SubscriptionTierConvex } from "./schema";

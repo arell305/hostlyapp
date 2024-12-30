@@ -1,5 +1,5 @@
 import { pricingOptions } from "../constants/pricingOptions";
-import { PricingOption } from "@/types";
+import { PricingOption } from "@/types/types";
 import { OrganizationJSON } from "@clerk/backend";
 import { SubscriptionTier, UserRoleEnum } from "./enum";
 import { parseISO } from "date-fns";

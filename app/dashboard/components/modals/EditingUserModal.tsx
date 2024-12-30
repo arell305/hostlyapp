@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserRole, roleMap } from "../../../../utils/enum";
-import { changeableRoles } from "@/utils/enums";
+import { changeableRoles } from "@/types/enums";
 
 interface EditingUserModalProps {
   isOpen: boolean;

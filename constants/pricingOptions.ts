@@ -1,5 +1,5 @@
-import { PLUS_GUEST_LIST_LIMIT } from "@/constants";
-import { PricingOption } from "../app/types";
+import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
+import { PricingOption } from "../app/types/types";
 import { SubscriptionTier } from "../utils/enum";
 
 export const pricingOptions: PricingOption[] = [

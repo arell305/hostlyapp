@@ -86,6 +86,7 @@ export default defineSchema({
     customerId: v.optional(v.id("customers")),
     role: v.union(RoleConvex, v.null()),
     name: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
     promoterPromoCode: v.optional(
       v.object({
         promoCodeId: v.id("promoterPromoCode"),
@@ -103,6 +104,7 @@ export default defineSchema({
     eventIds: v.array(v.id("events")),
     customerId: v.id("customers"),
     promoDiscount: v.number(),
+    isActive: v.optional(v.boolean()),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
     .index("by_name", ["name"]),

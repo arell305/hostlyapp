@@ -6,6 +6,9 @@ import {
   query,
 } from "./_generated/server";
 import { RoleConvex } from "./schema";
+import { FindUserByClerkIdResponse, UserSchema } from "@/types/types";
+import { ResponseStatus } from "../utils/enum";
+import { ErrorMessages } from "@/types/enums";
 
 export const createUser = internalMutation({
   args: {
@@ -44,6 +47,7 @@ export const updateUser = internalMutation({
     newEmail: v.optional(v.string()),
     acceptedInvite: v.optional(v.boolean()), // In case you want to update the email
     name: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     try {
@@ -65,6 +69,7 @@ export const updateUser = internalMutation({
         email: args.newEmail || user.email,
         acceptedInvite: args.acceptedInvite || user.acceptedInvite,
         name: args.name || user.name,
+        imageUrl: args.imageUrl || user.imageUrl,
       });
 
       return user._id;
@@ -128,11 +133,45 @@ export const findUserByEmail = internalQuery({
 
 export const findUserByClerkId = query({
   args: { clerkUserId: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
-      .first();
+  handler: async (ctx, args): Promise<FindUserByClerkIdResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
+        .first();
+
+      if (!user) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          user,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
   },
 });
 

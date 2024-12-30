@@ -8,7 +8,10 @@ import GuestCard from "./GuestCard";
 import { toast } from "@/hooks/use-toast";
 import UpdateGuestModal from "./UpdateGuestModal";
 import DetailsSkeleton from "./loading/DetailsSkeleton";
-import { GetEventWithGuestListsResponse, GuestWithPromoter } from "@/types";
+import {
+  GetEventWithGuestListsResponse,
+  GuestWithPromoter,
+} from "@/types/types";
 
 interface EventGuestListProps {
   eventId: Id<"events">;

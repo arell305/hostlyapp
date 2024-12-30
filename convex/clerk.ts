@@ -12,14 +12,13 @@ import {
   ClerkOrganization,
   CreateClerkInvitationResponse,
   Customer,
-  DeleteClerkUserResponse,
   GetOrganizationMembershipsData,
   GetOrganizationMembershipsResponse,
   GetPendingInvitationListResponse,
   Membership,
   PendingInvitationUser,
   RevokeOrganizationInvitationResponse,
-} from "@/types";
+} from "@/types/types";
 import {
   RoleConvex,
   SubscriptionStatusConvex,
@@ -27,8 +26,16 @@ import {
 } from "./schema";
 import { internal } from "./_generated/api";
 import { Organization } from "@clerk/nextjs/server";
-import { ClerkRoleEnum, ErrorMessages } from "@/utils/enums";
+import { ClerkRoleEnum, ErrorMessages } from "@/types/enums";
 import { ResponseStatus } from "../utils/enum";
+import {
+  CreateOrganizationResponse,
+  DeleteClerkUserResponse,
+  UpdateOrganizationMembershipsResponse,
+  UpdateOrganizationMetadataResponse,
+  UpdateOrganizationResponse,
+} from "@/types/convex-types";
+import { updateOrganizationPromoDiscount } from "./organizations";
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -46,7 +53,7 @@ export const getOrganizationMemberships = action({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -96,7 +103,7 @@ export const getPendingInvitationList = action({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -136,26 +143,50 @@ export const getPendingInvitationList = action({
 
 export const updateOrganizationMemberships = action({
   args: { clerkOrgId: v.string(), clerkUserId: v.string(), role: RoleConvex },
-  handler: async (ctx, args) => {
-    console.log("args", args);
-    const clerkClient = createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY,
-    });
-
+  handler: async (
+    ctx,
+    args
+  ): Promise<UpdateOrganizationMembershipsResponse> => {
     try {
-      await clerkClient.organizations.updateOrganizationMembership({
-        organizationId: args.clerkOrgId,
-        userId: args.clerkUserId,
-        role: args.role,
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      const clerkClient = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY,
       });
-      await ctx.runMutation(internal.users.updateUserById, {
-        clerkUserId: args.clerkUserId,
-        role: args.role,
-      });
-      return { success: true, message: "Membership updated successfully." };
-    } catch (err) {
-      console.log("Failed to update organization membership: ", err);
-      return { success: false, message: "Failed to update membership." };
+
+      await Promise.all([
+        clerkClient.organizations.updateOrganizationMembership({
+          organizationId: args.clerkOrgId,
+          userId: args.clerkUserId,
+          role: args.role,
+        }),
+        ctx.runMutation(internal.users.updateUserById, {
+          clerkUserId: args.clerkUserId,
+          role: args.role,
+        }),
+      ]);
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          clerkUserId: args.clerkUserId,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });
@@ -167,7 +198,7 @@ export const deleteClerkUser = action({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -213,7 +244,7 @@ export const createClerkInvitation = action({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -258,7 +289,7 @@ export const revokeOrganizationInvitation = action({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -297,11 +328,20 @@ export const createOrganization = action({
     clerkUserId: v.string(),
     email: v.string(),
   },
-  handler: async (ctx, args) => {
-    const clerkClient = createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY,
-    });
+  handler: async (ctx, args): Promise<CreateOrganizationResponse> => {
     try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      const clerkClient = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+
       const existingCustomer: Customer | null = await ctx.runQuery(
         internal.customers.findCustomerByEmail,
         {
@@ -310,22 +350,38 @@ export const createOrganization = action({
       );
 
       if (!existingCustomer) {
-        throw new Error("Customer not found");
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
       }
 
-      const org = await clerkClient.organizations.createOrganization({
-        name: args.name,
-        createdBy: args.clerkUserId,
-        publicMetadata: {
-          tier: existingCustomer.subscriptionTier,
-          status: existingCustomer.subscriptionStatus,
-        },
-      });
+      const org: Organization =
+        await clerkClient.organizations.createOrganization({
+          name: args.name,
+          createdBy: args.clerkUserId,
+          publicMetadata: {
+            tier: existingCustomer.subscriptionTier,
+            status: existingCustomer.subscriptionStatus,
+          },
+        });
 
-      return org.id;
-    } catch (err) {
-      console.log("Failed to create organization", err);
-      return null;
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          clerkOrgId: org.id,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });
@@ -335,21 +391,40 @@ export const updateOrganization = action({
     name: v.string(),
     clerkOrganizationId: v.string(),
   },
-  handler: async (ctx, args) => {
-    const clerkClient = createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY,
-    });
+  handler: async (ctx, args): Promise<UpdateOrganizationResponse> => {
     try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      const clerkClient = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
       await clerkClient.organizations.updateOrganization(
         args.clerkOrganizationId,
         {
           name: args.name,
         }
       );
-      return { success: true, message: "Organization Updated" };
-    } catch (err) {
-      console.log("Failed to update organization", err);
-      return { success: false, message: "Failed to update organization." };
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          clerkOrgId: args.clerkOrganizationId,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });
@@ -408,20 +483,31 @@ export const updateOrganizationMetadata = action({
       promoDiscount: v.optional(v.number()),
     }),
   },
-  handler: async (ctx, args) => {
-    const clerkClient = createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY,
-    });
+  handler: async (ctx, args): Promise<UpdateOrganizationMetadataResponse> => {
     try {
-      const currentOrganization =
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+
+      const clerkClient = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+
+      const currentOrganization: Organization =
         await clerkClient.organizations.getOrganization({
           organizationId: args.clerkOrganizationId,
         });
-      const currentMetadata = currentOrganization.publicMetadata || {};
+      const currentMetadata: OrganizationPublicMetadata =
+        currentOrganization.publicMetadata || {};
 
-      const updatedMetadata = {
+      const updatedMetadata: OrganizationPublicMetadata = {
         ...currentMetadata,
-        ...args.params, // This will include status, tier, and promoCodeAmount if provided
+        ...args.params,
       };
 
       await clerkClient.organizations.updateOrganizationMetadata(
@@ -430,9 +516,73 @@ export const updateOrganizationMetadata = action({
           publicMetadata: updatedMetadata,
         }
       );
-    } catch (err) {
-      console.log("Failed to update metadata", err);
-      return { success: false, message: "Failed to update metadata." };
+
+      if (args.params.promoDiscount !== undefined) {
+        await ctx.runMutation(
+          internal.organizations.updateOrganizationPromoDiscount,
+          {
+            clerkOrganizationId: args.clerkOrganizationId,
+            promoDiscount: args.params.promoDiscount,
+          }
+        );
+      }
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          clerkOrgId: args.clerkOrganizationId,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+export const getClerkUser = action({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args): Promise<DeleteClerkUserResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+
+      const clerkClient = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+      await Promise.all([
+        clerkClient.users.deleteUser(args.clerkUserId),
+        ctx.runMutation(internal.users.deleteFromClerk, {
+          clerkUserId: args.clerkUserId,
+        }),
+      ]);
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          clerkUserId: args.clerkUserId,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });
