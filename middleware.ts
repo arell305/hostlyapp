@@ -8,6 +8,7 @@ import { canCreateEvents } from "./utils/helpers";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ClerkPermissionsEnum } from "@/types/enums";
+import { getOrganizationByClerkId } from "./convex/organizations";
 
 function isCreateEventRoute(req: NextRequest) {
   const path = req.nextUrl.pathname;
@@ -23,6 +24,7 @@ function isCreateEventRoute(req: NextRequest) {
     );
   }
 }
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
 
 const isEntireGuestListRoute = createRouteMatcher(["/events/(.+)/guestlist"]);
 
@@ -45,36 +47,66 @@ export default clerkMiddleware(
       return NextResponse.next();
     }
 
-    // Handle the dashboard subdomain specifically
-    if (hostname === `dashboard.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`) {
-      // Protect the dashboard route, redirect to sign-in if not authenticated
+    if (path === "/") {
+      if (auth().userId && !auth().orgId) {
+        const createCompanyUrl = new URL("/create-company", req.url);
+        return NextResponse.redirect(createCompanyUrl);
+      }
+      if (auth().userId && auth().orgId) {
+        try {
+          // Fetch the organization from Convex using the orgId
+          const organization = await convex.query(
+            api.organizations.getOrganizationByClerkId,
+            {
+              clerkOrganizationId: auth().orgId || "",
+            }
+          );
 
-      auth().protect();
-      if (isCreateEventRoute(req)) {
-        if (
-          !auth().has({ permission: ClerkPermissionsEnum.ORG_EVENTS_CREATE })
-        ) {
-          return NextResponse.redirect(new URL("/unauthorized", req.url));
+          if (organization) {
+            // Redirect to the organization's app route using the company name
+            const companyName = organization.name;
+            const redirectUrl = new URL(`/${companyName}/app`, req.url);
+            return NextResponse.redirect(redirectUrl);
+          }
+        } catch (error) {
+          console.error("Error fetching organization:", error);
+          // Optionally handle the error or continue with normal flow
         }
       }
-
-      if (isEntireGuestListRoute(req)) {
-        if (
-          !auth().has({
-            permission: ClerkPermissionsEnum.ORG_EVENTS_VIEW_ALL_GUESTLIST,
-          })
-        ) {
-          return NextResponse.redirect(new URL("/unauthorized", req.url));
-        }
-      }
-      // If authenticated, rewrite to the dashboard route
-      return NextResponse.rewrite(
-        new URL(`/dashboard${path === "/" ? "" : path}`, req.url)
-      );
     }
+    // Avoid redirect loop for the "/create-company" route
+
+    return NextResponse.next();
+
+    // Handle the dashboard subdomain specifically
+    // if (hostname === `signInFallbackRedirectUrl.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`) {
+    //   // Protect the dashboard route, redirect to sign-in if not authenticated
+
+    //   auth().protect();
+    //   if (isCreateEventRoute(req)) {
+    //     if (
+    //       !auth().has({ permission: ClerkPermissionsEnum.ORG_EVENTS_CREATE })
+    //     ) {
+    //       return NextResponse.redirect(new URL("/unauthorized", req.url));
+    //     }
+    //   }
+
+    //   if (isEntireGuestListRoute(req)) {
+    //     if (
+    //       !auth().has({
+    //         permission: ClerkPermissionsEnum.ORG_EVENTS_VIEW_ALL_GUESTLIST,
+    //       })
+    //     ) {
+    //       return NextResponse.redirect(new URL("/unauthorized", req.url));
+    //     }
+    //   }
+    //   // If authenticated, rewrite to the dashboard route
+    //   return NextResponse.rewrite(
+    //     new URL(`/dashboard${path === "/" ? "" : path}`, req.url)
+    //   );
+    // }
 
     // For non-dashboard subdomains or other routes, just proceed
-    return NextResponse.next();
   }
 );
 

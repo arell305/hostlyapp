@@ -26,8 +26,10 @@ export function Providers({ children }: PropsWithChildren) {
   return (
     <ClerkProvider
       publishableKey={clerkPublishableKey}
-      signInFallbackRedirectUrl="/"
-      signUpFallbackRedirectUrl="/"
+      signInFallbackRedirectUrl="http://localhost:3000"
+      signUpFallbackRedirectUrl="http://localhost:3000"
+      signInForceRedirectUrl="http://localhost:3000"
+      signUpForceRedirectUrl="http://localhost:3000"
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         {children}

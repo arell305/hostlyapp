@@ -5,57 +5,67 @@ import { ResponseStatus, UserRole, UserRoleEnum } from "../utils/enum";
 import {
   OrganizationsSchema,
   Promoter,
+  UserSchema,
   getPromotersByOrganizationResponse,
 } from "@/types/types";
 import { ErrorMessages } from "@/types/enums";
 import {
+  CreateOrganizationResponse,
   GetAllOrganizationsResponse,
+  GetOrganizationByNameQueryResponse,
   ListOrganizations,
 } from "@/types/convex-types";
+import { checkIsHostlyAdmin } from "../utils/helpers";
 
 export const createOrganization = internalMutation({
   args: {
     clerkOrganizationId: v.string(),
     name: v.string(),
-    clerkUserIds: v.array(v.string()),
+    clerkUserId: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<CreateOrganizationResponse> => {
     try {
-      // Get the first clerkUserId from the array
-      const firstClerkUserId = args.clerkUserIds[0];
-
-      if (!firstClerkUserId) {
-        throw new Error("No user IDs provided for this organization");
-      }
-
       // Query the user with the first clerkUserId
-      const user = await ctx.db
+      const user: UserSchema | null = await ctx.db
         .query("users")
         .withIndex("by_clerkUserId", (q) =>
-          q.eq("clerkUserId", firstClerkUserId)
+          q.eq("clerkUserId", args.clerkUserId)
         )
         .first();
+      console.log("user", user);
 
       if (!user || !user.customerId) {
-        throw new Error(
-          "No customer ID found for the first user in this organization"
-        );
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
       }
 
       // Insert the organization with the customerId
       const organizationId = await ctx.db.insert("organizations", {
         clerkOrganizationId: args.clerkOrganizationId,
         name: args.name,
-        clerkUserIds: args.clerkUserIds,
+        clerkUserIds: [args.clerkUserId],
         eventIds: [],
         customerId: user.customerId,
         promoDiscount: 0,
+        isActive: true,
       });
 
-      return organizationId;
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: { organizationId },
+      };
     } catch (error) {
-      console.error("Error creating organization:", error);
-      throw new Error("Failed to create organization");
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });
@@ -166,20 +176,57 @@ export const getOrganizationByNameQuery = query({
   args: {
     name: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<GetOrganizationByNameQueryResponse> => {
     try {
-      const organization = await ctx.db
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      console.log("name", args.name);
+      const organization: OrganizationsSchema | null = await ctx.db
         .query("organizations")
         .filter((q) => q.eq(q.field("name"), args.name))
         .first();
-
-      if (organization) {
-        return organization;
+      console.log("organi", organization);
+      if (!organization) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
       }
-      return null;
+      // const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
+
+      // if (
+      //   organization.clerkOrganizationId !==
+      //     (identity.clerk_org_id as string) &&
+      //   !isHostlyAdmin
+      // ) {
+      //   return {
+      //     status: ResponseStatus.ERROR,
+      //     data: null,
+      //     error: ErrorMessages.FORBIDDEN,
+      //   };
+      // }
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          organization,
+        },
+      };
     } catch (error) {
-      console.error("Error finding organization by ClerkId:", error);
-      return null;
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });

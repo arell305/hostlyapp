@@ -18,6 +18,7 @@ import {
   Membership,
   PendingInvitationUser,
   RevokeOrganizationInvitationResponse,
+  TransformedOrganization,
 } from "@/types/types";
 import {
   RoleConvex,
@@ -31,6 +32,7 @@ import { ResponseStatus } from "../utils/enum";
 import {
   CreateOrganizationResponse,
   DeleteClerkUserResponse,
+  UpdateOrganizationLogoResponse,
   UpdateOrganizationMembershipsResponse,
   UpdateOrganizationMetadataResponse,
   UpdateOrganizationResponse,
@@ -258,6 +260,7 @@ export const createClerkInvitation = action({
           inviterUserId: args.clerkUserId,
           emailAddress: args.email,
           role: args.role,
+          redirectUrl: "/",
         });
       return {
         status: ResponseStatus.SUCCESS,
@@ -322,69 +325,98 @@ export const revokeOrganizationInvitation = action({
   },
 });
 
-export const createOrganization = action({
-  args: {
-    name: v.string(),
-    clerkUserId: v.string(),
-    email: v.string(),
-  },
-  handler: async (ctx, args): Promise<CreateOrganizationResponse> => {
-    try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-      const clerkClient = createClerkClient({
-        secretKey: process.env.CLERK_SECRET_KEY,
-      });
+// export const createOrganization = action({
+//   args: {
+//     name: v.string(),
+//     clerkUserId: v.string(),
+//     email: v.string(),
+//   },
+//   handler: async (ctx, args): Promise<CreateOrganizationResponse> => {
+//     try {
+//       console.log("in");
+//       const identity = await ctx.auth.getUserIdentity();
+//       if (!identity) {
+//         return {
+//           status: ResponseStatus.ERROR,
+//           data: null,
+//           error: ErrorMessages.UNAUTHENTICATED,
+//         };
+//       }
+//       const clerkClient = createClerkClient({
+//         secretKey: process.env.CLERK_SECRET_KEY,
+//       });
 
-      const existingCustomer: Customer | null = await ctx.runQuery(
-        internal.customers.findCustomerByEmail,
-        {
-          email: args.email,
-        }
-      );
+//       const existingCustomer: Customer | null = await ctx.runQuery(
+//         internal.customers.findCustomerByEmail,
+//         {
+//           email: args.email,
+//         }
+//       );
 
-      if (!existingCustomer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
+//       if (!existingCustomer) {
+//         return {
+//           status: ResponseStatus.ERROR,
+//           data: null,
+//           error: ErrorMessages.NOT_FOUND,
+//         };
+//       }
 
-      const org: Organization =
-        await clerkClient.organizations.createOrganization({
-          name: args.name,
-          createdBy: args.clerkUserId,
-          publicMetadata: {
-            tier: existingCustomer.subscriptionTier,
-            status: existingCustomer.subscriptionStatus,
-          },
-        });
+//       const organization: Organization =
+//         await clerkClient.organizations.createOrganization({
+//           name: args.name,
+//           createdBy: args.clerkUserId,
+//           publicMetadata: {
+//             tier: existingCustomer.subscriptionTier,
+//             status: existingCustomer.subscriptionStatus,
+//           },
+//         });
+//       console.log("org", organization);
+//       const transformedOrganization: TransformedOrganization = {
+//         id: organization.id,
+//         name: organization.name,
+//         createdBy: organization.createdBy,
+//         publicMetadata: organization.publicMetadata,
+//       };
+//       console.log("before org");
+//       // if (args.photoFile) {
+//       //   try {
+//       //     await clerkClient.organizations.updateOrganizationLogo(
+//       //       organization.id,
+//       //       {
+//       //         file: args.photoFile,
+//       //         uploaderUserId: args.clerkUserId,
+//       //       }
+//       //     );
+//       //   } catch (error) {
+//       //     console.error("Photo upload failed", error);
+//       //     return {
+//       //       status: ResponseStatus.PARTIAL_SUCESSS,
+//       //       data: {
+//       //         organization: transformedOrganization,
+//       //       },
+//       //       error: "Photo Upload failed",
+//       //     };
+//       //   }
+//       // }
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          clerkOrgId: org.id,
-        },
-      };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
-    }
-  },
-});
+//       return {
+//         status: ResponseStatus.SUCCESS,
+//         data: {
+//           organization: transformedOrganization,
+//         },
+//       };
+//     } catch (error) {
+//       const errorMessage =
+//         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+//       console.error(errorMessage, error);
+//       return {
+//         status: ResponseStatus.ERROR,
+//         data: null,
+//         error: errorMessage,
+//       };
+//     }
+//   },
+// });
 
 export const updateOrganization = action({
   args: {
@@ -572,6 +604,68 @@ export const getClerkUser = action({
         status: ResponseStatus.SUCCESS,
         data: {
           clerkUserId: args.clerkUserId,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+export const updateOrganizationMetadataOnCreation = action({
+  args: {
+    clerkOrganizationId: v.string(),
+    email: v.string(),
+  },
+  handler: async (ctx, args): Promise<UpdateOrganizationMetadataResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+
+      const existingCustomer: Customer | null = await ctx.runQuery(
+        internal.customers.findCustomerByEmail,
+        {
+          email: args.email,
+        }
+      );
+
+      if (!existingCustomer) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.NOT_FOUND,
+        };
+      }
+      const clerkClient = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+
+      await clerkClient.organizations.updateOrganizationMetadata(
+        args.clerkOrganizationId,
+        {
+          publicMetadata: {
+            status: existingCustomer.subscriptionStatus,
+            tier: existingCustomer.subscriptionTier,
+          },
+        }
+      );
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          clerkOrgId: args.clerkOrganizationId,
         },
       };
     } catch (error) {

@@ -1,8 +1,14 @@
 import { ErrorMessages } from "@/types/enums";
 import { ResponseStatus } from "../../utils/enum";
 import { UserSchema } from "./schemas-types";
-import { OrganizationsSchema } from "./types";
+import {
+  EventSchema,
+  OrganizationsSchema,
+  TransformedOrganization,
+} from "./types";
 import { Id } from "../../convex/_generated/dataModel";
+import { PaginationResult } from "convex/server";
+import { Organization } from "@clerk/backend";
 
 export interface ErrorResponse {
   status: ResponseStatus.ERROR;
@@ -67,15 +73,22 @@ export interface ListOrganizations {
 
 export type CreateOrganizationResponse =
   | CreateOrganizationSuccess
-  | ErrorResponse;
+  | ErrorResponse
+  | CreateOrganizationPartialSuccess;
 
 export interface CreateOrganizationSuccess {
   status: ResponseStatus.SUCCESS;
   data: CreateOrganizationData;
 }
 
+export interface CreateOrganizationPartialSuccess {
+  status: ResponseStatus.PARTIAL_SUCESSS;
+  data: CreateOrganizationData;
+  error: string;
+}
+
 export interface CreateOrganizationData {
-  clerkOrgId: string;
+  organization: TransformedOrganization;
 }
 
 export type UpdateOrganizationResponse =
@@ -102,4 +115,43 @@ export interface UpdateOrganizationMetadataSuccess {
 
 export interface UpdateOrganizationMetadataData {
   clerkOrgId: string;
+}
+
+export type GetEventsByOrganizationResponse =
+  | GetEventsByOrganizationSuccess
+  | ErrorResponse;
+
+export interface GetEventsByOrganizationSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetEventsByOrganizationData;
+}
+
+export interface GetEventsByOrganizationData {
+  events: PaginationResult<EventSchema>;
+}
+
+export type GetOrganizationByNameQueryResponse =
+  | GetOrganizationByNameQuerySuccess
+  | ErrorResponse;
+
+export interface GetOrganizationByNameQuerySuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetOrganizationByNameQueryData;
+}
+
+export interface GetOrganizationByNameQueryData {
+  organization: OrganizationsSchema;
+}
+
+export type UpdateOrganizationLogoResponse =
+  | UpdateOrganizationLogoSuccess
+  | ErrorResponse;
+
+export interface UpdateOrganizationLogoSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateOrganizationLogoData;
+}
+
+export interface UpdateOrganizationLogoData {
+  organizationId: string;
 }

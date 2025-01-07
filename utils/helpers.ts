@@ -1,7 +1,11 @@
 import { pricingOptions } from "../constants/pricingOptions";
 import { PricingOption } from "@/types/types";
 import { OrganizationJSON } from "@clerk/backend";
-import { SubscriptionTier, UserRoleEnum } from "./enum";
+import {
+  SubscriptionTier,
+  UserRole as ImportedUserRole,
+  UserRoleEnum,
+} from "./enum";
 import { parseISO } from "date-fns";
 import { toZonedTime, format } from "date-fns-tz";
 import moment from "moment-timezone";
@@ -134,4 +138,19 @@ export const formatTime = (dateString: string): string => {
 
 export const formatToTimeAndShortDate = (dateString: string): string => {
   return `${moment(dateString).tz("America/Los_Angeles").format("h:mmA M/D/YY").toLowerCase()}`;
+};
+
+export const checkIsHostlyAdmin = (role: string): boolean => {
+  return (
+    role === ImportedUserRole.Hostly_Admin ||
+    role === ImportedUserRole.Hostly_Moderator
+  );
+};
+
+export const containsUnderscore = (name: string): boolean => {
+  return name.includes("_");
+};
+
+export const replaceSpacesWithHyphens = (name: string): string => {
+  return name.replace(/\s/g, "-");
 };

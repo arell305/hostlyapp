@@ -530,3 +530,40 @@ export const getEventsByOrgAndMonth = query({
     }
   },
 });
+
+import { PaginationResult, paginationOptsValidator } from "convex/server";
+import { GetEventsByOrganizationResponse } from "@/types/convex-types";
+
+export const getEventsByOrganization = query({
+  args: {
+    organizationName: v.string(),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    const currentDate = new Date().toISOString();
+    console.log("here");
+    const organization = await ctx.db
+      .query("organizations")
+      .withIndex("by_name", (q) => q.eq("name", args.organizationName))
+      .first();
+
+    if (!organization) {
+      return {
+        page: [],
+        isDone: true,
+        continueCursor: null,
+      } as unknown as PaginationResult<EventSchema>;
+    }
+
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_clerkOrganizationId", (q) =>
+        q.eq("clerkOrganizationId", organization.clerkOrganizationId)
+      )
+      .filter((q) => q.gt(q.field("endTime"), currentDate))
+      .order("asc")
+      .paginate(args.paginationOpts);
+
+    return events;
+  },
+});

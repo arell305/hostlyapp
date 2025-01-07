@@ -22,7 +22,9 @@ export const RoleConvex = v.union(
   v.literal(UserRole.Admin),
   v.literal(UserRole.Moderator),
   v.literal(UserRole.Manager),
-  v.literal(UserRole.Promoter)
+  v.literal(UserRole.Promoter),
+  v.literal(UserRole.Hostly_Moderator),
+  v.literal(UserRole.Hostly_Admin)
 );
 
 export const SubscriptionStatusConvex = v.union(

@@ -605,3 +605,10 @@ export interface OrganizationPublicMetadata {
   promoDiscount?: number | undefined;
   tier?: SubscriptionTier | undefined;
 }
+
+export interface TransformedOrganization {
+  id: string;
+  name: string;
+  createdBy: string;
+  publicMetadata: any | null;
+}

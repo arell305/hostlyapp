@@ -20,7 +20,10 @@ export const ClerkPermissionsEnum = {
 };
 
 export const changeableRoles = Object.values(UserRole).filter(
-  (role) => role !== UserRole.Admin
+  (role) =>
+    role !== UserRole.Admin &&
+    role !== UserRole.Hostly_Admin &&
+    role !== UserRole.Hostly_Moderator
 );
 
 export enum TeamSettingsModalType {

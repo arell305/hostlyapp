@@ -95,6 +95,33 @@ export const findCustomerByEmail = internalQuery({
   },
 });
 
+export const findCustomerById = internalQuery({
+  args: {
+    customerId: v.id("customers"),
+  },
+  handler: async (ctx, args): Promise<CustomerSchema | null> => {
+    try {
+      const customer: CustomerSchema | null = await ctx.db
+        .query("customers")
+        .filter((q) => q.eq(q.field("_id"), args.customerId))
+        .first();
+
+      // If a customer is found, map the `subscriptionStatus` string to the `SubscriptionStatus` enum
+      if (customer) {
+        return {
+          ...customer,
+          subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus, // Cast or map the status
+        }; // Ensure the returned type is the `Customer` interface
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error finding customer by email:", error);
+      return null;
+    }
+  },
+});
+
 const allowedFields = {
   stripeCustomerId: v.optional(v.string()),
   subscriptionStatus: v.optional(SubscriptionStatusConvex), // Adjust if SubscriptionStatus has specific values
@@ -252,7 +279,7 @@ export const resetGuestListEventAndPayment = internalMutation({
 
 export const getCustomerDetails = action({
   args: {
-    customerEmail: v.string(),
+    customerId: v.id("customers"),
   },
   handler: async (ctx, args): Promise<GetCustomerDetailsResponse> => {
     try {
@@ -266,8 +293,8 @@ export const getCustomerDetails = action({
       }
 
       const existingCustomer: CustomerSchema | null = await ctx.runQuery(
-        internal.customers.findCustomerByEmail,
-        { email: args.customerEmail }
+        internal.customers.findCustomerById,
+        { customerId: args.customerId }
       );
       if (!existingCustomer) {
         return {

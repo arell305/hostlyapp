@@ -216,30 +216,15 @@ export const createStripeSubscription = action({
         );
 
         // Step 9: Create an invitation using Clerk
-        const createInvitation = async (email: string) => {
-          const response = await fetch("https://api.clerk.dev/v1/invitations", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email_address: email,
-              ignore_existing: true,
-            }),
-          });
+        const clerkClient = createClerkClient({
+          secretKey: process.env.CLERK_SECRET_KEY,
+        });
 
-          if (!response.ok) {
-            throw new Error(
-              `Failed to create invitation: ${response.statusText}`
-            );
-          }
-
-          return await response.json();
-        };
-
-        // Usage example
-        await createInvitation(args.email);
+        const response = await clerkClient.invitations.createInvitation({
+          emailAddress: args.email,
+          ignoreExisting: true,
+        });
+        console.log("response", response);
       }
       // Return subscription details
       return { customerId: stripeCustomerId, subscriptionId: subscription.id };
@@ -248,6 +233,7 @@ export const createStripeSubscription = action({
         // Throw specific error that the frontend can handle
         throw new Error(ERROR_MESSAGES.ACTIVE_SUBSCRIPTION_EXISTS);
       }
+      console.log("error", error);
       throw new Error(ERROR_MESSAGES.SUBSCRIPTION_CREATION_FAILED);
     }
   },

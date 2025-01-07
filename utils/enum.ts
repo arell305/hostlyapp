@@ -37,6 +37,8 @@ export const roleMap: Record<string, string> = {
   "org:moderator": "Moderator",
   "org:manager": "Manager",
   "org:admin": "Admin",
+  "org:hostly_admin": "Hostly Admin",
+  "org:hostly_moderator": "Hostly Moderator",
 };
 
 export enum UserRole {
@@ -44,6 +46,8 @@ export enum UserRole {
   Moderator = "org:moderator",
   Manager = "org:manager",
   Admin = "org:admin",
+  Hostly_Admin = "org:hostly_admin",
+  Hostly_Moderator = "org:hostly_moderator",
 }
 
 export enum ActiveTab {
@@ -55,4 +59,5 @@ export enum ActiveTab {
 export enum ResponseStatus {
   SUCCESS = "success",
   ERROR = "error",
+  PARTIAL_SUCESSS = "partial success",
 }

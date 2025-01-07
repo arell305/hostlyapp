@@ -28,11 +28,12 @@
 // export default http;
 import { httpRouter } from "convex/server";
 
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 import { isOrganizationJSON } from "../utils/helpers";
-import { UserRole, UserRoleEnum } from "../utils/enum";
+import { ResponseStatus, UserRole, UserRoleEnum } from "../utils/enum";
 import { RoleConvex } from "./schema";
+import { createClerkClient } from "@clerk/backend";
 
 const http = httpRouter();
 
@@ -135,30 +136,50 @@ http.route({
           });
 
         case "organization.created":
-          // if (isOrganizationJSON(result.data)) {
-          const existingOrganization = await ctx.runQuery(
-            internal.organizations.getOrganizationByName,
-            { name: result.data.name }
-          );
-          // create new organization if it doesn't exist
-          if (!existingOrganization) {
-            await ctx.runMutation(internal.organizations.createOrganization, {
-              clerkOrganizationId: result.data.id,
-              name: result.data.name, // Use the name property instead of created_by
-              clerkUserIds: [result.data.created_by], // Replace with actual user IDs as needed
-            });
+          console.log("in if");
+          await ctx.runMutation(internal.organizations.createOrganization, {
+            clerkOrganizationId: result.data.id,
+            name: result.data.name, // Use the name property instead of created_by
+            clerkUserId: result.data.created_by, // Replace with actual user IDs as needed
+          });
 
-            await ctx.runMutation(internal.users.updateUserById, {
-              clerkUserId: result.data.created_by,
-              clerkOrganizationId: result.data.id,
-            });
-            return new Response(JSON.stringify({ message: "Success" }), {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            });
-            // }
-          }
-          console.log("Organization already exists with ID");
+          await ctx.runMutation(internal.users.updateUserById, {
+            clerkUserId: result.data.created_by,
+            clerkOrganizationId: result.data.id,
+          });
+
+          // const user = await ctx.runQuery(api.users.findUserByClerkId, {
+          //   clerkUserId: result.data.created_by,
+          // });
+
+          // if (user.status === ResponseStatus.SUCCESS) {
+          //   const customer = await ctx.runQuery(
+          //     internal.customers.findCustomerByEmail,
+          //     {
+          //       email: user.data.user.email,
+          //     }
+          //   );
+          //   console.log("customer", customer);
+          //   const clerkClient = createClerkClient({
+          //     secretKey: process.env.CLERK_SECRET_KEY,
+          //   });
+          //   await clerkClient.organizations.updateOrganizationMetadata(
+          //     result.data.id,
+          //     {
+          //       publicMetadata: {
+          //         status: customer?.subscriptionStatus,
+          //         tier: customer?.subscriptionTier,
+          //       },
+          //     }
+          //   );
+
+          //   return new Response(JSON.stringify({ message: "Success" }), {
+          //     status: 200,
+          //     headers: { "Content-Type": "application/json" },
+          //   });
+          // }
+
+          // console.log("Organization already exists with ID");
           return new Response(JSON.stringify({ message: "Success" }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
