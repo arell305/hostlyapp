@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import { TicketInfo } from "@/types/types";
 import React, { useState } from "react";
 import { CiCircleMinus, CiCirclePlus } from "react-icons/ci";
@@ -14,7 +13,7 @@ const TicketView: React.FC<TicketViewProps> = ({ ticketData }) => {
 
   if (ticketData) {
     return (
-      <div className="flex flex-col  rounded border border-altGray w-[400px] p-3 shadow">
+      <div className="flex flex-col bg-white rounded border border-altGray w-[400px] p-3 shadow">
         <h2 className="text-2xl font-bold mb-2 text-center md:text-start">
           Tickets
         </h2>

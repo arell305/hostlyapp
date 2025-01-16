@@ -22,11 +22,11 @@ interface EditingUserModalProps {
   isOpen: boolean;
   onClose: () => void;
   fullName: string;
-  selectedRole: UserRole; // Current selected role, managed by parent
-  setSelectedRole: (role: UserRole) => void; // Function to update selected role
-  error: string | null; // Error state, managed by parent
-  isLoading: boolean; // Loading state, managed by parent
-  onSaveRole: () => void; // Handler for saving the role, provided by parent
+  selectedRole: UserRole;
+  setSelectedRole: (role: UserRole) => void;
+  error: string | null;
+  isLoading: boolean;
+  onSaveRole: () => void;
 }
 
 const EditingUserModal: React.FC<EditingUserModalProps> = ({

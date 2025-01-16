@@ -19,7 +19,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-[75%] sm:w-[200px] mb-2 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring focus:ring-ring  disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 focus:ring-customDarkBlue"
+      "flex h-12 w-full mb-2 items-center justify-between rounded-md border border-input bg-background px-3 py-2  ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring focus:ring-ring  disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 focus:ring-customDarkBlue"
     )}
     {...props}
   >
@@ -104,7 +104,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    className={cn("py-1.5 pl-8 pr-2 text-lg font-semibold", className)}
     {...props}
   />
 ));

@@ -2,8 +2,6 @@
 import React, { useState, useEffect, memo, useCallback } from "react";
 import { UserButton, useAuth, useClerk } from "@clerk/nextjs";
 import { useOrganization } from "@clerk/nextjs";
-import { useUserRole } from "@/hooks/useUserRole";
-import { UserRoleEnum } from "@/types/enums";
 import EditPromoCodeDialog from "./EditPromoCodeDialog";
 import PromoterUserButton from "./PromoterUserbutton";
 import AdminUserButton from "./AdminUserButton";

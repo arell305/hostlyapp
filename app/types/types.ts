@@ -85,6 +85,7 @@ export type TicketInfoWithoutEventId = Omit<TicketInfo, "eventId">;
 export interface GuestListInfo {
   eventId: Id<"events">; // Reference to the event
   guestListCloseTime: string;
+  checkInCloseTime: string;
   guestListIds: Id<"guestLists">[]; // Array of guest list IDs
 }
 export type GuestListInfoWithoutEventId = Omit<GuestListInfo, "eventId">;
@@ -96,19 +97,17 @@ export interface EventData {
   description: string | null;
   startTime: string;
   endTime: string;
-  ticketInfoId?: Id<"ticketInfo"> | null; // Optional reference to ticket info
-  photo?: Id<"_storage"> | null; // Optional reference to photo storage
-  guestListInfoId?: Id<"guestListInfo"> | null; // Optional reference to guest list info
-  venue?: {
-    venueName?: string;
-    address?: string;
-  };
+  ticketInfoId?: Id<"ticketInfo"> | null;
+  photo: Id<"_storage"> | null; // Optional reference to photo storage
+  guestListInfoId: Id<"guestListInfo"> | null;
+  address: string;
+  isActive?: boolean;
 }
 
 export interface GetEventByIdResponse {
   status: ResponseStatus;
   data: {
-    event: EventData;
+    event: EventSchema;
     ticketInfo?: TicketInfo | null;
     guestListInfo?: GuestListInfo | null;
   } | null;
@@ -208,9 +207,10 @@ export interface EventSchema {
   startTime: string; // ISO date string
   endTime: string; // ISO date string
   ticketInfoId?: Id<"ticketInfo"> | null;
-  photo?: Id<"_storage"> | null;
+  photo: Id<"_storage"> | null;
   guestListInfoId?: Id<"guestListInfo"> | null;
-  venue?: VenueSchema; // Define Venue type as needed
+  address: string;
+  isActive: boolean;
 }
 
 export interface VenueSchema {
@@ -342,32 +342,13 @@ export interface OrganizationsSchema {
   promoDiscount: number;
 }
 
-export interface AddEventResponse {
-  status: ResponseStatus;
-  data: Id<"events"> | null;
-  error?: string | null;
-}
-
 export interface EventFormInput {
   name: string;
   description: string | null;
   startTime: string;
   endTime: string;
   photo: Id<"_storage"> | null;
-  venue?: VenueSchema; // Replace `Venue` with its actual type definition if needed
-}
-
-export interface EventSchema {
-  _id: Id<"events">; // Assuming this is the ID type for events
-  clerkOrganizationId: string;
-  name: string;
-  description: string | null;
-  startTime: string; // ISO date string
-  endTime: string; // ISO date string
-  ticketInfoId?: Id<"ticketInfo"> | null;
-  photo?: Id<"_storage"> | null;
-  guestListInfoId?: Id<"guestListInfo"> | null;
-  venue?: VenueSchema; // Define Venue type as needed
+  address: string; // Replace `Venue` with its actual type definition if needed
 }
 
 export interface InsertTicektResponse {
@@ -392,6 +373,7 @@ export interface InsertGuestListResponse {
 
 export interface GuestListFormInput {
   guestListCloseTime: string;
+  checkInCloseTime: string;
 }
 
 export interface UpdateListEventCountResponse {
@@ -415,7 +397,7 @@ export interface CustomerSchema {
   subscriptionTier: SubscriptionTier;
   nextPayment: string | null;
   cancelAt: string | null;
-  guestListEventCount?: number;
+  subscriptionStartDate: string;
 }
 
 export interface UpdateTicketInfoResponse {
@@ -450,16 +432,6 @@ export interface UpdateGuestListCloseTimeData {
   guestListInfoId: Id<"guestListInfo">;
 }
 
-export interface UpdateEventResponse {
-  status: ResponseStatus;
-  data: UpdateEventData | null;
-  error?: string | null;
-}
-
-export interface UpdateEventData {
-  eventId: Id<"events">;
-}
-
 export interface UpdateEventFields {
   name?: string;
   description?: string | null;
@@ -473,7 +445,7 @@ export interface UpdateEventFields {
 
 export interface CancelEventResponse {
   status: ResponseStatus;
-  data: UpdateEventData | null;
+  data: CancelEventData | null;
   error?: string | null;
 }
 

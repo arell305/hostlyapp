@@ -1,25 +1,16 @@
 "use client";
-import {
-  Protect,
-  useAuth,
-  useClerk,
-  useOrganization,
-  useUser,
-} from "@clerk/nextjs";
+import { Protect, useAuth, useClerk } from "@clerk/nextjs";
 import React, { useEffect, useState } from "react";
 import { useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Membership, PendingInvitationUser } from "@/types/types";
 import MemberCard from "./MemberCard";
 import { ResponseStatus, UserRole } from "../../../../utils/enum";
-import ConfirmModal from "../components/ConfirmModal";
 import { useToast } from "@/hooks/use-toast";
 import PendingUserCard from "./PendingUserCard";
-import { PiPlusCircle } from "react-icons/pi";
 import SkeletonMemberCard from "../components/loading/MemberCardSkeleton";
 import ResponsiveConfirm from "@/[companyName]/app/components/responsive/ResponsiveConfirm";
 import ResponsiveInviteUser from "../components/responsive/ResponsiveInviteUser";
-import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
 
 const Team = () => {
@@ -55,15 +46,11 @@ const Team = () => {
   const [error, setError] = useState<string | null>(null);
 
   const deleteClerkUser = useAction(api.clerk.deleteClerkUser);
-  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false);
   const [errorRevoke, setErrorRevoke] = useState<string | null>(null);
   const [isRevokeLoading, setIsRevokeLoading] = useState<boolean>(false);
   const [revokeUserId, setRevokeUserId] = useState<string | null>(null);
 
-  const [selectedClerkUserId, setSelectedClerkUserId] = useState<string | null>(
-    null
-  );
   const [activeTab, setActiveTab] = useState<"active" | "pending">("active");
   const [pendingUsers, setPendingUsers] = useState<PendingInvitationUser[]>([]);
   const [loadingMembers, setLoadingMembers] = useState<boolean>(false);

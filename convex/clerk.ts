@@ -12,13 +12,11 @@ import {
   ClerkOrganization,
   CreateClerkInvitationResponse,
   Customer,
-  GetOrganizationMembershipsData,
   GetOrganizationMembershipsResponse,
   GetPendingInvitationListResponse,
   Membership,
   PendingInvitationUser,
   RevokeOrganizationInvitationResponse,
-  TransformedOrganization,
 } from "@/types/types";
 import {
   RoleConvex,
@@ -27,17 +25,14 @@ import {
 } from "./schema";
 import { internal } from "./_generated/api";
 import { Organization } from "@clerk/nextjs/server";
-import { ClerkRoleEnum, ErrorMessages } from "@/types/enums";
+import { ErrorMessages } from "@/types/enums";
 import { ResponseStatus } from "../utils/enum";
 import {
-  CreateOrganizationResponse,
   DeleteClerkUserResponse,
-  UpdateOrganizationLogoResponse,
   UpdateOrganizationMembershipsResponse,
   UpdateOrganizationMetadataResponse,
   UpdateOrganizationResponse,
 } from "@/types/convex-types";
-import { updateOrganizationPromoDiscount } from "./organizations";
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -260,7 +255,6 @@ export const createClerkInvitation = action({
           inviterUserId: args.clerkUserId,
           emailAddress: args.email,
           role: args.role,
-          redirectUrl: "/",
         });
       return {
         status: ResponseStatus.SUCCESS,

@@ -5,7 +5,6 @@ import { UserRole, roleMap } from "../../../../../utils/enum";
 import { GoPencil } from "react-icons/go";
 
 interface UserIdContentProps {
-  currentClerkUserId: string;
   userData: UserSchema;
   onBack: () => void;
   onDelete: () => void;
@@ -13,7 +12,6 @@ interface UserIdContentProps {
   has: any;
 }
 const UserIdContent: React.FC<UserIdContentProps> = ({
-  currentClerkUserId,
   userData,
   onBack,
   onDelete,
@@ -25,12 +23,9 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
   const isHostlyAdmin =
     has({ role: UserRole.Hostly_Admin }) ||
     has({ role: UserRole.Hostly_Moderator });
-  const canEditUsers =
-    (has({ role: UserRole.Manager }) || isAdmin) &&
-    currentClerkUserId !== userData.clerkUserId;
+  const canEditUsers = has({ role: UserRole.Manager }) || isAdmin;
 
   const canDeleteAdminMods = isHostlyPage && isHostlyAdmin;
-
   return (
     <section className="container mx-auto  max-w-3xl ">
       <div className="flex justify-between mt-4">

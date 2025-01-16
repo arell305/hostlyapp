@@ -1,24 +1,13 @@
 "use client";
 
-import {
-  Protect,
-  useAuth,
-  useClerk,
-  useOrganization,
-  useOrganizationList,
-  useUser,
-} from "@clerk/nextjs";
+import { useAuth, useClerk, useOrganizationList } from "@clerk/nextjs";
 import { ChangeEvent, useEffect, useState } from "react";
-import { RiArrowRightSLine } from "react-icons/ri";
-import TeamNameModal from "../components/modals/EditTeamNameModal";
-import { TeamSettingsModalType } from "@/types/enums";
 import { GoPencil } from "react-icons/go";
 import ResponsiveTeamName from "../components/responsive/ResponsiveTeamName";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import { ResponseStatus, UserRole } from "../../../../utils/enum";
-import ResponsivePromoAmount from "../components/responsive/ResponsivePromoDiscount";
 import ResponsivePromoDiscount from "../components/responsive/ResponsivePromoDiscount";
 import Image from "next/image";
 import ResponsiveCompanyImage from "../components/responsive/ResponsiveCompanyImage";
@@ -26,6 +15,7 @@ import { useParams, useRouter } from "next/navigation";
 
 const CompanySettings = () => {
   const { organization, user, loaded } = useClerk();
+  const { toast } = useToast();
   const router = useRouter();
   const { isLoaded, setActive } = useOrganizationList({
     userMemberships: true,
@@ -43,8 +33,6 @@ const CompanySettings = () => {
     cleanCompanyName ? { name: cleanCompanyName } : "skip"
   );
 
-  console.log("org", organizationData);
-  // company name settings
   const [companyName, setCompanyName] = useState<string | null | undefined>(
     organizationData?.data?.organization.name
   );
@@ -88,7 +76,6 @@ const CompanySettings = () => {
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
-  console.log("orgData", organizationData);
 
   const handleSaveCompanyPhoto = async () => {
     if (organization?.imageUrl === previewUrl) {
@@ -134,8 +121,6 @@ const CompanySettings = () => {
   const updateOrganizationMetadata = useAction(
     api.clerk.updateOrganizationMetadata
   );
-
-  const { toast } = useToast();
 
   useEffect(() => {
     setCompanyName(organizationData?.data?.organization.name);

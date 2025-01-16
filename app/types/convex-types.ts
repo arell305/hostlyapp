@@ -88,7 +88,7 @@ export interface CreateOrganizationPartialSuccess {
 }
 
 export interface CreateOrganizationData {
-  organization: TransformedOrganization;
+  organizationId: Id<"organizations">;
 }
 
 export type UpdateOrganizationResponse =
@@ -154,4 +154,43 @@ export interface UpdateOrganizationLogoSuccess {
 
 export interface UpdateOrganizationLogoData {
   organizationId: string;
+}
+
+export type AddEventResponse = AddEventResponseSuccess | ErrorResponse;
+
+export interface AddEventResponseSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: AddEventResponseData;
+}
+
+export interface AddEventResponseData {
+  eventId: Id<"events">;
+}
+
+export type CountGuestListsEventsResponse =
+  | CountGuestListsEventsSuccess
+  | ErrorResponse;
+
+export interface CountGuestListsEventsSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CountGuestListsEventsData;
+}
+
+export interface CountGuestListsEventsData {
+  countData: {
+    eventsCount: number;
+    cycleStart: string;
+    cycleEnd: string;
+  };
+}
+
+export type UpdateEventResponse = UpdateEventSuccess | ErrorResponse;
+
+export interface UpdateEventSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateEventData;
+}
+
+export interface UpdateEventData {
+  eventId: Id<"events">;
 }

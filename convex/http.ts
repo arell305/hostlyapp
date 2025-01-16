@@ -134,7 +134,15 @@ http.route({
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
-
+        case "organizationInvitation.accepted":
+          await ctx.runMutation(internal.users.updateUser, {
+            email: result.data.email_address,
+            acceptedInvite: true,
+          });
+          return new Response(JSON.stringify({ message: "Success" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
         case "organization.created":
           console.log("in if");
           await ctx.runMutation(internal.organizations.createOrganization, {

@@ -16,7 +16,7 @@ const buttonVariants = cva(
           "border border-customDarkBlue bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-white border border-customDarkBlue hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
         link: "text-primary underline-offset-4 hover:underline",
         navGhost:
           "text-customDarkBlue font-semibold hover:underline font-raleway text-base",

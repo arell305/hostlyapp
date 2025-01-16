@@ -1,36 +1,35 @@
 import BaseDrawer from "./BaseDrawer";
 import { Input } from "@/components/ui/input";
 
-interface EditTeamNameDrawerProps {
+interface EditGuestNameDrawerProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  teamName: string;
-  onUpdateTeamName: () => void;
+  editName: string;
+  setEditName: (open: string) => void;
   error: string | null;
   isLoading: boolean;
-  setTeamName: (name: string) => void;
-  setTeamNameError: (error: string | null) => void;
+  onSaveGuestName: () => Promise<void>;
+  setEditNameError: (error: string | null) => void;
 }
-
-const EditTeamNameDrawer: React.FC<EditTeamNameDrawerProps> = ({
+const EditGuestNameDrawer: React.FC<EditGuestNameDrawerProps> = ({
   isOpen,
   onOpenChange,
-  teamName,
-  onUpdateTeamName,
+  editName,
+  setEditName,
   error,
   isLoading,
-  setTeamName,
-  setTeamNameError,
+  onSaveGuestName,
+  setEditNameError,
 }) => {
   return (
     <BaseDrawer
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      title="Team Name"
-      description={`Editing team name`}
+      title="Guest Name"
+      description={`Editing guest name`}
       confirmText={isLoading ? "Saving..." : "Save"}
       cancelText="Cancel"
-      onSubmit={onUpdateTeamName}
+      onSubmit={onSaveGuestName}
       error={error}
       isLoading={isLoading}
     >
@@ -38,10 +37,10 @@ const EditTeamNameDrawer: React.FC<EditTeamNameDrawerProps> = ({
         <Input
           type="text"
           placeholder="Enter Team Name"
-          value={teamName}
+          value={editName}
           onChange={(e) => {
-            setTeamName(e.target.value);
-            setTeamNameError(null);
+            setEditName(e.target.value);
+            setEditNameError(null);
           }}
           className={error ? "border-red-500" : ""}
         />
@@ -50,4 +49,4 @@ const EditTeamNameDrawer: React.FC<EditTeamNameDrawerProps> = ({
   );
 };
 
-export default EditTeamNameDrawer;
+export default EditGuestNameDrawer;

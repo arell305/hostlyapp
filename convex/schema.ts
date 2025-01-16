@@ -37,10 +37,10 @@ export const SubscriptionStatusConvex = v.union(
   v.literal(SubscriptionStatus.UNPAID)
 );
 
-export const Venue = v.object({
-  venueName: v.optional(v.string()),
-  address: v.optional(v.string()),
-});
+// export const Venue = v.object({
+//   venueName: v.optional(v.string()),
+//   address: v.optional(v.string()),
+// });
 
 export const GuestListNames = v.object({
   id: v.string(),
@@ -73,7 +73,7 @@ export default defineSchema({
     trialEndDate: v.union(v.string(), v.null()),
     cancelAt: v.union(v.string(), v.null()),
     nextPayment: v.union(v.string(), v.null()),
-    guestListEventCount: v.optional(v.number()),
+    subscriptionStartDate: v.string(),
   }).index("by_email", ["email"]),
   promoCodes: defineTable({
     promoCode: v.string(),
@@ -119,7 +119,8 @@ export default defineSchema({
     ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
     photo: v.union(v.id("_storage"), v.null()),
     guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
-    venue: v.optional(Venue),
+    address: v.string(),
+    isActive: v.boolean(),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
     .index("by_startTime", ["startTime"]),
@@ -157,6 +158,7 @@ export default defineSchema({
   guestListInfo: defineTable({
     eventId: v.id("events"),
     guestListCloseTime: v.string(),
+    checkInCloseTime: v.string(),
     guestListIds: v.array(v.id("guestLists")),
   }).index("by_eventId", ["eventId"]),
 });

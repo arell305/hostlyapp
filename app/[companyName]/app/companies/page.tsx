@@ -1,8 +1,7 @@
 "use client";
-import { useAction, useQuery } from "convex/react";
+import { useAction } from "convex/react";
 import React, { useEffect, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { ClerkOrganization } from "@/types/types";
@@ -41,7 +40,6 @@ const PromotionalCompaniesList = () => {
     const encodedName = encodeURIComponent(companyName); // Encode the name to handle spaces and special characters
     router.push(`/${encodedName}/app/dashboard`);
   };
-  console.log(companies);
 
   return (
     <div className="justify-center  max-w-3xl  mx-auto mt-1.5 md:min-h-[300px]">

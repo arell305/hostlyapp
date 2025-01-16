@@ -16,7 +16,11 @@ import { BsFillXCircleFill } from "react-icons/bs";
 import {
   EventData,
   EventFormData,
+  EventFormInput,
+  EventSchema,
+  GuestListFormInput,
   GuestListInfo,
+  TicketFormInput,
   TicketInfo,
 } from "@/types/types";
 import { toast } from "@/hooks/use-toast";
@@ -24,15 +28,22 @@ import { useRouter } from "next/navigation";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import PropsValue from "react-google-places-autocomplete";
 import { FaTimes } from "react-icons/fa";
+import ResponsiveConfirm from "./responsive/ResponsiveConfirm";
+import { PiPlus } from "react-icons/pi";
+import { PiMinus } from "react-icons/pi";
+import { isIOS } from "../../../../utils/helpers";
+import Image from "next/image";
+import { RiImageAddFill } from "react-icons/ri";
+import imageCompression from "browser-image-compression";
 
 interface EventFormProps {
-  initialEventData?: EventData;
+  initialEventData?: EventSchema;
   initialTicketData?: TicketInfo | null;
   initialGuestListData?: GuestListInfo | null;
   onSubmit: (
-    eventData: any,
-    ticketData: any,
-    guesListData: any
+    eventData: EventFormInput,
+    ticketData: TicketFormInput | null,
+    guesListData: GuestListFormInput | null
   ) => Promise<void>;
   isEdit: boolean;
   canAddGuestListOption?: boolean;
@@ -41,6 +52,12 @@ interface EventFormProps {
   deleteGuestListInfo?: (eventId: Id<"events">) => Promise<void>;
   // onCancelEvent?: () => Promise<void>;
   onCancelEdit?: () => void;
+  saveEventError?: string | null;
+  onSubmitUpdate?: (
+    updatedEventData: EventData,
+    updatedTicketData: TicketFormInput | null,
+    updatedGuestListData: GuestListFormInput | null
+  ) => Promise<void>;
 }
 
 interface AddressValue {
@@ -67,6 +84,7 @@ const EventForm: React.FC<EventFormProps> = ({
   // onCancelEvent,
   deleteGuestListInfo,
   onCancelEdit,
+  saveEventError,
 }) => {
   // GOOGLE
   const [value, setValue] = useState<AddressValue | null>(null);
@@ -87,17 +105,16 @@ const EventForm: React.FC<EventFormProps> = ({
   const [description, setDescription] = useState(
     initialEventData?.description || ""
   );
-  const [venueName, setVenueName] = useState(
-    initialEventData?.venue?.venueName || ""
-  );
-  const [address, setAddress] = useState(
-    initialEventData?.venue?.address || ""
-  );
+
+  const [address, setAddress] = useState(initialEventData?.address || "");
 
   const [startTime, setStartTime] = useState(initialEventData?.startTime || "");
   const [endTime, setEndTime] = useState(initialEventData?.endTime || "");
-  const [guestListCloseTime, setGuestListCloseTime] = useState<string | null>(
-    initialGuestListData?.guestListCloseTime || null
+  const [guestListCloseTime, setGuestListCloseTime] = useState<string>(
+    initialGuestListData?.guestListCloseTime || ""
+  );
+  const [checkInCloseTime, setCheckInCloseTime] = useState<string>(
+    initialGuestListData?.checkInCloseTime || ""
   );
   const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
   const [photoStorageId, setPhotoStorageId] = useState<Id<"_storage"> | null>(
@@ -121,8 +138,6 @@ const EventForm: React.FC<EventFormProps> = ({
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const handleFocus = () => setIsCalendarOpen(true);
-  const handleBlur = () => setIsCalendarOpen(false);
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
     if (!file) {
@@ -133,12 +148,18 @@ const EventForm: React.FC<EventFormProps> = ({
     setIsPhotoLoading(true); // Start photo upload loading
 
     try {
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(file, options);
       const postUrl = await generateUploadUrl();
 
       const result = await fetch(postUrl, {
         method: "POST",
         headers: { "Content-Type": file.type },
-        body: file,
+        body: compressedFile,
       });
 
       if (result.ok) {
@@ -188,7 +209,6 @@ const EventForm: React.FC<EventFormProps> = ({
         onConfirm: () => {
           setIsGuestListSelected(false);
           setShowConfirmModal(false);
-          setGuestListCloseTime(null);
         },
       });
       setShowConfirmModal(true);
@@ -199,14 +219,12 @@ const EventForm: React.FC<EventFormProps> = ({
 
   const onDeleteEvent = async () => {
     try {
-      const navigationPromise = router.push("/");
       if (initialEventData) {
         await cancelEvent({ eventId: initialEventData?._id });
         toast({
           title: "Event Cancelled",
           description: "The event has been successfully cancelled.",
         });
-        navigationPromise;
       }
     } catch (error) {
       console.error("Error cancelling event:", error);
@@ -234,28 +252,28 @@ const EventForm: React.FC<EventFormProps> = ({
     setShowConfirmModal(true);
   };
 
-  const getCurrentTimeInPST = () => {
-    const pstDate = new Date().toLocaleString("en-US", {
-      timeZone: "America/Los_Angeles",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+  // const getCurrentTimeInPST = () => {
+  //   const pstDate = new Date().toLocaleString("en-US", {
+  //     timeZone: "America/Los_Angeles",
+  //     year: "numeric",
+  //     month: "2-digit",
+  //     day: "2-digit",
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //     hour12: false,
+  //   });
 
-    // Format to YYYY-MM-DDTHH:mm
-    const [date, time] = pstDate.split(", ");
-    const [month, day, year] = date.split("/");
-    // Format to YYYY-MM-DDTHH:mm
-    return `${year}-${month}-${day}T${time}`;
-  };
+  //   // Format to YYYY-MM-DDTHH:mm
+  //   const [date, time] = pstDate.split(", ");
+  //   const [month, day, year] = date.split("/");
+  //   // Format to YYYY-MM-DDTHH:mm
+  //   return `${year}-${month}-${day}T${time}`;
+  // };
 
-  useEffect(() => {
-    // Set the initial startTime to the current time in PST
-    setStartTime(getCurrentTimeInPST());
-  }, []);
+  // useEffect(() => {
+  //   // Set the initial startTime to the current time in PST
+  //   setStartTime(getCurrentTimeInPST());
+  // }, []);
 
   // Ticket state
   const [maleTicketPrice, setMaleTicketPrice] = useState(
@@ -291,6 +309,8 @@ const EventForm: React.FC<EventFormProps> = ({
     endTime?: string;
     ticketSalesEndTime?: string;
     guestListCloseTime?: string;
+    checkInCloseTime?: string;
+    address?: string;
   }>({});
   const [isLoading, setIsLoading] = useState(false);
   const priceRegex = /^\d*\.?\d{0,2}$/;
@@ -327,6 +347,11 @@ const EventForm: React.FC<EventFormProps> = ({
         }));
         hasErrors = true;
       }
+    }
+
+    if (address.trim() === "") {
+      setErrors((prev) => ({ ...prev, address: "Address must be filled." }));
+      hasErrors = true;
     }
 
     if (isTicketsSelected) {
@@ -397,6 +422,14 @@ const EventForm: React.FC<EventFormProps> = ({
         }));
         hasErrors = true;
       }
+
+      if (checkInCloseTime.trim() === "") {
+        setErrors((prev) => ({
+          ...prev,
+          checkInCloseTime: "Check in close time must be selected.",
+        }));
+        hasErrors = true;
+      }
     }
 
     if (hasErrors) {
@@ -410,10 +443,7 @@ const EventForm: React.FC<EventFormProps> = ({
         startTime: startTime.trim(),
         endTime: endTime.trim(),
         photo: photoStorageId || null,
-        venue: {
-          venueName,
-          address,
-        },
+        address: address.trim(),
       };
 
       const ticketData = isTicketsSelected
@@ -426,13 +456,19 @@ const EventForm: React.FC<EventFormProps> = ({
           }
         : null;
 
-      const guesListData = isGuestListSelected
+      const guestListData = isGuestListSelected
         ? {
             guestListCloseTime,
+            checkInCloseTime,
           }
         : null;
-      await onSubmit(eventData, ticketData, guesListData);
+
+      await onSubmit(eventData, ticketData, guestListData);
     } catch (error) {
+      setErrors((prev) => ({
+        ...prev,
+        general: "error submitting event",
+      }));
       console.error("Error submitting event:", error);
     } finally {
       setIsLoading(false);
@@ -465,6 +501,7 @@ const EventForm: React.FC<EventFormProps> = ({
     setter(utcDateTime || "");
   };
 
+  const isIOSDevice = isIOS();
   return (
     <>
       {isCalendarOpen && (
@@ -473,11 +510,65 @@ const EventForm: React.FC<EventFormProps> = ({
           onClick={() => setIsCalendarOpen(false)} // Close on clicking outside
         ></div>
       )}
-      <form onSubmit={handleSubmit} className=" p-4">
-        <div className="flex flex-col mb-4">
+      <form onSubmit={handleSubmit} className=" py-4">
+        <div className="mb-6 relative px-4">
+          <Label htmlFor="photo" className="font-bold">
+            Event Photo
+          </Label>
+
+          {/* Hidden file input */}
+          <input
+            type="file"
+            id="photo"
+            onChange={handlePhotoChange}
+            accept="image/*"
+            className="hidden" // Hide the default file input
+          />
+
+          {/* Custom upload button */}
+          <div className="flex ">
+            <label
+              htmlFor="photo"
+              className={`focus:border-customDarkBlue w-[200px] h-[200px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg hover:bg-gray-100 ${
+                displayEventPhoto
+                  ? ""
+                  : "border-2 border-dashed border-gray-300"
+              }`}
+            >
+              {isPhotoLoading ? (
+                // Loading indicator
+                <div className="text-gray-500 absolute inset-0 flex items-center justify-center bg-white opacity-75">
+                  Loading...
+                </div>
+              ) : displayEventPhoto ? (
+                <img
+                  src={displayEventPhoto}
+                  alt="Event Photo"
+                  className="w-full h-full object-cover rounded-lg"
+                  loading="lazy"
+                />
+              ) : (
+                // <span className="text-gray-500">Upload Photo</span>
+                <RiImageAddFill className="text-4xl text-gray-500" />
+              )}
+
+              {/* Remove button */}
+            </label>
+            {displayEventPhoto && (
+              <BsFillXCircleFill
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemovePhoto();
+                }}
+                className="text-gray-500 text-3xl rounded-full p-1 cursor-pointer z-10 -ml-3 -mt-2"
+              />
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col mb-6 px-4">
           <Label
             htmlFor="eventName"
-            className="font-bold font-playfair text-xl"
+            className="font-bold font-playfair text-lg"
           >
             Name*
           </Label>
@@ -493,112 +584,68 @@ const EventForm: React.FC<EventFormProps> = ({
             <p className="text-red-500">{errors.eventName}</p>
           )}
         </div>
-
-        <div className="mb-4">
-          <Label htmlFor="description">Description</Label>
+        <div className="mb-6 px-4">
+          <Label className="" htmlFor="description">
+            Description
+          </Label>
           <Textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full max-w-[500px]"
+            className="w-full max-w-[500px] mt-1"
             placeholder="Add a description for your event."
+            rows={6}
           />
         </div>
-
-        <div className="mb-4 relative">
-          <Label htmlFor="photo" className="font-bold">
-            Event Photo
-          </Label>
-
-          {/* Hidden file input */}
-          <input
-            type="file"
-            id="photo"
-            onChange={handlePhotoChange}
-            accept="image/*"
-            className="hidden" // Hide the default file input
-          />
-
-          {/* Custom upload button */}
-          <div className="flex">
-            <label
-              htmlFor="photo"
-              className="focus:border-customDarkBlue  w-[300px] border-2 border-dashed border-gray-300 h-[450px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg"
-            >
-              {isPhotoLoading ? (
-                // Loading indicator
-                <div className="absolute inset-0 flex items-center justify-center bg-white opacity-75">
-                  Loading...
-                </div>
-              ) : displayEventPhoto ? (
-                <img
-                  src={displayEventPhoto}
-                  alt="Event Photo"
-                  className="w-full h-full object-cover rounded-lg"
-                />
-              ) : (
-                <span className="text-gray-500">Upload Photo</span>
-              )}
-
-              {/* Remove button */}
-            </label>
-            {displayEventPhoto && (
-              <BsFillXCircleFill
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemovePhoto();
-                }}
-                className=" text-4xl rounded-full p-1 cursor-pointer z-10 -ml-4 -mt-3"
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="mb-4 flex flex-col ">
-          <Label htmlFor="venueName">Venue Name*</Label>
-          <Input
-            id="venueName"
-            value={venueName}
-            onChange={(e) => setVenueName(e.target.value)}
-            className="w-full max-w-[500px]"
-            placeholder="Enter venue name"
-          />
-        </div>
-
-        <div className="mb-4 flex flex-col relative justify-center ">
+        <div className="mb-6 flex flex-col relative justify-center max-w-[540px] px-4">
           <Label htmlFor="address" className="font-semibold">
             Address*
           </Label>
           <GooglePlacesAutocomplete
             apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
             selectProps={{
-              value,
+              className: "ios-input-fix",
               onChange: handleSelect,
+              value: value,
               placeholder: "Enter an address",
               styles: {
+                container: (provided) => ({
+                  ...provided,
+                }),
                 control: (provided, state) => ({
                   ...provided,
                   border: "0px",
                   borderBottom: `2px solid ${state.isFocused ? "#324E78" : "#D1D5DB"}`,
                   backgroundColor: "transparent",
-                  padding: "0.25rem 0",
                   boxShadow: "none",
                   "&:hover": {
                     borderBottomColor: state.isFocused ? "#324E78" : "#D1D5DB",
+                    borderRadius: "0",
                   },
                   maxWidth: "500px",
+                  borderRadius: "0",
+                  padding: "0",
+                  paddingRight: "10px",
+                  minHeight: "auto", // Allows the control to grow with content
+                  height: "auto",
                 }),
                 input: (provided) => ({
                   ...provided,
                   color: "#374151",
+
+                  paddingLeft: "0", // Remove left padding
+                  marginLeft: "0", // Remove left margin
                 }),
                 placeholder: (provided) => ({
                   ...provided,
                   color: "#9CA3AF",
+                  paddingLeft: "0", // Ensure no left padding for placeholder
                 }),
                 singleValue: (provided) => ({
                   ...provided,
                   color: "#374151",
+                  whiteSpace: "normal", // Allows text to wrap
+                  wordWrap: "break-word",
                 }),
                 dropdownIndicator: (provided) => ({
                   ...provided,
@@ -613,6 +660,10 @@ const EventForm: React.FC<EventFormProps> = ({
                   ...provided,
                   zIndex: 9999, // Required for React-Select portals
                 }),
+                option: (provided) => ({
+                  ...provided,
+                  paddingLeft: "10px", // Add left padding to suggestions
+                }),
               },
             }}
           />
@@ -621,121 +672,147 @@ const EventForm: React.FC<EventFormProps> = ({
             <button
               type="button"
               onClick={clearInput}
-              className="absolute right-0 top-10 p-2 text-gray-500 hover:text-gray-700"
+              className="absolute right-2 md:right-4 -bottom-4 transform -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700"
             >
               <FaTimes />
             </button>
           )}
+
+          {errors.address && <p className="text-red-500">{errors.startTime}</p>}
         </div>
-        {/* <div className="space-y-2 flex flex-col">
-        <Label htmlFor="startTime">Starts*</Label>
-        <Input
-          type="datetime-local"
-          id="startTime"
-          value={utcToPstString(startTime) || ""}
-          onChange={(e) => handleDateTimeChange(e, setStartTime)}
-          className="w-full max-w-[500px]"
-          error={errors.startTime}
-        />
-        {errors.startTime && <p className="text-red-500">{errors.startTime}</p>}
-      </div> */}
-        <div className="mb-4 flex flex-col relative z-50">
+        <div className="mb-6 flex flex-col relative  px-4">
           <Label htmlFor="startTime">Starts*</Label>
-          <Input
-            type="datetime-local"
-            id="startTime"
-            value={utcToPstString(startTime) || ""}
-            onChange={(e) => handleDateTimeChange(e, setStartTime)}
-            className={`w-full max-w-[500px] ${isCalendarOpen ? "" : ""}`}
-            error={errors.startTime}
-          />
+          <div className="relative">
+            <Input
+              type="datetime-local"
+              id="startTime"
+              value={utcToPstString(startTime) || ""}
+              onChange={(e) => handleDateTimeChange(e, setStartTime)}
+              className={`w-full max-w-[500px] h-10  ${!startTime && isIOSDevice ? "text-transparent" : ""}`}
+              error={errors.startTime}
+            />
+            {!startTime && isIOSDevice && (
+              <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                Select date and time
+              </span>
+            )}
+          </div>
           {errors.startTime && (
             <p className="text-red-500">{errors.startTime}</p>
           )}
         </div>
-
-        <div className="mb-4 flex flex-col">
+        <div className="mb-6 flex flex-col px-4">
           <Label htmlFor="endTime">Ends*</Label>
-          <Input
-            type="datetime-local"
-            id="endTime"
-            value={utcToPstString(endTime) || ""}
-            onChange={(e) => handleDateTimeChange(e, setEndTime)}
-            className="w-full max-w-[500px]"
-            error={errors.endTime}
-          />
+          <div className="relative">
+            <Input
+              type="datetime-local"
+              id="endTime"
+              value={utcToPstString(endTime) || ""}
+              onChange={(e) => handleDateTimeChange(e, setEndTime)}
+              className={`w-full max-w-[500px] h-10 ${!endTime && isIOSDevice ? "text-transparent" : ""}`}
+              error={errors.endTime}
+            />
+            {!endTime && isIOSDevice && (
+              <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                Select date and time
+              </span>
+            )}
+          </div>
           {errors.endTime && <p className="text-red-500">{errors.endTime}</p>}
         </div>
         {canAddGuestListOption && (
-          <div className="mb-4">
-            <Button
-              type="button"
-              className={`w-[160px]  relative rounded-[20px] border border-customDarkBlue 
-            text-customDarkBlue ${isGuestListSelected ? "bg-gray-100" : ""}`}
-              onClick={
-                isGuestListSelected
-                  ? handleRemoveGuestList
-                  : () => setIsGuestListSelected(true)
+          <div
+            className="mt-12 border-b pb-2 mb-6 pt-2 cursor-pointer md:rounded hover:bg-gray-100"
+            onClick={() => {
+              if (isGuestListSelected) {
+                handleRemoveGuestList();
+              } else {
+                setIsGuestListSelected(true);
               }
-              variant="outline"
-            >
-              {isGuestListSelected ? "Remove Guest List" : "Add Guest List"}
-              {isGuestListSelected && (
-                <span
-                  className="absolute -top-2 -right-[9px] cursor-pointer"
-                  onClick={handleRemoveTickets}
-                >
-                  <BsFillXCircleFill className="text-customDarkBlue  text-xl " />
-                </span>
-              )}
-            </Button>
-          </div>
-        )}
-
-        {isGuestListSelected && (
-          <div className="mb-4 flex flex-col">
-            <Label htmlFor="guestListCloseTime">Guest List Close Time*</Label>
-            <Input
-              type="datetime-local"
-              id="guestListCloseTime"
-              value={utcToPstString(guestListCloseTime) || ""}
-              onChange={(e) => handleDateTimeChange(e, setGuestListCloseTime)}
-              className="w-full max-w-[500px]"
-              error={errors.guestListCloseTime}
-            />
-            {errors.guestListCloseTime && (
-              <p className="text-red-500">{errors.guestListCloseTime}</p>
-            )}
-          </div>
-        )}
-
-        <div className="mb-4 ">
-          <Button
-            type="button"
-            className={`${isTicketsSelected ? "bg-gray-100" : ""} w-[160px] 0 relative rounded-[20px] border border-customDarkBlue 
-       text-customDarkBlue`}
-            onClick={
-              isTicketsSelected
-                ? handleRemoveTickets
-                : () => setIsTicketsSelected(true)
-            }
-            variant="outline"
+            }}
           >
-            {isTicketsSelected ? "Remove Tickets" : "Add Tickets"}
-            {isTicketsSelected && (
-              <span
-                className="absolute -top-2 -right-[9px] cursor-pointer"
-                onClick={handleRemoveTickets}
-              >
-                <BsFillXCircleFill className="text-customDarkBlue text-xl" />
-              </span>
+            <div className="flex justify-between px-4">
+              <h2 className=" text-lg">GUEST LIST OPTION</h2>
+              {isGuestListSelected ? (
+                <PiMinus className="text-2xl" />
+              ) : (
+                <PiPlus className="text-2xl" />
+              )}
+            </div>
+          </div>
+        )}
+        {isGuestListSelected && (
+          <>
+            <div className="mb-6 flex flex-col px-4">
+              <Label htmlFor="guestListCloseTime">
+                Guest List Upload Close Time*
+              </Label>
+              <div className="relative">
+                <Input
+                  type="datetime-local"
+                  id="guestListCloseTime"
+                  value={utcToPstString(guestListCloseTime) || ""}
+                  onChange={(e) =>
+                    handleDateTimeChange(e, setGuestListCloseTime)
+                  }
+                  className={`w-full max-w-[500px] h-10  ${!guestListCloseTime && isIOSDevice ? "text-transparent" : ""}`}
+                  error={errors.guestListCloseTime}
+                />
+                {!guestListCloseTime && isIOSDevice && (
+                  <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                    Select date and time
+                  </span>
+                )}
+              </div>
+              {errors.guestListCloseTime && (
+                <p className="text-red-500">{errors.guestListCloseTime}</p>
+              )}
+            </div>
+            <div className="mb-6 flex flex-col px-4">
+              <Label htmlFor="checkInCloseTime">Check In Close Time*</Label>
+              <div className="relative">
+                <Input
+                  type="datetime-local"
+                  id="checkInCloseTime"
+                  value={utcToPstString(checkInCloseTime) || ""}
+                  onChange={(e) => handleDateTimeChange(e, setCheckInCloseTime)}
+                  className={`w-full max-w-[500px] h-10  ${!checkInCloseTime && isIOSDevice ? "text-transparent" : ""}`}
+                  error={errors.checkInCloseTime}
+                />
+                {!checkInCloseTime && isIOSDevice && (
+                  <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                    Select date and time
+                  </span>
+                )}
+              </div>
+              {errors.checkInCloseTime && (
+                <p className="text-red-500">{errors.checkInCloseTime}</p>
+              )}
+            </div>
+          </>
+        )}
+        <div
+          className="mb-6 mt-12 border-b pb-2 pt-2 cursor-pointer md:rounded hover:bg-gray-100"
+          onClick={() => {
+            if (isTicketsSelected) {
+              handleRemoveTickets();
+            } else {
+              setIsTicketsSelected(true);
+            }
+          }}
+        >
+          <div className="flex justify-between px-4">
+            <h2 className="text-lg">TICKET OPTION</h2>
+            {isTicketsSelected ? (
+              <PiMinus className="text-2xl" />
+            ) : (
+              <PiPlus className="text-2xl" />
             )}
-          </Button>
+          </div>
         </div>
-
         {isTicketsSelected && (
           <>
-            <div className="mb-4 flex flex-col">
+            <div className="mb-6 flex flex-col px-4">
               <Label htmlFor="maleTicketPrice">Male Ticket Price*</Label>
               <Input
                 type="number"
@@ -758,7 +835,7 @@ const EventForm: React.FC<EventFormProps> = ({
               )}
             </div>
 
-            <div className="mb-4 flex flex-col">
+            <div className="mb-6 flex flex-col px-4">
               <Label htmlFor="femaleTicketPrice">Female Ticket Price*</Label>
               <Input
                 type="number"
@@ -781,7 +858,7 @@ const EventForm: React.FC<EventFormProps> = ({
               )}
             </div>
 
-            <div className="mb-4 flex flex-col">
+            <div className="mb-6 flex flex-col px-4">
               <Label htmlFor="maleTicketCapacity">Male Ticket Capacity*</Label>
               <Input
                 type="number"
@@ -799,7 +876,7 @@ const EventForm: React.FC<EventFormProps> = ({
               )}
             </div>
 
-            <div className="mb-4 flex flex-col">
+            <div className="mb-6 flex flex-col px-4">
               <Label htmlFor="femaleTicketCapacity">
                 Female Ticket Capacity*
               </Label>
@@ -818,44 +895,54 @@ const EventForm: React.FC<EventFormProps> = ({
                 <p className="text-red-500">{errors.femaleTicketCapacity}</p>
               )}
             </div>
-            <div className="mb-4 flex flex-col">
+            <div className="mb-6 flex flex-col px-4">
               <Label htmlFor="ticketSalesEndTime">Ticket Sales End Time*</Label>
-              <Input
-                type="datetime-local"
-                id="ticketSalesEndTime"
-                value={utcToPstString(ticketSalesEndTime) || ""}
-                onChange={(e) => handleDateTimeChange(e, setTicketSalesEndTime)}
-                className="w-full max-w-[500px]"
-                error={errors.ticketSalesEndTime}
-              />
+              <div className="relative">
+                <Input
+                  type="datetime-local"
+                  id="ticketSalesEndTime"
+                  value={utcToPstString(ticketSalesEndTime) || ""}
+                  onChange={(e) =>
+                    handleDateTimeChange(e, setTicketSalesEndTime)
+                  }
+                  className={`w-full max-w-[500px] h-10  ${!ticketSalesEndTime && isIOSDevice ? "text-transparent" : ""}`}
+                  error={errors.ticketSalesEndTime}
+                />
+                {!ticketSalesEndTime && isIOSDevice && (
+                  <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                    Select date and time
+                  </span>
+                )}
+              </div>
               {errors.ticketSalesEndTime && (
                 <p className="text-red-500">{errors.ticketSalesEndTime}</p>
               )}
             </div>
           </>
         )}
-        {/* 
-      <Button type="submit" disabled={isLoading}>
-        {isEdit ? "Update Event" : "Add Event"}
-      </Button> */}
+        {saveEventError && (
+          <p className="text-red-500 pl-4">{saveEventError}</p>
+        )}{" "}
         <div
-          className={`flex ${isEdit ? "flex-col gap-y-1.5" : "flex-row gap-x-2"} items-center justify-center`}
+          className={`px-4  mt-12 flex ${isEdit ? "flex-col gap-y-3 mb-12 md:flex-row md:gap-x-10" : "flex-row gap-x-2 mb-6"} items-center justify-center`}
         >
-          {" "}
           <Button
             variant={isEdit ? "secondary" : "ghost"}
             type="button"
             onClick={onCancelEdit}
             disabled={isLoading}
             size={isEdit ? "tripleButtons" : "doubelButtons"}
+            className="w-full"
           >
             {isEdit ? "Cancel Editing" : "Cancel"}
           </Button>
+
           <Button
             type="submit"
             disabled={isLoading}
             size={isEdit ? "tripleButtons" : "doubelButtons"}
             variant="default"
+            className="w-full"
           >
             {isLoading ? (
               <>
@@ -872,21 +959,31 @@ const EventForm: React.FC<EventFormProps> = ({
             <Button
               type="button"
               onClick={handleDeleteEvent}
-              variant="destructive"
               size="tripleButtons"
+              className="w-full border-red-700 text-red-700 "
+              variant="secondary"
             >
               Delete Event
             </Button>
           )}
         </div>
-        <ConfirmModal
+        <ResponsiveConfirm
           isOpen={showConfirmModal}
-          onClose={() => setShowConfirmModal(false)}
-          onConfirm={modalConfig.onConfirm}
           title={modalConfig.title}
-          message={modalConfig.message}
           confirmText={modalConfig.confirmText}
           cancelText={modalConfig.cancelText}
+          content={modalConfig.message}
+          confirmVariant="destructive"
+          error={null}
+          isLoading={false}
+          modalProps={{
+            onClose: () => setShowConfirmModal(false),
+            onConfirm: modalConfig.onConfirm,
+          }}
+          drawerProps={{
+            onSubmit: modalConfig.onConfirm,
+            onOpenChange: (open) => setShowConfirmModal(open),
+          }}
         />
       </form>
     </>

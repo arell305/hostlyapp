@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import {
@@ -45,9 +45,32 @@ const BaseDrawer: React.FC<BaseDrawerProps> = ({
   isLoading,
   error,
 }) => {
+  const formContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (formContainerRef.current) {
+        formContainerRef.current.style.setProperty(
+          "bottom",
+          `env(safe-area-inset-bottom)`
+        );
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleResize);
+      handleResize(); // Initial call in case the keyboard is already open
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleResize);
+      }
+    };
+  }, []);
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
-      <DrawerContent>
+      <DrawerContent ref={formContainerRef} className="max-h-[70vh]">
         <DrawerTrigger asChild>
           <Button style={{ display: "none" }} />
         </DrawerTrigger>

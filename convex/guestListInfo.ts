@@ -13,13 +13,14 @@ export const insertGuestListInfo = mutation({
   args: {
     eventId: v.id("events"),
     guestListCloseTime: v.string(),
+    checkInCloseTime: v.string(),
   },
   handler: async (ctx, args): Promise<InsertGuestListResponse> => {
     try {
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -27,7 +28,7 @@ export const insertGuestListInfo = mutation({
       const event: EventSchema | null = await ctx.db.get(args.eventId);
       if (!event) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -38,7 +39,9 @@ export const insertGuestListInfo = mutation({
         {
           eventId: args.eventId,
           guestListCloseTime: args.guestListCloseTime,
+          checkInCloseTime: args.checkInCloseTime,
           guestListIds: [],
+          isActive: true,
         }
       );
 
@@ -61,48 +64,27 @@ export const insertGuestListInfo = mutation({
   },
 });
 
-// export const deleteGuestListInfoAndUpdateEvent = mutation({
-//   args: { eventId: v.id("events") },
-//   handler: async (ctx, args) => {
-//     const { eventId } = args;
-
-//     const guestListInfo = await ctx.db
-//       .query("guestListInfo")
-//       .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
-//       .unique();
-
-//     if (guestListInfo) {
-//       await ctx.db.delete(guestListInfo._id);
-//     }
-
-//     await ctx.db.patch(eventId, { guestListInfoId: undefined });
-
-//     return {
-//       success: true,
-//       message: "GuestListInfo deleted and event updated successfully",
-//     };
-//   },
-// });
-
 export const updateGuestListCloseTime = mutation({
   args: {
     guestListInfoId: v.id("guestListInfo"),
     guestListCloseTime: v.string(),
+    checkInCloseTime: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<UpdateGuestListCloseTimeResponse> => {
-    const { guestListInfoId, guestListCloseTime } = args;
+    const { guestListInfoId, guestListCloseTime, checkInCloseTime } = args;
 
     try {
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
       }
       await ctx.db.patch(guestListInfoId, {
-        guestListCloseTime: guestListCloseTime,
+        guestListCloseTime,
+        checkInCloseTime,
       });
       return {
         status: ResponseStatus.SUCCESS,

@@ -30,7 +30,7 @@ const tabs: Tab[] = [
 
 const TabsNav: React.FC<TabsNavProps> = ({ activeTab, onTabChange }) => {
   return (
-    <div className="relative w-full mb-4 mt-4">
+    <div className="relative w-full mt-4 border-b">
       <div className="flex justify-between w-full">
         {tabs.map((tab) => (
           <Tab

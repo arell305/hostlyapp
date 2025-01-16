@@ -3,6 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { TicketInfo } from "@/types/types";
+import { PiNewspaper } from "react-icons/pi";
 
 import {
   Select,
@@ -12,7 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import DetailsSkeleton from "./loading/DetailsSkeleton";
-import { UserRole } from "../../../../utils/enum";
 import { TbCircleLetterM } from "react-icons/tb";
 import { TbCircleLetterF } from "react-icons/tb";
 import { FiClock } from "react-icons/fi";
@@ -72,9 +72,23 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
       setIsLoadingPromoters(false);
     }
   }, [responsePromoters]);
+  const now = moment();
+  const isTicketsSalesOpen = now.isAfter(
+    moment(ticketData?.ticketSalesEndTime)
+  );
 
   if (!ticketData) {
-    return <p>No ticket option for this event.</p>;
+    return (
+      <div className="mb-4 flex flex-col gap-4 bg-gray-100 min-h-[100vh]">
+        <div className=" bg-white w-[95%] mx-auto px-4 pt-4 mt-4 rounded-md mb-4 shadow-md">
+          <h1 className="text-2xl font-bold pb-3">Ticket Info</h1>
+          <div className="flex items-center  space-x-3 py-3 ">
+            <PiNewspaper className="text-2xl" />
+            <p>There is no ticket option for this event</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (hasPromoCode) {
@@ -106,51 +120,48 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
     }
     return <div>No Information</div>;
   }
-  const now = moment();
-  const hasTicketsSalesEnded = now.isAfter(
-    moment(ticketData.ticketSalesEndTime)
-  );
 
   return (
-    <>
-      <div className="border-b mb-2 pb-2">
-        <h2 className="text-xl font-semibold mb-2">Sales</h2>
-        {hasTicketsSalesEnded ? (
-          <div className="flex text-gray-500">
-            <FiClock className="text-2xl pr-1 " />
-            <p className={"mb-1"}>
-              Ticket Sales Ended:{" "}
-              {formatToTimeAndShortDate(ticketData.ticketSalesEndTime)}
-            </p>
-          </div>
-        ) : (
-          <div className="flex">
-            <FiClock className="text-2xl pr-1 400" />
-            <p className={"mb-1"}>
-              Ticket Sales Ends:{" "}
-              {formatToTimeAndShortDate(ticketData.ticketSalesEndTime)}
-            </p>
-          </div>
-        )}
-
-        <div className="flex">
-          <TbCircleLetterM className="text-2xl pr-1" />
-          <p className="mb-1">
-            Male Tickets Sold: {ticketData.totalMaleTicketsSold} /{" "}
-            {ticketData.maleTicketCapacity}
+    <div className="mb-4 flex flex-col gap-4 bg-gray-100 min-h-[100vh]">
+      <div className=" bg-white w-[95%] mx-auto px-4 pt-4 mt-4 rounded-md mb-4 shadow-md">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold pt-2 pb-3">Ticket Sales</h1>
+          {!isTicketsSalesOpen && (
+            <p className="text-red-700 font-semibold">Closed</p>
+          )}
+        </div>
+        <div className="flex items-center space-x-3 py-3 border-b">
+          <FiClock className="text-2xl text-gray-900" />
+          <p>
+            {isTicketsSalesOpen ? "Ticket Sales Ends:" : "Ticket Sales Ended"}{" "}
+            <span className="text-gray-700 font-semibold">
+              {formatToTimeAndShortDate(ticketData?.ticketSalesEndTime || "")}
+            </span>
           </p>
         </div>
-        <div className="flex">
-          <TbCircleLetterF className="text-2xl pr-1" />
+        <div className="flex items-center  space-x-3 py-3 border-b">
+          <TbCircleLetterM className="text-2xl" />
           <p>
-            Female Tickets Sold: {ticketData.totalFemaleTicketsSold} /{" "}
-            {ticketData.femaleTicketCapacity}
+            Male Tickets Sold:{" "}
+            <span className="text-gray-700 font-semibold">
+              {ticketData?.totalMaleTicketsSold} /{" "}
+              {ticketData?.maleTicketCapacity}
+            </span>
+          </p>
+        </div>
+        <div className="flex items-center space-x-3 py-3">
+          <TbCircleLetterF className="text-2xl" />
+          <p>
+            Female Tickets Sold:{" "}
+            <span className="text-gray-700 font-semibold">
+              {ticketData?.totalFemaleTicketsSold} /{" "}
+              {ticketData?.femaleTicketCapacity}
+            </span>
           </p>
         </div>
       </div>
-      <div className="border-b mt-4 mb-4 pb-2">
-        <h2 className="text-xl font-semibold mb-2">Promo Code Usage</h2>
-
+      <div className=" bg-white w-[95%] mx-auto px-4 pt-4 mt-4 rounded-md mb-4 shadow-md">
+        <h2 className="text-2xl font-bold pt-2 pb-4">Promo Code Usage</h2>
         <Select onValueChange={setSelectedPromoter} defaultValue="all">
           <SelectTrigger className=" mb-2">
             <SelectValue placeholder="Select Promoter" />
@@ -182,22 +193,25 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
             )}
           </SelectContent>
         </Select>
-
         {selectedPromoter === "all" ? (
           responseTotalPromoCodeUsage?.data ? (
-            <div className="mt-4">
-              <div className="flex">
-                <TbCircleLetterM className="text-2xl pr-1" />
-                <p className="mb-1">
+            <div className="">
+              <div className="flex items-center space-x-3 py-3 border-b">
+                <TbCircleLetterM className="text-2xl " />
+                <p className="">
                   Male Tickets Redeemed:{" "}
-                  {responseTotalPromoCodeUsage?.data.totalMaleUsage}
+                  <span className="text-gray-700 font-semibold">
+                    {responseTotalPromoCodeUsage?.data.totalMaleUsage}
+                  </span>
                 </p>
               </div>
-              <div className="flex">
-                <TbCircleLetterF className="text-2xl pr-1" />
+              <div className="flex items-center space-x-3 py-3 ">
+                <TbCircleLetterF className="text-2xl " />
                 <p>
                   Female Tickets Redeemed:{" "}
-                  {responseTotalPromoCodeUsage?.data.totalFemaleUsage}
+                  <span className="text-gray-700 font-semibold">
+                    {responseTotalPromoCodeUsage?.data.totalFemaleUsage}
+                  </span>
                 </p>
               </div>
             </div>
@@ -228,7 +242,7 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
           <DetailsSkeleton />
         )}
       </div>
-    </>
+    </div>
   );
 };
 

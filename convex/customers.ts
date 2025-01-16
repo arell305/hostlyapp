@@ -50,13 +50,13 @@ export const insertCustomerAndSubscription = internalMutation({
         trialEndDate: args.trialEndDate,
         cancelAt: null,
         nextPayment,
-        guestListEventCount: 0,
+        subscriptionStartDate: Date.now().toString(),
       });
-      await ctx.scheduler.runAt(
-        DateTime.fromISO(nextPayment).toMillis(),
-        internal.customers.resetGuestListEventAndPayment,
-        { customerId }
-      );
+      // await ctx.scheduler.runAt(
+      //   DateTime.fromISO(nextPayment).toMillis(),
+      //   internal.customers.resetGuestListEventAndPayment,
+      //   { customerId }
+      // );
       console.log(
         `Scheduled resetGuestListEvent for customer ${customerId} at ${nextPayment}`
       );
@@ -173,7 +173,6 @@ export const getCustomerSubscriptionTier = query({
     // Return the subscription tier
     return {
       subscriptionTier: customer.subscriptionTier,
-      guestListEventCount: customer.guestListEventCount,
       customerId: customer._id,
       nextCycle: customer.nextPayment,
       status: customer.subscriptionStatus,
@@ -181,101 +180,101 @@ export const getCustomerSubscriptionTier = query({
   },
 });
 
-export const updateGuestListEventCount = mutation({
-  args: { customerId: v.id("customers") },
-  handler: async (ctx, args): Promise<UpdateListEventCountResponse> => {
-    try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+// export const updateGuestListEventCount = mutation({
+//   args: { customerId: v.id("customers") },
+//   handler: async (ctx, args): Promise<UpdateListEventCountResponse> => {
+//     try {
+//       const identity = await ctx.auth.getUserIdentity();
+//       if (!identity) {
+//         return {
+//           status: ResponseStatus.ERROR,
+//           data: null,
+//           error: ErrorMessages.UNAUTHENTICATED,
+//         };
+//       }
 
-      const customer: CustomerSchema | null = await ctx.db.get(args.customerId);
+//       const customer: CustomerSchema | null = await ctx.db.get(args.customerId);
 
-      if (!customer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
-      if (customer.subscriptionTier !== SubscriptionTier.PLUS) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: "Not on Plus tier",
-        };
-      }
-      const updatedCount: number = (customer.guestListEventCount || 0) + 1;
-      await ctx.db.patch(args.customerId, {
-        guestListEventCount: updatedCount,
-      });
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          remaingEvents: updatedCount,
-        },
-      };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
-    }
-  },
-});
+//       if (!customer) {
+//         return {
+//           status: ResponseStatus.ERROR,
+//           data: null,
+//           error: ErrorMessages.NOT_FOUND,
+//         };
+//       }
+//       if (customer.subscriptionTier !== SubscriptionTier.PLUS) {
+//         return {
+//           status: ResponseStatus.ERROR,
+//           data: null,
+//           error: "Not on Plus tier",
+//         };
+//       }
+//       const updatedCount: number = (customer.guestListEventCount || 0) + 1;
+//       await ctx.db.patch(args.customerId, {
+//         guestListEventCount: updatedCount,
+//       });
+//       return {
+//         status: ResponseStatus.SUCCESS,
+//         data: {
+//           remaingEvents: updatedCount,
+//         },
+//       };
+//     } catch (error) {
+//       const errorMessage =
+//         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+//       console.error(errorMessage, error);
+//       return {
+//         status: ResponseStatus.ERROR,
+//         data: null,
+//         error: errorMessage,
+//       };
+//     }
+//   },
+// });
 
-export const resetGuestListEventAndPayment = internalMutation({
-  args: { customerId: v.id("customers") },
-  handler: async (ctx, { customerId }) => {
-    // Fetch the customer's data
-    const customer = await ctx.db.get(customerId);
+// export const resetGuestListEventAndPayment = internalMutation({
+//   args: { customerId: v.id("customers") },
+//   handler: async (ctx, { customerId }) => {
+//     // Fetch the customer's data
+//     const customer = await ctx.db.get(customerId);
 
-    if (!customer) {
-      console.log(`Customer with ID ${customerId} does not exist.`);
-      return;
-    }
+//     if (!customer) {
+//       console.log(`Customer with ID ${customerId} does not exist.`);
+//       return;
+//     }
 
-    // Check if `nextPayment` is null and stop scheduling if it is
-    if (
-      customer.subscriptionStatus === SubscriptionStatus.CANCELED ||
-      !customer.nextPayment
-    ) {
-      console.log(
-        `Stopping scheduler for customer ${customerId} as subscription status is canceled.`
-      );
-      return;
-    }
-    // Reset the guestListEventCount
-    await ctx.db.patch(customerId, {
-      guestListEventCount: 0,
-    });
+//     // Check if `nextPayment` is null and stop scheduling if it is
+//     if (
+//       customer.subscriptionStatus === SubscriptionStatus.CANCELED ||
+//       !customer.nextPayment
+//     ) {
+//       console.log(
+//         `Stopping scheduler for customer ${customerId} as subscription status is canceled.`
+//       );
+//       return;
+//     }
+//     // Reset the guestListEventCount
+//     await ctx.db.patch(customerId, {
+//       guestListEventCount: 0,
+//     });
 
-    // Calculate the new `nextPayment` date (e.g., 1 month from now)
-    const nextPaymentDate = new Date(customer.nextPayment);
-    nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
+//     // Calculate the new `nextPayment` date (e.g., 1 month from now)
+//     const nextPaymentDate = new Date(customer.nextPayment);
+//     nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
 
-    // Update the customer’s `nextPayment` field in the database
-    await ctx.db.patch(customerId, {
-      nextPayment: nextPaymentDate.toISOString(),
-    });
+//     // Update the customer’s `nextPayment` field in the database
+//     await ctx.db.patch(customerId, {
+//       nextPayment: nextPaymentDate.toISOString(),
+//     });
 
-    // Schedule this function to run again at the new `nextPayment` date
-    await ctx.scheduler.runAt(
-      nextPaymentDate.getTime(),
-      internal.customers.resetGuestListEventAndPayment,
-      { customerId }
-    );
-  },
-});
+//     // Schedule this function to run again at the new `nextPayment` date
+//     await ctx.scheduler.runAt(
+//       nextPaymentDate.getTime(),
+//       internal.customers.resetGuestListEventAndPayment,
+//       { customerId }
+//     );
+//   },
+// });
 
 export const getCustomerDetails = action({
   args: {

@@ -19,6 +19,7 @@ import {
   SubscriptionTier,
   ResponseStatus,
   UserRole,
+  subscriptionBenefits,
 } from "../../../../utils/enum";
 import { useToast } from "@/hooks/use-toast";
 import { StripeCardElement, loadStripe } from "@stripe/stripe-js";
@@ -339,23 +340,28 @@ const SubscriptionTab = () => {
         </div>
         <div
           onClick={() => canEditSettings && setActiveModal("update_tier")}
-          className={`px-4 flex justify-between border-b py-3 ${
+          className={`px-4 flex items-center justify-between border-b py-3 ${
             canEditSettings
               ? "cursor-pointer hover:bg-gray-100 hover:rounded-md"
               : ""
           }`}
         >
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Tier</h3>
-            <p className="text-lg font-semibold">
-              {customerDetails.subscriptionTier}
-            </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Tier</h3>
+              <p className="text-lg font-semibold">
+                {customerDetails.subscriptionTier}
+                <span className="pl-2 text-gray-600 text-base">
+                  ({subscriptionBenefits[customerDetails.subscriptionTier]})
+                </span>
+              </p>
+            </div>
           </div>
-          {canEditSettings && <GoPencil className="text-2xl" />}
+          <div>{canEditSettings && <GoPencil className="text-2xl" />}</div>
         </div>
 
         <div
-          className={`px-4 flex justify-between border-b py-3 ${
+          className={`px-4 flex justify-between items-center border-b py-3 ${
             canEditSettings
               ? "cursor-pointer hover:bg-gray-100 hover:rounded-md"
               : ""
@@ -372,7 +378,9 @@ const SubscriptionTab = () => {
                 : "No details available"}
             </p>
           </div>
-          {canEditSettings && <GoPencil className="text-2xl  " />}
+          <div className={`relative ${canEditSettings ? "ml-auto" : ""}`}>
+            {canEditSettings && <GoPencil className="text-2xl" />}
+          </div>
         </div>
 
         {/* Cancel or Resume Subscription Button */}

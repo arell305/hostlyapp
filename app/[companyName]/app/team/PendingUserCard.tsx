@@ -1,14 +1,4 @@
-import { useAction } from "convex/react";
-import React, { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { api } from "../../../../convex/_generated/api";
-import { FaEllipsisV } from "react-icons/fa";
-import { useToast } from "@/hooks/use-toast";
-import { ResponseStatus, roleMap } from "../../../../utils/enum";
-import ConfirmModal from "../components/ConfirmModal";
-import useMediaQuery from "@/hooks/useMediaQuery";
-import BaseDrawer from "@/[companyName]/app/components/drawer/BaseDrawer";
-import ResponsiveConfirm from "@/[companyName]/app/components/responsive/ResponsiveConfirm";
+import { roleMap } from "../../../../utils/enum";
 import { PiTrashSimple } from "react-icons/pi";
 import { Protect } from "@clerk/nextjs";
 

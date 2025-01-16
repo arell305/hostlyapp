@@ -8,42 +8,42 @@ import {
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-interface TeamNameModalProps {
+interface EditGuestNameModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   error: string | null;
   isLoading: boolean;
-  onUpdateTeamName: () => void;
-  setTeamNameError: (error: string | null) => void;
-  setTeamName: (name: string) => void;
-  teamName: string;
+  onSaveGuestName: () => void;
+  setEditNameError: (error: string | null) => void;
+  setEditName: (name: string) => void;
+  editName: string;
   onClose: () => void;
 }
 
-const TeamNameModal: React.FC<TeamNameModalProps> = ({
+const EditGuestNameModal: React.FC<EditGuestNameModalProps> = ({
   isOpen,
   onOpenChange,
   error,
   isLoading,
-  onUpdateTeamName,
-  setTeamNameError,
-  setTeamName,
-  teamName,
+  onSaveGuestName,
+  setEditNameError,
+  setEditName,
+  editName,
   onClose,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="w-[90vw] md:min-w-0 rounded">
         <DialogHeader>
-          <DialogTitle className="flex">Team Name</DialogTitle>
+          <DialogTitle className="flex">Guest Name</DialogTitle>
         </DialogHeader>
         <Input
           type="text"
           placeholder="Enter name"
-          value={teamName}
+          value={editName}
           onChange={(e) => {
-            setTeamName(e.target.value);
-            setTeamNameError(null);
+            setEditName(e.target.value);
+            setEditNameError(null);
           }}
           className={error ? "border-red-500" : ""}
         />
@@ -63,7 +63,7 @@ const TeamNameModal: React.FC<TeamNameModalProps> = ({
           </Button>
           <Button
             className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
-            onClick={onUpdateTeamName}
+            onClick={onSaveGuestName}
             disabled={isLoading}
           >
             {" "}
@@ -82,4 +82,4 @@ const TeamNameModal: React.FC<TeamNameModalProps> = ({
   );
 };
 
-export default TeamNameModal;
+export default EditGuestNameModal;

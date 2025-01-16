@@ -210,3 +210,40 @@ input[type="number"] {
 .dialog-footer {
   margin-top: 0 !important;
 }
+
+.css-152397a-control {
+  border-radius: 0px !important;
+}
+
+.css-155ggen-control {
+  padding: 0px !important;
+}
+
+.css-1u9des2-indicatorSeparator {
+  width: 0 !important;
+}
+
+input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+.css-qfda22-Input {
+  padding: 0px !important;
+}
+
+.css-fwogu8-Input {
+  padding-left: 0;
+  margin-left: 0;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .ios-input-fix div {
+    padding-left: 0 !important;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  #react-select-3-listbox > * {
+    padding-left: 10px !important;
+  }
+}

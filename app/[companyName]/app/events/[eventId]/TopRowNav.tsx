@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button";
-import BackButton from "@/[companyName]/app/components/BackButton";
-import { EventData, GuestListInfo, TicketInfo } from "@/types/types";
+import { EventData, EventSchema } from "@/types/types";
 import { Protect } from "@clerk/nextjs";
-import { useState } from "react";
 
 interface TopRowNavProps {
-  eventData: EventData;
+  eventData: EventSchema;
   isAdminOrg: boolean;
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
@@ -21,7 +19,7 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
 }) => {
   const backRoute = isAdminOrg ? `/${eventData.clerkOrganizationId}` : "/";
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between  pt-4">
       {isEditing ? (
         <>
           <div className="flex items-center">
@@ -35,13 +33,17 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
         </>
       ) : (
         <>
-          <BackButton text="Back" targetRoute={backRoute} />
+          <div>
+            <Button variant="navGhost" onClick={() => setIsEditing(true)}>
+              Back
+            </Button>
+          </div>
           <p className="text-lg font-bold flex-grow text-center">
             {eventData.name}
           </p>
           <Protect
             condition={(has) => has({ permission: "org:events:create" })}
-            fallback={<p></p>}
+            fallback={<div className="w-[60px]"></div>}
           >
             <Button variant="navGhost" onClick={() => setIsEditing(true)}>
               Edit

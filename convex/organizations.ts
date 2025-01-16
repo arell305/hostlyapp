@@ -434,3 +434,45 @@ export const getPromotersByOrganization = query({
     }
   },
 });
+
+// export const getEventsForCalendar = query({
+//   args: {name: v.string()},
+//   handler: async (ctx, args): Promise<getPromotersByOrganizationResponse> => {
+//     try {
+//       const identity = await ctx.auth.getUserIdentity();
+//       if (!identity) {
+//         return {
+//           status: ResponseStatus.ERROR,
+//           data: null,
+//           error: ErrorMessages.UNAUTHENTICATED,
+//         };
+//       }
+
+//       const organization: OrganizationsSchema | null = await ctx.db
+//       .query("organizations")
+//       .filter((q) => q.eq(q.field("name"), args.name))
+//       .first();
+
+//       if (!organization) {
+//         return {
+//           status: ResponseStatus.ERROR,
+//           data: null,
+//           error: ErrorMessages.NOT_FOUND,
+//         };
+//       }
+
+//       const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
+
+//       if (identity.clerk_org_id !== organization.clerkOrganizationId && !isHostlyAdmin) {
+//         return {
+//           status: ResponseStatus.ERROR,
+//           data: null,
+//           error: ErrorMessages.FORBIDDEN,
+//         };
+//       }
+
+//       // validate user belongs to org
+
+//     }
+//   }
+// })

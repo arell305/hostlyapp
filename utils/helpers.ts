@@ -1,15 +1,9 @@
 import { pricingOptions } from "../constants/pricingOptions";
 import { PricingOption } from "@/types/types";
 import { OrganizationJSON } from "@clerk/backend";
-import {
-  SubscriptionTier,
-  UserRole as ImportedUserRole,
-  UserRoleEnum,
-} from "./enum";
-import { parseISO } from "date-fns";
+import { UserRole as ImportedUserRole, UserRoleEnum } from "./enum";
 import { toZonedTime, format } from "date-fns-tz";
 import moment from "moment-timezone";
-import { differenceInDays } from "date-fns";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -82,7 +76,7 @@ export const canCreateEvents = (role: UserRole | null): boolean => {
 };
 
 export const formatArrivalTime = (timestamp: string) => {
-  return format(new Date(timestamp), "h:mm a");
+  return format(new Date(timestamp), "h:mma");
 };
 
 export const formatDateTime = (dateTimeString: string): string => {
@@ -137,7 +131,9 @@ export const formatTime = (dateString: string): string => {
 };
 
 export const formatToTimeAndShortDate = (dateString: string): string => {
-  return `${moment(dateString).tz("America/Los_Angeles").format("h:mmA M/D/YY").toLowerCase()}`;
+  return moment(dateString)
+    .tz("America/Los_Angeles")
+    .format("MMM D, YYYY h:mma");
 };
 
 export const checkIsHostlyAdmin = (role: string): boolean => {
@@ -154,3 +150,74 @@ export const containsUnderscore = (name: string): boolean => {
 export const replaceSpacesWithHyphens = (name: string): string => {
   return name.replace(/\s/g, "-");
 };
+
+export const getBillingCycle = (
+  eventStartDate: Date,
+  subscriptionStartDate: Date
+) => {
+  const diffInMonths = Math.floor(
+    (eventStartDate.getTime() - subscriptionStartDate.getTime()) /
+      (1000 * 60 * 60 * 24 * 30)
+  );
+
+  const cycleStartDate = new Date(subscriptionStartDate);
+  cycleStartDate.setMonth(subscriptionStartDate.getMonth() + diffInMonths);
+
+  const cycleEndDate = new Date(cycleStartDate);
+  cycleEndDate.setMonth(cycleStartDate.getMonth() + 1);
+
+  return {
+    startDate: cycleStartDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+    endDate: cycleEndDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+  };
+};
+
+export const isIOS = (): boolean => {
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+  );
+};
+
+// async function checkEventLimit(userId: string, eventStartDate: Date, subscriptionStartDate: Date) {
+//   const { startDate, endDate } = getBillingCycle(eventStartDate, subscriptionStartDate);
+
+//   // Query to count how many events fall within the billing cycle
+//   const eventCount = await db.query("events")
+//     .filter("user_id", "==", userId)
+//     .filter("event_start_date", ">=", startDate)
+//     .filter("event_start_date", "<", endDate)
+//     .count();
+
+//   if (eventCount >= 3) {
+//     throw new Error("You can only create 3 events in a billing cycle.");
+//   }
+
+//   return true;
+// }
+
+// import { db } from "convex";
+// import { checkEventLimit } from "./helpers"; // Import checkEventLimit function
+
+// async function createEvent(userId: string, eventName: string, eventStartDate: Date, eventEndDate: Date) {
+//   // Fetch the user's subscription start date
+//   const user = await db.query("users").filter("id", "==", userId).first();
+//   if (!user) {
+//     throw new Error("User not found.");
+//   }
+
+//   const { subscription_start } = user;
+
+//   // Check if the user has exceeded the 3 events limit in the billing cycle
+//   await checkEventLimit(userId, eventStartDate, subscription_start);
+
+//   // Create the event if the limit is not exceeded
+//   const event = await db.insert("events").values({
+//     user_id: userId,
+//     event_name: eventName,
+//     event_start_date: eventStartDate,
+//     event_end_date: eventEndDate,
+//     created_at: new Date(),
+//   });
+
+//   return event;
+// }

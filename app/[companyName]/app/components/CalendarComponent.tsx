@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Protect, useOrganization, useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -17,7 +17,6 @@ import EventStats from "./EventStats";
 import { SubscriptionTier, UserRoleEnum } from "../../../../utils/enum";
 import { useUserRole } from "@/hooks/useUserRole";
 import { EventSchema } from "@/types/types";
-import { PiPlusCircle } from "react-icons/pi";
 import EventPreview from "./calendar/EventPreview";
 import Link from "next/link";
 
@@ -38,6 +37,12 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   companyName,
 }) => {
   const router = useRouter();
+  const { companyName: companyNameParams } = useParams();
+  const cleanCompanyName =
+    typeof companyNameParams === "string"
+      ? companyNameParams.split("?")[0].toLowerCase()
+      : "";
+
   const { role, isLoading: isClerkLoading } = useUserRole();
   const todayInPST = moment().tz("America/Los_Angeles").startOf("day").toDate();
   const [selected, setSelected] = useState<Date | null>(todayInPST);
@@ -62,8 +67,14 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   }, [activeOrgId]);
 
   // Fetch events with loading state
-  const eventsResponse = useQuery(api.events.getEventsByOrgAndMonth, {
-    clerkOrganizationId: activeOrgId || "",
+  // const eventsResponse = useQuery(api.events.getEventsByOrgAndMonth, {
+  //   clerkOrganizationId: activeOrgId || "",
+  //   year: displayedMonth.year(),
+  //   month: displayedMonth.month() + 1,
+  // });
+
+  const eventsResponse = useQuery(api.events.getEventsByNameAndMonth, {
+    organizationName: cleanCompanyName,
     year: displayedMonth.year(),
     month: displayedMonth.month() + 1,
   });
@@ -132,6 +143,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     role === UserRoleEnum.PROMOTER_ADMIN ||
     role === UserRoleEnum.PROMOTER_MANAGER;
 
+  console.log("eventResponse", eventsResponse);
   return (
     <div className="flex flex-col justify-center max-w-3xl md:p-0 pt-4 rounded-lg mx-auto mt-1.5 px-4 md:px-0">
       <div className="flex justify-between mb-6 items-center ">
@@ -139,7 +151,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
         <Protect condition={(has) => has({ permission: "org:events:create" })}>
           <Link href="/add-event">
             <p className="font-semibold  hover:cursor-pointer text-customDarkBlue">
-              Create
+              Add
             </p>
             {/* <PiPlusCircle className="text-4xl" /> */}
           </Link>
@@ -151,10 +163,11 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
       ) : (
         <>
           {isPlusTier && showEventStats && (
-            <EventStats
-              nextResetDate={result.nextCycle || ""}
-              numberOfEvents={result.guestListEventCount}
-            />
+            <div></div>
+            // <EventStats
+            //   nextResetDate={result.nextCycle || ""}
+            //   numberOfEvents={result.guestListEventCount}
+            // />
           )}
           <Page className="max-w-[820px] h-[420px] rounded-md">
             {/* <div className="font-medium flex rounded items-center justify-center md:justify-start bg-customDarkBlue text-white text-xl font-raleway p-4 border-b border-black">
@@ -180,14 +193,6 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
             </div>
           </Page>
           <div className="mt-8 ">
-            {/* <div className="selected-date mt-4 mb-10">
-              <h1 className="font-bold text-2xl md:text-3xl flex flex-col md:flex-row">
-                Selected Date:{" "}
-                <span className="font-normal md:pl-2 text-xl md:text-3xl font-playfair text-altGray">
-                  {displayDate}
-                </span>
-              </h1>
-            </div> */}
             <div className="events-list mt-4">
               <h3 className="font-bold text-2xl md:text-3xl mb-4 font-playfair">
                 {displayDate} Events:
@@ -195,7 +200,12 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
               {matchingEvents.length > 0 ? (
                 <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-8">
                   {matchingEvents.map((event: MbscCalendarMarked) => {
-                    return <EventPreview eventData={event.event} />;
+                    return (
+                      <EventPreview
+                        eventData={event.event}
+                        companyName={displayName || ""}
+                      />
+                    );
                   })}
                 </div>
               ) : (

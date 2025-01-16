@@ -7,24 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import { SubscriptionTier, UserRole, roleMap } from "../../../../../utils/enum";
-import {
-  isValidEmail,
-  truncatedToTwoDecimalPlaces,
-} from "../../../../../utils/helpers";
-import { changeableRoles } from "@/types/enums";
+import { SubscriptionTier } from "../../../../../utils/enum";
+import { truncatedToTwoDecimalPlaces } from "../../../../../utils/helpers";
 import { Loader2 } from "lucide-react";
-import {
-  Elements,
-  CardElement,
-  useElements,
-  useStripe,
-} from "@stripe/react-stripe-js";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+
 import { PricingOption } from "@/types/types";
 import { pricingOptions } from "../../../../../constants/pricingOptions";
 import EventInfoSkeleton from "../loading/EventInfoSkeleton";

@@ -35,7 +35,7 @@ export const insertTicketInfo = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -44,7 +44,7 @@ export const insertTicketInfo = mutation({
       const event: EventSchema | null = await ctx.db.get(args.eventId);
       if (!event) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };
@@ -59,6 +59,7 @@ export const insertTicketInfo = mutation({
         totalMaleTicketsSold: 0,
         totalFemaleTicketsSold: 0,
         ticketSalesEndTime: args.ticketSalesEndTime,
+        isActive: true,
       });
       await ctx.db.patch(args.eventId, { ticketInfoId });
 
@@ -101,7 +102,7 @@ export const updateTicketInfo = mutation({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -111,7 +112,7 @@ export const updateTicketInfo = mutation({
         await ctx.db.get(ticketInfoId);
       if (!existingTicketInfo) {
         return {
-          status: ResponseStatus.NOT_FOUND,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
         };

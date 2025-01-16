@@ -98,7 +98,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
           <>
             {isAppAdmin && (
               <Link href={`/${companyName}/app/dashboard`}>
-                <div className="ml-6 mt-4 mb-2 text-lg font-semibold">
+                <div className="ml-6 mt-4 mb-2 text-2xl font-semibold">
                   {decodeURIComponent(cleanCompanyName)}
                 </div>
               </Link>
@@ -168,49 +168,3 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
 };
 
 export default SidebarMenu;
-
-// const cleanCompanyName =
-// typeof companyName === "string" ? companyName.split("?")[0] : "";
-
-// Query for organization only if cleanOrganizationId is available
-// const organizationFromDB = useQuery(
-//   api.organizations.getOrganizationByClerkId,
-//   {
-//     clerkOrganizationId: cleanOrganizationId,
-//   }
-// );
-
-// useEffect(() => {
-//   // Retrieve stored organization data from localStorage if it exists
-//   const storedOrgId = localStorage.getItem("selectedOrgId");
-//   const storedOrgName = localStorage.getItem("selectedOrgName");
-
-//   // If stored organization is available, set it
-//   if (storedOrgId && storedOrgName) {
-//     setSelectedOrgId(storedOrgId);
-//     setSelectedOrgName(storedOrgName);
-//   } else if (cleanOrganizationId) {
-//     setSelectedOrgId(cleanOrganizationId);
-//     if (organizationFromDB) {
-//       setSelectedOrgName(organizationFromDB?.name);
-//       // Store selected organization data in localStorage
-//       localStorage.setItem("selectedOrgId", cleanOrganizationId);
-//       localStorage.setItem("selectedOrgName", organizationFromDB?.name ?? "");
-//     }
-//   } else {
-//     // If no valid organizationId or stored value, reset state
-//     setSelectedOrgId(null);
-//     setSelectedOrgName(null);
-//   }
-// }, [cleanOrganizationId, organizationFromDB]);
-
-// useEffect(() => {
-//   if (pathname === "/") {
-//     localStorage.removeItem("selectedOrgId");
-//     localStorage.removeItem("selectedOrgName");
-//   }
-// }, [pathname]);
-
-// if (!loaded) {
-//   return <div>Loading...</div>;
-// }

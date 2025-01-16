@@ -5,22 +5,25 @@ import { MdOutlineCalendarToday } from "react-icons/md";
 import { formatDateMDY, formatTime } from "../../../../../utils/helpers";
 import { IoTicketOutline } from "react-icons/io5";
 import { LuClipboardList } from "react-icons/lu";
-
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import EventFormSkeleton from "../loading/EventFormSkeleton";
 interface EventPreviewProps {
   eventData: EventData;
+  companyName: string;
 }
 
-const EventPreview: React.FC<EventPreviewProps> = ({ eventData }) => {
+const EventPreview: React.FC<EventPreviewProps> = ({
+  eventData,
+  companyName,
+}) => {
   const displayEventPhoto = eventData.photo
     ? useQuery(api.photo.getFileUrl, { storageId: eventData.photo })
     : null;
 
   return (
-    <Link href={`/events/${eventData._id}`} className="">
+    <Link href={`events/${eventData._id}`} className="">
       <div className="w-[190px] h-[400px] shadow cursor-pointer hover:bg-gray-100 p-2 rounded-md transition duration-200 bg-white">
         {displayEventPhoto === undefined && <EventFormSkeleton />}
         {displayEventPhoto === null ? (

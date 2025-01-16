@@ -22,6 +22,12 @@ export enum SubscriptionTier {
   ELITE = "Elite",
 }
 
+export const subscriptionBenefits = {
+  [SubscriptionTier.STANDARD]: "Unlimited tickets",
+  [SubscriptionTier.PLUS]: "Unlimited tickets & 3 guest list events",
+  [SubscriptionTier.ELITE]: "Unlimited tickets & Unlimited guest list events",
+};
+
 export const subscriptionStatusMap = {
   active: "Active",
   trialing: "Trial",

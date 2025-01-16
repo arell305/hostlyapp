@@ -167,6 +167,9 @@ const UserWrapper = () => {
     }
   }
 
+  const isAdmin = has({ role: UserRole.Admin });
+  console.log("admin", isAdmin);
+
   return (
     <>
       <UserIdContent
