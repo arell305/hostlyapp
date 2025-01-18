@@ -3,7 +3,9 @@ import { ResponseStatus } from "../../utils/enum";
 import { UserSchema } from "./schemas-types";
 import {
   EventSchema,
+  GuestListInfo,
   OrganizationsSchema,
+  TicketInfo,
   TransformedOrganization,
 } from "./types";
 import { Id } from "../../convex/_generated/dataModel";
@@ -193,4 +195,17 @@ export interface UpdateEventSuccess {
 
 export interface UpdateEventData {
   eventId: Id<"events">;
+}
+
+export type GetEventByIdResponse = GetEventByIdSuccess | ErrorResponse;
+
+export interface GetEventByIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetEventByIdData;
+}
+
+export interface GetEventByIdData {
+  event: EventSchema;
+  ticketInfo?: TicketInfo | null;
+  guestListInfo?: GuestListInfo | null;
 }

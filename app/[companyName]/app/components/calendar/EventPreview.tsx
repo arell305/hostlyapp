@@ -11,13 +11,9 @@ import { api } from "../../../../../convex/_generated/api";
 import EventFormSkeleton from "../loading/EventFormSkeleton";
 interface EventPreviewProps {
   eventData: EventData;
-  companyName: string;
 }
 
-const EventPreview: React.FC<EventPreviewProps> = ({
-  eventData,
-  companyName,
-}) => {
+const EventPreview: React.FC<EventPreviewProps> = ({ eventData }) => {
   const displayEventPhoto = eventData.photo
     ? useQuery(api.photo.getFileUrl, { storageId: eventData.photo })
     : null;
@@ -48,10 +44,10 @@ const EventPreview: React.FC<EventPreviewProps> = ({
             <FiClock />
             <p>{formatTime(eventData.startTime)}</p>
           </div>
-          {eventData.venue && eventData.venue?.venueName !== "" && (
+          {eventData.address && (
             <div className="flex space-x-2 items-center">
               <LuMapPin />
-              <p>{eventData.venue.venueName}</p>
+              <p>{eventData.address}</p>
             </div>
           )}
           <div className="pb-1"></div>

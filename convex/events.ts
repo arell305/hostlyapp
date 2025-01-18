@@ -5,7 +5,6 @@ import {
   CancelEventResponse,
   CustomerSchema,
   EventSchema,
-  GetEventByIdResponse,
   GetEventWithGuestListsResponse,
   GetEventsByOrgAndMonthResponse,
   GuestListNameSchema,
@@ -28,6 +27,7 @@ import { PaginationResult, paginationOptsValidator } from "convex/server";
 import {
   AddEventResponse,
   CountGuestListsEventsResponse,
+  GetEventByIdResponse,
   GetEventsByOrganizationResponse,
   UpdateEventResponse,
 } from "@/types/convex-types";
@@ -241,44 +241,21 @@ export const addEvent = mutation({
 export const getEventById = query({
   args: { eventId: v.string() },
   handler: async (ctx, { eventId }): Promise<GetEventByIdResponse> => {
+    const normalizedId = ctx.db.normalizeId("events", eventId);
+    if (!normalizedId) {
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: ErrorMessages.NOT_FOUND,
+      };
+    }
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-
-      const normalizedId = ctx.db.normalizeId("events", eventId);
-      if (!normalizedId) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
-
       const event: EventSchema | null = await ctx.db.get(normalizedId);
       if (!event) {
         return {
           status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.NOT_FOUND,
-        };
-      }
-
-      const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
-
-      if (
-        event.clerkOrganizationId !== identity.clerk_org_id &&
-        !isHostlyAdmin
-      ) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
         };
       }
 
@@ -295,6 +272,16 @@ export const getEventById = query({
         ticketInfoPromise,
         guestListInfoPromise,
       ]);
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.SUCCESS,
+          data: {
+            event,
+            ticketInfo,
+          },
+        };
+      }
 
       return {
         status: ResponseStatus.SUCCESS,
@@ -303,7 +290,6 @@ export const getEventById = query({
           ticketInfo,
           guestListInfo,
         },
-        error: null,
       };
     } catch (error) {
       const errorMessage =
@@ -843,7 +829,7 @@ export const getEventsByOrgAndMonth = query({
   },
 });
 
-export const getEventsByOrganization = query({
+export const getEventsByOrganizationPublic = query({
   args: {
     organizationName: v.string(),
     paginationOpts: paginationOptsValidator,
@@ -865,14 +851,19 @@ export const getEventsByOrganization = query({
 
     const events = await ctx.db
       .query("events")
-      .withIndex("by_clerkOrganizationId", (q) =>
+      .withIndex("by_clerkOrganizationId_and_startTime", (q) =>
         q.eq("clerkOrganizationId", organization.clerkOrganizationId)
       )
-      .filter((q) => q.gt(q.field("endTime"), currentDate))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("isActive"), true),
+          q.gt(q.field("endTime"), currentDate)
+        )
+      )
       .order("asc")
       .paginate(args.paginationOpts);
 
-    return events;
+    return { ...events, organizationImage: organization.imageUrl || null };
   },
 });
 

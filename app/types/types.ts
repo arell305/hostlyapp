@@ -99,20 +99,11 @@ export interface EventData {
   endTime: string;
   ticketInfoId?: Id<"ticketInfo"> | null;
   photo: Id<"_storage"> | null; // Optional reference to photo storage
-  guestListInfoId: Id<"guestListInfo"> | null;
+  guestListInfoId?: Id<"guestListInfo"> | null;
   address: string;
-  isActive?: boolean;
+  isActive: boolean;
 }
 
-export interface GetEventByIdResponse {
-  status: ResponseStatus;
-  data: {
-    event: EventSchema;
-    ticketInfo?: TicketInfo | null;
-    guestListInfo?: GuestListInfo | null;
-  } | null;
-  error?: string | null;
-}
 export interface PromoCodeUsage {
   _id: Id<"promoCodeUsage">; // Unique identifier for the promo code usage
   _creationTime: number; // Timestamp for when the usage was created

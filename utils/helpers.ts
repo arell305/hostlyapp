@@ -178,6 +178,16 @@ export const isIOS = (): boolean => {
   );
 };
 
+export const getTextBeforeComma = (text: string): string => {
+  const commaIndex = text.indexOf(",");
+
+  if (commaIndex === -1) {
+    return text.trim(); // Return the whole string if no comma is found
+  }
+
+  return text.slice(0, commaIndex).trim();
+};
+
 // async function checkEventLimit(userId: string, eventStartDate: Date, subscriptionStartDate: Date) {
 //   const { startDate, endDate } = getBillingCycle(eventStartDate, subscriptionStartDate);
 

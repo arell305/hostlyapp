@@ -3,6 +3,7 @@ import { internalMutation, internalQuery, mutation } from "./_generated/server";
 import { query, QueryCtx } from "./_generated/server";
 import { ResponseStatus, UserRole, UserRoleEnum } from "../utils/enum";
 import {
+  EventSchema,
   OrganizationsSchema,
   Promoter,
   UserSchema,
@@ -16,6 +17,7 @@ import {
   ListOrganizations,
 } from "@/types/convex-types";
 import { checkIsHostlyAdmin } from "../utils/helpers";
+import { PaginationResult } from "convex/server";
 
 export const createOrganization = internalMutation({
   args: {
@@ -476,3 +478,20 @@ export const getPromotersByOrganization = query({
 //     }
 //   }
 // })
+
+export const getOrganizationImagePublic = query({
+  args: {
+    organizationName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const organization = await ctx.db
+      .query("organizations")
+      .withIndex("by_name", (q) => q.eq("name", args.organizationName))
+      .first();
+
+    if (!organization) {
+      return null;
+    }
+    return organization.imageUrl;
+  },
+});

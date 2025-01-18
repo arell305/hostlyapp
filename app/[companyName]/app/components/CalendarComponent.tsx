@@ -200,12 +200,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
               {matchingEvents.length > 0 ? (
                 <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-8">
                   {matchingEvents.map((event: MbscCalendarMarked) => {
-                    return (
-                      <EventPreview
-                        eventData={event.event}
-                        companyName={displayName || ""}
-                      />
-                    );
+                    return <EventPreview eventData={event.event} />;
                   })}
                 </div>
               ) : (

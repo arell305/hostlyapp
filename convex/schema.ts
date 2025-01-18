@@ -123,6 +123,10 @@ export default defineSchema({
     isActive: v.boolean(),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
+    .index("by_clerkOrganizationId_and_startTime", [
+      "clerkOrganizationId",
+      "startTime",
+    ])
     .index("by_startTime", ["startTime"]),
   guestLists: defineTable({
     names: v.array(GuestListNames),

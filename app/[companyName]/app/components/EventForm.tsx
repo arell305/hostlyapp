@@ -606,7 +606,7 @@ const EventForm: React.FC<EventFormProps> = ({
             selectProps={{
               className: "ios-input-fix",
               onChange: handleSelect,
-              value: value,
+              defaultInputValue: address,
               placeholder: "Enter an address",
               styles: {
                 container: (provided) => ({

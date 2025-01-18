@@ -17,7 +17,7 @@ const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
   const displayEventPhoto = eventData.photo
     ? useQuery(api.photo.getFileUrl, { storageId: eventData.photo })
     : null;
-  console.log("displayEvent", displayEventPhoto);
+
   return (
     <div className="flex flex-col rounded border border-altGray w-[400px] p-3 shadow bg-white">
       {displayEventPhoto === undefined && <EventFormSkeleton />}
@@ -45,9 +45,9 @@ const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
           <p>{eventData.startTime ? formatTime(eventData.startTime) : "TBD"}</p>
         </div>
         {/* Render venue or maintain space */}
-        <div className="flex space-x-2 items-center">
-          <LuMapPin className="text-xl" />
-          <p>{eventData.address}</p>
+        <div className="flex items-start space-x-2">
+          <LuMapPin className="text-xl flex-shrink-0" />
+          <p className="">{eventData.address}</p>
         </div>
       </div>
     </div>
