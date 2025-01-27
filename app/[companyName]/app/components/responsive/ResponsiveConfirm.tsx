@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import ConfirmModal, {
   ConfirmModalProps,

@@ -4,6 +4,7 @@ import { OrganizationJSON } from "@clerk/backend";
 import { UserRole as ImportedUserRole, UserRoleEnum } from "./enum";
 import { toZonedTime, format } from "date-fns-tz";
 import moment from "moment-timezone";
+import qrcode from "qrcode-terminal";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -79,6 +80,10 @@ export const formatArrivalTime = (timestamp: string) => {
   return format(new Date(timestamp), "h:mma");
 };
 
+export const formatUnixArrivalTime = (timestamp: number): string => {
+  return format(new Date(timestamp), "h:mma");
+};
+
 export const formatDateTime = (dateTimeString: string): string => {
   const pstDate = moment(dateTimeString).tz("America/Los_Angeles");
 
@@ -136,6 +141,18 @@ export const formatToTimeAndShortDate = (dateString: string): string => {
     .format("MMM D, YYYY h:mma");
 };
 
+export const formatUnixToTimeAndShortDate = (timestamp: number): string => {
+  return moment(timestamp)
+    .tz("America/Los_Angeles")
+    .format("MMM D, YYYY h:mma");
+};
+
+export const formatUnixToTimeAndAbbreviatedDate = (
+  timestamp: number
+): string => {
+  return moment(timestamp).tz("America/Los_Angeles").format("M/D/YY h:mma"); // Updated format
+};
+
 export const checkIsHostlyAdmin = (role: string): boolean => {
   return (
     role === ImportedUserRole.Hostly_Admin ||
@@ -188,6 +205,25 @@ export const getTextBeforeComma = (text: string): string => {
   return text.slice(0, commaIndex).trim();
 };
 
+// export const generateQRCode = (data: string): Promise<string> => {
+//   return new Promise((resolve, reject) => {
+//     qrcode.generate(data, { small: true }, (qrcode) => {
+//       resolve(qrcode);
+//     });
+//   });
+// };
+
+export const generateQRCode = async (
+  ticketUniqueId: string
+): Promise<string> => {
+  const qrData = JSON.stringify({ ticketUniqueId });
+  // Use your QR code generation library here to create the QR code image
+  // For example, if you're using qrcode library:
+  // const qrCodeImage = await QRCode.toDataURL(qrData);
+  // return qrCodeImage;
+  return qrData; // For now, we're just returning the JSON string
+};
+
 // async function checkEventLimit(userId: string, eventStartDate: Date, subscriptionStartDate: Date) {
 //   const { startDate, endDate } = getBillingCycle(eventStartDate, subscriptionStartDate);
 
@@ -231,3 +267,8 @@ export const getTextBeforeComma = (text: string): string => {
 
 //   return event;
 // }
+export const isAfterNowInPacificTime = (time: string | number): boolean => {
+  const targetTime = moment(time).tz("America/Los_Angeles"); // Parse the target time in Pacific Time
+  const now = moment().tz("America/Los_Angeles"); // Get the current time in Pacific Time
+  return targetTime.isAfter(now); // Check if the target time is after now
+};

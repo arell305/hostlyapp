@@ -11,63 +11,44 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAction, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { useOrganization } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
+import { UserWithPromoCode } from "@/types/types";
 
 interface EditPromoCodeDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onPromoCodeUpdate: (newPromoCode: string) => void;
-  currentPromoCode: string;
+  user: UserWithPromoCode | null | undefined;
 }
 
 const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
   isOpen,
   setIsOpen,
-  onPromoCodeUpdate,
-  currentPromoCode,
+  user,
 }) => {
-  const { organization } = useOrganization();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isValid, setIsValid] = useState(true);
-
-  const { user } = useUserRole();
-
-  const currentPromoCodeId = user?.promoterPromoCode?.promoCodeId;
-
-  const [promoCode, setPromoCode] = useState(currentPromoCode || "");
+  const [promoCode, setPromoCode] = useState<string | null | undefined>(
+    user?.promoCode
+  );
 
   const updateUserMetadata = useAction(api.clerk.updateUserMetadata);
-  const addPromoCode = useMutation(api.promoterPromoCode.addPromoterPromoCode);
-  const updateUserWithPromoCode = useMutation(
-    api.users.updateUserWithPromoCode
-  );
-  const updatePromoCode = useMutation(
-    api.promoterPromoCode.updatePromoterPromoCode
+  const addPromoCode = useMutation(
+    api.promoterPromoCode.addOrUpdatePromoterPromoCode
   );
 
-  useEffect(() => {
-    setPromoCode(currentPromoCode || "");
-    setError(null);
-    setIsValid(true);
-  }, [currentPromoCode, isOpen]);
+  console.log("promoCode", promoCode);
 
-  const handlePromoCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCode = e.target.value;
-    setPromoCode(newCode);
-  };
-
+  console.log("user?.promoterPromoCodeId", user?.promoCode);
   const handleSave = async () => {
-    if (!user || !organization || !user.clerkUserId) {
-      setError("User or organization not available");
+    if (!user || !user.clerkUserId) {
+      setError("User not available. Please Try again");
       return;
     }
-    if (!promoCode.trim()) {
+    if (!promoCode || !promoCode.trim()) {
       setError("Promo code cannot be empty");
       return;
     }
@@ -77,31 +58,18 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
       return;
     }
 
+    if (promoCode === user.promoCode) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      let result;
-      if (currentPromoCode && currentPromoCodeId) {
-        // Update existing promo code
-        result = await updatePromoCode({
-          promoCodeId: currentPromoCodeId,
-          name: promoCode,
-        });
-      } else {
-        // Add new promo code
-        result = await addPromoCode({
-          name: promoCode,
-          clerkOrganizationId: organization.id,
-          clerkPromoterUserId: user.clerkUserId,
-        });
-      }
-      // update user with the promocode
       await Promise.all([
-        updateUserWithPromoCode({
-          clerkUserId: user.clerkUserId,
-          promoCodeId: result.promoCodeId,
-          promoCodeName: promoCode,
+        addPromoCode({
+          name: promoCode,
+          clerkPromoterUserId: user.clerkUserId,
         }),
         updateUserMetadata({
           clerkUserId: user.clerkUserId,
@@ -110,9 +78,6 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
           },
         }),
       ]);
-
-      // Call the new prop function to update the state in DashboardNavbar
-      onPromoCodeUpdate(promoCode);
 
       toast({
         title: "Promo Code updated",
@@ -140,38 +105,35 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
     }
   };
 
-  if (user === undefined) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="rounded-[10px]">
         <DialogHeader>
           <DialogTitle>
-            {currentPromoCode ? "Edit Promo Code" : "Add Promo Code"}
+            {user?.promoCodeId ? "Edit Promo Code" : "Add Promo Code"}
           </DialogTitle>
           <DialogDescription>
-            {currentPromoCode
+            {user?.promoCodeId
               ? "Edit your current promo code below."
               : "Enter a new promo code below."}
           </DialogDescription>
         </DialogHeader>
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        <input
-          value={promoCode}
-          onChange={handlePromoCodeChange}
+        <Input
+          value={promoCode || ""}
+          onChange={(e) => {
+            setPromoCode(e.target.value);
+            setError(null);
+          }}
           placeholder="Enter promo code"
-          className={`w-full border-b-2 bg-transparent py-1 text-gray-800 focus:outline-none 
-          ${error ? "border-red-500" : "border-gray-300"} 
-          focus:border-customDarkBlue`} // className={` focus:border-blue-500 ${!isValid ? "border-red-500" : "border-gray-300"} outline-none my-4`}
           disabled={isLoading}
+          error={error || undefined}
         />
-        <div className="flex justify-center space-x-10">
+        <p
+          className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
+        >
+          {error || "Placeholder to maintain height"}
+        </p>{" "}
+        <div className="flex justify-center space-x-10 mt-4">
           <Button
             variant="ghost"
             onClick={() => setIsOpen(false)}

@@ -190,8 +190,6 @@ export const addEvent = mutation({
             femaleTicketPrice: args.ticketData.femaleTicketPrice,
             maleTicketCapacity: args.ticketData.maleTicketCapacity,
             femaleTicketCapacity: args.ticketData.femaleTicketCapacity,
-            totalMaleTicketsSold: 0,
-            totalFemaleTicketsSold: 0,
             ticketSalesEndTime: args.ticketData.ticketSalesEndTime,
           }
         );
@@ -653,8 +651,6 @@ export const updateEvent = mutation({
           const ticketInfoId = await ctx.db.insert("ticketInfo", {
             ...args.ticketData,
             eventId: event._id,
-            totalMaleTicketsSold: 0,
-            totalFemaleTicketsSold: 0,
           });
           updatedEventData.ticketInfoId = ticketInfoId;
         }

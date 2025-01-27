@@ -6,6 +6,7 @@ import EventPreview from "./app/components/calendar/EventPreview";
 import { EventSchema } from "@/types/types";
 import PreviewCard from "@/components/view-event/Preview";
 import Image from "next/image";
+import QRCodeScanner from "./app/components/QRCodeScanner";
 
 const CompanyEvents = () => {
   const params = useParams();

@@ -75,8 +75,7 @@ export interface TicketInfo {
   femaleTicketPrice: number;
   maleTicketCapacity: number;
   femaleTicketCapacity: number;
-  totalMaleTicketsSold: number;
-  totalFemaleTicketsSold: number;
+
   ticketSalesEndTime: string;
 }
 
@@ -344,7 +343,7 @@ export interface EventFormInput {
 
 export interface InsertTicektResponse {
   status: ResponseStatus;
-  data: Id<"ticketInfo"> | null;
+  data: Id<"tickets"> | null;
   error?: string | null;
 }
 
@@ -408,8 +407,6 @@ export interface TicketInfoSchema {
   femaleTicketPrice: number;
   maleTicketCapacity: number;
   femaleTicketCapacity: number;
-  totalMaleTicketsSold: number;
-  totalFemaleTicketsSold: number;
   ticketSalesEndTime: string;
 }
 
@@ -534,7 +531,7 @@ export type FindUserByClerkIdResponse =
   | ErrorResponse;
 
 export interface FindUserByClerkIdData {
-  user: UserSchema;
+  user: UserWithPromoCode;
 }
 
 export interface UserSchema {
@@ -546,10 +543,11 @@ export interface UserSchema {
   customerId?: Id<"customers">;
   role: UserRole | null;
   name?: string;
-  promoterPromoCode?: {
-    promoCodeId: Id<"promoterPromoCode">;
-    name: string;
-  };
+}
+
+export interface UserWithPromoCode extends UserSchema {
+  promoCode?: string | null;
+  promoCodeId?: Id<"promoterPromoCode">;
 }
 
 export interface ErrorResponse {

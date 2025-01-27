@@ -56,10 +56,7 @@ export const insertTicketInfo = mutation({
         femaleTicketPrice: args.femaleTicketPrice,
         maleTicketCapacity: args.maleTicketCapacity,
         femaleTicketCapacity: args.femaleTicketCapacity,
-        totalMaleTicketsSold: 0,
-        totalFemaleTicketsSold: 0,
         ticketSalesEndTime: args.ticketSalesEndTime,
-        isActive: true,
       });
       await ctx.db.patch(args.eventId, { ticketInfoId });
 

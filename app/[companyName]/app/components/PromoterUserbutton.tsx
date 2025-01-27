@@ -4,7 +4,7 @@ import { UserButton } from "@clerk/nextjs";
 import { FaEdit } from "react-icons/fa";
 
 interface PromoterUserButtonProps {
-  promoCode: string | undefined;
+  promoCode: string | undefined | null;
   onEditPromoCode: () => void;
 }
 

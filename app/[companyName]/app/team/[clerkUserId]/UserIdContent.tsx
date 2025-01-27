@@ -3,9 +3,10 @@ import { UserSchema } from "@/types/schemas-types";
 import Image from "next/image";
 import { UserRole, roleMap } from "../../../../../utils/enum";
 import { GoPencil } from "react-icons/go";
+import { UserWithPromoCode } from "@/types/types";
 
 interface UserIdContentProps {
-  userData: UserSchema;
+  userData: UserWithPromoCode;
   onBack: () => void;
   onDelete: () => void;
   onEdit: () => void;
@@ -77,7 +78,7 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
             <h3 className="text-sm font-medium text-gray-500">Promo Code: </h3>
             <p className="text-lg font-semibold">
               {" "}
-              {userData.promoterPromoCode?.name ?? "Not Set"}
+              {userData.promoCode ?? "Not Set"}
             </p>
           </div>
         </div>

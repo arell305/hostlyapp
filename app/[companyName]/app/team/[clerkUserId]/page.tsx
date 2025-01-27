@@ -173,7 +173,6 @@ const UserWrapper = () => {
   return (
     <>
       <UserIdContent
-        currentClerkUserId={currentClerkUserId}
         userData={userFromDb.data.user}
         onBack={onBack}
         onDelete={handleShowDeleteConfirmation}

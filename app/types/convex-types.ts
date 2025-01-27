@@ -1,6 +1,13 @@
 import { ErrorMessages } from "@/types/enums";
 import { ResponseStatus } from "../../utils/enum";
-import { UserSchema } from "./schemas-types";
+import {
+  CustomerTicket,
+  PromoterPromoCodeSchema,
+  PromoterPromoCodeWithDiscount,
+  TicketSchema,
+  TicketSchemaWithPromoter,
+  UserSchema,
+} from "./schemas-types";
 import {
   EventSchema,
   GuestListInfo,
@@ -208,4 +215,65 @@ export interface GetEventByIdData {
   event: EventSchema;
   ticketInfo?: TicketInfo | null;
   guestListInfo?: GuestListInfo | null;
+}
+
+export type InsertTicketSoldResponse = InsertTicketSoldSuccess | ErrorResponse;
+
+export interface InsertTicketSoldSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: InsertTicketSoldData;
+}
+
+export interface InsertTicketSoldData {
+  tickets: CustomerTicket[];
+}
+
+export type GetTicketsByEventIdResponse =
+  | GetTicketsByEventIdSuccess
+  | ErrorResponse;
+
+export interface GetTicketsByEventIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetTicketsByEventIdData;
+}
+
+export interface GetTicketsByEventIdData {
+  tickets: TicketSchemaWithPromoter[];
+}
+
+export type CheckInTicketResponse = CheckInTicketSuccess | ErrorResponse;
+
+export interface CheckInTicketSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CheckInTicketData;
+}
+
+export interface CheckInTicketData {
+  ticketId: Id<"tickets">;
+}
+
+export type ValidatePromoterPromoCodeResponse =
+  | ValidatePromoterPromoCodeSuccess
+  | ErrorResponse;
+
+export interface ValidatePromoterPromoCodeSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: ValidatePromoterPromoCodeData;
+}
+
+export interface ValidatePromoterPromoCodeData {
+  promoterPromoCode: PromoterPromoCodeWithDiscount;
+}
+
+export type UpdatePromoterPromoCodeResponse =
+  | UpdatePromoterPromoCodeSuccess
+  | ErrorResponse;
+
+export interface UpdatePromoterPromoCodeSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdatePromoterPromoCodeData;
+}
+
+export interface UpdatePromoterPromoCodeData {
+  promoCodeId: Id<"promoterPromoCode">;
 }

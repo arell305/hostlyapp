@@ -2,6 +2,7 @@ import { defineSchema, defineTable } from "convex/server";
 import { SubscriptionStatus, UserRole, UserRoleEnum } from "../utils/enum";
 import { v } from "convex/values";
 import { SubscriptionTier } from "../utils/enum";
+import { Gender } from "@/types/enums";
 
 export const UserRoleEnumConvex = v.union(
   v.literal(UserRoleEnum.APP_ADMIN),
@@ -89,12 +90,6 @@ export default defineSchema({
     role: v.union(RoleConvex, v.null()),
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
-    promoterPromoCode: v.optional(
-      v.object({
-        promoCodeId: v.id("promoterPromoCode"),
-        name: v.string(),
-      })
-    ),
   })
     .index("by_email", ["email"])
     .index("by_clerkUserId", ["clerkUserId"]),
@@ -135,9 +130,10 @@ export default defineSchema({
   }),
   promoterPromoCode: defineTable({
     name: v.string(),
-    clerkOrganizationId: v.string(),
     clerkPromoterUserId: v.string(),
-  }).index("by_name", ["name"]),
+  })
+    .index("by_name", ["name"])
+    .index("by_clerkPromoterUserId", ["clerkPromoterUserId"]),
   promoCodeUsage: defineTable({
     promoCodeId: v.id("promoterPromoCode"),
     clerkPromoterUserId: v.string(),
@@ -155,8 +151,6 @@ export default defineSchema({
     femaleTicketPrice: v.number(),
     maleTicketCapacity: v.number(),
     femaleTicketCapacity: v.number(),
-    totalMaleTicketsSold: v.number(),
-    totalFemaleTicketsSold: v.number(),
     ticketSalesEndTime: v.string(),
   }).index("by_eventId", ["eventId"]),
   guestListInfo: defineTable({
@@ -165,4 +159,20 @@ export default defineSchema({
     checkInCloseTime: v.string(),
     guestListIds: v.array(v.id("guestLists")),
   }).index("by_eventId", ["eventId"]),
+  ticketPurchase: defineTable({
+    email: v.string(), // Reference to the user who made the purchase
+    ticketInfoId: v.id("ticketInfo"), // Reference to the ticketInfo table
+    purchaseTime: v.string(), // Time of purchase (ISO format)
+    tickets: v.array(v.id("tickets")),
+  }).index("by_ticketInfoId", ["ticketInfoId"]),
+  tickets: defineTable({
+    eventId: v.id("events"),
+    clerkPromoterId: v.union(v.string(), v.null()),
+    email: v.string(),
+    gender: v.union(v.literal(Gender.Male), v.literal(Gender.Female)),
+    checkInTime: v.optional(v.number()),
+    ticketUniqueId: v.string(),
+  })
+    .index("by_eventId", ["eventId"])
+    .index("by_ticketUniqueId", ["ticketUniqueId"]),
 });

@@ -11,6 +11,7 @@ import { SubscriptionTier, UserRoleEnum } from "../../../../utils/enum";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CiCirclePlus } from "react-icons/ci";
+import QRCodeScanner from "../components/QRCodeScanner";
 
 const page = () => {
   const todayInPST = moment().tz("America/Los_Angeles").startOf("day").toDate();
@@ -95,8 +96,8 @@ const page = () => {
 
   console.log("event response", eventsResponse);
   return (
-    <div className="justify-center  max-w-3xl  mx-auto mt-1.5 md:min-h-[300px]">
-      <div className="flex justify-between items-center w-full px-4 pt-4 md:pt-0 mb-4">
+    <div className="justify-center  max-w-3xl  mx-auto mt-1.5 min-h-[100vh]">
+      {/* <div className="flex justify-between items-center w-full px-4 pt-4 md:pt-0 mb-4">
         <h1 className="font-bold text-3xl">Events</h1>
         <Protect condition={(has) => has({ permission: "org:events:create" })}>
           <Link
@@ -106,7 +107,8 @@ const page = () => {
             <Button variant="ghost">Add Event</Button>
           </Link>
         </Protect>
-      </div>
+      </div> */}
+      <QRCodeScanner />
     </div>
   );
 };

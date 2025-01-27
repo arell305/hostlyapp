@@ -33,7 +33,15 @@ export enum TeamSettingsModalType {
 
 export enum ErrorMessages {
   UNAUTHENTICATED = "User is not authenticated.",
-  FORBIDDEN = "User does not belong to the organization of the event.",
+  FORBIDDEN = "User does not have permission",
   GENERIC_ERROR = "An unexpected error occurred.",
   NOT_FOUND = "Not found.",
+  ALREADY_CHECKED_IN = "Already checked in",
+  NOT_BELONG = "User does not belong to the organization of the event.",
+  INVALID_PROMO_CODE = "Invalid promoter code",
+}
+
+export enum Gender {
+  Male = "male",
+  Female = "female",
 }

@@ -6,9 +6,14 @@ import {
   query,
 } from "./_generated/server";
 import { RoleConvex } from "./schema";
-import { FindUserByClerkIdResponse, UserSchema } from "@/types/types";
+import {
+  FindUserByClerkIdResponse,
+  UserSchema,
+  UserWithPromoCode,
+} from "@/types/types";
 import { ResponseStatus } from "../utils/enum";
 import { ErrorMessages } from "@/types/enums";
+import { PromoterPromoCodeSchema } from "@/types/schemas-types";
 
 export const createUser = internalMutation({
   args: {
@@ -146,7 +151,7 @@ export const findUserByClerkId = query({
       const user: UserSchema | null = await ctx.db
         .query("users")
         .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
-        .first();
+        .unique();
 
       if (!user) {
         return {
@@ -156,11 +161,19 @@ export const findUserByClerkId = query({
         };
       }
 
+      const promoterPromoCode: PromoterPromoCodeSchema | null = await ctx.db
+        .query("promoterPromoCode")
+        .filter((q) => q.eq(q.field("clerkPromoterUserId"), user.clerkUserId))
+        .unique();
+
+      const data: UserWithPromoCode = {
+        ...user,
+        promoCode: promoterPromoCode?.name,
+      };
+
       return {
         status: ResponseStatus.SUCCESS,
-        data: {
-          user,
-        },
+        data: { user: data },
       };
     } catch (error) {
       const errorMessage =
@@ -175,44 +188,45 @@ export const findUserByClerkId = query({
   },
 });
 
-export const updateUserWithPromoCode = mutation({
-  args: {
-    clerkUserId: v.string(),
-    promoCodeId: v.id("promoterPromoCode"),
-    promoCodeName: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const { clerkUserId, promoCodeId, promoCodeName } = args;
+// delete
+// export const updateUserWithPromoCode = mutation({
+//   args: {
+//     clerkUserId: v.string(),
+//     promoCodeId: v.id("promoterPromoCode"),
+//     promoCodeName: v.string(),
+//   },
+//   handler: async (ctx, args) => {
+//     const { clerkUserId, promoCodeId, promoCodeName } = args;
 
-    try {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
-        .unique();
+//     try {
+//       const user = await ctx.db
+//         .query("users")
+//         .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+//         .unique();
 
-      if (!user) {
-        throw new Error("User not found");
-      }
+//       if (!user) {
+//         throw new Error("User not found");
+//       }
 
-      await ctx.db.patch(user._id, {
-        promoterPromoCode: {
-          promoCodeId: promoCodeId,
-          name: promoCodeName,
-        },
-      });
+//       await ctx.db.patch(user._id, {
+//         promoterPromoCode: {
+//           promoCodeId: promoCodeId,
+//           name: promoCodeName,
+//         },
+//       });
 
-      return {
-        success: true,
-        message: "User updated with promo code successfully",
-      };
-    } catch (error) {
-      console.error("Error updating user with promo code:", error);
-      throw new Error(
-        `Failed to update user with promo code: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
-    }
-  },
-});
+//       return {
+//         success: true,
+//         message: "User updated with promo code successfully",
+//       };
+//     } catch (error) {
+//       console.error("Error updating user with promo code:", error);
+//       throw new Error(
+//         `Failed to update user with promo code: ${error instanceof Error ? error.message : "Unknown error"}`
+//       );
+//     }
+//   },
+// });
 
 export const deleteFromClerk = internalMutation({
   args: { clerkUserId: v.string() },

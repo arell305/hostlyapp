@@ -13,7 +13,7 @@ const ViewTab: React.FC<ViewTabProps> = ({ eventData, ticketData }) => {
     <div className="flex flex-col justify-center items-center space-y-4 bg-gray-100 pb-4 pt-4">
       <DetailsView eventData={eventData} />
       <About description={eventData.description} />
-      <TicketView ticketData={ticketData} />
+      {ticketData && <TicketView ticketData={ticketData} />}
     </div>
   );
 };

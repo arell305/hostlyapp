@@ -9,6 +9,8 @@ import EditSubscriptionDialog from "./EditSubscriptionDialog";
 import { HiOutlineMenuAlt4 } from "react-icons/hi";
 import { RiCloseLargeLine } from "react-icons/ri";
 import { UserRole } from "../../../../utils/enum";
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 
 interface DashboardNavbarProps {
   toggleNavbar: () => void;
@@ -24,21 +26,19 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
       useState(false);
 
-    const [promoCode, setPromoCode] = useState<string>(
-      (user?.publicMetadata?.promoCode as string) || ""
+    const userFromDb = useQuery(
+      api.users.findUserByClerkId,
+      user
+        ? {
+            clerkUserId: user?.id,
+          }
+        : "skip"
     );
+    console.log("u", userFromDb);
 
     const role = user?.organizationMemberships[0]?.role;
-    console.log("role", role);
     const isPromoterAdmin =
       role === UserRole.Admin && organization?.name !== "Admin";
-
-    // Update promo code when user or loaded state changes
-    useEffect(() => {
-      if (loaded && user) {
-        setPromoCode((user.publicMetadata?.promoCode as string) || "");
-      }
-    }, [loaded, user]);
 
     const togglePromoCodeModal = useCallback(() => {
       setIsPromoCodeModalOpen((prev) => !prev);
@@ -48,10 +48,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
       setIsSubscriptionModalOpen((prev) => !prev);
     }, []);
 
-    const handlePromoCodeUpdate = (newPromoCode: string) => {
-      setPromoCode(newPromoCode);
-    };
-
     // Show loading state until user data is loaded
     if (!loaded) {
       return (
@@ -60,7 +56,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
         </nav>
       );
     }
-    console.log("org", organization);
     return (
       <nav
         className={`w-full items-center shadow md:shadow-none md:border-none bg-white z-10 top-0 fixed h-12 transition-colors duration-300  ${isOpen ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]" : " border-b border-gray-200"}`}
@@ -101,7 +96,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
                 <AdminUserButton />
               ) : (
                 <PromoterUserButton
-                  promoCode={promoCode}
+                  promoCode={userFromDb?.data?.user.promoCode}
                   onEditPromoCode={togglePromoCodeModal}
                 />
               )}
@@ -112,8 +107,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
           <EditPromoCodeDialog
             isOpen={isPromoCodeModalOpen}
             setIsOpen={setIsPromoCodeModalOpen}
-            onPromoCodeUpdate={handlePromoCodeUpdate}
-            currentPromoCode={promoCode}
+            user={userFromDb?.data?.user}
           />
         )}
         {isSubscriptionModalOpen && (
