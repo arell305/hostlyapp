@@ -39,6 +39,9 @@ export enum ErrorMessages {
   ALREADY_CHECKED_IN = "Already checked in",
   NOT_BELONG = "User does not belong to the organization of the event.",
   INVALID_PROMO_CODE = "Invalid promoter code",
+  EVENT_NOT_FOUND = "Event not found",
+  TICKET_INFO_NOT_FOUND = "Ticket info not found",
+  TICKET_SALES_ENDED = "Ticekt sales have ended",
 }
 
 export enum Gender {

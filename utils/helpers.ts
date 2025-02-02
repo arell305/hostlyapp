@@ -4,7 +4,7 @@ import { OrganizationJSON } from "@clerk/backend";
 import { UserRole as ImportedUserRole, UserRoleEnum } from "./enum";
 import { toZonedTime, format } from "date-fns-tz";
 import moment from "moment-timezone";
-import qrcode from "qrcode-terminal";
+import QRCode from "qrcode";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -271,4 +271,11 @@ export const isAfterNowInPacificTime = (time: string | number): boolean => {
   const targetTime = moment(time).tz("America/Los_Angeles"); // Parse the target time in Pacific Time
   const now = moment().tz("America/Los_Angeles"); // Get the current time in Pacific Time
   return targetTime.isAfter(now); // Check if the target time is after now
+};
+
+const base64Encode = (str: string) =>
+  typeof btoa !== "undefined" ? btoa(str) : Buffer.from(str).toString("base64");
+
+export const generateQRCodeBase64 = (ticketId: string) => {
+  return `https://quickchart.io/qr?text=${encodeURIComponent(ticketId)}&size=200`;
 };

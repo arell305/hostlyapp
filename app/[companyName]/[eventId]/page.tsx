@@ -1,5 +1,5 @@
 "use client";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { api } from "../../../convex/_generated/api";
@@ -34,7 +34,7 @@ const page = () => {
   const [purchasedTickets, setPurchasedTickets] = useState<
     CustomerTicket[] | null
   >(null);
-  const insertTicketsSold = useMutation(api.tickets.insertTicketsSold);
+  const insertTicketsSold = useAction(api.tickets.insertTicketsSold);
 
   // promo code
   const [shouldValidate, setShouldValidate] = useState(false);

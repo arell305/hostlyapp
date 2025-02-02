@@ -7,7 +7,7 @@ import {
   SubscriptionTier,
   UserRole,
 } from "../../utils/enum";
-import { ErrorMessages } from "./enums";
+import { ErrorMessages, Gender } from "./enums";
 
 export interface PricingOption {
   id: string;
@@ -70,6 +70,7 @@ export interface QueryResponse {
 }
 
 export interface TicketInfo {
+  _id: Id<"ticketInfo">;
   eventId: Id<"events">;
   maleTicketPrice: number;
   femaleTicketPrice: number;
@@ -572,4 +573,12 @@ export interface TransformedOrganization {
   name: string;
   createdBy: string;
   publicMetadata: any | null;
+}
+
+export interface TicketInput {
+  eventId: Id<"events">; // Assuming eventId is of type Id<"events">
+  clerkPromoterId: string | null; // Can be a string or null
+  email: string; // Email address as a string
+  gender: Gender; // Assuming Gender is an enum or a union type defined elsewhere
+  ticketUniqueId: string; // Unique identifier for the ticket
 }

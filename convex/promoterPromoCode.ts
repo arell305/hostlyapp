@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import { ResponseStatus } from "../utils/enum";
 import { ErrorMessages } from "@/types/enums";
 import {
@@ -11,6 +11,7 @@ import {
   ValidatePromoterPromoCodeResponse,
 } from "@/types/convex-types";
 import { EventSchema, OrganizationsSchema, UserSchema } from "@/types/types";
+import { Id } from "./_generated/dataModel";
 
 export const addOrUpdatePromoterPromoCode = mutation({
   args: {
@@ -69,6 +70,17 @@ export const addOrUpdatePromoterPromoCode = mutation({
         `Failed to add promo code: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
+  },
+});
+
+export const getPromoterPromoCodeById = internalQuery({
+  handler: async (
+    ctx,
+    { promoterPromoCodeId }: { promoterPromoCodeId: Id<"promoterPromoCode"> }
+  ) => {
+    return (await ctx.db.get(
+      promoterPromoCodeId
+    )) as PromoterPromoCodeSchema | null;
   },
 });
 

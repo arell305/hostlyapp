@@ -1,0 +1,8 @@
+{
+  "node": {
+    "platform": "node",
+    "externalPackages": [
+      "*"
+    ]
+  }
+}

@@ -16,4 +16,6 @@ node_modules/
 
 certificates
 .DS_Store
-**/.DS_Store
+**/.DS_Storesendgrid.env
+sendgrid.env
+sendgrid.env
