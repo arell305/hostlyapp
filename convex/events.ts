@@ -873,7 +873,8 @@ export const getEventsByNameAndMonth = query({
     const { organizationName, year, month } = args;
     const startDate = new Date(year, month - 2, 1);
     const endDate = new Date(year, month + 1, 0);
-
+    console.log("start", startDate);
+    console.log("end", endDate);
     try {
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {

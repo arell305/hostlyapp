@@ -34,7 +34,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
           }
         : "skip"
     );
-    console.log("u", userFromDb);
 
     const role = user?.organizationMemberships[0]?.role;
     const isPromoterAdmin =

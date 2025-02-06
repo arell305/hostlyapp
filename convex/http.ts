@@ -217,6 +217,40 @@ http.route({
   }),
 });
 
+// http.route({
+//   path: "/pdfmonkey", // Define your new webhook path
+//   method: "POST",
+//   handler: httpAction(async (ctx, request) => {
+//     const payloadString = await request.text();
+//     const payload = JSON.parse(payloadString); // Parse incoming JSON payload
+
+//     try {
+//       console.log("Received document event:", payload);
+
+//       switch (payload.event) {
+//         case "documents.generation.success":
+//           const downloadUrl = payload.data.download_url;
+//           console.log("PDF generated successfully! Download URL:", downloadUrl);
+//           // Add logic to handle successful PDF generation (e.g., send email)
+//           break;
+
+//         case "documents.generation.failed":
+//           console.error("Document generation failed:", payload.data);
+//           // Handle failure (e.g., log error, notify user)
+//           break;
+
+//         default:
+//           console.log("Unhandled event type:", payload.event);
+//       }
+
+//       return new Response("Webhook received", { status: 200 });
+//     } catch (error) {
+//       console.error("Error processing document event:", error);
+//       return new Response("Webhook Error", { status: 400 });
+//     }
+//   }),
+// });
+
 export default http;
 
 // In need to get subscriptionTier from customer
