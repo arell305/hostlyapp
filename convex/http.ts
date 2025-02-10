@@ -75,16 +75,16 @@ http.route({
               }
             );
 
-            const addClerkUserIdPromise = ctx.runMutation(
-              internal.organizations.addClerkUserId,
-              {
-                clerkOrganizationId: existingUser.clerkOrganizationId,
-                clerkUserId: result.data.id,
-              }
-            );
+            // const addClerkUserIdPromise = ctx.runMutation(
+            //   internal.organizations.addClerkUserId,
+            //   {
+            //     clerkOrganizationId: existingUser.clerkOrganizationId,
+            //     clerkUserId: result.data.id,
+            //   }
+            // );
 
             // Run both mutations in parallel
-            await Promise.all([updateUserPromise, addClerkUserIdPromise]);
+            await Promise.all([updateUserPromise]);
             return new Response(JSON.stringify({ message: "Success" }), {
               status: 200,
               headers: { "Content-Type": "application/json" },
@@ -144,7 +144,6 @@ http.route({
             headers: { "Content-Type": "application/json" },
           });
         case "organization.created":
-          console.log("in if");
           await ctx.runMutation(internal.organizations.createOrganization, {
             clerkOrganizationId: result.data.id,
             name: result.data.name, // Use the name property instead of created_by

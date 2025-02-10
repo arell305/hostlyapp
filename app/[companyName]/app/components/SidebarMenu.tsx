@@ -97,14 +97,14 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
         {companyName && cleanCompanyName !== "admin" && (
           <>
             {isAppAdmin && (
-              <Link href={`/${companyName}/app/dashboard`}>
+              <Link href={`/${companyName}/app/`}>
                 <div className="ml-6 mt-4 mb-2 text-2xl font-semibold">
                   {decodeURIComponent(cleanCompanyName)}
                 </div>
               </Link>
             )}
             <MenuItem>
-              <Link href={`/${companyName}/app/dashboard`}>
+              <Link href={`/${companyName}/app/`}>
                 <div className="flex">
                   <IoHomeOutline size={14} className="w-6 h-6 mr-2" />
                   <p>Home</p>
@@ -124,7 +124,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
                 </Link>
               </MenuItem>
             </Protect>
-            <MenuItem onClick={() => handleItemClick(`/${companyName}/app`)}>
+            <MenuItem onClick={() => handleItemClick(`/${companyName}`)}>
               <div className="flex">
                 <IoCalendarClearOutline size={14} className="w-6 h-6 mr-2" />
                 <p>Customer Calendar</p>

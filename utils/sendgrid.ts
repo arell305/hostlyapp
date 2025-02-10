@@ -1,8 +1,7 @@
 import fetch from "node-fetch";
-import { formatTime, generateQRCodeBase64 } from "./helpers";
 import { CustomerTicket } from "@/types/schemas-types";
-// import { generateTestPDF } from "./pdf";
 import { Buffer } from "buffer";
+import { formatTime } from "./luxon";
 
 export const sendTicketEmail = async (
   recipientEmail: string,

@@ -3,6 +3,7 @@ import { internalQuery, mutation, query } from "./_generated/server";
 import { ResponseStatus } from "../utils/enum";
 import { ErrorMessages } from "@/types/enums";
 import {
+  EventSchema,
   PromoterPromoCodeSchema,
   PromoterPromoCodeWithDiscount,
 } from "@/types/schemas-types";
@@ -10,7 +11,7 @@ import {
   UpdatePromoterPromoCodeResponse,
   ValidatePromoterPromoCodeResponse,
 } from "@/types/convex-types";
-import { EventSchema, OrganizationsSchema, UserSchema } from "@/types/types";
+import { OrganizationsSchema, UserSchema } from "@/types/types";
 import { Id } from "./_generated/dataModel";
 
 export const addOrUpdatePromoterPromoCode = mutation({

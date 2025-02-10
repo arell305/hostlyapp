@@ -40,8 +40,8 @@ export interface TicketSchema {
 
 export interface CustomerTicket extends TicketSchema {
   name: string;
-  startTime: string; // ISO date string
-  endTime: string; // ISO date string
+  startTime: number;
+  endTime: number;
   address: string;
 }
 
@@ -58,4 +58,37 @@ export interface PromoterPromoCodeSchema {
 
 export interface PromoterPromoCodeWithDiscount extends PromoterPromoCodeSchema {
   promoDiscount: number;
+}
+
+export interface EventSchema {
+  _id: Id<"events">;
+  clerkOrganizationId: string;
+  name: string;
+  description: string | null;
+  startTime: number;
+  endTime: number;
+  photo: Id<"_storage"> | null;
+  address: string;
+  isActive: boolean;
+  ticketInfoId?: Id<"ticketInfo"> | null;
+  guestListInfoId?: Id<"guestListInfo"> | null;
+}
+
+export interface TicketInfoSchema {
+  _id: Id<"ticketInfo">;
+  _creationTime: number;
+  eventId: Id<"events">;
+  maleTicketPrice: number;
+  femaleTicketPrice: number;
+  maleTicketCapacity: number;
+  femaleTicketCapacity: number;
+  ticketSalesEndTime: number;
+}
+
+export interface GuestListInfoSchema {
+  _id: Id<"guestListInfo">;
+  _creationTime: number;
+  eventId: Id<"events">;
+  guestListCloseTime: number;
+  checkInCloseTime: number;
 }

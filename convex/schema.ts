@@ -49,7 +49,7 @@ export const GuestListNames = v.object({
   attended: v.optional(v.boolean()),
   malesInGroup: v.optional(v.number()),
   femalesInGroup: v.optional(v.number()),
-  checkInTime: v.optional(v.string()),
+  checkInTime: v.optional(v.number()),
 });
 
 export default defineSchema({
@@ -96,9 +96,7 @@ export default defineSchema({
   organizations: defineTable({
     clerkOrganizationId: v.string(),
     name: v.string(),
-    clerkUserIds: v.array(v.string()),
     imageUrl: v.optional(v.string()),
-    eventIds: v.array(v.id("events")),
     customerId: v.id("customers"),
     promoDiscount: v.number(),
     isActive: v.optional(v.boolean()),
@@ -109,13 +107,13 @@ export default defineSchema({
     clerkOrganizationId: v.string(),
     name: v.string(),
     description: v.union(v.string(), v.null()),
-    startTime: v.string(),
-    endTime: v.string(),
-    ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
+    startTime: v.number(),
+    endTime: v.number(),
     photo: v.union(v.id("_storage"), v.null()),
-    guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
     address: v.string(),
     isActive: v.boolean(),
+    ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
+    guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
     .index("by_clerkOrganizationId_and_startTime", [
@@ -151,18 +149,17 @@ export default defineSchema({
     femaleTicketPrice: v.number(),
     maleTicketCapacity: v.number(),
     femaleTicketCapacity: v.number(),
-    ticketSalesEndTime: v.string(),
+    ticketSalesEndTime: v.number(),
   }).index("by_eventId", ["eventId"]),
   guestListInfo: defineTable({
     eventId: v.id("events"),
-    guestListCloseTime: v.string(),
-    checkInCloseTime: v.string(),
-    guestListIds: v.array(v.id("guestLists")),
+    guestListCloseTime: v.number(),
+    checkInCloseTime: v.number(),
   }).index("by_eventId", ["eventId"]),
   ticketPurchase: defineTable({
     email: v.string(), // Reference to the user who made the purchase
     ticketInfoId: v.id("ticketInfo"), // Reference to the ticketInfo table
-    purchaseTime: v.string(), // Time of purchase (ISO format)
+    purchaseTime: v.number(), // Time of purchase (ISO format)
     tickets: v.array(v.id("tickets")),
   }).index("by_ticketInfoId", ["ticketInfoId"]),
   tickets: defineTable({

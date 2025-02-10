@@ -1,17 +1,20 @@
 import { ErrorMessages } from "@/types/enums";
-import { ResponseStatus } from "../../utils/enum";
+import { ResponseStatus, SubscriptionTier } from "../../utils/enum";
 import {
   CustomerTicket,
+  EventSchema,
+  GuestListInfoSchema,
   PromoterPromoCodeSchema,
   PromoterPromoCodeWithDiscount,
+  TicketInfoSchema,
   TicketSchema,
   TicketSchemaWithPromoter,
   UserSchema,
 } from "./schemas-types";
 import {
-  EventSchema,
   GuestListInfo,
   OrganizationsSchema,
+  SubscriptionBillingCycle,
   TicketInfo,
   TransformedOrganization,
 } from "./types";
@@ -174,6 +177,8 @@ export interface AddEventResponseSuccess {
 
 export interface AddEventResponseData {
   eventId: Id<"events">;
+  ticketInfoId: Id<"ticketInfo"> | null;
+  guestListInfoId: Id<"guestListInfo"> | null;
 }
 
 export type CountGuestListsEventsResponse =
@@ -213,8 +218,8 @@ export interface GetEventByIdSuccess {
 
 export interface GetEventByIdData {
   event: EventSchema;
-  ticketInfo?: TicketInfo | null;
-  guestListInfo?: GuestListInfo | null;
+  ticketInfo: TicketInfoSchema | null;
+  guestListInfo?: GuestListInfoSchema | null;
 }
 
 export type InsertTicketSoldResponse = InsertTicketSoldSuccess | ErrorResponse;
@@ -276,4 +281,31 @@ export interface UpdatePromoterPromoCodeSuccess {
 
 export interface UpdatePromoterPromoCodeData {
   promoCodeId: Id<"promoterPromoCode">;
+}
+
+export type GetCustomerTierByOrganizationNameResponse =
+  | GetCustomerTierByOrganizationNameSuccess
+  | ErrorResponse;
+
+export interface GetCustomerTierByOrganizationNameSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetCustomerTierByOrganizationNameData;
+}
+
+export interface GetCustomerTierByOrganizationNameData {
+  customerTier: SubscriptionTier;
+  customerId: Id<"customers">;
+}
+
+export type GetSubDatesAndGuestEventsCountByDateResponse =
+  | GetSubDatesAndGuestEventsCountByDateSuccess
+  | ErrorResponse;
+
+export interface GetSubDatesAndGuestEventsCountByDateSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetSubDatesAndGuestEventsCountByDateData;
+}
+
+export interface GetSubDatesAndGuestEventsCountByDateData {
+  billingCycle: SubscriptionBillingCycle;
 }

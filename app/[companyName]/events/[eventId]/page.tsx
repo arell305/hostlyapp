@@ -2,26 +2,28 @@
 import { useAction, useMutation, useQuery } from "convex/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { api } from "../../../convex/_generated/api";
-import EventInfoSkeleton from "../app/components/loading/EventInfoSkeleton";
-import { ResponseStatus } from "../../../utils/enum";
-import NotFound from "../app/components/errors/NotFound";
-import DetailsView from "../app/components/view/DetailsView";
-import About from "../app/components/view/About";
-import TicketView from "../app/components/view/Tickets";
+import { api } from "../../../../convex/_generated/api";
+import EventInfoSkeleton from "../../app/components/loading/EventInfoSkeleton";
+import { ResponseStatus } from "../../../../utils/enum";
+import NotFound from "../../app/components/errors/NotFound";
+import DetailsView from "../../app/components/view/DetailsView";
+import About from "../../app/components/view/About";
+import TicketView from "../../app/components/view/Tickets";
 import QRCode from "qrcode";
 import _ from "lodash";
-import { isValidEmail } from "../../../utils/helpers";
+import { isValidEmail } from "../../../../utils/helpers";
 import {
   CustomerTicket,
   PromoterPromoCodeWithDiscount,
   TicketSchema,
 } from "@/types/schemas-types";
-import CustomerTicketView from "../app/components/view/CustomerTickets";
+import CustomerTicketView from "../../app/components/view/CustomerTickets";
+import { Button } from "@/components/ui/button";
 
 const page = () => {
   const params = useParams();
   const eventId = params.eventId as string;
+  const companyName = params.companyName as string;
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
 
   // ticket purchase
@@ -149,35 +151,46 @@ const page = () => {
   }
 
   return (
-    <div className="flex flex-col justify-center items-center space-y-4 bg-gray-100 pb-4 pt-4 min-h-[100vh]">
-      <DetailsView eventData={getEventByIdResponse.data.event} />
-      <About description={getEventByIdResponse.data.event.description} />
-      {getEventByIdResponse.data.ticketInfo && (
-        <CustomerTicketView
-          ticketData={getEventByIdResponse.data.ticketInfo}
-          maleCount={maleCount}
-          femaleCount={femaleCount}
-          setMaleCount={setMaleCount}
-          setFemaleCount={setFemaleCount}
-          isPurchaseLoading={isPurchaseLoading}
-          purchaseError={purchaseError}
-          onPurchase={handlePurchase}
-          setEmail={setEmail}
-          email={email}
-          setEmailError={setEmailError}
-          emailError={emailError}
-          setPromoCode={setPromoCode}
-          setPromoCodeError={setPromoCodeError}
-          promoCodeError={promoCodeError}
-          onApplyPromo={handleApplyPromoCode}
-          isApplyPromoCodeLoading={isApplyPromoCodeLoading}
-          promoCode={promoCode}
-          isPromoApplied={isPromoApplied}
-          validationResult={validationResult}
-          onBrowseMoreEvents={handleBrowseMoreEvents}
-          purchasedTickets={purchasedTickets}
-        />
-      )}
+    <div className="bg-gray-100">
+      <div className="max-w-4xl mx-auto">
+        <Button
+          variant="navGhost"
+          className="pt-4"
+          onClick={handleBrowseMoreEvents}
+        >
+          Back to Events
+        </Button>
+        <div className=" flex flex-col justify-center items-center space-y-4  pb-4 pt-4 min-h-[100vh]">
+          <DetailsView eventData={getEventByIdResponse.data.event} />
+          <About description={getEventByIdResponse.data.event.description} />
+          {getEventByIdResponse.data.ticketInfo && (
+            <CustomerTicketView
+              ticketData={getEventByIdResponse.data.ticketInfo}
+              maleCount={maleCount}
+              femaleCount={femaleCount}
+              setMaleCount={setMaleCount}
+              setFemaleCount={setFemaleCount}
+              isPurchaseLoading={isPurchaseLoading}
+              purchaseError={purchaseError}
+              onPurchase={handlePurchase}
+              setEmail={setEmail}
+              email={email}
+              setEmailError={setEmailError}
+              emailError={emailError}
+              setPromoCode={setPromoCode}
+              setPromoCodeError={setPromoCodeError}
+              promoCodeError={promoCodeError}
+              onApplyPromo={handleApplyPromoCode}
+              isApplyPromoCodeLoading={isApplyPromoCodeLoading}
+              promoCode={promoCode}
+              isPromoApplied={isPromoApplied}
+              validationResult={validationResult}
+              onBrowseMoreEvents={handleBrowseMoreEvents}
+              purchasedTickets={purchasedTickets}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 };

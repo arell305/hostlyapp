@@ -25,6 +25,7 @@ import type * as promoCode from "../promoCode.js";
 import type * as promoCodeUsage from "../promoCodeUsage.js";
 import type * as promoterPromoCode from "../promoterPromoCode.js";
 import type * as stripe from "../stripe.js";
+import type * as subscription from "../subscription.js";
 import type * as ticketInfo from "../ticketInfo.js";
 import type * as tickets from "../tickets.js";
 import type * as users from "../users.js";
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   promoCodeUsage: typeof promoCodeUsage;
   promoterPromoCode: typeof promoterPromoCode;
   stripe: typeof stripe;
+  subscription: typeof subscription;
   ticketInfo: typeof ticketInfo;
   tickets: typeof tickets;
   users: typeof users;

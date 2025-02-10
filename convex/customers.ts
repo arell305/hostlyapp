@@ -17,15 +17,21 @@ import {
   CustomerSchema,
   CustomerWithPayment,
   GetCustomerDetailsResponse,
+  OrganizationsSchema,
   ResumeSubscriptionResponse,
   UpdateListEventCountResponse,
 } from "../app/types/types";
-import { getFutureISOString } from "../utils/helpers";
+import { checkIsHostlyAdmin, getFutureISOString } from "../utils/helpers";
 import { SubscriptionStatusConvex, SubscriptionTierConvex } from "./schema";
 import { DateTime } from "luxon";
 import { internal } from "./_generated/api";
 import Stripe from "stripe";
 import { ErrorMessages } from "@/types/enums";
+import {
+  GetCustomerTierByOrganizationNameResponse,
+  GetOrganizationByNameQueryResponse,
+  UpdatePromoterPromoCodeResponse,
+} from "@/types/convex-types";
 
 export const insertCustomerAndSubscription = internalMutation({
   args: {
@@ -485,6 +491,80 @@ export const resumeSubscription = action({
         };
         // If the subscription is not canceled or it was already resumed
       }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+export const GetCustomerTierByOrganizationName = query({
+  args: {
+    name: v.string(),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<GetCustomerTierByOrganizationNameResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      const organization: OrganizationsSchema | null = await ctx.db
+        .query("organizations")
+        .filter((q) => q.eq(q.field("name"), args.name))
+        .first();
+      if (!organization) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.COMPANY_NOT_FOUND,
+        };
+      }
+      const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
+
+      if (
+        organization.clerkOrganizationId !==
+          (identity.clerk_org_id as string) &&
+        !isHostlyAdmin
+      ) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
+
+      const customer: CustomerSchema | null = await ctx.db.get(
+        organization.customerId
+      );
+
+      if (!customer) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.CUSTOMER_NOT_FOUND,
+        };
+      }
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          customerTier: customer.subscriptionTier,
+          customerId: customer._id,
+        },
+      };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;

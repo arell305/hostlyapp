@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* In your global CSS file (e.g., styles/globals.css) */
+@import url("https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap");
 
 html,
 body {
@@ -208,7 +210,7 @@ input::-webkit-date-and-time-value {
 
 .react-calendar__tile--active {
   background: transparent !important; /* Remove background */
-  border: 2px solid #3b82f6 !important; /* Blue border */
+  border: 2px solid #255ec7 !important; /* Blue border */
 }
 
 .react-calendar__tile--active:hover {
@@ -216,7 +218,7 @@ input::-webkit-date-and-time-value {
 }
 .react-calendar__tile-active {
   background: transparent !important; /* Remove background */
-  border: 2px solid #3b82f6 !important; /* Blue border */
+  border: 2px solid #255ec7 !important; /* Blue border */
 }
 .react-calendar__navigation__label {
   padding: 4px !important;
@@ -345,4 +347,26 @@ input::-webkit-date-and-time-value {
   .react-calendar__tile:hover {
     background: transparent !important;
   }
+}
+
+.MuiInputBase-input .MuiInputBase-input::placeholder {
+  /* font-family: "__Raleway_390885" !important; */
+  color: rgb(55, 65, 81);
+}
+
+/* rgb(47, 52, 58) */
+
+.dot-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.red-dot {
+  width: 5px;
+  height: 5px;
+  background-color: #324e78;
+  border-radius: 50%;
+  margin-top: 2px; /* Adjust this value to position the dot below the date */
 }

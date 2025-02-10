@@ -8,6 +8,7 @@ import {
   UserRole,
 } from "../../utils/enum";
 import { ErrorMessages, Gender } from "./enums";
+import { EventSchema } from "./schemas-types";
 
 export interface PricingOption {
   id: string;
@@ -76,16 +77,15 @@ export interface TicketInfo {
   femaleTicketPrice: number;
   maleTicketCapacity: number;
   femaleTicketCapacity: number;
-
-  ticketSalesEndTime: string;
+  ticketSalesEndTime: number;
 }
 
 export type TicketInfoWithoutEventId = Omit<TicketInfo, "eventId">;
 
 export interface GuestListInfo {
   eventId: Id<"events">; // Reference to the event
-  guestListCloseTime: string;
-  checkInCloseTime: string;
+  guestListCloseTime: number;
+  checkInCloseTime: number;
   guestListIds: Id<"guestLists">[]; // Array of guest list IDs
 }
 export type GuestListInfoWithoutEventId = Omit<GuestListInfo, "eventId">;
@@ -95,11 +95,9 @@ export interface EventData {
   clerkOrganizationId: string;
   name: string;
   description: string | null;
-  startTime: string;
-  endTime: string;
-  ticketInfoId?: Id<"ticketInfo"> | null;
+  startTime: number;
+  endTime: number;
   photo: Id<"_storage"> | null; // Optional reference to photo storage
-  guestListInfoId?: Id<"guestListInfo"> | null;
   address: string;
   isActive: boolean;
 }
@@ -132,13 +130,13 @@ export interface EventFormData {
   address?: string | null;
   startTime: string;
   endTime: string;
-  guestListCloseTime?: string | null;
+  guestListCloseTime?: number | null;
   photoStorageId?: Id<"_storage"> | null;
   maleTicketPrice?: string | null;
   femaleTicketPrice?: string | null;
   maleTicketCapacity?: string | null;
   femaleTicketCapacity?: string | null;
-  ticketSalesEndTime?: string | null;
+  ticketSalesEndTime?: number | null;
 }
 
 export interface getPromotersByOrganizationResponse {
@@ -185,23 +183,9 @@ export interface Guest {
   attended?: boolean;
   malesInGroup?: number;
   femalesInGroup?: number;
-  checkInTime?: string;
+  checkInTime?: number;
   id: string; // Assuming this is the guest's unique ID
   name: string; // Assuming this is the guest's name
-}
-
-export interface EventSchema {
-  _id: Id<"events">; // Assuming this is the ID type for events
-  clerkOrganizationId: string;
-  name: string;
-  description: string | null;
-  startTime: string; // ISO date string
-  endTime: string; // ISO date string
-  ticketInfoId?: Id<"ticketInfo"> | null;
-  photo: Id<"_storage"> | null;
-  guestListInfoId?: Id<"guestListInfo"> | null;
-  address: string;
-  isActive: boolean;
 }
 
 export interface VenueSchema {
@@ -215,7 +199,7 @@ export interface GuestListNameSchema {
   attended?: boolean;
   malesInGroup?: number;
   femalesInGroup?: number;
-  checkInTime?: string;
+  checkInTime?: number;
 }
 
 export interface GuestListSchema {
@@ -236,7 +220,7 @@ export interface AllGuestSchema {
   attended?: boolean;
   malesInGroup?: number;
   femalesInGroup?: number;
-  checkInTime?: string;
+  checkInTime?: number;
   promoterId: string;
   promoterName: string;
   guestListId: Id<"guestLists">;
@@ -312,7 +296,7 @@ export interface GuestWithPromoter {
   attended?: boolean;
   malesInGroup?: number;
   femalesInGroup?: number;
-  checkInTime?: string;
+  checkInTime?: number;
 }
 
 export interface GuestCheckIn {
@@ -326,9 +310,7 @@ export interface OrganizationsSchema {
   _id: Id<"organizations">;
   clerkOrganizationId: string;
   name: string;
-  clerkUserIds: string[];
   imageUrl?: string;
-  eventIds: Id<"events">[];
   customerId: Id<"customers">;
   promoDiscount: number;
 }
@@ -336,8 +318,8 @@ export interface OrganizationsSchema {
 export interface EventFormInput {
   name: string;
   description: string | null;
-  startTime: string;
-  endTime: string;
+  startTime: number;
+  endTime: number;
   photo: Id<"_storage"> | null;
   address: string; // Replace `Venue` with its actual type definition if needed
 }
@@ -353,7 +335,7 @@ export interface TicketFormInput {
   femaleTicketPrice: number;
   maleTicketCapacity: number;
   femaleTicketCapacity: number;
-  ticketSalesEndTime: string;
+  ticketSalesEndTime: number;
 }
 
 export interface InsertGuestListResponse {
@@ -363,8 +345,8 @@ export interface InsertGuestListResponse {
 }
 
 export interface GuestListFormInput {
-  guestListCloseTime: string;
-  checkInCloseTime: string;
+  guestListCloseTime: number;
+  checkInCloseTime: number;
 }
 
 export interface UpdateListEventCountResponse {
@@ -399,16 +381,6 @@ export interface UpdateTicketInfoResponse {
 
 export interface UpdateTicketInfoData {
   ticketInfoId: Id<"ticketInfo">;
-}
-
-export interface TicketInfoSchema {
-  _id: Id<"ticketInfo">;
-  eventId: Id<"events">;
-  maleTicketPrice: number;
-  femaleTicketPrice: number;
-  maleTicketCapacity: number;
-  femaleTicketCapacity: number;
-  ticketSalesEndTime: string;
 }
 
 export interface UpdateGuestListCloseTimeResponse {
@@ -581,4 +553,10 @@ export interface TicketInput {
   email: string; // Email address as a string
   gender: Gender; // Assuming Gender is an enum or a union type defined elsewhere
   ticketUniqueId: string; // Unique identifier for the ticket
+}
+
+export interface SubscriptionBillingCycle {
+  startDate: number;
+  endDate: number;
+  eventCount: number;
 }

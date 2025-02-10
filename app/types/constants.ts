@@ -9,3 +9,4 @@ export const PHONE_HREF = "tel:+17026138800";
 export const EMAIL = "contact@hostlyapp.com";
 export const WEBSITE = "https://www.hostlyapp.com/";
 export const PLUS_GUEST_LIST_LIMIT = 3;
+export const TIME_ZONE = "America/Los_Angeles";

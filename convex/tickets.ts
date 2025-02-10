@@ -6,17 +6,13 @@ import {
   mutation,
   query,
 } from "./_generated/server";
-import {
-  EventSchema,
-  InsertTicektResponse,
-  TicketInput,
-  UserSchema,
-} from "@/types/types";
+import { InsertTicektResponse, TicketInput, UserSchema } from "@/types/types";
 import { ErrorMessages, Gender } from "@/types/enums";
 import { ResponseStatus, UserRole } from "../utils/enum";
 import { Id } from "./_generated/dataModel";
 import {
   CustomerTicket,
+  EventSchema,
   PromoterPromoCodeSchema,
   TicketSchema,
   TicketSchemaWithPromoter,

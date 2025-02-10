@@ -8,11 +8,8 @@ import { useRouter, usePathname } from "next/navigation";
 
 import EventFormSkeleton from "@/[companyName]/app/components/loading/EventFormSkeleton";
 import { api } from "../../../convex/_generated/api";
-import {
-  formatDateMDY,
-  formatTime,
-  getTextBeforeComma,
-} from "../../../utils/helpers";
+import { getTextBeforeComma } from "../../../utils/helpers";
+import { formatDateMDY, formatTime } from "../../../utils/luxon";
 
 interface PreviewCardProps {
   eventData: EventData;
@@ -29,7 +26,7 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ eventData }) => {
   return (
     <div
       onClick={() => router.push(`${pathname}/${eventData._id}`)}
-      className="w-[500px] mx-3 shadow cursor-pointer hover:bg-gray-50 p-2 rounded-md transition duration-200 bg-white flex overflow-hidden"
+      className="w-[500px] mx-3 shadow cursor-pointer md:hover:bg-gray-50 p-2 rounded-md transition duration-200 bg-white flex overflow-hidden"
     >
       <div className="w-[100px] h-[100px] flex-shrink-0 mr-4">
         {displayEventPhoto === undefined && <EventFormSkeleton />}

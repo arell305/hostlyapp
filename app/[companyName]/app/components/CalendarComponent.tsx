@@ -192,7 +192,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
               </div>
             </div>
           </Page>
-          <div className="mt-8 ">
+          <div className="my-8 ">
             <div className="events-list mt-4">
               <h3 className="font-bold text-2xl md:text-3xl mb-4 font-playfair">
                 {displayDate} Events:

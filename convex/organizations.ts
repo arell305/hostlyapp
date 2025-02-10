@@ -3,7 +3,7 @@ import { internalMutation, internalQuery, mutation } from "./_generated/server";
 import { query, QueryCtx } from "./_generated/server";
 import { ResponseStatus, UserRole, UserRoleEnum } from "../utils/enum";
 import {
-  EventSchema,
+  CustomerSchema,
   OrganizationsSchema,
   Promoter,
   UserSchema,
@@ -34,7 +34,6 @@ export const createOrganization = internalMutation({
           q.eq("clerkUserId", args.clerkUserId)
         )
         .first();
-      console.log("user", user);
 
       if (!user || !user.customerId) {
         return {
@@ -48,8 +47,6 @@ export const createOrganization = internalMutation({
       const organizationId = await ctx.db.insert("organizations", {
         clerkOrganizationId: args.clerkOrganizationId,
         name: args.name,
-        clerkUserIds: [args.clerkUserId],
-        eventIds: [],
         customerId: user.customerId,
         promoDiscount: 0,
         isActive: true,
@@ -72,48 +69,48 @@ export const createOrganization = internalMutation({
   },
 });
 
-export const addClerkUserId = internalMutation({
-  args: {
-    clerkOrganizationId: v.string(),
-    clerkUserId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    try {
-      // Fetch the organization by its clerkOrganizationId
-      const organization = await ctx.db
-        .query("organizations")
-        .withIndex("by_clerkOrganizationId", (q) =>
-          q.eq("clerkOrganizationId", args.clerkOrganizationId)
-        )
-        .first();
+// export const addClerkUserId = internalMutation({
+//   args: {
+//     clerkOrganizationId: v.string(),
+//     clerkUserId: v.string(),
+//   },
+//   handler: async (ctx, args) => {
+//     try {
+//       // Fetch the organization by its clerkOrganizationId
+//       const organization = await ctx.db
+//         .query("organizations")
+//         .withIndex("by_clerkOrganizationId", (q) =>
+//           q.eq("clerkOrganizationId", args.clerkOrganizationId)
+//         )
+//         .first();
 
-      if (!organization) {
-        throw new Error("Organization not found");
-      }
+//       if (!organization) {
+//         throw new Error("Organization not found");
+//       }
 
-      // Check if the clerkUserId is already present
-      if (organization.clerkUserIds.includes(args.clerkUserId)) {
-        throw new Error("User ID already exists in the organization");
-      }
+//       // Check if the clerkUserId is already present
+//       if (organization.clerkUserIds.includes(args.clerkUserId)) {
+//         throw new Error("User ID already exists in the organization");
+//       }
 
-      // Push the new clerkUserId into the array
-      const updatedClerkUserIds = [
-        ...organization.clerkUserIds,
-        args.clerkUserId,
-      ];
+//       // Push the new clerkUserId into the array
+//       const updatedClerkUserIds = [
+//         ...organization.clerkUserIds,
+//         args.clerkUserId,
+//       ];
 
-      // Update the organization with the new clerkUserIds array
-      await ctx.db.patch(organization._id, {
-        clerkUserIds: updatedClerkUserIds,
-      });
+//       // Update the organization with the new clerkUserIds array
+//       await ctx.db.patch(organization._id, {
+//         clerkUserIds: updatedClerkUserIds,
+//       });
 
-      return { success: true };
-    } catch (error) {
-      console.error("Error adding Clerk user ID to organization:", error);
-      throw new Error("Failed to add Clerk user ID");
-    }
-  },
-});
+//       return { success: true };
+//     } catch (error) {
+//       console.error("Error adding Clerk user ID to organization:", error);
+//       throw new Error("Failed to add Clerk user ID");
+//     }
+//   },
+// });
 
 export const updateOrganization = internalMutation({
   args: {
@@ -188,12 +185,10 @@ export const getOrganizationByNameQuery = query({
           error: ErrorMessages.UNAUTHENTICATED,
         };
       }
-      console.log("name", args.name);
       const organization: OrganizationsSchema | null = await ctx.db
         .query("organizations")
         .filter((q) => q.eq(q.field("name"), args.name))
         .first();
-      console.log("organi", organization);
       if (!organization) {
         return {
           status: ResponseStatus.ERROR,

@@ -25,7 +25,7 @@ export const getPromoCodeUsageByPromoterAndEvent = query({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };
@@ -83,7 +83,7 @@ export const getTotalPromoCodeUsageByEvent = query({
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
-          status: ResponseStatus.UNAUTHENTICATED,
+          status: ResponseStatus.ERROR,
           data: null,
           error: ErrorMessages.UNAUTHENTICATED,
         };

@@ -42,6 +42,8 @@ export enum ErrorMessages {
   EVENT_NOT_FOUND = "Event not found",
   TICKET_INFO_NOT_FOUND = "Ticket info not found",
   TICKET_SALES_ENDED = "Ticekt sales have ended",
+  CUSTOMER_NOT_FOUND = "Customer not found",
+  COMPANY_NOT_FOUND = "Company not found",
 }
 
 export enum Gender {

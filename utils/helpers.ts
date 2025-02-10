@@ -4,7 +4,6 @@ import { OrganizationJSON } from "@clerk/backend";
 import { UserRole as ImportedUserRole, UserRoleEnum } from "./enum";
 import { toZonedTime, format } from "date-fns-tz";
 import moment from "moment-timezone";
-import QRCode from "qrcode";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -125,14 +124,6 @@ export const formatCurrency = (amount: number): string => {
     style: "currency",
     currency: "USD",
   }).format(amount);
-};
-
-export const formatDateMDY = (dateString: string): string => {
-  return moment(dateString).format("MMMM D, YYYY");
-};
-
-export const formatTime = (dateString: string): string => {
-  return `${moment(dateString).format("h:mm A")}`;
 };
 
 export const formatToTimeAndShortDate = (dateString: string): string => {
