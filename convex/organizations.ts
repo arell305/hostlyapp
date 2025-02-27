@@ -1,9 +1,8 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation } from "./_generated/server";
-import { query, QueryCtx } from "./_generated/server";
-import { ResponseStatus, UserRole, UserRoleEnum } from "../utils/enum";
+import { query } from "./_generated/server";
+import { ResponseStatus, UserRole } from "../utils/enum";
 import {
-  CustomerSchema,
   OrganizationsSchema,
   Promoter,
   UserSchema,
@@ -16,55 +15,49 @@ import {
   GetOrganizationByNameQueryResponse,
   ListOrganizations,
 } from "@/types/convex-types";
-import { checkIsHostlyAdmin } from "../utils/helpers";
-import { PaginationResult } from "convex/server";
+import slugify from "slugify";
+import { Id } from "./_generated/dataModel";
 
-export const createOrganization = internalMutation({
+export const createConvexOrganization = internalMutation({
   args: {
     clerkOrganizationId: v.string(),
     name: v.string(),
-    clerkUserId: v.string(),
+    slug: v.string(),
+    promoDiscount: v.number(),
+    customerId: v.id("customers"),
+    photo: v.union(v.id("_storage"), v.null()),
+    userId: v.id("users"),
   },
-  handler: async (ctx, args): Promise<CreateOrganizationResponse> => {
+  handler: async (ctx, args): Promise<Id<"organizations">> => {
+    const {
+      clerkOrganizationId,
+      name,
+      slug,
+      promoDiscount,
+      customerId,
+      photo,
+      userId,
+    } = args;
+
     try {
-      // Query the user with the first clerkUserId
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) =>
-          q.eq("clerkUserId", args.clerkUserId)
-        )
-        .first();
-
-      if (!user || !user.customerId) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
-
-      // Insert the organization with the customerId
       const organizationId = await ctx.db.insert("organizations", {
-        clerkOrganizationId: args.clerkOrganizationId,
-        name: args.name,
-        customerId: user.customerId,
-        promoDiscount: 0,
+        clerkOrganizationId,
+        name,
+        customerId,
+        promoDiscount,
         isActive: true,
+        slug,
+        photo,
       });
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: { organizationId },
-      };
+      await ctx.db.patch(userId, {
+        organizationId: organizationId,
+      });
+
+      return organizationId;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      console.error(ErrorMessages.ORGANIZATION_DB_CREATE_ERROR, error);
+      throw new Error(ErrorMessages.ORGANIZATION_DB_CREATE_ERROR);
     }
   },
 });
@@ -151,22 +144,27 @@ export const updateOrganization = internalMutation({
 
 export const getOrganizationByName = internalQuery({
   args: {
-    name: v.string(),
+    companyName: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<OrganizationsSchema> => {
     try {
       const organization = await ctx.db
         .query("organizations")
-        .filter((q) => q.eq(q.field("name"), args.name))
+        .filter((q) => q.eq(q.field("name"), args.companyName))
         .first();
 
-      if (organization) {
-        return organization;
+      if (!organization) {
+        throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
       }
-      return null;
+
+      if (!organization.isActive) {
+        throw new Error(ErrorMessages.COMPANY_INACTIVE);
+      }
+
+      return organization;
     } catch (error) {
-      console.error("Error finding organization by ClerkId:", error);
-      return null;
+      console.error("Error in getOrganizationByName:", error);
+      throw error;
     }
   },
 });
@@ -488,5 +486,23 @@ export const getOrganizationImagePublic = query({
       return null;
     }
     return organization.imageUrl;
+  },
+});
+
+export const getOrganizationBySlug = internalQuery({
+  args: {
+    slug: v.string(),
+  },
+  handler: async (ctx, { slug }): Promise<OrganizationsSchema | null> => {
+    try {
+      const organization = await ctx.db
+        .query("organizations")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+      return organization;
+    } catch (error) {
+      console.error(ErrorMessages.ORGANIZATION_DB_QUERY_SLUG_ERROR, error);
+      throw new Error(ErrorMessages.ORGANIZATION_DB_QUERY_SLUG_ERROR);
+    }
   },
 });

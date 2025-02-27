@@ -78,10 +78,19 @@ export const getPromoterPromoCodeById = internalQuery({
   handler: async (
     ctx,
     { promoterPromoCodeId }: { promoterPromoCodeId: Id<"promoterPromoCode"> }
-  ) => {
-    return (await ctx.db.get(
-      promoterPromoCodeId
-    )) as PromoterPromoCodeSchema | null;
+  ): Promise<PromoterPromoCodeSchema | null> => {
+    try {
+      const promoCode = await ctx.db.get(promoterPromoCodeId);
+
+      if (!promoCode) {
+        throw new Error(ErrorMessages.PROMOTER_PROMO_CODE_NOT_FOUND);
+      }
+
+      return promoCode as PromoterPromoCodeSchema;
+    } catch (error) {
+      console.error("Error fetching promoter promo code:", error);
+      throw new Error("Failed to fetch promoter promo code.");
+    }
   },
 });
 
@@ -142,7 +151,7 @@ export const validatePromoterPromoCode = query({
       return {
         status: ResponseStatus.ERROR,
         data: null,
-        error: ErrorMessages.NOT_FOUND,
+        error: ErrorMessages.EVENT_NOT_FOUND,
       };
     }
     try {
@@ -168,11 +177,25 @@ export const validatePromoterPromoCode = query({
         )
         .unique();
 
-      if (!user || !user.clerkOrganizationId) {
+      if (!user) {
         return {
           status: ResponseStatus.ERROR,
           data: null,
-          error: ErrorMessages.NOT_FOUND,
+          error: ErrorMessages.USER_NOT_FOUND,
+        };
+      }
+      if (!user.clerkOrganizationId) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.USER_NO_COMPANY,
+        };
+      }
+      if (!user.isActive) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.USER_INACTIVE,
         };
       }
 
@@ -191,6 +214,14 @@ export const validatePromoterPromoCode = query({
         };
       }
 
+      if (!organization.isActive) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.COMPANY_INACTIVE,
+        };
+      }
+
       const event: EventSchema | null = await ctx.db.get(normalizedId);
       if (!event) {
         return {
@@ -200,7 +231,15 @@ export const validatePromoterPromoCode = query({
         };
       }
 
-      if (event.clerkOrganizationId !== organization.clerkOrganizationId) {
+      if (!event.isActive) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.EVENT_INACTIVE,
+        };
+      }
+
+      if (event.clerkOrganizationId !== user.clerkOrganizationId) {
         return {
           status: ResponseStatus.ERROR,
           data: null,

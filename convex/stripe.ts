@@ -2,7 +2,7 @@
 
 import Stripe from "stripe";
 
-import { action, internalAction } from "./_generated/server";
+import { action, internalAction, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { createClerkClient } from "@clerk/backend";
@@ -11,12 +11,33 @@ import {
   findCustomerByEmail,
   insertCustomerAndSubscription,
 } from "./customers";
-import { SubscriptionStatus, SubscriptionTier } from "../utils/enum";
+import {
+  ResponseStatus,
+  StripeAccountStatus,
+  SubscriptionStatus,
+  SubscriptionTier,
+  UserRole,
+} from "../utils/enum";
 import { Customer, CustomerWithPayment } from "@/types/types";
 import { ERROR_MESSAGES } from "../constants/errorMessages";
 import { getFutureISOString } from "../utils/helpers";
 import { SubscriptionTierConvex } from "./schema";
 import { DateTime } from "luxon";
+import { ErrorMessages, Gender } from "@/types/enums";
+import {
+  CreateConnectedAccountResponse,
+  GetOnboardingLinkResponse,
+  GetStripeDashboardUrlResponse,
+} from "@/types/convex-types";
+import {
+  CreatePaymentIntentResponse,
+  CreateStripeProductData,
+  CreateStripeTicketPricesData,
+  DisconnectStripeActionResponse,
+} from "@/types/convex/actions-types";
+import { STRIPE_API_VERSION, USD_CURRENCY } from "@/types/constants";
+import { sendClerkInvitation } from "../utils/clerk";
+import { stripe } from "./backendUtils/stripe";
 
 // export const pay = action({
 //   args: { priceId: v.string(), email: v.string() },
@@ -47,9 +68,6 @@ type ValidatePromoCodeResponse = {
 export const validatePromoCode = action({
   args: { promoCode: v.string() },
   handler: async (ctx, args): Promise<ValidatePromoCodeResponse> => {
-    const stripe = new Stripe(process.env.STRIPE_KEY!, {
-      apiVersion: "2024-06-20",
-    });
     try {
       await ctx.runQuery(internal.promoCode.findPromoIdByCode, {
         promoCode: args.promoCode,
@@ -103,10 +121,6 @@ export const createStripeSubscription = action({
     subscriptionTier: SubscriptionTierConvex,
   },
   handler: async (ctx, args) => {
-    const stripe = new Stripe(process.env.STRIPE_KEY!, {
-      apiVersion: "2024-06-20",
-    });
-
     try {
       // Step 1: Check if the customer exists in your database
       const existingCustomer: Customer | null = await ctx.runQuery(
@@ -195,6 +209,7 @@ export const createStripeSubscription = action({
             paymentMethodId: args.paymentMethodId,
             subscriptionTier: args.subscriptionTier,
             trialEndDate: null, // No trial for existing customers
+            isActive: true,
           },
         });
       } else {
@@ -215,16 +230,7 @@ export const createStripeSubscription = action({
           }
         );
 
-        // Step 9: Create an invitation using Clerk
-        const clerkClient = createClerkClient({
-          secretKey: process.env.CLERK_SECRET_KEY,
-        });
-
-        const response = await clerkClient.invitations.createInvitation({
-          emailAddress: args.email,
-          ignoreExisting: true,
-        });
-        console.log("response", response);
+        await sendClerkInvitation(args.email);
       }
       // Return subscription details
       return { customerId: stripeCustomerId, subscriptionId: subscription.id };
@@ -284,10 +290,6 @@ export const updateSubscriptionPaymentMethod = action({
     newPaymentMethodId: v.string(),
   },
   handler: async (ctx, args) => {
-    const stripe = new Stripe(process.env.STRIPE_KEY!, {
-      apiVersion: "2024-06-20",
-    });
-
     try {
       const existingCustomer: Customer | null = await ctx.runQuery(
         internal.customers.findCustomerByEmail,
@@ -350,9 +352,6 @@ export const updateSubscriptionTier = action({
     args
   ): Promise<{ success: boolean; message: string }> => {
     const { email, newTier } = args;
-    const stripe = new Stripe(process.env.STRIPE_KEY!, {
-      apiVersion: "2024-06-20",
-    });
 
     try {
       const existingCustomer: Customer | null = await ctx.runQuery(
@@ -468,9 +467,6 @@ export const calculateAllSubscriptionUpdates = action({
         throw new Error("Customer or subscription not found");
       }
 
-      const stripe = new Stripe(process.env.STRIPE_KEY!, {
-        apiVersion: "2024-06-20",
-      });
       const subscription = await stripe.subscriptions.retrieve(
         customer.stripeSubscriptionId
       );
@@ -543,3 +539,503 @@ function getPriceIdForTier(tier: SubscriptionTier): string {
       throw new Error("Invalid subscription tier");
   }
 }
+
+// stripe connect
+
+export const createConnectedAccount = action({
+  args: {
+    clerkUserId: v.string(),
+  },
+  handler: async (ctx, args): Promise<CreateConnectedAccountResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      if (identity.role !== UserRole.Admin) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
+
+      const customerResponse = await ctx.runQuery(
+        internal.customers.findCustomerWithCompanyNameByClerkId,
+        {
+          clerkUserId: args.clerkUserId,
+        }
+      );
+
+      if (customerResponse.status === ResponseStatus.ERROR) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: customerResponse.error,
+        };
+      }
+
+      const customer = customerResponse.data.customer;
+
+      const account = await stripe.accounts.create({
+        type: "express",
+        country: "US",
+        email: customer.email,
+        business_profile: {
+          name: customer.companyName,
+        },
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+      });
+
+      const response = await ctx.runMutation(
+        internal.connectedAccounts.saveConnectedAccount,
+        {
+          customerId: customer._id,
+          stripeAccountId: account.id,
+          status: StripeAccountStatus.NOT_ONBOARDED,
+        }
+      );
+
+      if (response.status === ResponseStatus.ERROR) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: response.error,
+        };
+      }
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          stripeAccountId: account.id,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+export const getOnboardingLink = action({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args): Promise<GetOnboardingLinkResponse> => {
+    const customer = await ctx.runQuery(
+      internal.customers.findCustomerByClerkId,
+      {
+        clerkUserId: args.clerkUserId,
+      }
+    );
+
+    if (!customer) {
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: ErrorMessages.CUSTOMER_NOT_FOUND,
+      };
+    }
+
+    // Get stored Stripe Account ID
+    const connectedAccount = await ctx.runQuery(
+      internal.connectedAccounts.getConnectedAccountByCustomerId,
+      {
+        customerId: customer._id,
+      }
+    );
+
+    if (!connectedAccount) {
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: "Connected account not found",
+      };
+    }
+
+    // Generate Onboarding Link
+    const accountSession: Stripe.Response<Stripe.AccountSession> =
+      await stripe.accountSessions.create({
+        account: connectedAccount.stripeAccountId,
+        components: {
+          account_onboarding: {
+            enabled: true,
+            features: { external_account_collection: true },
+          },
+          documents: { enabled: true },
+          payouts: { enabled: true },
+          payments: { enabled: true },
+        },
+      });
+
+    return {
+      status: ResponseStatus.SUCCESS,
+      data: { client_secret: accountSession.client_secret },
+    };
+  },
+});
+
+export const getStripeDashboardUrl = action({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args): Promise<GetStripeDashboardUrlResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      if (identity.role !== UserRole.Admin) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
+
+      const customer = await ctx.runQuery(
+        internal.customers.findCustomerByClerkId,
+        {
+          clerkUserId: args.clerkUserId,
+        }
+      );
+
+      if (!customer) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.CUSTOMER_NOT_FOUND,
+        };
+      }
+
+      // Get stored Stripe Account ID
+      const connectedAccount = await ctx.runQuery(
+        internal.connectedAccounts.getConnectedAccountByCustomerId,
+        {
+          customerId: customer._id,
+        }
+      );
+
+      if (!connectedAccount) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND,
+        };
+      }
+
+      const loginLink = await stripe.accounts.createLoginLink(
+        connectedAccount.stripeAccountId
+      );
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          url: loginLink.url,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+export const disconnectStripeAccount = action({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args): Promise<DisconnectStripeActionResponse> => {
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.UNAUTHENTICATED,
+        };
+      }
+      if (identity.role !== UserRole.Admin) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
+      const customer = await ctx.runQuery(
+        internal.customers.findCustomerByClerkId,
+        {
+          clerkUserId: args.clerkUserId,
+        }
+      );
+
+      if (!customer) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.CUSTOMER_NOT_FOUND,
+        };
+      }
+
+      // Get stored Stripe Account ID
+      const connectedAccount = await ctx.runQuery(
+        internal.connectedAccounts.getConnectedAccountByCustomerId,
+        {
+          customerId: customer._id,
+        }
+      );
+
+      if (!connectedAccount) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND,
+        };
+      }
+
+      await Promise.all([
+        stripe.accounts.del(connectedAccount.stripeAccountId),
+        ctx.runMutation(internal.connectedAccounts.deleteConnectedAccount, {
+          connectedAccountId: connectedAccount._id,
+        }),
+      ]);
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          connectedAccountId: connectedAccount._id,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+export const createStripeTicketPrices = action({
+  args: {
+    stripeAccountId: v.string(),
+    stripeProductId: v.string(),
+    maleTicketPrice: v.number(),
+    femaleTicketPrice: v.number(),
+    maleTicketCapacity: v.number(),
+    femaleTicketCapacity: v.number(),
+  },
+  handler: async (ctx, args): Promise<CreateStripeTicketPricesData> => {
+    try {
+      const {
+        stripeAccountId,
+        stripeProductId,
+        maleTicketPrice,
+        femaleTicketPrice,
+        maleTicketCapacity,
+        femaleTicketCapacity,
+      } = args;
+
+      // ✅ Create Male and Female Ticket Prices on Stripe
+      const [newMalePrice, newFemalePrice] = await Promise.all([
+        stripe.prices.create(
+          {
+            currency: USD_CURRENCY,
+            unit_amount: maleTicketPrice * 100, // Convert dollars to cents
+            product: stripeProductId,
+            metadata: {
+              ticketType: Gender.Male,
+              capacity: maleTicketCapacity,
+            },
+          },
+          { stripeAccount: stripeAccountId }
+        ),
+        stripe.prices.create(
+          {
+            currency: USD_CURRENCY,
+            unit_amount: femaleTicketPrice * 100,
+            product: stripeProductId,
+            metadata: {
+              ticketType: Gender.Female,
+              capacity: femaleTicketCapacity,
+            },
+          },
+          { stripeAccount: stripeAccountId }
+        ),
+      ]);
+
+      return {
+        stripeMalePriceId: newMalePrice.id,
+        stripeFemalePriceId: newFemalePrice.id,
+      };
+    } catch (error) {
+      console.error("Error creating Stripe ticket prices:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      throw new Error(errorMessage);
+    }
+  },
+});
+
+export const createStripeProduct = action({
+  args: {
+    stripeAccountId: v.string(),
+    eventId: v.id("events"),
+    ticketSalesEndTime: v.number(),
+  },
+  handler: async (ctx, args): Promise<CreateStripeProductData> => {
+    try {
+      const { stripeAccountId, eventId, ticketSalesEndTime } = args;
+
+      const product = await stripe.products.create(
+        {
+          name: `Event Ticket - ${eventId}`,
+          description: `Tickets for event ${eventId}`,
+          metadata: {
+            eventId,
+            ticketSalesEndTime,
+          },
+        },
+        { stripeAccount: stripeAccountId }
+      );
+
+      return { stripeProductId: product.id };
+    } catch (error) {
+      console.error("Error creating Stripe ticket prices:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      throw new Error(errorMessage);
+    }
+  },
+});
+
+export const getStripeCustomerIdForEmail = action({
+  args: { email: v.string(), stripeAccountId: v.string() },
+  handler: async (ctx, args): Promise<string> => {
+    const { email, stripeAccountId } = args;
+    const existingCustomer = await ctx.runQuery(
+      internal.stripeConnectedCustomers.getStripeConnectedCustomerByEmail,
+      {
+        email,
+      }
+    );
+    if (existingCustomer) {
+      return existingCustomer.stripeCustomerId;
+    }
+
+    const { data: stripeCustomers } = await stripe.customers.search(
+      { query: `email:'${email}'` },
+      { stripeAccount: stripeAccountId }
+    );
+
+    if (stripeCustomers.length > 0) {
+      const stripeCustomerId = stripeCustomers[0].id;
+
+      // 3️⃣ Save found customer in database
+      await ctx.runMutation(
+        internal.stripeConnectedCustomers.insertStripeConnectedCustomer,
+        {
+          email,
+          stripeCustomerId,
+          stripeAccountId,
+        }
+      );
+
+      return stripeCustomerId;
+    }
+
+    // 4️⃣ If not found in Stripe, create new customer
+    const newCustomer = await stripe.customers.create(
+      {
+        email,
+        metadata: { stripeAccountId },
+      },
+      { stripeAccount: stripeAccountId }
+    );
+
+    // 5️⃣ Save new customer in database
+    await ctx.runMutation(
+      internal.stripeConnectedCustomers.insertStripeConnectedCustomer,
+      {
+        email,
+        stripeCustomerId: newCustomer.id,
+        stripeAccountId,
+      }
+    );
+
+    return newCustomer.id;
+  },
+});
+
+export const createPaymentIntent = action({
+  args: {
+    totalAmount: v.number(), // Ticket price (in dollars, will be converted to cents)
+    stripeAccountId: v.string(), // Connected account ID
+  },
+  handler: async (ctx, args): Promise<CreatePaymentIntentResponse> => {
+    const { totalAmount, stripeAccountId } = args;
+    try {
+      const paymentIntent = await stripe.paymentIntents.create(
+        {
+          amount: Math.round(totalAmount * 100), // Convert to cents
+          currency: USD_CURRENCY,
+          automatic_payment_methods: { enabled: true }, // Enables various payment methods
+        },
+        { stripeAccount: stripeAccountId } // Ensure it's created in the correct connected account
+      );
+
+      // to be deleted
+      await stripe.accounts.update(stripeAccountId, {
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+      });
+
+      const account = await stripe.accounts.retrieve(stripeAccountId);
+      console.log("cap", account.capabilities);
+
+      if (!paymentIntent.client_secret) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.PAYMENT_INTENT_FAILED,
+        };
+      }
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: { clientSecret: paymentIntent.client_secret },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});

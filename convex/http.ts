@@ -34,6 +34,7 @@ import { isOrganizationJSON } from "../utils/helpers";
 import { ResponseStatus, UserRole, UserRoleEnum } from "../utils/enum";
 import { RoleConvex } from "./schema";
 import { createClerkClient } from "@clerk/backend";
+// import { stripeWebhook } from "./webhooks/stripeWebhook";
 
 const http = httpRouter();
 
@@ -62,7 +63,7 @@ http.route({
               email: result.data.email_addresses[0]?.email_address,
             }
           );
-          if (existingUser && existingUser.clerkOrganizationId) {
+          if (existingUser && existingUser.organizationId) {
             // If user exists with the same email and has an organizationId, update clerkUserId
             const updateUserPromise = ctx.runMutation(
               internal.users.updateUser,
@@ -101,7 +102,6 @@ http.route({
             await ctx.runMutation(internal.users.createUser, {
               email: result.data.email_addresses[0]?.email_address,
               clerkUserId: result.data.id,
-              acceptedInvite: true,
               customerId: existingCustomer._id,
               role: UserRole.Admin,
               name: `${result.data.first_name} ${result.data.last_name}`,
@@ -115,7 +115,6 @@ http.route({
           await ctx.runMutation(internal.users.createUser, {
             email: result.data.email_addresses[0]?.email_address,
             clerkUserId: result.data.id,
-            acceptedInvite: true,
             role: null,
             name: `${result.data.first_name} ${result.data.last_name}`,
           });
@@ -144,16 +143,16 @@ http.route({
             headers: { "Content-Type": "application/json" },
           });
         case "organization.created":
-          await ctx.runMutation(internal.organizations.createOrganization, {
-            clerkOrganizationId: result.data.id,
-            name: result.data.name, // Use the name property instead of created_by
-            clerkUserId: result.data.created_by, // Replace with actual user IDs as needed
-          });
+          // await ctx.runMutation(internal.organizations.createOrganization, {
+          //   clerkOrganizationId: result.data.id,
+          //   name: result.data.name,
+          //   clerkUserId: result.data.created_by,
+          // });
 
-          await ctx.runMutation(internal.users.updateUserById, {
-            clerkUserId: result.data.created_by,
-            clerkOrganizationId: result.data.id,
-          });
+          // await ctx.runMutation(internal.users.updateUserById, {
+          //   clerkUserId: result.data.created_by,
+          //   clerkOrganizationId: result.data.id,
+          // });
 
           // const user = await ctx.runQuery(api.users.findUserByClerkId, {
           //   clerkUserId: result.data.created_by,
@@ -248,6 +247,12 @@ http.route({
 //       return new Response("Webhook Error", { status: 400 });
 //     }
 //   }),
+// });
+
+// http.route({
+//   path: "/stripe-webhook",
+//   method: "POST",
+//   handler: stripeWebhook,
 // });
 
 export default http;

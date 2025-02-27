@@ -22,7 +22,8 @@ const buttonVariants = cva(
           "text-customDarkBlue font-semibold hover:underline font-raleway text-base",
       },
       size: {
-        default: "h-10 px-4 py-2 rounded-[20px] ",
+        default:
+          "h-12 md:h-10 text-lg font-semibold px-4 py-2 rounded-[20px] w-full md:w-[250px]",
         sm: "h-9 px-3",
         lg: "h-11 d px-8",
         icon: "h-10 w-10",

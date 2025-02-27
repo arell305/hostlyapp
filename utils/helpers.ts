@@ -4,6 +4,7 @@ import { OrganizationJSON } from "@clerk/backend";
 import { UserRole as ImportedUserRole, UserRoleEnum } from "./enum";
 import { toZonedTime, format } from "date-fns-tz";
 import moment from "moment-timezone";
+import { WEBSITE } from "@/types/constants";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -124,12 +125,6 @@ export const formatCurrency = (amount: number): string => {
     style: "currency",
     currency: "USD",
   }).format(amount);
-};
-
-export const formatToTimeAndShortDate = (dateString: string): string => {
-  return moment(dateString)
-    .tz("America/Los_Angeles")
-    .format("MMM D, YYYY h:mma");
 };
 
 export const formatUnixToTimeAndShortDate = (timestamp: number): string => {
@@ -269,4 +264,19 @@ const base64Encode = (str: string) =>
 
 export const generateQRCodeBase64 = (ticketId: string) => {
   return `https://quickchart.io/qr?text=${encodeURIComponent(ticketId)}&size=200`;
+};
+
+export const getBaseUrl = (): string => {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl) {
+    return appUrl;
+  }
+
+  // Use window.location on the client side as a fallback
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  // Default to localhost for server-side development
+  return WEBSITE;
 };

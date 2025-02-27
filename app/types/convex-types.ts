@@ -1,6 +1,7 @@
 import { ErrorMessages } from "@/types/enums";
 import { ResponseStatus, SubscriptionTier } from "../../utils/enum";
 import {
+  ConnectedAccountsSchema,
   CustomerTicket,
   EventSchema,
   GuestListInfoSchema,
@@ -21,6 +22,7 @@ import {
 import { Id } from "../../convex/_generated/dataModel";
 import { PaginationResult } from "convex/server";
 import { Organization } from "@clerk/backend";
+import Stripe from "stripe";
 
 export interface ErrorResponse {
   status: ResponseStatus.ERROR;
@@ -85,22 +87,17 @@ export interface ListOrganizations {
 
 export type CreateOrganizationResponse =
   | CreateOrganizationSuccess
-  | ErrorResponse
-  | CreateOrganizationPartialSuccess;
+  | ErrorResponse;
 
 export interface CreateOrganizationSuccess {
   status: ResponseStatus.SUCCESS;
   data: CreateOrganizationData;
 }
 
-export interface CreateOrganizationPartialSuccess {
-  status: ResponseStatus.PARTIAL_SUCESSS;
-  data: CreateOrganizationData;
-  error: string;
-}
-
 export interface CreateOrganizationData {
   organizationId: Id<"organizations">;
+  slug: string;
+  clerkOrganizationId: string;
 }
 
 export type UpdateOrganizationResponse =
@@ -207,6 +204,8 @@ export interface UpdateEventSuccess {
 
 export interface UpdateEventData {
   eventId: Id<"events">;
+  guestListInfoId: Id<"guestListInfo"> | null;
+  ticketInfoId: Id<"ticketInfo"> | null;
 }
 
 export type GetEventByIdResponse = GetEventByIdSuccess | ErrorResponse;
@@ -231,6 +230,10 @@ export interface InsertTicketSoldSuccess {
 
 export interface InsertTicketSoldData {
   tickets: CustomerTicket[];
+  paymentIntent: {
+    id: string;
+    client_secret: string;
+  };
 }
 
 export type GetTicketsByEventIdResponse =
@@ -308,4 +311,56 @@ export interface GetSubDatesAndGuestEventsCountByDateSuccess {
 
 export interface GetSubDatesAndGuestEventsCountByDateData {
   billingCycle: SubscriptionBillingCycle;
+}
+
+export type CreateConnectedAccountResponse =
+  | CreateConnectedAccountSuccess
+  | ErrorResponse;
+
+export interface CreateConnectedAccountSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CreateConnectedAccountData;
+}
+
+export interface CreateConnectedAccountData {
+  stripeAccountId: string;
+}
+
+export type GetOnboardingLinkResponse =
+  | GetOnboardingLinkSuccess
+  | ErrorResponse;
+
+export interface GetOnboardingLinkSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetOnboardingLinkData;
+}
+
+export interface GetOnboardingLinkData {
+  client_secret: string;
+}
+
+export type GetConnectedAccountByClerkUserIdResponse =
+  | GetConnectedAccountByClerkUserIdSuccess
+  | ErrorResponse;
+
+export interface GetConnectedAccountByClerkUserIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetConnectedAccountByClerkUserIdData | null;
+}
+
+export interface GetConnectedAccountByClerkUserIdData {
+  connectedAccount: ConnectedAccountsSchema;
+}
+
+export type GetStripeDashboardUrlResponse =
+  | GetStripeDashboardUrlSuccess
+  | ErrorResponse;
+
+export interface GetStripeDashboardUrlSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetStripeDashboardUrlData | null;
+}
+
+export interface GetStripeDashboardUrlData {
+  url: string;
 }

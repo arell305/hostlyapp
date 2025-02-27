@@ -75,3 +75,13 @@ export const formatLongDate = (date: Date): string => {
   const dt = DateTime.fromJSDate(date);
   return dt.toLocaleString({ month: "long", day: "numeric", year: "numeric" });
 };
+
+export const formatToTimeAndShortDate = (timestamp: number): string => {
+  return DateTime.fromMillis(timestamp)
+    .setZone("America/Los_Angeles")
+    .toFormat("MMM d, yyyy h:mma");
+};
+
+export const isPast = (timestamp: number): boolean => {
+  return DateTime.now().toMillis() > timestamp;
+};

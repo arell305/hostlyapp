@@ -1,10 +1,5 @@
 import { v } from "convex/values";
-import {
-  internalMutation,
-  internalQuery,
-  mutation,
-  query,
-} from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 import { RoleConvex } from "./schema";
 import {
   FindUserByClerkIdResponse,
@@ -14,24 +9,24 @@ import {
 import { ResponseStatus } from "../utils/enum";
 import { ErrorMessages } from "@/types/enums";
 import { PromoterPromoCodeSchema } from "@/types/schemas-types";
+import { Id } from "./_generated/dataModel";
 
 export const createUser = internalMutation({
   args: {
     clerkUserId: v.optional(v.string()),
     email: v.string(),
-    clerkOrganizationId: v.optional(v.string()),
-    acceptedInvite: v.boolean(),
+    organizationId: v.optional(v.id("organizations")),
     customerId: v.optional(v.id("customers")),
     role: v.union(RoleConvex, v.null()),
     name: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Id<"users">> => {
     try {
       const userId = await ctx.db.insert("users", {
         clerkUserId: args.clerkUserId,
         email: args.email,
-        clerkOrganizationId: args.clerkOrganizationId,
-        acceptedInvite: args.acceptedInvite,
+        organizationId: args.organizationId,
+        isActive: true,
         customerId: args.customerId,
         role: args.role,
         name: args.name,
@@ -48,9 +43,8 @@ export const updateUser = internalMutation({
   args: {
     email: v.string(), // Use email to find the user
     clerkUserId: v.optional(v.string()), // Optional fields for updates
-    clerkOrganizationId: v.optional(v.string()),
+    organizationId: v.optional(v.id("organizations")),
     newEmail: v.optional(v.string()),
-    acceptedInvite: v.optional(v.boolean()), // In case you want to update the email
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
   },
@@ -69,10 +63,8 @@ export const updateUser = internalMutation({
       // Update the user with the provided fields
       await ctx.db.patch(user._id, {
         clerkUserId: args.clerkUserId || user.clerkUserId,
-        clerkOrganizationId:
-          args.clerkOrganizationId || user.clerkOrganizationId,
+        organizationId: args.organizationId || user.organizationId,
         email: args.newEmail || user.email,
-        acceptedInvite: args.acceptedInvite || user.acceptedInvite,
         name: args.name || user.name,
         imageUrl: args.imageUrl || user.imageUrl,
       });
@@ -89,7 +81,7 @@ export const updateUserById = internalMutation({
   args: {
     email: v.optional(v.string()), // Use email to find the user
     clerkUserId: v.string(), // Optional fields for updates
-    clerkOrganizationId: v.optional(v.string()),
+    organizationId: v.optional(v.id("organizations")),
     newEmail: v.optional(v.string()),
     acceptedInvite: v.optional(v.boolean()), // In case you want to update the email
     role: v.optional(RoleConvex),
@@ -111,10 +103,8 @@ export const updateUserById = internalMutation({
       // Update the user with the provided fields
       await ctx.db.patch(user._id, {
         clerkUserId: args.clerkUserId || user.clerkUserId,
-        clerkOrganizationId:
-          args.clerkOrganizationId || user.clerkOrganizationId,
+        organizationId: args.organizationId || user.organizationId,
         email: args.newEmail || user.email,
-        acceptedInvite: args.acceptedInvite || user.acceptedInvite,
         role: args.role || user.role,
       });
 
@@ -243,6 +233,31 @@ export const deleteFromClerk = internalMutation({
       await ctx.db.delete(user._id);
     } catch (err) {
       console.log("Failed to delete user", err);
+    }
+  },
+});
+
+export const internalFindUserByClerkId = internalQuery({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args): Promise<UserSchema> => {
+    try {
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
+        .unique();
+
+      if (!user) {
+        throw new Error(ErrorMessages.USER_NOT_FOUND);
+      }
+
+      if (!user.isActive) {
+        throw new Error(ErrorMessages.USER_INACTIVE);
+      }
+
+      return user;
+    } catch (error) {
+      console.error("error internalFindUserByClerkId, ", error);
+      throw new Error(ErrorMessages.USER_INTERNAL_QUERY);
     }
   },
 });

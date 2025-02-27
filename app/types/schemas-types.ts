@@ -1,17 +1,23 @@
 import { Id } from "../../convex/_generated/dataModel";
-import { UserRole } from "../../utils/enum";
+import {
+  StripeAccountStatus,
+  SubscriptionStatus,
+  SubscriptionTier,
+  UserRole,
+} from "../../utils/enum";
 import { Gender } from "./enums";
 
 export interface UserSchema {
   _id: Id<"users">;
   clerkUserId?: string;
   email: string;
-  clerkOrganizationId?: string;
+  organizationId?: Id<"organizations">;
   acceptedInvite: boolean;
   customerId?: Id<"customers">;
   role: UserRole | null;
   name?: string;
   imageUrl?: string;
+  isActive?: boolean;
 }
 
 interface OrganizationsSchema {
@@ -25,6 +31,7 @@ interface OrganizationsSchema {
   customerId: Id<"customers">;
   promoDiscount: number;
   isActive?: boolean;
+  slug: string;
 }
 
 export interface TicketSchema {
@@ -78,11 +85,20 @@ export interface TicketInfoSchema {
   _id: Id<"ticketInfo">;
   _creationTime: number;
   eventId: Id<"events">;
-  maleTicketPrice: number;
-  femaleTicketPrice: number;
-  maleTicketCapacity: number;
-  femaleTicketCapacity: number;
   ticketSalesEndTime: number;
+  stripeProductId: string;
+  ticketTypes: {
+    male: {
+      price: number;
+      capacity: number;
+      stripePriceId: string;
+    };
+    female: {
+      price: number;
+      capacity: number;
+      stripePriceId: string;
+    };
+  };
 }
 
 export interface GuestListInfoSchema {
@@ -91,4 +107,44 @@ export interface GuestListInfoSchema {
   eventId: Id<"events">;
   guestListCloseTime: number;
   checkInCloseTime: number;
+}
+
+export interface ConnectedAccountsSchema {
+  _id: Id<"connectedAccounts">;
+  _creationTime: number;
+  customerId: Id<"customers">;
+  stripeAccountId: string;
+  status: StripeAccountStatus;
+  isActive?: boolean;
+  chargesEnabled?: boolean;
+  payoutsEnabled?: boolean;
+  lastStripeUpdate?: number;
+}
+
+export interface CustomerSchema {
+  _id: Id<"customers">;
+  _creationTime: number;
+  stripeCustomerId: string;
+  subscriptionStatus: SubscriptionStatus;
+  trialEndDate?: string | null;
+  stripeSubscriptionId: string;
+  email: string;
+  paymentMethodId: string;
+  subscriptionTier: SubscriptionTier;
+  nextPayment: string | null;
+  cancelAt: string | null;
+  subscriptionStartDate: string;
+  isActive?: boolean;
+}
+
+export interface CustomerWithCompanyName extends CustomerSchema {
+  companyName: string;
+}
+
+export interface StripeConnectedCustomersSchema {
+  _id: Id<"stripeConnectedCustomers">;
+  _creationTime: number;
+  email: string;
+  stripeCustomerId: string;
+  stripeAccountId: string;
 }

@@ -370,3 +370,16 @@ input::-webkit-date-and-time-value {
   border-radius: 50%;
   margin-top: 2px; /* Adjust this value to position the dot below the date */
 }
+
+/* styles/globals.css */
+/* Example: adjust the active hover state */
+/* styles/globals.css or a component CSS module */
+:root {
+  --menu-item-height: 50px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --menu-item-height: 40px;
+  }
+}

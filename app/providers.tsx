@@ -5,19 +5,19 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { PropsWithChildren } from "react";
 import React from "react";
+import { ErrorMessages } from "./types/enums";
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL as string;
+
+if (!convexUrl) {
+  throw new Error(ErrorMessages.ENV_NOT_SET_NEXT_PUBLIC_CONVEX_URL);
+}
+
 const clerkPublishableKey = process.env
   .NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY as string;
 
-if (!convexUrl) {
-  throw new Error("NEXT_PUBLIC_CONVEX_URL environment variable is not set.");
-}
-
 if (!clerkPublishableKey) {
-  throw new Error(
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable is not set."
-  );
+  throw new Error(ErrorMessages.ENV_NOT_SET_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 }
 
 const convex = new ConvexReactClient(convexUrl);
@@ -26,10 +26,14 @@ export function Providers({ children }: PropsWithChildren) {
   return (
     <ClerkProvider
       publishableKey={clerkPublishableKey}
-      signInFallbackRedirectUrl="http://localhost:3000"
-      signUpFallbackRedirectUrl="http://localhost:3000"
-      signInForceRedirectUrl="http://localhost:3000"
-      signUpForceRedirectUrl="http://localhost:3000"
+      signInUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL}
+      signUpUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL}
+      signInForceRedirectUrl={
+        process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT
+      }
+      signUpForceRedirectUrl={
+        process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT
+      }
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         {children}

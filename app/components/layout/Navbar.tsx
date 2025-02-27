@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { TITLE } from "../../types/constants";
-import { SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignOutButton, useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 
 const Navbar: React.FC = () => {
@@ -10,24 +10,17 @@ const Navbar: React.FC = () => {
   const [visible, setVisible] = useState(true);
 
   const toggleNavbar = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
   };
 
   const handleScroll = useCallback(() => {
     const currentScrollPos = window.scrollY;
-
-    if (currentScrollPos > prevScrollPos && currentScrollPos > 50) {
-      setVisible(false);
-    } else {
-      setVisible(true);
-    }
-
+    setVisible(currentScrollPos <= prevScrollPos || currentScrollPos <= 50);
     setPrevScrollPos(currentScrollPos);
   }, [prevScrollPos]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
@@ -43,7 +36,7 @@ const Navbar: React.FC = () => {
         </a>
         <div className="flex md:order-2 space-x-3 md:space-x-3 rtl:space-x-reverse">
           <SignedOut>
-            <a href="/signup" className="my-auto">
+            <a href="/sign-up" className="my-auto">
               <button
                 type="button"
                 className="bg-transparent border border-white hover:bg-white hover:text-black focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 md:py-1.5 text-center"
@@ -51,7 +44,6 @@ const Navbar: React.FC = () => {
                 Signup
               </button>
             </a>
-
             <a href="#demo" className="my-auto">
               <button
                 type="button"

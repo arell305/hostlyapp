@@ -13,7 +13,10 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as backendUtils_stripe from "../backendUtils/stripe.js";
 import type * as clerk from "../clerk.js";
+import type * as connectedAccounts from "../connectedAccounts.js";
+import type * as connectedPayments from "../connectedPayments.js";
 import type * as customers from "../customers.js";
 import type * as events from "../events.js";
 import type * as guestListInfo from "../guestListInfo.js";
@@ -25,6 +28,7 @@ import type * as promoCode from "../promoCode.js";
 import type * as promoCodeUsage from "../promoCodeUsage.js";
 import type * as promoterPromoCode from "../promoterPromoCode.js";
 import type * as stripe from "../stripe.js";
+import type * as stripeConnectedCustomers from "../stripeConnectedCustomers.js";
 import type * as subscription from "../subscription.js";
 import type * as ticketInfo from "../ticketInfo.js";
 import type * as tickets from "../tickets.js";
@@ -39,7 +43,10 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "backendUtils/stripe": typeof backendUtils_stripe;
   clerk: typeof clerk;
+  connectedAccounts: typeof connectedAccounts;
+  connectedPayments: typeof connectedPayments;
   customers: typeof customers;
   events: typeof events;
   guestListInfo: typeof guestListInfo;
@@ -51,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   promoCodeUsage: typeof promoCodeUsage;
   promoterPromoCode: typeof promoterPromoCode;
   stripe: typeof stripe;
+  stripeConnectedCustomers: typeof stripeConnectedCustomers;
   subscription: typeof subscription;
   ticketInfo: typeof ticketInfo;
   tickets: typeof tickets;

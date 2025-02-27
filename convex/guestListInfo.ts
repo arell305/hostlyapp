@@ -1,19 +1,19 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { internalMutation, internalQuery, mutation } from "./_generated/server";
 import {
-  EventSchema,
   InsertGuestListResponse,
   UpdateGuestListCloseTimeResponse,
 } from "@/types/types";
 import { ErrorMessages } from "@/types/enums";
 import { ResponseStatus } from "../utils/enum";
 import { Id } from "./_generated/dataModel";
+import { EventSchema, GuestListInfoSchema } from "@/types/schemas-types";
 
 export const insertGuestListInfo = mutation({
   args: {
     eventId: v.id("events"),
-    guestListCloseTime: v.string(),
-    checkInCloseTime: v.string(),
+    guestListCloseTime: v.number(),
+    checkInCloseTime: v.number(),
   },
   handler: async (ctx, args): Promise<InsertGuestListResponse> => {
     try {
@@ -40,8 +40,6 @@ export const insertGuestListInfo = mutation({
           eventId: args.eventId,
           guestListCloseTime: args.guestListCloseTime,
           checkInCloseTime: args.checkInCloseTime,
-          guestListIds: [],
-          isActive: true,
         }
       );
 
@@ -67,8 +65,8 @@ export const insertGuestListInfo = mutation({
 export const updateGuestListCloseTime = mutation({
   args: {
     guestListInfoId: v.id("guestListInfo"),
-    guestListCloseTime: v.string(),
-    checkInCloseTime: v.optional(v.string()),
+    guestListCloseTime: v.number(),
+    checkInCloseTime: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<UpdateGuestListCloseTimeResponse> => {
     const { guestListInfoId, guestListCloseTime, checkInCloseTime } = args;
@@ -101,6 +99,75 @@ export const updateGuestListCloseTime = mutation({
         data: null,
         error: errorMessage,
       };
+    }
+  },
+});
+
+export const createGuestListInfo = internalMutation({
+  args: {
+    eventId: v.id("events"),
+    guestListCloseTime: v.number(),
+    checkInCloseTime: v.number(),
+  },
+  handler: async (ctx, args): Promise<Id<"guestListInfo">> => {
+    try {
+      const { eventId, guestListCloseTime, checkInCloseTime } = args;
+
+      const guestListInfoId: Id<"guestListInfo"> = await ctx.db.insert(
+        "guestListInfo",
+        {
+          eventId,
+          guestListCloseTime,
+          checkInCloseTime,
+        }
+      );
+
+      await ctx.db.patch(eventId, { guestListInfoId });
+
+      return guestListInfoId;
+    } catch (error) {
+      console.error("Error creating guest list info:", error);
+      throw new Error("Failed to create guest list info");
+    }
+  },
+});
+
+export const getGuestListInfoByEventId = internalQuery({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args): Promise<GuestListInfoSchema | null> => {
+    try {
+      return await ctx.db
+        .query("guestListInfo")
+        .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+        .first();
+    } catch (error) {
+      console.error("Error fetching guest list info by event ID:", error);
+      throw new Error("Failed to fetch guest list info");
+    }
+  },
+});
+
+export const updateGuestListInfo = internalMutation({
+  args: {
+    guestListInfoId: v.id("guestListInfo"),
+    guestListCloseTime: v.number(),
+    checkInCloseTime: v.number(),
+  },
+  handler: async (ctx, args): Promise<Id<"guestListInfo">> => {
+    try {
+      const { guestListInfoId, guestListCloseTime, checkInCloseTime } = args;
+
+      await ctx.db.patch(guestListInfoId, {
+        guestListCloseTime,
+        checkInCloseTime,
+      });
+
+      return guestListInfoId;
+    } catch (error) {
+      console.error("Error updating guest list info:", error);
+      throw new Error("Failed to update guest list info");
     }
   },
 });

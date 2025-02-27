@@ -1,5 +1,10 @@
 import { defineSchema, defineTable } from "convex/server";
-import { SubscriptionStatus, UserRole, UserRoleEnum } from "../utils/enum";
+import {
+  StripeAccountStatus,
+  SubscriptionStatus,
+  UserRole,
+  UserRoleEnum,
+} from "../utils/enum";
 import { v } from "convex/values";
 import { SubscriptionTier } from "../utils/enum";
 import { Gender } from "@/types/enums";
@@ -36,6 +41,15 @@ export const SubscriptionStatusConvex = v.union(
   v.literal(SubscriptionStatus.INCOMPLETE_EXPIRED),
   v.literal(SubscriptionStatus.PAST_DUE),
   v.literal(SubscriptionStatus.UNPAID)
+);
+
+export const StripeAccountStatusConvex = v.union(
+  v.literal(StripeAccountStatus.NOT_ONBOARDED),
+  v.literal(StripeAccountStatus.PENDING),
+  v.literal(StripeAccountStatus.VERIFIED),
+  v.literal(StripeAccountStatus.RESTRICTED),
+  v.literal(StripeAccountStatus.REJECTED),
+  v.literal(StripeAccountStatus.DISABLED)
 );
 
 // export const Venue = v.object({
@@ -75,7 +89,16 @@ export default defineSchema({
     cancelAt: v.union(v.string(), v.null()),
     nextPayment: v.union(v.string(), v.null()),
     subscriptionStartDate: v.string(),
+    isActive: v.optional(v.boolean()),
   }).index("by_email", ["email"]),
+  connectedAccounts: defineTable({
+    customerId: v.id("customers"),
+    status: StripeAccountStatusConvex,
+    chargesEnabled: v.optional(v.boolean()),
+    payoutsEnabled: v.optional(v.boolean()),
+    lastStripeUpdate: v.optional(v.number()),
+    stripeAccountId: v.string(),
+  }).index("by_customerId", ["customerId"]),
   promoCodes: defineTable({
     promoCode: v.string(),
     promoId: v.string(),
@@ -84,25 +107,27 @@ export default defineSchema({
   users: defineTable({
     clerkUserId: v.optional(v.string()),
     email: v.string(),
-    clerkOrganizationId: v.optional(v.string()),
-    acceptedInvite: v.boolean(),
+    organizationId: v.optional(v.id("organizations")),
     customerId: v.optional(v.id("customers")),
     role: v.union(RoleConvex, v.null()),
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    isActive: v.boolean(),
   })
     .index("by_email", ["email"])
     .index("by_clerkUserId", ["clerkUserId"]),
   organizations: defineTable({
     clerkOrganizationId: v.string(),
     name: v.string(),
-    imageUrl: v.optional(v.string()),
+    photo: v.union(v.id("_storage"), v.null()),
     customerId: v.id("customers"),
     promoDiscount: v.number(),
+    slug: v.string(),
     isActive: v.optional(v.boolean()),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
-    .index("by_name", ["name"]),
+    .index("by_name", ["name"])
+    .index("by_slug", ["slug"]),
   events: defineTable({
     clerkOrganizationId: v.string(),
     name: v.string(),
@@ -145,12 +170,22 @@ export default defineSchema({
     .index("by_promoCode_and_event", ["promoCodeId", "eventId"]),
   ticketInfo: defineTable({
     eventId: v.id("events"),
-    maleTicketPrice: v.number(),
-    femaleTicketPrice: v.number(),
-    maleTicketCapacity: v.number(),
-    femaleTicketCapacity: v.number(),
     ticketSalesEndTime: v.number(),
+    stripeProductId: v.string(),
+    ticketTypes: v.object({
+      male: v.object({
+        price: v.number(),
+        capacity: v.number(),
+        stripePriceId: v.string(),
+      }),
+      female: v.object({
+        price: v.number(),
+        capacity: v.number(),
+        stripePriceId: v.string(),
+      }),
+    }),
   }).index("by_eventId", ["eventId"]),
+
   guestListInfo: defineTable({
     eventId: v.id("events"),
     guestListCloseTime: v.number(),
@@ -172,4 +207,25 @@ export default defineSchema({
   })
     .index("by_eventId", ["eventId"])
     .index("by_ticketUniqueId", ["ticketUniqueId"]),
+  connectedPayments: defineTable({
+    eventId: v.id("events"),
+    stripePaymentIntentId: v.string(),
+    email: v.string(),
+    totalAmount: v.number(),
+    promoCode: v.union(v.string(), v.null()),
+    maleCount: v.number(),
+    femaleCount: v.number(),
+    status: v.string(),
+  })
+    .index("by_eventId", ["eventId"])
+    .index("by_email", ["email"])
+    .index("by_stripePaymentIntentId", ["stripePaymentIntentId"]),
+  stripeConnectedCustomers: defineTable({
+    email: v.string(),
+    stripeCustomerId: v.string(),
+    stripeAccountId: v.string(),
+  })
+    .index("by_email", ["email"])
+    .index("by_stripeCustomerId", ["stripeCustomerId"])
+    .index("by_stripeAccountId", ["stripeAccountId"]),
 });

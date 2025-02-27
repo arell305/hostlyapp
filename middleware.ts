@@ -9,29 +9,20 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ClerkPermissionsEnum } from "@/types/enums";
 import { getOrganizationByClerkId } from "./convex/organizations";
+import { UserRole } from "./utils/enum";
 
-function isCreateEventRoute(req: NextRequest) {
-  const path = req.nextUrl.pathname;
-  const isDevelopment = process.env.NODE_ENV === "development";
+const isProtectedRoute = createRouteMatcher(["/create-company"]);
 
-  if (isDevelopment) {
-    return path.startsWith("/add-event");
-  } else {
-    const host = req.headers.get("host") || "";
-    return (
-      host.startsWith(`dashboard.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`) &&
-      path.startsWith("/add-event")
-    );
-  }
-}
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
-
-const isEntireGuestListRoute = createRouteMatcher(["/events/(.+)/guestlist"]);
+const isAppRoute = (req: NextRequest) => {
+  return /^\/([^/]+)\/app(?:\/|\/.*)$/.test(req.nextUrl.pathname);
+};
 
 export default clerkMiddleware(
   async (auth, req: NextRequest, event: NextFetchEvent) => {
     const url = req.nextUrl;
-    const hostname = req.headers.get("host")!;
+    const pathSegments = url.pathname.split("/");
+    const slug = pathSegments[1];
+
     const searchParams = req.nextUrl.searchParams.toString();
     const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
     const convex = new ConvexHttpClient(
@@ -48,33 +39,89 @@ export default clerkMiddleware(
     }
 
     if (path === "/") {
-      if (auth().userId && !auth().orgId) {
-        const createCompanyUrl = new URL("/create-company", req.url);
-        return NextResponse.redirect(createCompanyUrl);
+      const { userId, orgId } = await auth();
+
+      // user creates a company if they don't belong to org
+      if (userId && !orgId) {
+        return NextResponse.redirect(new URL("/create-company", req.url));
       }
-      if (auth().userId && auth().orgId) {
+
+      if (userId && orgId) {
         try {
-          // Fetch the organization from Convex using the orgId
           const organization = await convex.query(
             api.organizations.getOrganizationByClerkId,
             {
-              clerkOrganizationId: auth().orgId || "",
+              clerkOrganizationId: orgId,
             }
           );
 
+          // unauthorize if organization is not
+          if (!organization || !organization.isActive) {
+            return NextResponse.redirect("/unauthorized");
+          }
+
           if (organization) {
-            // Redirect to the organization's app route using the company name
-            const companyName = organization.name;
-            const redirectUrl = new URL(`/${companyName}/app`, req.url);
-            return NextResponse.redirect(redirectUrl);
+            return NextResponse.redirect(
+              new URL(`/${organization.slug}/app`, req.url)
+            );
           }
         } catch (error) {
           console.error("Error fetching organization:", error);
-          // Optionally handle the error or continue with normal flow
         }
       }
     }
-    // Avoid redirect loop for the "/create-company" route
+
+    if (isProtectedRoute(req)) {
+      const { userId } = await auth();
+      if (!userId) {
+        return NextResponse.redirect(new URL("/sign-in", req.url));
+      }
+    }
+
+    if (isAppRoute(req)) {
+      const match = url.pathname.match(/^\/([^/]+)\/app(?:\/|$)/);
+      const slug = match ? match[1] : null;
+
+      if (!slug) return NextResponse.next();
+
+      const { userId, orgId } = await auth();
+
+      if (!userId) {
+        return NextResponse.redirect(new URL("/sign-in", req.url));
+      }
+
+      if (!orgId) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
+      const organization = await convex.query(
+        api.organizations.getOrganizationByClerkId,
+        {
+          clerkOrganizationId: orgId,
+        }
+      );
+
+      // unauthorize if organization is not
+      if (!organization || !organization.isActive) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
+
+      if (organization.slug === slug) {
+        return NextResponse.next();
+      }
+
+      const user = await convex.query(api.users.findUserByClerkId, {
+        clerkUserId: userId,
+      });
+
+      if (
+        user.data?.user.role === UserRole.Hostly_Admin ||
+        user.data?.user.role === UserRole.Hostly_Moderator
+      ) {
+        return NextResponse.next();
+      }
+
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
 
     return NextResponse.next();
 

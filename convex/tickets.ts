@@ -24,7 +24,6 @@ import {
   InsertTicketSoldResponse,
 } from "@/types/convex-types";
 import {
-  formatToTimeAndShortDate,
   formatUnixToTimeAndShortDate,
   generateQRCodeBase64,
   isAfterNowInPacificTime,
@@ -35,6 +34,11 @@ import { nanoid } from "nanoid";
 import { api, internal } from "./_generated/api";
 import { sendTicketEmail } from "../utils/sendgrid";
 import { generatePDF } from "../utils/pdf";
+
+import { USD_CURRENCY } from "@/types/constants";
+import { getStripeCustomerIdForEmail } from "./stripe";
+import { CreatePaymentIntentResponse } from "@/types/convex/actions-types";
+import { stripe } from "./backendUtils/stripe";
 
 // export const insertTicketsSold = mutation({
 //   args: {
@@ -152,39 +156,32 @@ import { generatePDF } from "../utils/pdf";
 export const insertTicketsSold = action({
   args: {
     eventId: v.id("events"),
-    promoterPromoCodeId: v.union(v.id("promoterPromoCode"), v.null()),
+    promoCode: v.union(v.string(), v.null()),
     email: v.string(),
     maleCount: v.number(),
     femaleCount: v.number(),
+    paymentMethodId: v.string(),
   },
   handler: async (ctx, args): Promise<InsertTicketSoldResponse> => {
+    const {
+      eventId,
+      promoCode,
+      email,
+      maleCount,
+      femaleCount,
+      paymentMethodId,
+    } = args;
+
     try {
-      const eventResponse: GetEventByIdResponse = await ctx.runQuery(
-        api.events.getEventById,
-        { eventId: args.eventId }
-      );
-      if (eventResponse.status !== ResponseStatus.SUCCESS) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: eventResponse.error || ErrorMessages.EVENT_NOT_FOUND,
-        };
-      }
-
-      const ticketInfoId = eventResponse.data.ticketInfo?._id;
-
-      if (!ticketInfoId) {
-        // Handle the case where ticketInfoId is not available
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.TICKET_INFO_NOT_FOUND,
-        };
-      }
-
-      // Now you can safely use ticketInfoId as an Id<"ticketInfo">
-      const ticketInfo = await ctx.runQuery(api.ticketInfo.getTicketInfoById, {
-        ticketInfoId: ticketInfoId as Id<"ticketInfo">, // Cast to Id<"ticketInfo">
+      const {
+        event,
+        ticketInfo,
+        stripeAccountId,
+        promoDiscount,
+        clerkPromoterId,
+      } = await ctx.runQuery(internal.events.getEventsWithTickets, {
+        eventId,
+        promoCode,
       });
 
       if (!isAfterNowInPacificTime(ticketInfo.ticketSalesEndTime)) {
@@ -194,35 +191,165 @@ export const insertTicketsSold = action({
           error: ErrorMessages.TICKET_SALES_ENDED,
         };
       }
-
-      let clerkPromoterId: string | null = null;
-      if (args.promoterPromoCodeId) {
-        const promoterPromoCode: PromoterPromoCodeSchema | null =
-          await ctx.runQuery(
-            internal.promoterPromoCode.getPromoterPromoCodeById,
-            {
-              promoterPromoCodeId: args.promoterPromoCodeId,
-            }
-          );
-        if (!promoterPromoCode) {
-          return {
-            status: ResponseStatus.ERROR,
-            data: null,
-            error: ErrorMessages.NOT_FOUND,
-          };
+      const stripeCustomerId = await ctx.runAction(
+        api.stripe.getStripeCustomerIdForEmail,
+        {
+          email,
+          stripeAccountId,
         }
-        clerkPromoterId = promoterPromoCode.clerkPromoterUserId;
+      );
+
+      const setupIntent = await stripe.setupIntents.create({
+        customer: stripeCustomerId,
+      });
+      console.log("stripeCustomer", setupIntent);
+
+      const paymentMethod = await stripe.paymentMethods.create(
+        {
+          customer: stripeCustomerId,
+          payment_method: paymentMethodId,
+        },
+        {
+          stripeAccount: stripeAccountId,
+        }
+      );
+
+      // const paymentMethod = await stripe.paymentMethods.create(
+      //   {
+      //     customer: stripeCustomerId,
+      //     payment_method: paymentMethodId,
+      //   },
+      //   {
+      //     stripeAccount: stripeAccountId,
+      //   }
+      // );
+      await stripe.paymentMethods.attach(paymentMethodId, {
+        customer: stripeCustomerId,
+      });
+
+      // console.log("Stripe Customer ID:", stripeCustomerId);
+
+      let maleTicketTotal = maleCount * ticketInfo.ticketTypes.male.price;
+      let femaleTicketTotal = femaleCount * ticketInfo.ticketTypes.female.price;
+
+      maleTicketTotal = Math.max(
+        0,
+        maleTicketTotal - maleCount * promoDiscount
+      );
+      femaleTicketTotal = Math.max(
+        0,
+        femaleTicketTotal - femaleCount * promoDiscount
+      );
+
+      let totalPrice = maleTicketTotal + femaleTicketTotal;
+      totalPrice = Math.round(totalPrice * 100);
+
+      // const platformCustomer = await stripe.customers.create({
+      //   email,
+      // });
+
+      // 2. Clone customer to connected account
+      // const connectedCustomer = await stripe.customers.create(
+      //   {
+      //     email,
+      //   },
+      //   {
+      //     stripeAccount: stripeAccountId,
+      //   }
+      // );
+      // const customer = await stripe.customers.create(
+      //   {
+      //     email: "person@example.com",
+      //   },
+      //   {
+      //     stripeAccount: "{{CONNECTED_ACCOUNT_ID}}",
+      //   }
+      // );
+      // console.log("connected Customer", connectedCustomer.id);
+
+      // const clonedPaymentMethod = await stripe.paymentMethods.create(
+      //   {
+      //     customer: connectedCustomer.id,
+      //     payment_method: paymentMethodId,
+      //   },
+      //   {
+      //     stripeAccount: stripeAccountId,
+      //   }
+      // );
+
+      // console.log("cloned", clonedPaymentMethod);
+
+      // await stripe.paymentMethods.attach(paymentMethodId, {
+      //   customer: stripeCustomerId, // Must be a customer in the connected account
+      // });
+      // Ensure the customer exists in the connected account
+
+      // ✅ Make sure PaymentMethod is attached in the connected Stripe account
+      // await stripe.paymentMethods.attach(paymentMethodId, {
+      //   customer: stripeCustomerId,
+      // }); // ✅ Pass stripeAccountId to ensure it's inside the correct account
+
+      const paymentIntent = await stripe.paymentIntents.create(
+        {
+          amount: totalPrice,
+          currency: USD_CURRENCY,
+          confirm: true, // C harge immediately
+          off_session: true,
+          metadata: {
+            eventId,
+            email,
+            promoCode,
+            maleCount,
+            femaleCount,
+            stripeProductId: ticketInfo.stripeProductId,
+            stripeMalePriceId: ticketInfo.ticketTypes.male.stripePriceId,
+            stripeFemalePriceId: ticketInfo.ticketTypes.female.stripePriceId,
+            promoDiscount,
+          },
+        },
+        { stripeAccount: stripeAccountId }
+      );
+
+      if (!paymentIntent.client_secret) {
+        console.error(
+          "Stripe paymentIntent missing client_secret:",
+          paymentIntent
+        );
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.PAYMENT_PROCESSING_FAILED,
+        };
       }
 
-      const shortEventId = eventResponse.data.event._id.slice(0, 4);
+      if (paymentIntent.status !== "succeeded") {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.PAYMENT_FAILED,
+        };
+      }
+
+      await ctx.runMutation(internal.connectedPayments.insertConnectedPayment, {
+        eventId,
+        stripePaymentIntentId: paymentIntent.id,
+        email,
+        totalAmount: totalPrice,
+        promoCode: promoCode,
+        maleCount,
+        femaleCount,
+        status: paymentIntent.status,
+      });
+
+      const shortEventId = event._id.slice(0, 4);
       const tickets: CustomerTicket[] = [];
 
       const createCustomerTicket = (ticket: TicketSchema): CustomerTicket => ({
         ...ticket,
-        name: eventResponse.data.event.name,
-        startTime: eventResponse.data.event.startTime,
-        endTime: eventResponse.data.event.endTime,
-        address: eventResponse.data.event.address,
+        name: event.name,
+        startTime: event.startTime,
+        endTime: event.endTime,
+        address: event.address,
       });
 
       // Create male tickets
@@ -272,7 +399,13 @@ export const insertTicketsSold = action({
 
       return {
         status: ResponseStatus.SUCCESS,
-        data: { tickets },
+        data: {
+          tickets,
+          paymentIntent: {
+            id: paymentIntent.id,
+            client_secret: paymentIntent.client_secret,
+          },
+        },
       };
     } catch (error) {
       const errorMessage =

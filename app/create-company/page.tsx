@@ -1,167 +1,231 @@
-"use client"; // Ensure this component runs on the client side
+"use client";
 import { useState } from "react";
-import { Input } from "@/components/ui/input"; // Assuming you have a styled Input component
-import Image from "next/image"; // For displaying the uploaded image preview
-import { UserButton, useClerk, useOrganizationList } from "@clerk/nextjs";
+import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import {
+  UserButton,
+  useClerk,
+  useOrganization,
+  useOrganizationList,
+  useSession,
+} from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { IoBusinessOutline } from "react-icons/io5";
 import { Label } from "@/components/ui/label";
-import { useAction, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {
-  containsUnderscore,
-  replaceSpacesWithHyphens,
-} from "../../utils/helpers";
+import { ResponseStatus } from "../../utils/enum";
+import _ from "lodash";
+import { ErrorMessages, FrontendErrorMessages } from "@/types/enums";
+import { RiImageAddFill } from "react-icons/ri";
+import { validatePromoDiscount } from "../../utils/frontend-validation";
+import { Id } from "../../convex/_generated/dataModel";
+import imageCompression from "browser-image-compression";
+import Loading from "@/[slug]/app/components/loading/Loading";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 
 type ErrorState = {
   companyName: string | null;
   general: string | null;
+  promoDiscount: string | null;
 };
 
 export default function CreateCompanyPage() {
   const { organization, user, loaded } = useClerk();
-  console.log("org", organization);
-  console.log("user", user);
   const [companyName, setCompanyName] = useState("");
+  const [promoDiscountAmount, setPromoDiscountAmount] = useState<string>("");
   const [companyPhoto, setCompanyPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { createOrganization, isLoaded, setActive } = useOrganizationList({
-    userMemberships: true,
-  });
+  const { setActive } = useClerk();
+  // const { createOrganization, isLoaded, setActive } = useOrganizationList({});
   const updateOrganizationMetadataOnCreation = useAction(
     api.clerk.updateOrganizationMetadataOnCreation
   );
+  const { session } = useSession();
+  console.log("org", organization);
 
-  const existingOrganizations = useQuery(api.organizations.getAllOrganizations);
+  const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
+  const [photoStorageId, setPhotoStorageId] = useState<Id<"_storage"> | null>(
+    null
+  );
+  const [isPhotoLoading, setIsPhotoLoading] = useState<boolean>(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const [companyPhotoFile, setCompanyPhotoFile] = useState<File | null>(null);
+  const displayCompanyPhoto = useQuery(api.photo.getFileUrl, {
+    storageId: photoStorageId,
+  });
+  const createClerkOrganization = useAction(api.clerk.createClerkOrganization);
+
   const { toast } = useToast();
   const [errors, setErrors] = useState<ErrorState>({
     companyName: null,
     general: null,
+    promoDiscount: null,
   });
   const router = useRouter();
+  console.log("session", session);
 
-  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setCompanyPhoto(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string); // Set the preview image
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (!file) {
+      console.error("No file selected");
+      return;
+    }
+    setCompanyPhotoFile(file);
+    setIsPhotoLoading(true);
+
+    try {
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
       };
-      reader.readAsDataURL(file); // Read the file as a data URL
+      const compressedFile = await imageCompression(file, options);
+      const postUrl = await generateUploadUrl();
+
+      const result = await fetch(postUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: compressedFile,
+      });
+
+      if (result.ok) {
+        const { storageId } = await result.json();
+        setPhotoStorageId(storageId as Id<"_storage">);
+      } else {
+        setPhotoUploadError("Photo upload failed");
+        console.error("Photo upload failed");
+      }
+    } catch (error) {
+      setPhotoUploadError("Photo upload failed");
+      console.error("Error uploading photo:", error);
+    } finally {
+      setIsPhotoLoading(false);
     }
   };
-  console.log("user", user);
+
+  const handleRemovePhoto = () => {
+    setPhotoStorageId(null);
+    setCompanyPhotoFile(null);
+  };
+
+  // const handleDeletePhoto = () => {
+  //   setCompanyPhoto(null);
+  //   setPhotoPreview(null);
+  // };
+
   const handleSubmit = async () => {
-    setErrors({ companyName: null, general: null });
+    setErrors({ companyName: null, general: null, promoDiscount: null });
+    if (organization) {
+      setErrors((prev) => ({ ...prev, general: "Company already created." }));
+      return;
+    }
     if (companyName.trim() === "") {
       setErrors((prev) => ({ ...prev, companyName: "Name cannot be empty." }));
       return;
     }
 
+    const { promoDiscountValue, promoDiscountValueError } =
+      validatePromoDiscount(promoDiscountAmount);
+    if (promoDiscountValueError) {
+      setErrors((prev) => ({
+        ...prev,
+        promoDiscount: promoDiscountValueError,
+      }));
+      return;
+    }
     if (!user) {
       setErrors((prev) => ({
         ...prev,
-        general: "Error Loading User. Please try again.",
+        general: FrontendErrorMessages.USER_NOT_LOADED,
       }));
       console.log("User undefined when creating company");
       return;
     }
-    if (containsUnderscore(companyName)) {
+
+    if (!setActive) {
       setErrors((prev) => ({
         ...prev,
-        companyName: 'Name cannot contain "-"',
+        general: FrontendErrorMessages.GENERIC_ERROR,
       }));
+      console.log(FrontendErrorMessages.USE_ORGANIZATION_LIST_NOT_LOADED);
       return;
     }
 
-    const name = replaceSpacesWithHyphens(companyName).toLowerCase();
-
-    const isDuplicate = existingOrganizations?.data?.organizations?.some(
-      (org) => org.name.toLowerCase() === name
-    );
-    if (isDuplicate) {
+    if (!session) {
       setErrors((prev) => ({
         ...prev,
-        companyName: "This company name already exists.",
+        general: FrontendErrorMessages.GENERIC_ERROR,
       }));
-      return;
-    }
-    if (!isLoaded) {
-      setErrors((prev) => ({
-        ...prev,
-        general: "Please try again.",
-      }));
+      console.log(FrontendErrorMessages.USE_ORGANIZATION_LIST_NOT_LOADED);
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const newOrganization = await createOrganization({
-        name,
+      const response = await createClerkOrganization({
+        companyName,
+        photo: photoStorageId,
+        promoDiscount: promoDiscountValue,
       });
 
-      await Promise.all([
-        newOrganization.setLogo({ file: companyPhoto }),
-        updateOrganizationMetadataOnCreation({
-          clerkOrganizationId: newOrganization.id,
-          email: user.emailAddresses[0].emailAddress,
-        }),
-        setActive({ organization: newOrganization.id }),
-      ]);
+      if (
+        response.status === ResponseStatus.ERROR &&
+        response.error === ErrorMessages.COMPANY_NAME_ALREADY_EXISTS
+      ) {
+        setErrors((prev) => ({
+          ...prev,
+          general: ErrorMessages.COMPANY_NAME_ALREADY_EXISTS,
+        }));
+      } else if (response.status === ResponseStatus.ERROR) {
+        console.log("error creating company", response.error);
+        setErrors((prev) => ({ ...prev, general: "Error creating company" }));
+      } else {
+        const newOrganizationId = response.data.clerkOrganizationId;
+        await setActive({
+          session: session.id, // Ensure session is set
+          organization: newOrganizationId,
+        });
 
-      router.push(`${newOrganization.name}/app/team`);
-      toast({
-        title: "Success",
-        description: "Company created.",
-      });
+        // 3️⃣ Wait for Clerk to sync state (delay ensures changes take effect)
+        // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // 4️⃣ Force Next.js to fetch the new organization
+        // router.refresh();
+        const slug = response.data.slug;
+        router.push(`${slug}/app/team`);
+
+        // 🎉 Success toast
+        toast({
+          title: "Success",
+          description: "Company created.",
+        });
+      }
     } catch (error) {
+      console.error(error);
       setErrors((prev) => ({ ...prev, general: "Error creating company" }));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDeletePhoto = () => {
-    setCompanyPhoto(null);
-    setPhotoPreview(null);
-  };
-  if (!loaded || !isLoaded || isLoading) {
+  if (!loaded || isLoading) {
     <p>Loading</p>;
   }
 
-  if (organization) {
-    return (
-      <div className="fixed inset-0 flex flex-col bg-white ">
-        <div className="mt-[100px] flex-grow p-4 overflow-hidden md:mx-auto md:border md:shadow md:rounded-xl md:w-[700px] md:p-10 md:max-h-[460px]">
-          <h1 className="mb-5 text-3xl md:text-4xl font-bold">
-            Company already exits
-          </h1>
-        </div>
-      </div>
-    );
-  }
   return (
-    <div className="fixed inset-0 flex flex-col bg-white ">
-      <nav
-        className={
-          "w-full flex  shadow md:shadow-none md:border-none bg-white z-10 top-0 fixed h-12 transition-colors duration-300    border-b border-gray-200"
-        }
-      >
-        <div className="flex h-full items-center mx-auto p-2.5">
-          <a href="/" className="text-2xl font-semibold font-playfair ">
-            {"Hostly"}
-          </a>
-        </div>
+    <main className="">
+      <nav className={"px-4 w-full flex justify-end  z-10 top-0 fixed h-12  "}>
         <UserButton />
       </nav>
-      <div className="mt-[100px] flex-grow p-4 overflow-hidden md:mx-auto md:border md:shadow md:rounded-xl md:w-[700px] md:p-10 md:max-h-[460px]">
-        <div className="flex gap-3">
+      {/* <div className="mt-[100px] flex-grow p-4 overflow-hidden md:mx-auto md:border md:shadow md:rounded-xl md:w-[700px] md:p-10 md:max-h-[460px]"> */}
+      <div className="px-4 flex flex-col mt-16 md:mt-10 max-w-2xl mx-auto">
+        <div className="flex gap-3 mb-6 justify-center md:justify-start">
           <IoBusinessOutline className="text-4xl" />
           <h1 className="mb-5 text-3xl md:text-4xl font-bold">New Company</h1>
         </div>
@@ -193,6 +257,33 @@ export default function CreateCompanyPage() {
               {errors.companyName || "Placeholder to maintain height"}
             </p>{" "}
           </div>
+          <div className="flex flex-col">
+            <Label
+              htmlFor="promoDiscountAmount"
+              className="font-bold font-playfair text-xl"
+            >
+              Promo Discount
+            </Label>
+            <Input
+              id="promoDiscountAmount"
+              type="number"
+              placeholder="Enter Promo Discount Amount"
+              value={promoDiscountAmount}
+              onChange={(e) => {
+                setErrors((prev) => ({
+                  ...prev,
+                  companyName: null,
+                }));
+                setPromoDiscountAmount(e.target.value);
+              }}
+              className={`w-full ${errors.companyName ? "border-red-500" : ""}`}
+            />
+            <p
+              className={` text-sm mt-1 ${errors.companyName ? "text-red-500" : "text-transparent"}`}
+            >
+              {errors.companyName || "Placeholder to maintain height"}
+            </p>{" "}
+          </div>
           <div>
             <Label
               className="font-bold font-playfair text-xl mb-2"
@@ -203,12 +294,12 @@ export default function CreateCompanyPage() {
             <p className="text-sm text-gray-600">
               Recommended size 1:1, up to 10MB.
             </p>
-            <div className="relative w-32 h-32 mt-2">
-              {photoPreview && (
+            <div className="relative w-64 h-64 mt-2 ">
+              {displayCompanyPhoto && (
                 <>
-                  <div className="w-full h-full rounded-md overflow-hidden">
+                  <div className="w-full h-full  rounded-md overflow-hidden">
                     <Image
-                      src={photoPreview}
+                      src={displayCompanyPhoto}
                       alt="Company Photo Preview"
                       layout="fill"
                       objectFit="cover"
@@ -216,7 +307,7 @@ export default function CreateCompanyPage() {
                     />
                   </div>
                   <button
-                    onClick={handleDeletePhoto}
+                    onClick={handleRemovePhoto}
                     className="absolute -top-2 -right-2 bg-white border rounded-full p-1 shadow-lg z-10 hover:bg-gray-200"
                     type="button"
                   >
@@ -235,20 +326,25 @@ export default function CreateCompanyPage() {
                   </button>
                 </>
               )}
-              <div className="relative w-full h-full group">
-                <Input
-                  id="companyPhoto"
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                {!photoPreview && (
+              {!displayCompanyPhoto && (
+                <div className="relative w-full h-full group">
+                  <Input
+                    id="companyPhoto"
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+
                   <div className="w-full h-full border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center transition-colors duration-200 group-hover:bg-gray-100">
-                    <span className="text-gray-400">Upload Photo</span>
+                    {isPhotoLoading ? (
+                      <Loading />
+                    ) : (
+                      <RiImageAddFill className="text-4xl text-gray-500" />
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
           <p
@@ -256,8 +352,12 @@ export default function CreateCompanyPage() {
           >
             {errors.general || "Placeholder to maintain height"}
           </p>{" "}
-          <div className=" hidden md:flex">
-            <Button className="w-[200px] mx-auto" onClick={handleSubmit}>
+          <div className="">
+            <Button
+              className=" mx-auto my-8"
+              onClick={handleSubmit}
+              disabled={companyName === ""}
+            >
               {" "}
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -274,11 +374,8 @@ export default function CreateCompanyPage() {
           </div>
         </div>
       </div>
-      <div className="p-4 md:hidden">
-        <Button
-          className="w-full h-12 text-lg font-semibold"
-          onClick={handleSubmit}
-        >
+      {/* <div className="px-4 pb-14 md:hidden">
+        <Button className="w-full " onClick={handleSubmit}>
           {" "}
           {isLoading ? (
             <div className="flex items-center justify-center space-x-2">
@@ -289,7 +386,7 @@ export default function CreateCompanyPage() {
             "Create"
           )}
         </Button>
-      </div>
-    </div>
+      </div> */}
+    </main>
   );
 }

@@ -14,7 +14,6 @@ import {
 import {
   CancelSubscriptionResponse,
   Customer,
-  CustomerSchema,
   CustomerWithPayment,
   GetCustomerDetailsResponse,
   OrganizationsSchema,
@@ -32,6 +31,15 @@ import {
   GetOrganizationByNameQueryResponse,
   UpdatePromoterPromoCodeResponse,
 } from "@/types/convex-types";
+import {
+  CustomerSchema,
+  CustomerWithCompanyName,
+  UserSchema,
+} from "@/types/schemas-types";
+import {
+  FindCustomerByClerkUserIdResponse,
+  FindCustomerWithCompanyNameByClerkIdResponse,
+} from "@/types/convex/internal-types";
 
 export const insertCustomerAndSubscription = internalMutation({
   args: {
@@ -57,6 +65,7 @@ export const insertCustomerAndSubscription = internalMutation({
         cancelAt: null,
         nextPayment,
         subscriptionStartDate: Date.now().toString(),
+        isActive: true,
       });
       // await ctx.scheduler.runAt(
       //   DateTime.fromISO(nextPayment).toMillis(),
@@ -112,18 +121,168 @@ export const findCustomerById = internalQuery({
         .filter((q) => q.eq(q.field("_id"), args.customerId))
         .first();
 
-      // If a customer is found, map the `subscriptionStatus` string to the `SubscriptionStatus` enum
-      if (customer) {
-        return {
-          ...customer,
-          subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus, // Cast or map the status
-        }; // Ensure the returned type is the `Customer` interface
+      if (!customer) {
+        return null;
       }
 
-      return null;
+      if (!customer.isActive) {
+        throw new Error(ErrorMessages.CUSTOMER_INACTIVE);
+      }
+      // If a customer is found, map the `subscriptionStatus` string to the `SubscriptionStatus` enum
+      return {
+        ...customer,
+        subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus, // Cast or map the status
+      }; // Ensure the returned type is the `Customer` interface
     } catch (error) {
-      console.error("Error finding customer by email:", error);
-      return null;
+      console.error(ErrorMessages.CUSTOMER_DB_QUERY_ID_ERROR, error);
+      throw new Error(ErrorMessages.CUSTOMER_DB_QUERY_ID_ERROR);
+    }
+  },
+});
+
+export const findCustomerByClerkId = internalQuery({
+  args: {
+    clerkUserId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user: UserSchema | null = await ctx.db
+      .query("users")
+      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .first();
+
+    if (!user?.customerId) {
+      throw Error(ErrorMessages.USER_NOT_FOUND);
+    }
+
+    const customer: CustomerSchema | null = await ctx.db.get(user.customerId);
+
+    if (!customer) {
+      throw Error(ErrorMessages.CUSTOMER_NOT_FOUND);
+    }
+
+    if (!user.clerkOrganizationId) {
+      throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
+    }
+
+    const organization: OrganizationsSchema | null = await ctx.db
+      .query("organizations")
+      .withIndex("by_clerkOrganizationId", (q) =>
+        q.eq("clerkOrganizationId", user.clerkOrganizationId as string)
+      )
+      .first();
+
+    if (!organization) {
+      throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
+    }
+
+    return {
+      ...customer,
+      companyName: organization.name,
+    };
+  },
+});
+
+//used in stripe
+export const findCustomerWithCompanyNameByClerkId = internalQuery({
+  args: {
+    clerkUserId: v.string(),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<FindCustomerWithCompanyNameByClerkIdResponse> => {
+    try {
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .withIndex("by_clerkUserId", (q) =>
+          q.eq("clerkUserId", args.clerkUserId)
+        )
+        .first();
+
+      if (!user) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.USER_NOT_FOUND,
+        };
+      }
+
+      if (!user.isActive) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.USER_INACTIVE,
+        };
+      }
+
+      if (!user.customerId) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.USER_NOT_CUSTOMER,
+        };
+      }
+
+      const customer: CustomerSchema | null = await ctx.db.get(user.customerId);
+
+      if (!customer) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.CUSTOMER_NOT_FOUND,
+        };
+      }
+      if (!customer.isActive) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.CUSTOMER_NOT_FOUND,
+        };
+      }
+
+      const organization: OrganizationsSchema | null = await ctx.db
+        .query("organizations")
+        .withIndex("by_clerkOrganizationId", (q) =>
+          q.eq("clerkOrganizationId", user.clerkOrganizationId as string)
+        )
+        .first();
+
+      if (!organization) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.COMPANY_NOT_FOUND,
+        };
+      }
+
+      if (!organization.isActive) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.COMPANY_INACTIVE,
+        };
+      }
+
+      const customerWithCompanyName: CustomerWithCompanyName = {
+        ...customer,
+        companyName: organization.name, // Assuming `organization.name` holds the company name
+      };
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          customer: customerWithCompanyName,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });
@@ -137,6 +296,7 @@ const allowedFields = {
   paymentMethodId: v.optional(v.string()),
   subscriptionTier: v.optional(SubscriptionTierConvex), // Adjust if SubscriptionTier has specific values
   nextPayment: v.optional(v.union(v.string(), v.null())),
+  isActive: v.optional(v.boolean()),
 };
 
 export const updateCustomer = internalMutation({

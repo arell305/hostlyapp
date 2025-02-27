@@ -1,6 +1,7 @@
 import { PaymentMethod } from "@stripe/stripe-js";
 import { Id } from "../../convex/_generated/dataModel";
 import {
+  ActiveStripeTab,
   ActiveTab,
   ResponseStatus,
   SubscriptionStatus,
@@ -61,7 +62,7 @@ export interface ClerkOrganization {
 
 export interface Tab {
   label: string;
-  value: ActiveTab; // Change this to string to allow any value
+  value: ActiveTab | ActiveStripeTab;
 }
 
 export interface QueryResponse {
@@ -313,6 +314,8 @@ export interface OrganizationsSchema {
   imageUrl?: string;
   customerId: Id<"customers">;
   promoDiscount: number;
+  isActive?: boolean;
+  slug: string;
 }
 
 export interface EventFormInput {
@@ -326,7 +329,7 @@ export interface EventFormInput {
 
 export interface InsertTicektResponse {
   status: ResponseStatus;
-  data: Id<"tickets"> | null;
+  data: Id<"ticketInfo"> | null;
   error?: string | null;
 }
 
@@ -357,20 +360,6 @@ export interface UpdateListEventCountResponse {
 
 export interface UpdateGuestListEventCountData {
   remaingEvents: number;
-}
-
-export interface CustomerSchema {
-  _id: Id<"customers">;
-  stripeCustomerId: string;
-  subscriptionStatus: SubscriptionStatus;
-  trialEndDate?: string | null;
-  stripeSubscriptionId: string;
-  email: string;
-  paymentMethodId: string;
-  subscriptionTier: SubscriptionTier;
-  nextPayment: string | null;
-  cancelAt: string | null;
-  subscriptionStartDate: string;
 }
 
 export interface UpdateTicketInfoResponse {
@@ -511,11 +500,11 @@ export interface UserSchema {
   _id: Id<"users">;
   clerkUserId?: string;
   email: string;
-  clerkOrganizationId?: string;
-  acceptedInvite: boolean;
+  organizationId?: Id<"organizations">;
   customerId?: Id<"customers">;
   role: UserRole | null;
   name?: string;
+  isActive: boolean;
 }
 
 export interface UserWithPromoCode extends UserSchema {

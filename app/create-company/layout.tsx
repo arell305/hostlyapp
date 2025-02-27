@@ -1,12 +1,12 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import DashboardNavbar from "@/[companyName]/app/components/DashboardNavbar";
-import DashboardMobileSidebar from "@/[companyName]/app/components/DashboardMobileSidebar";
-import DashboardDesktopSidebar from "@/[companyName]/app/components/DashboardDesktopSidebar";
+import DashboardNavbar from "@/[slug]/app/components/DashboardNavbar";
+import DashboardMobileSidebar from "@/[slug]/app/components/DashboardMobileSidebar";
+import DashboardDesktopSidebar from "@/[slug]/app/components/DashboardDesktopSidebar";
 import dynamic from "next/dynamic";
 
 const DynamicDashboardNavbar = dynamic(
-  () => import("@/[companyName]/app/components/DashboardNavbar"),
+  () => import("@/[slug]/app/components/DashboardNavbar"),
   {
     ssr: false,
     loading: () => <p>Loading...</p>,

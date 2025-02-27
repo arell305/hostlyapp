@@ -56,6 +56,15 @@ export enum UserRole {
   Hostly_Moderator = "org:hostly_moderator",
 }
 
+export enum ClerkPermissions {
+  MODERATES_APP = "org:app:moderate",
+  CHECK_GUESTS = "org:events:check_guests",
+  CREATE_EVENT = "org:events:create",
+  UPLOAD_GUESTLIST = "org:events:upload_guest_list",
+  VIEW_ALL_GUESTLISTS = "org:events:upload_guest_list",
+  VIEW_SUBSCRIPTION = "org:view:subscription",
+}
+
 export enum ActiveTab {
   VIEW = "view",
   GUEST_LIST = "guestList",
@@ -66,4 +75,19 @@ export enum ResponseStatus {
   SUCCESS = "success",
   ERROR = "error",
   PARTIAL_SUCESSS = "partial success",
+}
+
+export enum StripeAccountStatus {
+  NOT_ONBOARDED = "Not Onboarded Yet", // User hasn't completed Stripe onboarding
+  PENDING = "Pending", // Account created but not yet verified
+  VERIFIED = "Verified", // Fully approved, can process payments
+  RESTRICTED = "Restricted", // Needs more verification (e.g., missing ID)
+  REJECTED = "Rejected", // Permanently rejected by Stripe
+  DISABLED = "Disabled", // Manually disabled (optional for admin actions)
+}
+
+export enum ActiveStripeTab {
+  DOCUMENTS = "document",
+  PAYOUTS = "payouts",
+  PAYMENTS = "payments",
 }

@@ -26,13 +26,22 @@ import {
 import { internal } from "./_generated/api";
 import { Organization } from "@clerk/nextjs/server";
 import { ErrorMessages } from "@/types/enums";
-import { ResponseStatus } from "../utils/enum";
+import { ResponseStatus, UserRole } from "../utils/enum";
 import {
+  CreateOrganizationResponse,
   DeleteClerkUserResponse,
   UpdateOrganizationMembershipsResponse,
   UpdateOrganizationMetadataResponse,
   UpdateOrganizationResponse,
 } from "@/types/convex-types";
+import { requireAuthenticatedUser } from "../utils/auth";
+import { ERROR_MESSAGES } from "../constants/errorMessages";
+import slugify from "slugify";
+import { createClerkOrg, updateOrganizationLogo } from "../utils/clerk";
+
+export const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY,
+});
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -319,13 +328,132 @@ export const revokeOrganizationInvitation = action({
   },
 });
 
-// export const createOrganization = action({
-//   args: {
-//     name: v.string(),
-//     clerkUserId: v.string(),
-//     email: v.string(),
-//   },
-//   handler: async (ctx, args): Promise<CreateOrganizationResponse> => {
+export const createClerkOrganization = action({
+  args: {
+    companyName: v.string(),
+    photo: v.union(v.id("_storage"), v.null()),
+    promoDiscount: v.union(v.number(), v.null()),
+  },
+  handler: async (ctx, args): Promise<CreateOrganizationResponse> => {
+    const { companyName, photo } = args;
+    let { promoDiscount } = args;
+
+    promoDiscount = promoDiscount ?? 0;
+    try {
+      const identity = await requireAuthenticatedUser(ctx);
+      const clerkUserId = identity.id as string;
+
+      const user = await ctx.runQuery(
+        internal.users.internalFindUserByClerkId,
+        { clerkUserId }
+      );
+
+      if (user.organizationId) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.USER_ALREADY_HAS_COMPANY,
+        };
+      }
+
+      if (!user.customerId) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.USER_NOT_CUSTOMER,
+        };
+      }
+
+      const customer = await ctx.runQuery(internal.customers.findCustomerById, {
+        customerId: user.customerId,
+      });
+
+      if (!customer) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.CUSTOMER_NOT_FOUND,
+        };
+      }
+
+      const slug: string = slugify(companyName, { lower: true, strict: true });
+
+      const existingOrganization = await ctx.runQuery(
+        internal.organizations.getOrganizationBySlug,
+        { slug }
+      );
+
+      if (existingOrganization) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.COMPANY_NAME_ALREADY_EXISTS,
+        };
+      }
+
+      const clerkOrganization = await createClerkOrg({
+        companyName,
+        publicMetadata: {
+          urlSlug: slug,
+          status: customer.subscriptionStatus,
+          tier: customer.subscriptionTier,
+        },
+        createdBy: clerkUserId,
+      });
+
+      const organizationId = await ctx.runMutation(
+        internal.organizations.createConvexOrganization,
+        {
+          clerkOrganizationId: clerkOrganization.id,
+          name: companyName,
+          slug,
+          promoDiscount,
+          customerId: customer._id,
+          photo,
+          userId: user._id,
+        }
+      );
+
+      if (photo) {
+        const blob = await ctx.storage.get(photo);
+        if (!blob) {
+          console.log(ErrorMessages.FILE_CREATION_ERROR);
+          return {
+            status: ResponseStatus.SUCCESS,
+            data: {
+              organizationId,
+              slug,
+              clerkOrganizationId: organizationId,
+            },
+          };
+        }
+        await updateOrganizationLogo({
+          organizationId: clerkOrganization.id,
+          file: blob,
+          uploaderUserId: clerkUserId,
+        });
+      }
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          organizationId,
+          slug,
+          clerkOrganizationId: clerkOrganization.id,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
 //     try {
 //       console.log("in");
 //       const identity = await ctx.auth.getUserIdentity();
@@ -613,10 +741,12 @@ export const getClerkUser = action({
   },
 });
 
+// deleted use
 export const updateOrganizationMetadataOnCreation = action({
   args: {
     clerkOrganizationId: v.string(),
     email: v.string(),
+    urlSlug: v.string(),
   },
   handler: async (ctx, args): Promise<UpdateOrganizationMetadataResponse> => {
     try {
@@ -653,6 +783,7 @@ export const updateOrganizationMetadataOnCreation = action({
           publicMetadata: {
             status: existingCustomer.subscriptionStatus,
             tier: existingCustomer.subscriptionTier,
+            urlSlug: args.urlSlug,
           },
         }
       );

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { useRouter, usePathname } from "next/navigation";
 
-import EventFormSkeleton from "@/[companyName]/app/components/loading/EventFormSkeleton";
+import EventFormSkeleton from "@/[slug]/app/components/loading/EventFormSkeleton";
 import { api } from "../../../convex/_generated/api";
 import { getTextBeforeComma } from "../../../utils/helpers";
 import { formatDateMDY, formatTime } from "../../../utils/luxon";

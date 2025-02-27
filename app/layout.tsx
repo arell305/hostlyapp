@@ -7,7 +7,7 @@ import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Settings } from "luxon";
 
-Settings.defaultZone = "America/Los_Angeles"; //
+Settings.defaultZone = "America/Los_Angeles";
 
 const playFairDisplay = Playfair_Display({
   subsets: ["latin"],
