@@ -2,13 +2,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import {
-  UserButton,
-  useClerk,
-  useOrganization,
-  useOrganizationList,
-  useSession,
-} from "@clerk/nextjs";
+import { UserButton, useClerk, useSession } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { IoBusinessOutline } from "react-icons/io5";
 import { Label } from "@/components/ui/label";
@@ -23,9 +17,9 @@ import { ErrorMessages, FrontendErrorMessages } from "@/types/enums";
 import { RiImageAddFill } from "react-icons/ri";
 import { validatePromoDiscount } from "../../utils/frontend-validation";
 import { Id } from "../../convex/_generated/dataModel";
-import imageCompression from "browser-image-compression";
 import Loading from "@/[slug]/app/components/loading/Loading";
-import { clerkClient } from "@clerk/clerk-sdk-node";
+import { compressAndUploadImage } from "../../utils/image";
+import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 
 type ErrorState = {
   companyName: string | null;
@@ -34,19 +28,13 @@ type ErrorState = {
 };
 
 export default function CreateCompanyPage() {
-  const { organization, user, loaded } = useClerk();
+  const { organization, loaded } = useClerk();
   const [companyName, setCompanyName] = useState("");
   const [promoDiscountAmount, setPromoDiscountAmount] = useState<string>("");
-  const [companyPhoto, setCompanyPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { setActive } = useClerk();
-  // const { createOrganization, isLoaded, setActive } = useOrganizationList({});
-  const updateOrganizationMetadataOnCreation = useAction(
-    api.clerk.updateOrganizationMetadataOnCreation
-  );
+
   const { session } = useSession();
-  console.log("org", organization);
 
   const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
   const [photoStorageId, setPhotoStorageId] = useState<Id<"_storage"> | null>(
@@ -54,7 +42,6 @@ export default function CreateCompanyPage() {
   );
   const [isPhotoLoading, setIsPhotoLoading] = useState<boolean>(false);
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
-  const [companyPhotoFile, setCompanyPhotoFile] = useState<File | null>(null);
   const displayCompanyPhoto = useQuery(api.photo.getFileUrl, {
     storageId: photoStorageId,
   });
@@ -67,7 +54,6 @@ export default function CreateCompanyPage() {
     promoDiscount: null,
   });
   const router = useRouter();
-  console.log("session", session);
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
@@ -75,26 +61,13 @@ export default function CreateCompanyPage() {
       console.error("No file selected");
       return;
     }
-    setCompanyPhotoFile(file);
     setIsPhotoLoading(true);
 
     try {
-      const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-      };
-      const compressedFile = await imageCompression(file, options);
-      const postUrl = await generateUploadUrl();
+      const response = await compressAndUploadImage(file, generateUploadUrl);
 
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: compressedFile,
-      });
-
-      if (result.ok) {
-        const { storageId } = await result.json();
+      if (response.ok) {
+        const { storageId } = await response.json();
         setPhotoStorageId(storageId as Id<"_storage">);
       } else {
         setPhotoUploadError("Photo upload failed");
@@ -110,13 +83,7 @@ export default function CreateCompanyPage() {
 
   const handleRemovePhoto = () => {
     setPhotoStorageId(null);
-    setCompanyPhotoFile(null);
   };
-
-  // const handleDeletePhoto = () => {
-  //   setCompanyPhoto(null);
-  //   setPhotoPreview(null);
-  // };
 
   const handleSubmit = async () => {
     setErrors({ companyName: null, general: null, promoDiscount: null });
@@ -136,14 +103,6 @@ export default function CreateCompanyPage() {
         ...prev,
         promoDiscount: promoDiscountValueError,
       }));
-      return;
-    }
-    if (!user) {
-      setErrors((prev) => ({
-        ...prev,
-        general: FrontendErrorMessages.USER_NOT_LOADED,
-      }));
-      console.log("User undefined when creating company");
       return;
     }
 
@@ -188,19 +147,12 @@ export default function CreateCompanyPage() {
       } else {
         const newOrganizationId = response.data.clerkOrganizationId;
         await setActive({
-          session: session.id, // Ensure session is set
+          session: session.id,
           organization: newOrganizationId,
         });
-
-        // 3️⃣ Wait for Clerk to sync state (delay ensures changes take effect)
-        // await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // 4️⃣ Force Next.js to fetch the new organization
-        // router.refresh();
         const slug = response.data.slug;
         router.push(`${slug}/app/team`);
 
-        // 🎉 Success toast
         toast({
           title: "Success",
           description: "Company created.",
@@ -214,8 +166,8 @@ export default function CreateCompanyPage() {
     }
   };
 
-  if (!loaded || isLoading) {
-    <p>Loading</p>;
+  if (!loaded) {
+    <FullLoading />;
   }
 
   return (
@@ -223,7 +175,6 @@ export default function CreateCompanyPage() {
       <nav className={"px-4 w-full flex justify-end  z-10 top-0 fixed h-12  "}>
         <UserButton />
       </nav>
-      {/* <div className="mt-[100px] flex-grow p-4 overflow-hidden md:mx-auto md:border md:shadow md:rounded-xl md:w-[700px] md:p-10 md:max-h-[460px]"> */}
       <div className="px-4 flex flex-col mt-16 md:mt-10 max-w-2xl mx-auto">
         <div className="flex gap-3 mb-6 justify-center md:justify-start">
           <IoBusinessOutline className="text-4xl" />
@@ -335,7 +286,6 @@ export default function CreateCompanyPage() {
                     onChange={handlePhotoChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-
                   <div className="w-full h-full border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center transition-colors duration-200 group-hover:bg-gray-100">
                     {isPhotoLoading ? (
                       <Loading />
@@ -343,6 +293,11 @@ export default function CreateCompanyPage() {
                       <RiImageAddFill className="text-4xl text-gray-500" />
                     )}
                   </div>
+                  <p
+                    className={` text-sm mt-1 ${photoUploadError ? "text-red-500" : "text-transparent"}`}
+                  >
+                    {photoUploadError || "Placeholder to maintain height"}
+                  </p>{" "}
                 </div>
               )}
             </div>
@@ -374,19 +329,6 @@ export default function CreateCompanyPage() {
           </div>
         </div>
       </div>
-      {/* <div className="px-4 pb-14 md:hidden">
-        <Button className="w-full " onClick={handleSubmit}>
-          {" "}
-          {isLoading ? (
-            <div className="flex items-center justify-center space-x-2">
-              <Loader2 className="animate-spin h-4 w-4" aria-hidden="true" />
-              <span>Creating...</span>
-            </div>
-          ) : (
-            "Create"
-          )}
-        </Button>
-      </div> */}
     </main>
   );
 }

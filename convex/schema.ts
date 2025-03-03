@@ -40,7 +40,8 @@ export const SubscriptionStatusConvex = v.union(
   v.literal(SubscriptionStatus.INCOMPLETE),
   v.literal(SubscriptionStatus.INCOMPLETE_EXPIRED),
   v.literal(SubscriptionStatus.PAST_DUE),
-  v.literal(SubscriptionStatus.UNPAID)
+  v.literal(SubscriptionStatus.UNPAID),
+  v.literal(SubscriptionStatus.PENDING_CANCELLATION)
 );
 
 export const StripeAccountStatusConvex = v.union(
@@ -51,11 +52,6 @@ export const StripeAccountStatusConvex = v.union(
   v.literal(StripeAccountStatus.REJECTED),
   v.literal(StripeAccountStatus.DISABLED)
 );
-
-// export const Venue = v.object({
-//   venueName: v.optional(v.string()),
-//   address: v.optional(v.string()),
-// });
 
 export const GuestListNames = v.object({
   id: v.string(),
@@ -115,7 +111,8 @@ export default defineSchema({
     isActive: v.boolean(),
   })
     .index("by_email", ["email"])
-    .index("by_clerkUserId", ["clerkUserId"]),
+    .index("by_clerkUserId", ["clerkUserId"])
+    .index("by_organizationId", ["organizationId"]),
   organizations: defineTable({
     clerkOrganizationId: v.string(),
     name: v.string(),
@@ -129,7 +126,7 @@ export default defineSchema({
     .index("by_name", ["name"])
     .index("by_slug", ["slug"]),
   events: defineTable({
-    clerkOrganizationId: v.string(),
+    organizationId: v.id("organizations"),
     name: v.string(),
     description: v.union(v.string(), v.null()),
     startTime: v.number(),
@@ -140,33 +137,30 @@ export default defineSchema({
     ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
     guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
   })
-    .index("by_clerkOrganizationId", ["clerkOrganizationId"])
-    .index("by_clerkOrganizationId_and_startTime", [
-      "clerkOrganizationId",
-      "startTime",
-    ])
+    .index("by_organizationId", ["organizationId"])
+    .index("by_organizationId_and_startTime", ["organizationId", "startTime"])
     .index("by_startTime", ["startTime"]),
   guestLists: defineTable({
     names: v.array(GuestListNames),
     eventId: v.id("events"),
-    clerkPromoterId: v.string(),
+    userPromoterId: v.id("users"),
   }),
   promoterPromoCode: defineTable({
     name: v.string(),
-    clerkPromoterUserId: v.string(),
+    promoterUserId: v.id("users"),
   })
     .index("by_name", ["name"])
-    .index("by_clerkPromoterUserId", ["clerkPromoterUserId"]),
+    .index("by_promoterUserId", ["promoterUserId"]),
   promoCodeUsage: defineTable({
     promoCodeId: v.id("promoterPromoCode"),
-    clerkPromoterUserId: v.string(),
+    promoterUserId: v.id("users"),
     eventId: v.id("events"),
     maleUsageCount: v.number(),
     femaleUsageCount: v.number(),
   })
     .index("by_promoCode", ["promoCodeId"])
     .index("by_eventId", ["eventId"])
-    .index("by_promoter", ["clerkPromoterUserId"])
+    .index("by_promoter", ["promoterUserId"])
     .index("by_promoCode_and_event", ["promoCodeId", "eventId"]),
   ticketInfo: defineTable({
     eventId: v.id("events"),
@@ -192,14 +186,14 @@ export default defineSchema({
     checkInCloseTime: v.number(),
   }).index("by_eventId", ["eventId"]),
   ticketPurchase: defineTable({
-    email: v.string(), // Reference to the user who made the purchase
-    ticketInfoId: v.id("ticketInfo"), // Reference to the ticketInfo table
-    purchaseTime: v.number(), // Time of purchase (ISO format)
+    email: v.string(),
+    ticketInfoId: v.id("ticketInfo"),
+    purchaseTime: v.number(),
     tickets: v.array(v.id("tickets")),
   }).index("by_ticketInfoId", ["ticketInfoId"]),
   tickets: defineTable({
     eventId: v.id("events"),
-    clerkPromoterId: v.union(v.string(), v.null()),
+    userPromoterId: v.union(v.id("users"), v.null()),
     email: v.string(),
     gender: v.union(v.literal(Gender.Male), v.literal(Gender.Female)),
     checkInTime: v.optional(v.number()),

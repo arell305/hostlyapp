@@ -1,6 +1,5 @@
-import { ClerkRoleEnum, ErrorMessages, Gender } from "@/types/enums";
+import { ErrorMessages } from "@/types/enums";
 import {
-  action,
   internalMutation,
   internalQuery,
   mutation,
@@ -11,10 +10,7 @@ import { InsertTicektResponse } from "@/types/types";
 import { ResponseStatus } from "../utils/enum";
 import { Id } from "./_generated/dataModel";
 import { EventSchema, TicketInfoSchema } from "@/types/schemas-types";
-import { stripe } from "../utils/stripe";
-import { USD_CURRENCY } from "@/types/constants";
 
-// Query to get ticket info by ID (as we discussed earlier)
 export const getTicketInfoById = query({
   args: { ticketInfoId: v.id("ticketInfo") },
   handler: async (ctx, args) => {
@@ -222,7 +218,7 @@ export const getTicketInfoByEventId = internalQuery({
         .first();
     } catch (error) {
       console.error("Error fetching ticket info by event ID:", error);
-      throw new Error("Failed to fetch ticket info");
+      throw new Error(ErrorMessages.TICKET_INFO_DB_QUERY_BY_EVENT_ID_ERROR);
     }
   },
 });

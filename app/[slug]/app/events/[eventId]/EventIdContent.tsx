@@ -1,13 +1,9 @@
 import React, { useState } from "react";
-import { UserResource, OrganizationResource } from "@clerk/types";
 import {
-  EventData,
   EventFormInput,
   GuestListFormInput,
-  GuestListInfo,
   Tab,
   TicketFormInput,
-  TicketInfo,
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
 import TabsNav from "./TabsNav";
@@ -19,7 +15,7 @@ import {
 } from "../../../../../utils/enum";
 import EventForm from "@/[slug]/app/components/EventForm";
 import TicketInfoTab from "@/[slug]/app/components/TicketInfoTab";
-import { useAction, useMutation } from "convex/react";
+import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { toast } from "@/hooks/use-toast";
 import GuestListTab from "./GuestListTab";
@@ -30,7 +26,10 @@ import {
   EventSchema,
   GuestListInfoSchema,
   TicketInfoSchema,
+  UserSchema,
 } from "@/types/schemas-types";
+import { FrontendErrorMessages } from "@/types/enums";
+import { Id } from "../../../../../convex/_generated/dataModel";
 
 interface EventIdContentProps {
   data: {
@@ -39,21 +38,19 @@ interface EventIdContentProps {
     guestListInfo?: GuestListInfoSchema | null;
   };
   isAppAdmin: boolean;
-  organization: OrganizationResource;
-  user: UserResource;
+  user: UserSchema;
   has: any;
   isStripeEnabled: boolean;
-  companyName: string;
+  slug: string;
 }
 
 const EventIdContent: React.FC<EventIdContentProps> = ({
   data,
   isAppAdmin,
-  organization,
   user,
   has,
   isStripeEnabled,
-  companyName,
+  slug,
 }) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showConfirmCancelEdit, setShowConfirmCancelEdit] =
@@ -63,6 +60,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   );
   const updateEvent = useAction(api.events.updateEvent);
   const [saveEventError, setSaveEventError] = useState<string | null>(null);
+  const [isUpdateEventLoading, setIsUpdateEventLoading] =
+    useState<boolean>(false);
 
   const tabs: Tab[] = [
     { label: "View", value: ActiveTab.VIEW },
@@ -83,36 +82,38 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     updatedGuestListData: GuestListFormInput | null
   ) => {
     setSaveEventError(null);
-    if (!organization) {
-      setSaveEventError("company not loaded");
-    }
+    setIsUpdateEventLoading(true);
+
     try {
       const response: UpdateEventResponse = await updateEvent({
-        companyName,
+        slug,
         ...updatedEventData,
         ticketData: updatedTicketData,
         guestListData: updatedGuestListData,
         eventId: data.event._id,
       });
 
-      if (response.status === ResponseStatus.ERROR) {
-        setSaveEventError(response.error); // Access the error from ErrorResponse
-      } else {
-        setIsEditing(false);
+      if (response.status === ResponseStatus.SUCCESS) {
         toast({
           title: "Event Updated",
           description: "The event has been successfully updated",
         });
+        setIsEditing(false);
+      } else {
+        console.error(response.error);
+        setSaveEventError(FrontendErrorMessages.GENERIC_ERROR);
       }
     } catch (error) {
       console.error(error);
-      setSaveEventError("Internal Error saving event.");
+      setSaveEventError(FrontendErrorMessages.GENERIC_ERROR);
+    } finally {
+      setIsUpdateEventLoading(false);
     }
   };
 
-  let promoterId: string | null = null;
+  let promoterId: Id<"users"> | null = null;
   if (has({ role: UserRole.Promoter })) {
-    promoterId = user.id;
+    promoterId = user._id;
   }
 
   return (
@@ -135,6 +136,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           canAddGuestListOption={true}
           saveEventError={saveEventError}
           isStripeEnabled={isStripeEnabled}
+          isUpdateEventLoading={isUpdateEventLoading}
         />
       ) : (
         <>
@@ -148,8 +150,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
               ticketData={data.ticketInfo}
               has={has}
               eventId={data.event._id}
-              promoterClerkId={promoterId}
-              clerkOrganizationId={organization.id}
+              promoterUserId={promoterId}
+              slug={slug}
             />
           )}
           {activeTab === ActiveTab.GUEST_LIST && (
@@ -157,7 +159,6 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
               guestListInfo={data.guestListInfo}
               has={has}
               eventData={data.event}
-              promoterClerkId={promoterId}
             />
           )}
           {activeTab === ActiveTab.VIEW && (

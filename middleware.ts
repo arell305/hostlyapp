@@ -1,27 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import type { NextFetchEvent } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
 import { api } from "./convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
-import { canCreateEvents } from "./utils/helpers";
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { ClerkPermissionsEnum } from "@/types/enums";
-import { getOrganizationByClerkId } from "./convex/organizations";
 import { UserRole } from "./utils/enum";
 
 const isProtectedRoute = createRouteMatcher(["/create-company"]);
+const isSubscriptionRoute = (req: NextRequest) =>
+  /^\/([^/]+)\/app\/subscription(?:\/|$)/.test(req.nextUrl.pathname);
+
+const isStripeRoute = (req: NextRequest) =>
+  /^\/([^/]+)\/app\/stripe(?:\/|$)/.test(req.nextUrl.pathname);
 
 const isAppRoute = (req: NextRequest) => {
   return /^\/([^/]+)\/app(?:\/|\/.*)$/.test(req.nextUrl.pathname);
 };
 
+const isAddEventRoute = (req: NextRequest) =>
+  /^\/([^/]+)\/app\/add-event(?:\/|$)/.test(req.nextUrl.pathname);
+
 export default clerkMiddleware(
   async (auth, req: NextRequest, event: NextFetchEvent) => {
     const url = req.nextUrl;
-    const pathSegments = url.pathname.split("/");
-    const slug = pathSegments[1];
 
     const searchParams = req.nextUrl.searchParams.toString();
     const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
@@ -36,6 +36,33 @@ export default clerkMiddleware(
     // If it's an API route, skip Clerk middleware and continue
     if (path.startsWith("/api")) {
       return NextResponse.next();
+    }
+
+    if (isStripeRoute(req)) {
+      await auth.protect((has) => {
+        return has({ role: UserRole.Admin });
+      });
+    }
+
+    if (isAddEventRoute(req)) {
+      await auth.protect((has) => {
+        return (
+          has({ role: UserRole.Admin }) ||
+          has({ role: UserRole.Manager }) ||
+          has({ role: UserRole.Hostly_Admin }) ||
+          has({ role: UserRole.Hostly_Moderator })
+        );
+      });
+    }
+
+    if (isSubscriptionRoute(req)) {
+      await auth.protect((has) => {
+        return (
+          has({ role: UserRole.Admin }) ||
+          has({ role: UserRole.Hostly_Admin }) ||
+          has({ role: UserRole.Hostly_Moderator })
+        );
+      });
     }
 
     if (path === "/") {
@@ -57,7 +84,7 @@ export default clerkMiddleware(
 
           // unauthorize if organization is not
           if (!organization || !organization.isActive) {
-            return NextResponse.redirect("/unauthorized");
+            return NextResponse.redirect(new URL("/unauthorized", req.url));
           }
 
           if (organization) {
@@ -124,36 +151,6 @@ export default clerkMiddleware(
     }
 
     return NextResponse.next();
-
-    // Handle the dashboard subdomain specifically
-    // if (hostname === `signInFallbackRedirectUrl.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`) {
-    //   // Protect the dashboard route, redirect to sign-in if not authenticated
-
-    //   auth().protect();
-    //   if (isCreateEventRoute(req)) {
-    //     if (
-    //       !auth().has({ permission: ClerkPermissionsEnum.ORG_EVENTS_CREATE })
-    //     ) {
-    //       return NextResponse.redirect(new URL("/unauthorized", req.url));
-    //     }
-    //   }
-
-    //   if (isEntireGuestListRoute(req)) {
-    //     if (
-    //       !auth().has({
-    //         permission: ClerkPermissionsEnum.ORG_EVENTS_VIEW_ALL_GUESTLIST,
-    //       })
-    //     ) {
-    //       return NextResponse.redirect(new URL("/unauthorized", req.url));
-    //     }
-    //   }
-    //   // If authenticated, rewrite to the dashboard route
-    //   return NextResponse.rewrite(
-    //     new URL(`/dashboard${path === "/" ? "" : path}`, req.url)
-    //   );
-    // }
-
-    // For non-dashboard subdomains or other routes, just proceed
   }
 );
 

@@ -14,8 +14,7 @@ import { Input } from "@/components/ui/input";
 interface EditCompanyImageModalProps {
   onClose: () => void;
   isOpen: boolean;
-  photoPreview: string | null;
-  companyPhoto: File | null;
+  photoPreview?: string | null;
   error: string | null;
   isLoading: boolean;
   onSavePhoto: () => void;
@@ -27,7 +26,6 @@ const EditCompanyImageModal: React.FC<EditCompanyImageModalProps> = ({
   onClose,
   isOpen,
   photoPreview,
-  companyPhoto,
   error,
   isLoading,
   onSavePhoto,
@@ -99,7 +97,7 @@ const EditCompanyImageModal: React.FC<EditCompanyImageModalProps> = ({
           <Button
             className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
             onClick={onSavePhoto}
-            disabled={isLoading || !companyPhoto}
+            disabled={isLoading}
           >
             {isLoading ? (
               <>

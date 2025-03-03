@@ -3,15 +3,21 @@ import { internalMutation, internalQuery, query } from "./_generated/server";
 import { ResponseStatus, StripeAccountStatus, UserRole } from "../utils/enum";
 import { ErrorMessages } from "@/types/enums";
 import { ConnectedAccountsSchema, UserSchema } from "@/types/schemas-types";
-import { GetConnectedAccountByClerkUserIdResponse } from "@/types/convex-types";
-import { StripeAccountStatusConvex } from "./schema";
 import {
-  DeleteConnectedAccountResponse,
-  SaveConnectedAccountResponse,
-} from "@/types/convex/internal-types";
+  GetConnectedAccountByClerkUserIdResponse,
+  GetConnectedAccountStatusBySlugResponse,
+} from "@/types/convex-types";
+import { StripeAccountStatusConvex } from "./schema";
+import { DeleteConnectedAccountResponse } from "@/types/convex/internal-types";
 import { Id } from "./_generated/dataModel";
 import { OrganizationsSchema } from "@/types/types";
-import { checkIsHostlyAdmin } from "../utils/helpers";
+import {
+  validateConnectedAccount,
+  validateOrganization,
+  validateUser,
+} from "./backendUtils/validation";
+import { stripe } from "./backendUtils/stripe";
+import { requireAuthenticatedUser } from "../utils/auth";
 
 export const saveConnectedAccount = internalMutation({
   args: {
@@ -19,7 +25,7 @@ export const saveConnectedAccount = internalMutation({
     stripeAccountId: v.string(),
     status: StripeAccountStatusConvex,
   },
-  handler: async (ctx, args): Promise<SaveConnectedAccountResponse> => {
+  handler: async (ctx, args): Promise<Id<"connectedAccounts">> => {
     try {
       const existingAccount: ConnectedAccountsSchema | null = await ctx.db
         .query("connectedAccounts")
@@ -43,21 +49,10 @@ export const saveConnectedAccount = internalMutation({
         });
       }
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          connectedAccountId,
-        },
-      };
+      return existingAccount?._id || connectedAccountId;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      console.error(ErrorMessages.CONNECTED_ACCOUNT_UPDATE_ERROR, error);
+      throw new Error(ErrorMessages.CONNECTED_ACCOUNT_UPDATE_ERROR);
     }
   },
 });
@@ -90,25 +85,16 @@ export const deleteConnectedAccount = internalMutation({
     connectedAccountId: v.id("connectedAccounts"),
   },
   handler: async (ctx, args): Promise<DeleteConnectedAccountResponse> => {
+    const { connectedAccountId } = args;
     try {
-      const connectedAccount = await ctx.db.get(args.connectedAccountId);
-
-      if (!connectedAccount) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND,
-        };
-      }
-
-      await ctx.db.patch(connectedAccount._id, {
+      await ctx.db.patch(connectedAccountId, {
         status: StripeAccountStatus.DISABLED,
       });
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          connectedAccountId: connectedAccount._id,
+          connectedAccountId,
         },
       };
     } catch (error) {
@@ -125,64 +111,81 @@ export const deleteConnectedAccount = internalMutation({
 });
 
 export const getConnectedAccountByClerkUserId = query({
+  args: {},
+  handler: async (ctx): Promise<GetConnectedAccountByClerkUserIdResponse> => {
+    try {
+      const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+      const clerkUserId = idenitity.id as string;
+
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+        .first();
+
+      const validatedUser = validateUser(user, true, true);
+
+      const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
+        .query("connectedAccounts")
+        .withIndex("by_customerId", (q) =>
+          q.eq("customerId", validatedUser.customerId!)
+        )
+        .first();
+
+      if (!connectedAccount) {
+        return {
+          status: ResponseStatus.SUCCESS,
+          data: null,
+        };
+      }
+
+      if (
+        connectedAccount.status !== StripeAccountStatus.NOT_ONBOARDED &&
+        connectedAccount.status !== StripeAccountStatus.VERIFIED
+      ) {
+        return {
+          status: ResponseStatus.SUCCESS,
+          data: null,
+        };
+      }
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: { connectedAccount },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+export const getConnectedAccountBySlug = query({
   args: {
-    clerkUserId: v.string(),
+    slug: v.string(),
   },
   handler: async (
     ctx,
     args
   ): Promise<GetConnectedAccountByClerkUserIdResponse> => {
+    const { slug } = args;
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-      if (identity.role !== UserRole.Admin) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
-
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) =>
-          q.eq("clerkUserId", args.clerkUserId)
-        )
+      const organization: OrganizationsSchema | null = await ctx.db
+        .query("organizations")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
         .first();
 
-      if (!user) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.USER_NOT_FOUND,
-        };
-      }
-
-      if (!user.isActive) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.USER_INACTIVE,
-        };
-      }
-
-      if (!user.customerId) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CUSTOMER_ID_NOT_FOUND,
-        };
-      }
+      const validatedOrganization = validateOrganization(organization, true);
 
       const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
         .query("connectedAccounts")
-        .withIndex("by_customerId", (q) => q.eq("customerId", user.customerId!))
+        .withIndex("by_customerId", (q) =>
+          q.eq("customerId", validatedOrganization.customerId)
+        )
         .first();
 
       if (!connectedAccount) {
@@ -209,84 +212,93 @@ export const getConnectedAccountByClerkUserId = query({
   },
 });
 
-export const getConnectedAccountByCompanyName = query({
+export const internalGetConnectedAccountByClerkUserId = internalQuery({
   args: {
-    companyName: v.string(),
+    clerkUserId: v.string(),
   },
-  handler: async (
-    ctx,
-    args
-  ): Promise<GetConnectedAccountByClerkUserIdResponse> => {
+  handler: async (ctx, args): Promise<ConnectedAccountsSchema> => {
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-
-      const organization: OrganizationsSchema | null = await ctx.db
-        .query("organizations")
-        .withIndex("by_name", (q) => q.eq("name", args.companyName))
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .withIndex("by_clerkUserId", (q) =>
+          q.eq("clerkUserId", args.clerkUserId)
+        )
         .first();
 
-      if (!organization) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.COMPANY_NOT_FOUND,
-        };
-      }
-
-      if (!organization.isActive) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.COMPANY_INACTIVE,
-        };
-      }
-
-      const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
-
-      if (
-        organization.clerkOrganizationId !== identity.clerk_org_id &&
-        !isHostlyAdmin
-      ) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      const validatedUser = validateUser(user, true, true);
 
       const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
         .query("connectedAccounts")
         .withIndex("by_customerId", (q) =>
-          q.eq("customerId", organization.customerId)
+          q.eq("customerId", validatedUser.customerId!)
         )
         .first();
 
-      if (!connectedAccount) {
-        return {
-          status: ResponseStatus.SUCCESS,
-          data: null,
-        };
-      }
+      const validatedConnectedAccount = validateConnectedAccount(
+        connectedAccount,
+        false
+      );
+
+      return validatedConnectedAccount;
+    } catch (error) {
+      console.error(error);
+      throw new Error(ErrorMessages.CONNECTED_ACCOUNT_DB_QUERY_BY_CLERK);
+    }
+  },
+});
+
+export async function deactivateStripeConnectedAccount(
+  stripeAccountId: string
+): Promise<void> {
+  try {
+    await stripe.accounts.update(stripeAccountId, { capabilities: {} });
+  } catch (error) {
+    console.error(
+      `Failed to delete Stripe connected account ${stripeAccountId}:`,
+      error
+    );
+    throw new Error(ErrorMessages.CONNECTED_ACCOUNT_DEACTIVATE_ERROR);
+  }
+}
+
+export const getConnectedAccountStatusBySlug = query({
+  args: {
+    slug: v.string(),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<GetConnectedAccountStatusBySlugResponse> => {
+    const { slug } = args;
+    try {
+      const organization: OrganizationsSchema | null = await ctx.db
+        .query("organizations")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+
+      const validatedOrganization = validateOrganization(organization);
+
+      const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
+        .query("connectedAccounts")
+        .withIndex("by_customerId", (q) =>
+          q.eq("customerId", validatedOrganization.customerId)
+        )
+        .first();
+
+      const hasVerifiedConnectedAccount =
+        !!connectedAccount &&
+        connectedAccount.status === StripeAccountStatus.VERIFIED;
 
       return {
         status: ResponseStatus.SUCCESS,
-        data: { connectedAccount },
+        data: { hasVerifiedConnectedAccount },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
+      console.error("Error fetching connected account status:", error);
       return {
         status: ResponseStatus.ERROR,
         data: null,
-        error: errorMessage,
+        error: "An error occurred while checking the connected account status.",
       };
     }
   },

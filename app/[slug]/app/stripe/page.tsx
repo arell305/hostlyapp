@@ -23,6 +23,8 @@ import TabsNav from "../events/[eventId]/TabsNav";
 import { useToast } from "@/hooks/use-toast";
 import { ErrorMessages, FrontendErrorMessages } from "@/types/enums";
 import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
+import FullLoading from "../components/loading/FullLoading";
+import ErrorComponent from "../components/errors/ErrorComponent";
 
 const Page = () => {
   const { user } = useClerk();
@@ -48,8 +50,7 @@ const Page = () => {
     useState<boolean>(false);
 
   const connectedAccountData = useQuery(
-    api.connectedAccounts.getConnectedAccountByClerkUserId,
-    user ? { clerkUserId: user.id } : "skip"
+    api.connectedAccounts.getConnectedAccountByClerkUserId
   );
 
   const createConnectedAccount = useAction(api.stripe.createConnectedAccount);
@@ -67,7 +68,7 @@ const Page = () => {
     setDisconnectStripeAccountError(null);
     setDisconnectStripeAccountLoading(true);
     try {
-      const response = await disconnectStripeAccount({ clerkUserId: user.id });
+      const response = await disconnectStripeAccount();
       if (response.status === ResponseStatus.ERROR) {
         setDisconnectStripeAccountError(response.error);
         console.error(response.error);
@@ -84,25 +85,20 @@ const Page = () => {
       setDisconnectStripeAccountLoading(false);
     }
   };
+
   // Handle creating a Stripe Connected Account
   const handleConnectStripe = async () => {
-    if (!user) {
-      setErrorMessage(FrontendErrorMessages.USER_NOT_LOADED);
-      return;
-    }
-
     setLoading(true);
     setErrorMessage(null);
     try {
-      const response = await createConnectedAccount({ clerkUserId: user.id });
+      const response = await createConnectedAccount();
 
       if (response.status === ResponseStatus.ERROR) {
         console.error("Error creating Stripe account:", response.error);
         setErrorMessage(response.error);
-        return;
+      } else {
+        await initializeStripeConnect();
       }
-
-      await initializeStripeConnect();
     } catch (error) {
       console.error(ErrorMessages.GENERIC_ERROR, error);
       setErrorMessage(ErrorMessages.GENERIC_ERROR);
@@ -117,7 +113,7 @@ const Page = () => {
 
     try {
       const fetchClientSecret = async (): Promise<string> => {
-        const response = await getOnboardingLink({ clerkUserId: user!.id });
+        const response = await getOnboardingLink();
 
         if (response.status === ResponseStatus.ERROR) {
           console.error("Error fetching client secret:", response.error);
@@ -130,8 +126,15 @@ const Page = () => {
         return response.data.client_secret;
       };
 
+      const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+      if (!publishableKey) {
+        console.error("Missing Stripe publishable key.");
+        setErrorMessage(FrontendErrorMessages.GENERIC_ERROR);
+        return;
+      }
+
       const instance = loadConnectAndInitialize({
-        publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+        publishableKey,
         fetchClientSecret,
       });
 
@@ -143,27 +146,22 @@ const Page = () => {
   };
 
   const handleOpenStripeDashboard = async () => {
-    if (!user) {
-      setErrorMessage(FrontendErrorMessages.USER_NOT_LOADED);
-      return;
-    }
-
     setGetStripeDashboardUrlLoading(true);
     setgetStripeDashboardUrlError(null);
     try {
-      const response = await getStripeDashboardUrl({ clerkUserId: user.id });
+      const response = await getStripeDashboardUrl();
       if (response.status === ResponseStatus.ERROR) {
         console.error("error, ", response.error);
-        setgetStripeDashboardUrlError(ResponseStatus.ERROR);
+        setgetStripeDashboardUrlError(ErrorMessages.GENERIC_ERROR);
+        setGetStripeDashboardUrlLoading(false);
         return;
       }
       if (!response.data) {
         console.error("Error: Stripe dashboard URL data is null");
         setgetStripeDashboardUrlError("Invalid Stripe dashboard URL.");
-        return;
+      } else {
+        window.open(response.data.url, "_blank");
       }
-
-      window.open(response.data.url, "_blank");
     } catch (error) {
       console.error("Unexpected error opening Stripe dashboard:", error);
       setErrorMessage("An unexpected error occurred.");
@@ -174,15 +172,24 @@ const Page = () => {
 
   // Automatically initialize Stripe Connect once the connected account exists
   useEffect(() => {
-    initializeStripeConnect();
-  }, [connectedAccountData?.data]);
+    if (connectedAccountData?.data && !stripeConnectInstance) {
+      initializeStripeConnect();
+    }
+  }, [connectedAccountData?.data, stripeConnectInstance]);
 
   const tabs: Tab[] = [
     { label: "Documents", value: ActiveStripeTab.DOCUMENTS },
     { label: "Payouts", value: ActiveStripeTab.PAYOUTS },
     { label: "Payments", value: ActiveStripeTab.PAYMENTS },
   ];
-  console.log("data", connectedAccountData);
+
+  if (!connectedAccountData) {
+    return <FullLoading />;
+  }
+
+  if (connectedAccountData.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={connectedAccountData.error} />;
+  }
 
   return (
     <div className="justify-center  max-w-3xl  mx-auto mt-1.5 md:min-h-[300px]">
@@ -194,10 +201,10 @@ const Page = () => {
           </Button>
         </div>
       </div>
-      <div className="px-4">
+      <div className="px-4 ">
         {/* Show "Connect to Stripe" button if user has no connected account */}
-        {!connectedAccountData?.data ? (
-          <div>
+        {!connectedAccountData.data ? (
+          <div className="mt-6">
             <Button onClick={handleConnectStripe} disabled={loading}>
               {loading ? "Connecting..." : "Connect To Stripe"}
             </Button>
@@ -258,7 +265,7 @@ const Page = () => {
                 )}
 
                 <Button
-                  className="mt-4"
+                  className="mt-6 text-red-600 bg-white hover:bg-red-50"
                   variant="destructive"
                   onClick={openDisconnectConfirmModal}
                 >

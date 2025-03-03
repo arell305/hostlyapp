@@ -1,22 +1,25 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery, mutation } from "./_generated/server";
+import { internalMutation, internalQuery } from "./_generated/server";
 import { query } from "./_generated/server";
 import { ResponseStatus, UserRole } from "../utils/enum";
 import {
+  OrganizationDetails,
   OrganizationsSchema,
   Promoter,
   UserSchema,
-  getPromotersByOrganizationResponse,
 } from "@/types/types";
 import { ErrorMessages } from "@/types/enums";
 import {
-  CreateOrganizationResponse,
   GetAllOrganizationsResponse,
   GetOrganizationByNameQueryResponse,
-  ListOrganizations,
+  GetPromotersBySlugResponse,
+  GetUsersByOrganizationSlugResponse,
 } from "@/types/convex-types";
-import slugify from "slugify";
 import { Id } from "./_generated/dataModel";
+import { requireAuthenticatedUser } from "../utils/auth";
+import { checkIsHostlyAdmin } from "../utils/helpers";
+import { isUserInOrganization } from "./backendUtils/helper";
+import { validateOrganization } from "./backendUtils/validation";
 
 export const createConvexOrganization = internalMutation({
   args: {
@@ -62,59 +65,17 @@ export const createConvexOrganization = internalMutation({
   },
 });
 
-// export const addClerkUserId = internalMutation({
-//   args: {
-//     clerkOrganizationId: v.string(),
-//     clerkUserId: v.string(),
-//   },
-//   handler: async (ctx, args) => {
-//     try {
-//       // Fetch the organization by its clerkOrganizationId
-//       const organization = await ctx.db
-//         .query("organizations")
-//         .withIndex("by_clerkOrganizationId", (q) =>
-//           q.eq("clerkOrganizationId", args.clerkOrganizationId)
-//         )
-//         .first();
-
-//       if (!organization) {
-//         throw new Error("Organization not found");
-//       }
-
-//       // Check if the clerkUserId is already present
-//       if (organization.clerkUserIds.includes(args.clerkUserId)) {
-//         throw new Error("User ID already exists in the organization");
-//       }
-
-//       // Push the new clerkUserId into the array
-//       const updatedClerkUserIds = [
-//         ...organization.clerkUserIds,
-//         args.clerkUserId,
-//       ];
-
-//       // Update the organization with the new clerkUserIds array
-//       await ctx.db.patch(organization._id, {
-//         clerkUserIds: updatedClerkUserIds,
-//       });
-
-//       return { success: true };
-//     } catch (error) {
-//       console.error("Error adding Clerk user ID to organization:", error);
-//       throw new Error("Failed to add Clerk user ID");
-//     }
-//   },
-// });
-
 export const updateOrganization = internalMutation({
   args: {
-    clerkOrganizationId: v.string(), // Use this to identify the organization
+    clerkOrganizationId: v.string(),
     name: v.optional(v.string()),
-    imageUrl: v.optional(v.string()), // Optionally update the name
+    isActive: v.optional(v.boolean()),
+    photo: v.optional(v.union(v.id("_storage"), v.null())),
+    promoDiscount: v.optional(v.number()),
+    slug: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Id<"organizations">> => {
     try {
-      const updateFields: any = {};
-
       const organization = await ctx.db
         .query("organizations")
         .withIndex("by_clerkOrganizationId", (q) =>
@@ -123,21 +84,40 @@ export const updateOrganization = internalMutation({
         .first();
 
       if (!organization) {
-        throw new Error(
-          `Organization with clerkOrganizationId ${args.clerkOrganizationId} not found.`
-        );
+        throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
       }
 
-      // Update the organization in the database
-      await ctx.db.patch(organization?._id, {
-        name: args.name || organization.name,
-        imageUrl: args.imageUrl || organization.imageUrl,
-      });
+      const updates: Partial<typeof organization> = {};
 
-      return { success: true };
+      if (args.name !== undefined) {
+        updates.name = args.name;
+      }
+
+      if (args.isActive !== undefined) {
+        updates.isActive = args.isActive;
+      }
+
+      if (args.photo !== undefined) {
+        updates.photo = args.photo;
+      }
+
+      if (args.promoDiscount !== undefined) {
+        updates.promoDiscount = args.promoDiscount;
+      }
+
+      if (args.slug !== undefined) {
+        updates.slug = args.slug;
+      }
+
+      // If there are updates, apply the patch
+      if (Object.keys(updates).length > 0) {
+        await ctx.db.patch(organization._id, updates);
+      }
+
+      return organization._id;
     } catch (error) {
-      console.error("Error updating organization in the database:", error);
-      throw new Error("Failed to update organization");
+      console.error(ErrorMessages.COMPANY_DB_UPDATE_ERROR, error);
+      throw new Error(ErrorMessages.COMPANY_DB_UPDATE_ERROR);
     }
   },
 });
@@ -171,42 +151,43 @@ export const getOrganizationByName = internalQuery({
 
 export const getOrganizationByNameQuery = query({
   args: {
-    name: v.string(),
+    slug: v.string(),
   },
   handler: async (ctx, args): Promise<GetOrganizationByNameQueryResponse> => {
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      const identity = await requireAuthenticatedUser(ctx);
+
       const organization: OrganizationsSchema | null = await ctx.db
         .query("organizations")
-        .filter((q) => q.eq(q.field("name"), args.name))
+        .filter((q) => q.eq(q.field("slug"), args.slug))
         .first();
       if (!organization) {
         return {
           status: ResponseStatus.ERROR,
           data: null,
-          error: ErrorMessages.NOT_FOUND,
+          error: ErrorMessages.COMPANY_NOT_FOUND,
         };
       }
-      // const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
+      if (!organization.isActive) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.COMPANY_INACTIVE,
+        };
+      }
+      const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
 
-      // if (
-      //   organization.clerkOrganizationId !==
-      //     (identity.clerk_org_id as string) &&
-      //   !isHostlyAdmin
-      // ) {
-      //   return {
-      //     status: ResponseStatus.ERROR,
-      //     data: null,
-      //     error: ErrorMessages.FORBIDDEN,
-      //   };
-      // }
+      if (
+        organization.clerkOrganizationId !==
+          (identity.clerk_org_id as string) &&
+        !isHostlyAdmin
+      ) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.FORBIDDEN,
+        };
+      }
       return {
         status: ResponseStatus.SUCCESS,
         data: {
@@ -229,29 +210,46 @@ export const getOrganizationByNameQuery = query({
 export const getAllOrganizations = query({
   handler: async (ctx): Promise<GetAllOrganizationsResponse> => {
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      await requireAuthenticatedUser(ctx, [
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+      ]);
 
       const organizations: OrganizationsSchema[] = await ctx.db
         .query("organizations")
+        .withIndex("by_name")
+        .order("asc")
         .collect();
 
-      const returnedData: ListOrganizations[] = organizations.map((org) => ({
-        clerkOrganizationId: org.clerkOrganizationId,
-        name: org.name,
-        imageUrl: org.imageUrl,
-      }));
+      const customerIds = organizations.map((org) => org.customerId);
+
+      const customers = await ctx.db
+        .query("customers")
+        .filter((q) =>
+          q.or(...customerIds.map((id) => q.eq(q.field("_id"), id)))
+        )
+        .collect();
+
+      // Create a lookup table for customers by ID
+      const customerMap = new Map(customers.map((c) => [c._id, c]));
+
+      const organizationDetails: OrganizationDetails[] = organizations.map(
+        (org) => ({
+          name: org.name,
+          slug: org.slug,
+          organizationId: org._id,
+          photoStorageId: org.photo,
+          subscriptionStatus:
+            customerMap.get(org.customerId)?.subscriptionStatus || null,
+          subscriptionTier:
+            customerMap.get(org.customerId)?.subscriptionTier || null,
+        })
+      );
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          organizations: returnedData,
+          organizationDetails,
         },
       };
     } catch (error) {
@@ -266,39 +264,6 @@ export const getAllOrganizations = query({
     }
   },
 });
-
-// export const addEventToOrganization = mutation({
-//   args: {
-//     clerkOrganizationId: v.string(),
-//     eventIds: v.id("events"),
-//   },
-//   handler: async (ctx, args) => {
-//     try {
-//       const organization = await ctx.db
-//         .query("organizations")
-//         .filter((q) =>
-//           q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
-//         )
-//         .first();
-
-//       if (!organization) {
-//         throw new Error("Organization not found");
-//       }
-
-//       const updatedEvents = [...(organization.eventIds || []), args.eventIds];
-
-//       // Update the organization by setting the new events array
-//       await ctx.db.patch(organization._id, {
-//         eventIds: updatedEvents,
-//       });
-
-//       return { success: true, message: "Event added successfully" };
-//     } catch (error) {
-//       console.error("Error adding event to organization:", error);
-//       throw new Error("Could not add event");
-//     }
-//   },
-// });
 
 export const getOrganizationByClerkId = query({
   args: {
@@ -321,34 +286,34 @@ export const getOrganizationByClerkId = query({
   },
 });
 
-// export const updateOrganizationPromoDiscount = mutation({
-//   args: {
-//     clerkOrganizationId: v.string(),
-//     promoDiscount: v.optional(v.number()),
-//   },
-//   handler: async (ctx, args) => {
-//     const { clerkOrganizationId, promoDiscount } = args;
+export const internalGetOrganizationByClerkId = internalQuery({
+  args: {
+    clerkOrganizationId: v.string(),
+  },
+  handler: async (ctx, args): Promise<OrganizationsSchema> => {
+    try {
+      const organization: OrganizationsSchema | null = await ctx.db
+        .query("organizations")
+        .filter((q) =>
+          q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
+        )
+        .first();
 
-//     // Find the organization by clerkOrganizationId
-//     const organization = await ctx.db
-//       .query("organizations")
-//       .withIndex("by_clerkOrganizationId", (q) =>
-//         q.eq("clerkOrganizationId", clerkOrganizationId)
-//       )
-//       .first();
+      if (!organization) {
+        throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
+      }
 
-//     if (!organization) {
-//       throw new Error("Organization not found");
-//     }
+      if (!organization.isActive) {
+        throw new Error(ErrorMessages.COMPANY_INACTIVE);
+      }
 
-//     // Update the promoDiscount
-//     const updatedOrganization = await ctx.db.patch(organization._id, {
-//       promoDiscount: promoDiscount,
-//     });
-
-//     return updatedOrganization;
-//   },
-// });
+      return organization;
+    } catch (error) {
+      console.error(ErrorMessages.COMPANY_DB_QUERY_ERROR, error);
+      throw new Error(ErrorMessages.COMPANY_DB_QUERY_ERROR);
+    }
+  },
+});
 
 export const updateOrganizationPromoDiscount = internalMutation({
   args: {
@@ -379,43 +344,44 @@ export const updateOrganizationPromoDiscount = internalMutation({
   },
 });
 
-export const getPromotersByOrganization = query({
-  args: { clerkOrganizationId: v.string() },
-
-  handler: async (ctx, args): Promise<getPromotersByOrganizationResponse> => {
+export const getPromotersBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args): Promise<GetPromotersBySlugResponse> => {
+    const { slug } = args;
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Moderator,
+      ]);
 
-      if (identity.clerk_org_id !== args.clerkOrganizationId) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      const organization: OrganizationsSchema | null = await ctx.db
+        .query("organizations")
+        .filter((q) => q.eq(q.field("slug"), slug))
+        .first();
+
+      const validatedOrganization = validateOrganization(organization);
+
+      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
 
       const promoters = await ctx.db
         .query("users")
         .filter((q) =>
-          q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
+          q.eq(q.field("organizationId"), validatedOrganization._id)
         )
         .filter((q) => q.eq(q.field("role"), UserRole.Promoter))
         .collect();
+
       const formattedPromoters: Promoter[] = promoters.map((promoter) => ({
-        clerkUserId: promoter.clerkUserId,
+        prmoterUserId: promoter._id,
         name: promoter.name,
       }));
 
       return {
         status: ResponseStatus.SUCCESS,
-        data: formattedPromoters,
+        data: { promoters: formattedPromoters },
       };
     } catch (error) {
       const errorMessage =
@@ -429,48 +395,6 @@ export const getPromotersByOrganization = query({
     }
   },
 });
-
-// export const getEventsForCalendar = query({
-//   args: {name: v.string()},
-//   handler: async (ctx, args): Promise<getPromotersByOrganizationResponse> => {
-//     try {
-//       const identity = await ctx.auth.getUserIdentity();
-//       if (!identity) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.UNAUTHENTICATED,
-//         };
-//       }
-
-//       const organization: OrganizationsSchema | null = await ctx.db
-//       .query("organizations")
-//       .filter((q) => q.eq(q.field("name"), args.name))
-//       .first();
-
-//       if (!organization) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.NOT_FOUND,
-//         };
-//       }
-
-//       const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
-
-//       if (identity.clerk_org_id !== organization.clerkOrganizationId && !isHostlyAdmin) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.FORBIDDEN,
-//         };
-//       }
-
-//       // validate user belongs to org
-
-//     }
-//   }
-// })
 
 export const getOrganizationImagePublic = query({
   args: {
@@ -503,6 +427,88 @@ export const getOrganizationBySlug = internalQuery({
     } catch (error) {
       console.error(ErrorMessages.ORGANIZATION_DB_QUERY_SLUG_ERROR, error);
       throw new Error(ErrorMessages.ORGANIZATION_DB_QUERY_SLUG_ERROR);
+    }
+  },
+});
+
+export const getUsersByOrganizationSlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args): Promise<GetUsersByOrganizationSlugResponse> => {
+    const { slug } = args;
+    try {
+      const identity = await requireAuthenticatedUser(ctx);
+
+      const organization = await ctx.db
+        .query("organizations")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+
+      if (!organization) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.COMPANY_NOT_FOUND,
+        };
+      }
+
+      if (!organization.isActive) {
+        return {
+          status: ResponseStatus.ERROR,
+          data: null,
+          error: ErrorMessages.COMPANY_INACTIVE,
+        };
+      }
+
+      isUserInOrganization(identity, organization.clerkOrganizationId);
+
+      const users: UserSchema[] = await ctx.db
+        .query("users")
+        .withIndex("by_organizationId", (q) =>
+          q.eq("organizationId", organization._id)
+        )
+        .collect();
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          clerkOrganizationId: organization.clerkOrganizationId,
+          users,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+export const getOrganizationById = internalQuery({
+  args: {
+    organizationId: v.id("organizations"),
+  },
+  handler: async (ctx, { organizationId }): Promise<OrganizationsSchema> => {
+    try {
+      const organization: OrganizationsSchema | null =
+        await ctx.db.get(organizationId);
+
+      if (!organization) {
+        throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
+      }
+
+      if (!organization.isActive) {
+        throw new Error(ErrorMessages.COMPANY_INACTIVE);
+      }
+
+      return organization;
+    } catch (error) {
+      console.error(ErrorMessages.COMPANY_DB_QUERY_ID_ERROR, error);
+      throw new Error(ErrorMessages.COMPANY_DB_QUERY_ID_ERROR);
     }
   },
 });

@@ -9,6 +9,7 @@ export const UserRoleEnum = {
 export enum SubscriptionStatus {
   ACTIVE = "active",
   TRIALING = "trialing",
+  PENDING_CANCELLATION = "pending_cancellation",
   CANCELED = "canceled",
   INCOMPLETE = "incomplete",
   INCOMPLETE_EXPIRED = "incomplete_expired",
@@ -36,6 +37,7 @@ export const subscriptionStatusMap = {
   incomplete_expired: "Expired Trial",
   past_due: "Past Due",
   unpaid: "Unpaid",
+  pending_cancellation: "Pending Cancellation",
 };
 
 export const roleMap: Record<string, string> = {

@@ -1,24 +1,43 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { StripeAccountStatus } from "../../utils/enum";
-import { GetConnectedAccountByClerkUserIdResponse } from "@/types/convex-types";
+import { ResponseStatus, StripeAccountStatus } from "../../utils/enum";
 
 interface UseIsStripeEnabledProps {
-  companyName?: string;
+  slug: string;
 }
 
-export function useIsStripeEnabled({ companyName }: UseIsStripeEnabledProps) {
-  const connectedAccountData:
-    | GetConnectedAccountByClerkUserIdResponse
-    | undefined = useQuery(
-    api.connectedAccounts.getConnectedAccountByCompanyName,
-    companyName ? { companyName } : "skip" // Skip execution if companyName is undefined
+interface UseIsStripeEnabledResponse {
+  isStripeEnabled: boolean;
+  connectedAccountId?: string | null;
+  isLoading: boolean;
+  connectedAccountError?: string | null;
+}
+
+export function useIsStripeEnabled({
+  slug,
+}: UseIsStripeEnabledProps): UseIsStripeEnabledResponse {
+  const connectedAccountData = useQuery(
+    api.connectedAccounts.getConnectedAccountBySlug,
+    slug ? { slug } : "skip"
   );
 
-  console.log(" connectedAccountData", connectedAccountData);
   const isStripeEnabled =
     connectedAccountData?.data?.connectedAccount?.status ===
     StripeAccountStatus.VERIFIED;
 
-  return { isStripeEnabled, connectedAccountData };
+  const connectedAccountId =
+    connectedAccountData?.data?.connectedAccount?.stripeAccountId || null;
+
+  const isLoading: boolean = !connectedAccountData;
+  let connectedAccountError: string | null = null;
+  if (connectedAccountData?.status === ResponseStatus.ERROR) {
+    connectedAccountError = connectedAccountData.error;
+  }
+
+  return {
+    isStripeEnabled,
+    connectedAccountId,
+    isLoading,
+    connectedAccountError,
+  };
 }

@@ -13,10 +13,10 @@ interface EditUserDrawerProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   fullName: string;
-  onSaveRole: () => void; // Callback to notify parent
-  error: string | null; // Error state from parent
-  isLoading: boolean; // Loading state from parent
-  setSelectedRole: (role: UserRole) => void; // Function to update selected role
+  onSaveRole: () => void;
+  error: string | null;
+  isLoading: boolean;
+  setSelectedRole: (role: UserRole) => void;
   selectedRole: UserRole;
 }
 

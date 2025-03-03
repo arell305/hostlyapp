@@ -3,19 +3,18 @@ import { UserRole, roleMap } from "../../../../utils/enum";
 import { RiArrowRightSLine } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 interface MemberCardProps {
-  firstName: string | null;
-  lastName: string | null;
+  name?: string;
   role: UserRole;
-  imageUrl: string;
+  imageUrl?: string;
   clerkUserId: string;
   isCurrentUser: boolean;
 }
 
 const MemberCard: React.FC<MemberCardProps> = ({
-  firstName,
-  lastName,
+  name,
   role,
   imageUrl,
   clerkUserId,
@@ -24,8 +23,8 @@ const MemberCard: React.FC<MemberCardProps> = ({
   const pathname = usePathname();
   const router = useRouter();
   const handleClick = () => {
-    const companyName = pathname.split("/")[1];
-    const newUrl = `/${companyName}/app/team/${clerkUserId}`;
+    const slug = pathname.split("/")[1];
+    const newUrl = `/${slug}/app/team/${clerkUserId}`;
     router.push(newUrl);
   };
 
@@ -36,14 +35,14 @@ const MemberCard: React.FC<MemberCardProps> = ({
     >
       <div className="flex justify-between items-center">
         <div className="flex items-center justify-between">
-          <img
+          <Image
             src={imageUrl}
-            alt={`${firstName} ${lastName}`}
+            alt={`${name}`}
             className="w-16 h-16 rounded-full mr-4"
           />
           <div className="flex-grow">
             <h2 className="text-lg font-semibold">
-              {`${firstName} ${lastName}`}{" "}
+              {`${name}`}{" "}
               {isCurrentUser && (
                 <span className="text-customDarkBlue text-sm">You</span>
               )}

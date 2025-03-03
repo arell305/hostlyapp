@@ -10,7 +10,7 @@ type CommonProps = {
   onOpenChange: (open: boolean) => void;
   fullName: string;
   selectedRole: UserRole;
-  setSelectedRole: (role: UserRole) => void; // Changed from onRoleChange
+  setSelectedRole: (role: UserRole) => void;
   error: string | null;
   isLoading: boolean;
   onSaveRole: () => void;

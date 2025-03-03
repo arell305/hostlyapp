@@ -1,40 +1,31 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { isAfter } from "date-fns";
-import { SubscriptionTier } from "../../../../utils/enum";
+import { ResponseStatus } from "../../../../utils/enum";
 import { Id } from "../../../../convex/_generated/dataModel";
-import ConfirmModal from "./ConfirmModal";
 import { DateTime } from "luxon";
-import { generateUploadUrl } from "../../../../convex/photo";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Loader2 } from "lucide-react";
 import { BsFillXCircleFill } from "react-icons/bs";
 import {
+  AddressValue,
   EventData,
-  EventFormData,
   EventFormInput,
   GuestListFormInput,
-  GuestListInfo,
+  ModalConfig,
   TicketFormInput,
-  TicketInfo,
 } from "@/types/types";
 import { toast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
-import PropsValue from "react-google-places-autocomplete";
 import { FaTimes } from "react-icons/fa";
 import ResponsiveConfirm from "./responsive/ResponsiveConfirm";
 import { PiPlus } from "react-icons/pi";
 import { PiMinus } from "react-icons/pi";
 import { isIOS } from "../../../../utils/helpers";
-import Image from "next/image";
 import { RiImageAddFill } from "react-icons/ri";
-import imageCompression from "browser-image-compression";
-import { Raleway } from "next/font/google";
 import {
   convertToPstTimestamp,
   timestampToPstString,
@@ -44,6 +35,9 @@ import {
   GuestListInfoSchema,
   TicketInfoSchema,
 } from "@/types/schemas-types";
+import { FrontendErrorMessages } from "@/types/enums";
+import { compressAndUploadImage } from "../../../../utils/image";
+import Image from "next/image";
 
 interface EventFormProps {
   initialEventData?: EventSchema;
@@ -56,10 +50,6 @@ interface EventFormProps {
   ) => Promise<void>;
   isEdit: boolean;
   canAddGuestListOption?: boolean;
-  subscriptionTier?: SubscriptionTier;
-  deleteTicketInfo?: (eventId: Id<"events">) => Promise<void>;
-  deleteGuestListInfo?: (eventId: Id<"events">) => Promise<void>;
-  // onCancelEvent?: () => Promise<void>;
   onCancelEdit?: () => void;
   saveEventError?: string | null;
   onSubmitUpdate?: (
@@ -68,18 +58,7 @@ interface EventFormProps {
     updatedGuestListData: GuestListFormInput | null
   ) => Promise<void>;
   isStripeEnabled: boolean;
-}
-
-interface AddressValue {
-  label: string; // The display value of the address
-  value: {
-    description: string; // Full address as a string
-    place_id: string; // Google Place ID
-    structured_formatting: {
-      main_text: string; // Main part of the address
-      secondary_text: string; // Additional details of the address
-    };
-  };
+  isUpdateEventLoading?: boolean;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -88,14 +67,11 @@ const EventForm: React.FC<EventFormProps> = ({
   initialGuestListData,
   onSubmit,
   isEdit,
-  canAddGuestListOption, // use Clerk
-  subscriptionTier,
-  deleteTicketInfo,
-  // onCancelEvent,
-  deleteGuestListInfo,
+  canAddGuestListOption,
   onCancelEdit,
   saveEventError,
   isStripeEnabled,
+  isUpdateEventLoading,
 }) => {
   // GOOGLE
   const [value, setValue] = useState<AddressValue | null>(null);
@@ -111,6 +87,9 @@ const EventForm: React.FC<EventFormProps> = ({
       setAddress(value.label);
     }
   };
+
+  const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+  const [deleteError, setIsDeleteError] = useState<null | string>(null);
 
   const [eventName, setEventName] = useState(initialEventData?.name || "");
   const [description, setDescription] = useState(
@@ -143,17 +122,19 @@ const EventForm: React.FC<EventFormProps> = ({
   });
   //modal for removal
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [modalConfig, setModalConfig] = useState({
+  const [modalConfig, setModalConfig] = useState<ModalConfig>({
     title: "",
     message: "",
     confirmText: "",
     cancelText: "",
     onConfirm: () => {},
+    error: null,
+    isLoading: false,
   });
   const cancelEvent = useMutation(api.events.cancelEvent);
-  const router = useRouter();
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
@@ -161,28 +142,16 @@ const EventForm: React.FC<EventFormProps> = ({
       console.error("No file selected");
       return;
     }
-
+    setPhotoUploadError(null);
     setIsPhotoLoading(true);
 
     try {
-      const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-      };
-      const compressedFile = await imageCompression(file, options);
-      const postUrl = await generateUploadUrl();
-
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: compressedFile,
-      });
-
-      if (result.ok) {
-        const { storageId } = await result.json();
+      const response = await compressAndUploadImage(file, generateUploadUrl);
+      if (response.ok) {
+        const { storageId } = await response.json();
         setPhotoStorageId(storageId as Id<"_storage">);
       } else {
+        setPhotoUploadError("Photo upload failed");
         console.error("Photo upload failed");
       }
     } catch (error) {
@@ -208,6 +177,8 @@ const EventForm: React.FC<EventFormProps> = ({
           setIsTicketsSelected(false);
           setShowConfirmModal(false);
         },
+        error: null,
+        isLoading: false,
       });
       setShowConfirmModal(true);
     } else {
@@ -227,6 +198,8 @@ const EventForm: React.FC<EventFormProps> = ({
           setIsGuestListSelected(false);
           setShowConfirmModal(false);
         },
+        error: null,
+        isLoading: false,
       });
       setShowConfirmModal(true);
     } else {
@@ -237,19 +210,24 @@ const EventForm: React.FC<EventFormProps> = ({
   const onDeleteEvent = async () => {
     try {
       if (initialEventData) {
-        await cancelEvent({ eventId: initialEventData?._id });
-        toast({
-          title: "Event Cancelled",
-          description: "The event has been successfully cancelled.",
-        });
+        setIsDeleteError(null);
+        setIsDeleteLoading(true);
+        const response = await cancelEvent({ eventId: initialEventData._id });
+        if (response.status === ResponseStatus.SUCCESS) {
+          toast({
+            title: "Event Cancelled",
+            description: "The event has been successfully cancelled.",
+          });
+        } else {
+          setIsDeleteError(FrontendErrorMessages.GENERIC_ERROR);
+          console.error(response.error);
+        }
       }
     } catch (error) {
       console.error("Error cancelling event:", error);
-      toast({
-        title: "Error",
-        description: "Failed to cancel the event. Please try again.",
-        variant: "destructive",
-      });
+      setIsDeleteError(FrontendErrorMessages.GENERIC_ERROR);
+    } finally {
+      setIsDeleteLoading(false);
     }
   };
 
@@ -265,6 +243,8 @@ const EventForm: React.FC<EventFormProps> = ({
 
         setShowConfirmModal(false);
       },
+      error: deleteError,
+      isLoading: isDeleteLoading,
     });
     setShowConfirmModal(true);
   };
@@ -484,17 +464,20 @@ const EventForm: React.FC<EventFormProps> = ({
           </Label>
 
           {/* Hidden file input */}
-          <input
+          <Input
             type="file"
             id="photo"
             onChange={handlePhotoChange}
             accept="image/*"
             className="hidden" // Hide the default file input
           />
+          {photoUploadError && (
+            <p className="text-red-500">{photoUploadError}</p>
+          )}
 
           {/* Custom upload button */}
           <div className="flex ">
-            <label
+            <Label
               htmlFor="photo"
               className={`focus:border-customDarkBlue w-[200px] h-[200px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg hover:bg-gray-100 ${
                 displayEventPhoto
@@ -508,7 +491,7 @@ const EventForm: React.FC<EventFormProps> = ({
                   Loading...
                 </div>
               ) : displayEventPhoto ? (
-                <img
+                <Image
                   src={displayEventPhoto}
                   alt="Event Photo"
                   className="w-full h-full object-cover rounded-lg"
@@ -520,7 +503,7 @@ const EventForm: React.FC<EventFormProps> = ({
               )}
 
               {/* Remove button */}
-            </label>
+            </Label>
             {displayEventPhoto && (
               <BsFillXCircleFill
                 onClick={(e) => {
@@ -913,12 +896,12 @@ const EventForm: React.FC<EventFormProps> = ({
 
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isUpdateEventLoading}
             size={isEdit ? "tripleButtons" : "doubelButtons"}
             variant="default"
             className="w-full"
           >
-            {isLoading ? (
+            {isLoading || isUpdateEventLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
@@ -930,15 +913,19 @@ const EventForm: React.FC<EventFormProps> = ({
             )}
           </Button>
           {isEdit && (
-            <Button
-              type="button"
-              onClick={handleDeleteEvent}
-              size="tripleButtons"
-              className="w-full border-red-700 text-red-700 "
-              variant="secondary"
-            >
-              Delete Event
-            </Button>
+            <>
+              <Button
+                type="button"
+                onClick={handleDeleteEvent}
+                size="tripleButtons"
+                className="w-full border-red-700 text-red-700 "
+                variant="secondary"
+                disabled={isDeleteLoading}
+              >
+                {isDeleteLoading ? "Deleting" : "  Delete Event"}
+              </Button>
+              {deleteError && <p className="text-red-500">{deleteError}</p>}
+            </>
           )}
         </div>
         <ResponsiveConfirm
@@ -948,8 +935,8 @@ const EventForm: React.FC<EventFormProps> = ({
           cancelText={modalConfig.cancelText}
           content={modalConfig.message}
           confirmVariant="destructive"
-          error={null}
-          isLoading={false}
+          error={modalConfig.error}
+          isLoading={modalConfig.isLoading}
           modalProps={{
             onClose: () => setShowConfirmModal(false),
             onConfirm: modalConfig.onConfirm,

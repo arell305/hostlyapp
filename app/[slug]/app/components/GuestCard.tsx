@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FaEllipsisV, FaCheckCircle } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { formatArrivalTime } from "../../../../utils/helpers";
 import { GuestWithPromoter } from "@/types/types";
 import { Badge } from "@/components/ui/badge";
+import { formatArrivalTime } from "../../../../utils/luxon";
 
 interface GuestCardProps {
   guest: GuestWithPromoter;
@@ -11,7 +11,6 @@ interface GuestCardProps {
   editName?: string;
   canEditGuests: boolean;
   onEdit?: (id: string, name: string) => void;
-  onSave?: (id: string) => void;
   onShowDelete?: (id: string) => void;
   onCancelEdit?: () => void;
   setEditName?: (name: string) => void;
@@ -25,14 +24,13 @@ const GuestCard: React.FC<GuestCardProps> = ({
   guest,
   canEditGuests,
   onEdit,
-  onSave,
   onShowDelete,
   canSeePromoterName,
   canCheckInGuests,
   onCheckIn,
   isCheckInOpen,
 }) => {
-  const [showOptions, setShowOptions] = useState(false);
+  const [showOptions, setShowOptions] = useState<boolean>(false);
 
   const optionsRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -45,7 +43,7 @@ const GuestCard: React.FC<GuestCardProps> = ({
         buttonRef.current &&
         !buttonRef.current.contains(event.target as Node)
       ) {
-        setShowOptions(false); // Close dropdown if clicked outside
+        setShowOptions(false);
       }
     };
 
@@ -56,14 +54,14 @@ const GuestCard: React.FC<GuestCardProps> = ({
   }, []);
 
   const handleOptionsClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent `handleClickOutside` from triggering immediately
-    setShowOptions((prev) => !prev); // Toggle dropdown visibility
+    e.stopPropagation();
+    setShowOptions((prev) => !prev);
   };
 
   const handleShowDeleteModal = () => {
     if (onShowDelete) {
       onShowDelete(guest.id);
-      setShowOptions(false); // Close options after deleting
+      setShowOptions(false);
     }
   };
 

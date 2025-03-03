@@ -2,13 +2,9 @@ import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { ResponseStatus } from "../utils/enum";
 import { ErrorMessages } from "@/types/enums";
-import {
-  CustomerSchema,
-  OrganizationsSchema,
-  SubscriptionBillingCycle,
-} from "@/types/types";
+import { OrganizationsSchema, SubscriptionBillingCycle } from "@/types/types";
 import { convertToPST } from "../utils/luxon";
-import { EventSchema, GuestListInfoSchema } from "@/types/schemas-types";
+import { CustomerSchema, EventSchema } from "@/types/schemas-types";
 
 export const getSubDatesAndGuestEventsCountByDate = query({
   args: {

@@ -1,10 +1,9 @@
 "use client";
-
-import { useAuth, useClerk, useOrganizationList } from "@clerk/nextjs";
-import { ChangeEvent, useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
 import { GoPencil } from "react-icons/go";
 import ResponsiveTeamName from "../components/responsive/ResponsiveTeamName";
-import { useAction, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import { ResponseStatus, UserRole } from "../../../../utils/enum";
@@ -12,25 +11,26 @@ import ResponsivePromoDiscount from "../components/responsive/ResponsivePromoDis
 import Image from "next/image";
 import ResponsiveCompanyImage from "../components/responsive/ResponsiveCompanyImage";
 import { useParams, useRouter } from "next/navigation";
+import ErrorComponent from "../components/errors/ErrorComponent";
+import FullLoading from "../components/loading/FullLoading";
+import { Id } from "../../../../convex/_generated/dataModel";
+import { validatePromoDiscount } from "../../../../utils/frontend-validation";
+import { compressAndUploadImage } from "../../../../utils/image";
+import { Input } from "@/components/ui/input";
+import Loading from "../components/loading/Loading";
+import { RiImageAddFill } from "react-icons/ri";
 
 const CompanySettings = () => {
-  const { organization, user, loaded } = useClerk();
   const { toast } = useToast();
   const router = useRouter();
-  const { isLoaded, setActive } = useOrganizationList({
-    userMemberships: true,
-  });
-  const { orgRole, isLoaded: isAuthLoaded } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+  const { orgRole } = useAuth();
 
-  const { companyName: companyNameParams } = useParams();
-  const cleanCompanyName =
-    typeof companyNameParams === "string"
-      ? companyNameParams.split("?")[0].toLowerCase()
-      : "";
+  const { slug } = useParams();
+  const cleanSlug =
+    typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
   const organizationData = useQuery(
     api.organizations.getOrganizationByNameQuery,
-    cleanCompanyName ? { name: cleanCompanyName } : "skip"
+    cleanSlug ? { slug: cleanSlug } : "skip"
   );
 
   const [companyName, setCompanyName] = useState<string | null | undefined>(
@@ -39,8 +39,7 @@ const CompanySettings = () => {
   const [showTeamNameModal, setShowTeamNameModal] = useState<boolean>(false);
   const [isTeamNameLoading, setTeamNameLoading] = useState<boolean>(false);
   const [teamNameError, setTeamNameError] = useState<string | null>(null);
-  const existingOrganizations = useQuery(api.organizations.getAllOrganizations);
-  const updateOrganization = useAction(api.clerk.updateOrganization);
+  const updateOrganizationName = useAction(api.clerk.updateOrganizationName);
 
   // promo discount settings
   const [promoDiscount, setPromoDiscount] = useState<string>(
@@ -57,49 +56,79 @@ const CompanySettings = () => {
   // company image
   const [showCompanyImageModal, setShowCompanyImageModal] =
     useState<boolean>(false);
-  const [companyImage, setCompanyImage] = useState<string>(
-    organization?.imageUrl || ""
-  );
+
   const [isCompanyImageLoading, setIsCompanyImageLoading] =
     useState<boolean>(false);
   const [companyImageError, setCompanyImageError] = useState<string | null>(
     null
   );
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(
-    organization?.imageUrl || null
+  const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
+  const [photoStorageId, setPhotoStorageId] = useState<Id<"_storage"> | null>(
+    organizationData?.data?.organization.photo || null
   );
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+  const [isPhotoLoading, setIsPhotoLoading] = useState<boolean>(false);
+  const displayCompanyPhoto = useQuery(api.photo.getFileUrl, {
+    storageId: photoStorageId,
+  });
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const updateClerkOrganizationPhoto = useAction(
+    api.clerk.updateClerkOrganizationPhoto
+  );
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (!file) {
+      console.error("No file selected");
+      return;
+    }
+    setIsPhotoLoading(true);
+    setPhotoUploadError(null);
+
+    try {
+      const response = await compressAndUploadImage(file, generateUploadUrl);
+
+      if (response.ok) {
+        const { storageId } = await response.json();
+        setPhotoStorageId(storageId as Id<"_storage">);
+      } else {
+        setPhotoUploadError("Photo upload failed");
+        console.error("Photo upload failed");
+      }
+    } catch (error) {
+      setPhotoUploadError("Photo upload failed");
+      console.error("Error uploading photo:", error);
+    } finally {
+      setIsPhotoLoading(false);
     }
   };
 
   const handleSaveCompanyPhoto = async () => {
-    if (organization?.imageUrl === previewUrl) {
+    if (organizationData?.data?.organization.photo === photoStorageId) {
       return;
     }
 
-    if (!organization || !isLoaded) {
+    if (!organizationData?.data) {
       setCompanyImageError("Error loading company");
-      return;
-    }
-
-    if (!selectedFile) {
-      setCompanyImageError("No file selected");
       return;
     }
 
     setIsCompanyImageLoading(true);
     try {
-      await organization.setLogo({ file: selectedFile });
-      setShowCompanyImageModal(false);
-      toast({
-        title: "Success",
-        description: "Company Photo Set.",
+      const response = await updateClerkOrganizationPhoto({
+        clerkOrganizationId:
+          organizationData?.data?.organization.clerkOrganizationId,
+        photo: photoStorageId,
       });
+      if (response.status === ResponseStatus.ERROR) {
+        console.log("error updating company photo", ResponseStatus.ERROR);
+        setCompanyImageError("Error saving image");
+      } else {
+        setShowCompanyImageModal(false);
+        toast({
+          title: "Success",
+          description: "Company Photo Set.",
+        });
+      }
     } catch (error) {
       setCompanyImageError("Error saving image");
       console.error(error);
@@ -112,7 +141,7 @@ const CompanySettings = () => {
     if (open) {
       setShowCompanyImageModal(true);
     } else {
-      setPreviewUrl(organization?.imageUrl || null);
+      setPhotoStorageId(organizationData?.data?.organization.photo || null);
       setCompanyImageError(null);
       setShowCompanyImageModal(false);
     }
@@ -127,129 +156,89 @@ const CompanySettings = () => {
     setPromoDiscount(
       organizationData?.data?.organization.promoDiscount.toString() || ""
     );
+    setPhotoStorageId(organizationData?.data?.organization.photo || null);
   }, [organizationData]);
 
   const handleUpdateTeamName = async () => {
-    if (companyName === organization?.name) {
+    if (companyName === organizationData?.data?.organization.name) {
       return setShowTeamNameModal(false);
     }
     if (!companyName || companyName.trim() === "") {
       setTeamNameError("Name cannot be empty.");
       return;
     }
-    if (!user) {
-      setTeamNameError("Error Loading User. Please try again.");
-      console.log("user undefined");
-      return;
-    }
 
-    if (!isLoaded || !organization) {
+    if (!organizationData?.data) {
       setTeamNameError("Error Loading Team. Please try again.");
-      return;
-    }
-
-    if (organization?.name === companyName) {
-      return setShowTeamNameModal(false);
-    }
-    const isDuplicate = existingOrganizations?.data?.organizations?.some(
-      (org) => org.name.toLowerCase() === companyName.toLowerCase()
-    );
-    if (isDuplicate) {
-      setTeamNameError(
-        "This organization name already exists. Please choose another."
-      );
       return;
     }
 
     setTeamNameLoading(true);
     try {
-      const response = await updateOrganization({
-        clerkOrganizationId: organization.id,
+      const response = await updateOrganizationName({
+        clerkOrganizationId:
+          organizationData.data.organization.clerkOrganizationId,
         name: companyName,
       });
       if (response.status === ResponseStatus.SUCCESS) {
-        await setActive({ organization: response.data.clerkOrgId });
-        router.push(`/${companyName}/app/company-settings`);
         toast({
           title: "Success",
           description: "Team name set.",
         });
         setShowTeamNameModal(false);
+
+        router.replace(`/${response.data.slug}/app/company-settings`);
       } else {
         console.error("Failed to update team name", response.error);
-        toast({
-          title: "Error",
-          description: "Failed to Update Team Name.",
-          variant: "destructive",
-        });
+        setTeamNameError(response.error);
       }
     } catch (error) {
       console.error("Failed to update team name", error);
-      toast({
-        title: "Error",
-        description: "Failed to Update Team Name.",
-        variant: "destructive",
-      });
+      setTeamNameError("Failed to update team name");
     } finally {
       setTeamNameLoading(false);
     }
   };
 
   const handleSavePromoDiscount = async () => {
+    setPromoDiscountError(null);
+
+    const { promoDiscountValue, promoDiscountValueError } =
+      validatePromoDiscount(promoDiscount, true);
+
     if (
-      promoDiscount === (organization?.publicMetadata?.promoDiscount as string)
+      promoDiscountValue === organizationData?.data?.organization.promoDiscount
     ) {
       return setShowPromoDiscountModal(false);
     }
-    if (promoDiscount === "") {
-      setPromoDiscountError("Promo Discount Amount can't be empty.");
-      return;
-    }
-    const discountValue: number = parseFloat(promoDiscount);
 
-    // Validation logic
-    if (isNaN(discountValue)) {
-      setPromoDiscountError("Please enter a valid number.");
+    if (promoDiscountValueError) {
+      setPromoDiscountError(promoDiscountValueError);
       return;
     }
 
-    if (!isFinite(discountValue)) {
-      setPromoDiscountError("Please enter a finite number.");
+    if (!promoDiscountValue) {
+      setPromoDiscountError(promoDiscountValueError);
       return;
     }
 
-    if (discountValue < 0) {
-      setPromoDiscountError("Please enter a positive number.");
-      return;
-    }
-
-    // Check for more than two decimal places
-    const decimalCheck = /^\d+(\.\d{1,2})?$/; // Regex to allow up to 2 decimal places
-    if (!decimalCheck.test(promoDiscount)) {
-      setPromoDiscountError(
-        "Please enter a number with up to two decimal places."
-      );
-      return;
-    }
-
-    if (!organization || !isLoaded) {
-      setPromoDiscountError("Team is undefined. Please try again.");
+    if (!organizationData?.data) {
+      setTeamNameError("Error Loading Team. Please try again.");
       return;
     }
 
     try {
       setPromoDiscountLoading(true);
-      setPromoDiscountError(null);
 
       const response = await updateOrganizationMetadata({
-        clerkOrganizationId: organization.id,
+        clerkOrganizationId:
+          organizationData.data.organization.clerkOrganizationId,
         params: {
-          promoDiscount: discountValue,
+          promoDiscount: promoDiscountValue,
         },
       });
 
       if (response.status === ResponseStatus.SUCCESS) {
-        // setActive({ organization: organization.id });
         toast({
           title: "Success",
           description: "Promo discount amount set.",
@@ -278,7 +267,7 @@ const CompanySettings = () => {
     if (open) {
       setShowTeamNameModal(true);
     } else {
-      setCompanyName(organization?.name);
+      setCompanyName(organizationData?.data?.organization.name);
       setTeamNameError(null);
       setShowTeamNameModal(false);
     }
@@ -288,25 +277,26 @@ const CompanySettings = () => {
     if (open) {
       setShowPromoDiscountModal(true);
     } else {
-      setPromoDiscount(organization?.publicMetadata?.promoDiscount as string);
+      setPromoDiscount(
+        organizationData?.data?.organization.promoDiscount as unknown as string
+      );
       setPromoDiscountError(null);
       setShowPromoDiscountModal(false);
     }
   };
 
   const canEditSettings =
-    orgRole === UserRole.Admin || orgRole === UserRole.Manager;
+    orgRole === UserRole.Admin ||
+    orgRole === UserRole.Manager ||
+    orgRole === UserRole.Hostly_Admin ||
+    orgRole === UserRole.Hostly_Moderator;
 
-  const teamPhoto =
-    organizationData?.data?.organization.imageUrl ||
-    "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVpvY3NtSG5PZE5PN2kyRVdpaUM5VENqMVAifQ";
+  if (organizationData === undefined) {
+    return <FullLoading />;
+  }
 
-  useEffect(() => {
-    setIsLoading(false);
-  }, [loaded, isLoaded, isAuthLoaded]);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (organizationData?.status === ResponseStatus.ERROR) {
+    <ErrorComponent message={organizationData.error} />;
   }
 
   return (
@@ -316,13 +306,34 @@ const CompanySettings = () => {
       </h1>
       <div className="flex justify-center mb-2 mt-4">
         <div className="relative inline-block">
-          <Image
-            src={teamPhoto}
-            alt="Company Avatar"
-            width={100}
-            height={100}
-            className="rounded-md object-cover"
-          />
+          {displayCompanyPhoto ? (
+            <Image
+              src={displayCompanyPhoto}
+              alt="Company Avatar"
+              width={100}
+              height={100}
+              className="rounded-md object-cover"
+            />
+          ) : (
+            <div className="relative w-full h-full group">
+              <Input
+                id="companyPhoto"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+
+              <div className="w-full h-full border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center transition-colors duration-200 group-hover:bg-gray-100">
+                {isPhotoLoading ? (
+                  <Loading />
+                ) : (
+                  <RiImageAddFill className="text-4xl text-gray-500" />
+                )}
+              </div>
+            </div>
+          )}
+
           {canEditSettings && (
             <button
               onClick={() => setShowCompanyImageModal(true)}
@@ -363,30 +374,27 @@ const CompanySettings = () => {
         teamName={companyName || ""}
       />
 
-      {organization && (
-        <div
-          onClick={() => canEditSettings && setShowPromoDiscountModal(true)}
-          className={`px-4 flex justify-between border-b py-3 ${
-            canEditSettings
-              ? "cursor-pointer hover:bg-gray-100 hover:rounded-md"
-              : ""
-          }`}
-        >
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">
-              Promo Discount Amount:{" "}
-            </h3>
-            <p className="text-lg font-semibold">
-              {promoDiscount || "Not Set"}
-            </p>
-          </div>
-          {canEditSettings && (
-            <div className="flex items-center">
-              <GoPencil className="text-2xl" />
-            </div>
-          )}
+      <div
+        onClick={() => canEditSettings && setShowPromoDiscountModal(true)}
+        className={`px-4 flex justify-between border-b py-3 ${
+          canEditSettings
+            ? "cursor-pointer hover:bg-gray-100 hover:rounded-md"
+            : ""
+        }`}
+      >
+        <div>
+          <h3 className="text-sm font-medium text-gray-500">
+            Promo Discount Amount:{" "}
+          </h3>
+          <p className="text-lg font-semibold">{promoDiscount || "Not Set"}</p>
         </div>
-      )}
+        {canEditSettings && (
+          <div className="flex items-center">
+            <GoPencil className="text-2xl" />
+          </div>
+        )}
+      </div>
+
       <ResponsivePromoDiscount
         isOpen={showPromoDiscountModal}
         onOpenChange={handlePromoDiscountModalOpenChange}
@@ -400,13 +408,12 @@ const CompanySettings = () => {
       <ResponsiveCompanyImage
         isOpen={showCompanyImageModal}
         onOpenChange={handleCompanyImageModalOpenChange}
-        photoPreview={previewUrl}
-        companyPhoto={selectedFile}
-        setCompanyPhoto={setSelectedFile}
+        photoPreview={displayCompanyPhoto}
         error={companyImageError}
         isLoading={isCompanyImageLoading}
         onSavePhoto={handleSaveCompanyPhoto}
-        handleFileChange={handleFileChange}
+        handleFileChange={handlePhotoChange}
+        photoUploadError={photoUploadError}
       />
     </div>
   );

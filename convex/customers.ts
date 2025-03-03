@@ -3,43 +3,44 @@ import {
   action,
   internalMutation,
   internalQuery,
-  mutation,
   query,
 } from "./_generated/server";
+import { ResponseStatus, SubscriptionStatus, UserRole } from "../utils/enum";
 import {
-  ResponseStatus,
-  SubscriptionStatus,
-  SubscriptionTier,
-} from "../utils/enum";
-import {
-  CancelSubscriptionResponse,
-  Customer,
+  CustomerSubscriptionInfo,
   CustomerWithPayment,
-  GetCustomerDetailsResponse,
   OrganizationsSchema,
-  ResumeSubscriptionResponse,
-  UpdateListEventCountResponse,
 } from "../app/types/types";
 import { checkIsHostlyAdmin, getFutureISOString } from "../utils/helpers";
 import { SubscriptionStatusConvex, SubscriptionTierConvex } from "./schema";
-import { DateTime } from "luxon";
 import { internal } from "./_generated/api";
 import Stripe from "stripe";
 import { ErrorMessages } from "@/types/enums";
 import {
+  GetCustomerDetailsBySlugResponse,
   GetCustomerTierByOrganizationNameResponse,
-  GetOrganizationByNameQueryResponse,
-  UpdatePromoterPromoCodeResponse,
+  CancelSubscriptionResponse,
+  ResumeSubscriptionResponse,
+  GetCustomerSubscriptionTierBySlugResponse,
 } from "@/types/convex-types";
 import {
   CustomerSchema,
   CustomerWithCompanyName,
   UserSchema,
 } from "@/types/schemas-types";
+import { requireAuthenticatedUser } from "../utils/auth";
 import {
-  FindCustomerByClerkUserIdResponse,
-  FindCustomerWithCompanyNameByClerkIdResponse,
-} from "@/types/convex/internal-types";
+  validateCustomer,
+  validateOrganization,
+  validateUser,
+} from "./backendUtils/validation";
+import {
+  cancelStripeSubscriptionAtPeriodEnd,
+  fetchCustomerPaymentDetails,
+  resumeStripeSubscription,
+} from "./backendUtils/stripe";
+import { isUserInOrganization } from "./backendUtils/helper";
+import { Id } from "./_generated/dataModel";
 
 export const insertCustomerAndSubscription = internalMutation({
   args: {
@@ -67,11 +68,6 @@ export const insertCustomerAndSubscription = internalMutation({
         subscriptionStartDate: Date.now().toString(),
         isActive: true,
       });
-      // await ctx.scheduler.runAt(
-      //   DateTime.fromISO(nextPayment).toMillis(),
-      //   internal.customers.resetGuestListEventAndPayment,
-      //   { customerId }
-      // );
       console.log(
         `Scheduled resetGuestListEvent for customer ${customerId} at ${nextPayment}`
       );
@@ -94,12 +90,11 @@ export const findCustomerByEmail = internalQuery({
         .filter((q) => q.eq(q.field("email"), args.email))
         .first();
 
-      // If a customer is found, map the `subscriptionStatus` string to the `SubscriptionStatus` enum
       if (customer) {
         return {
           ...customer,
           subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus, // Cast or map the status
-        }; // Ensure the returned type is the `Customer` interface
+        };
       }
 
       return null;
@@ -125,10 +120,6 @@ export const findCustomerById = internalQuery({
         return null;
       }
 
-      if (!customer.isActive) {
-        throw new Error(ErrorMessages.CUSTOMER_INACTIVE);
-      }
-      // If a customer is found, map the `subscriptionStatus` string to the `SubscriptionStatus` enum
       return {
         ...customer,
         subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus, // Cast or map the status
@@ -187,10 +178,7 @@ export const findCustomerWithCompanyNameByClerkId = internalQuery({
   args: {
     clerkUserId: v.string(),
   },
-  handler: async (
-    ctx,
-    args
-  ): Promise<FindCustomerWithCompanyNameByClerkIdResponse> => {
+  handler: async (ctx, args): Promise<CustomerWithCompanyName> => {
     try {
       const user: UserSchema | null = await ctx.db
         .query("users")
@@ -199,90 +187,29 @@ export const findCustomerWithCompanyNameByClerkId = internalQuery({
         )
         .first();
 
-      if (!user) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.USER_NOT_FOUND,
-        };
-      }
+      const validatedUser = validateUser(user, true, true);
 
-      if (!user.isActive) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.USER_INACTIVE,
-        };
-      }
+      const customer: CustomerSchema | null = await ctx.db.get(
+        validatedUser.customerId as Id<"customers">
+      );
 
-      if (!user.customerId) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.USER_NOT_CUSTOMER,
-        };
-      }
+      const validatedCustomer = validateCustomer(customer);
 
-      const customer: CustomerSchema | null = await ctx.db.get(user.customerId);
+      const organization: OrganizationsSchema | null = await ctx.db.get(
+        validatedUser.organizationId as Id<"organizations">
+      );
 
-      if (!customer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CUSTOMER_NOT_FOUND,
-        };
-      }
-      if (!customer.isActive) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CUSTOMER_NOT_FOUND,
-        };
-      }
-
-      const organization: OrganizationsSchema | null = await ctx.db
-        .query("organizations")
-        .withIndex("by_clerkOrganizationId", (q) =>
-          q.eq("clerkOrganizationId", user.clerkOrganizationId as string)
-        )
-        .first();
-
-      if (!organization) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.COMPANY_NOT_FOUND,
-        };
-      }
-
-      if (!organization.isActive) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.COMPANY_INACTIVE,
-        };
-      }
+      const validatedOrganization = validateOrganization(organization);
 
       const customerWithCompanyName: CustomerWithCompanyName = {
-        ...customer,
-        companyName: organization.name, // Assuming `organization.name` holds the company name
+        ...validatedCustomer,
+        companyName: validatedOrganization.name,
       };
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          customer: customerWithCompanyName,
-        },
-      };
+      return customerWithCompanyName;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      console.error(error);
+      throw new Error(ErrorMessages.CUSTOMER_DB_QUERY_CLERK_ERROR);
     }
   },
 });
@@ -302,19 +229,24 @@ const allowedFields = {
 export const updateCustomer = internalMutation({
   args: {
     id: v.id("customers"),
-    updates: v.object(allowedFields), // Expect an object for updates
+    updates: v.object(allowedFields),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Id<"customers">> => {
     const { id, updates } = args;
 
-    // Check if there are any valid fields to update
-    if (Object.keys(updates).length > 0) {
-      await ctx.db.patch(id, updates);
+    try {
+      if (Object.keys(updates).length > 0) {
+        await ctx.db.patch(id, updates);
+      }
+      return id;
+    } catch (error) {
+      console.error(`Failed to update customer ${id}:`, error);
+      throw new Error(ErrorMessages.CUSTOMER_DB_UPDATE_ERROR);
     }
-    return id;
   },
 });
 
+// To be Deleted
 export const getCustomerSubscriptionTier = query({
   args: { clerkOrganizationId: v.string() },
   handler: async (ctx, args) => {
@@ -346,173 +278,93 @@ export const getCustomerSubscriptionTier = query({
   },
 });
 
-// export const updateGuestListEventCount = mutation({
-//   args: { customerId: v.id("customers") },
-//   handler: async (ctx, args): Promise<UpdateListEventCountResponse> => {
-//     try {
-//       const identity = await ctx.auth.getUserIdentity();
-//       if (!identity) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.UNAUTHENTICATED,
-//         };
-//       }
-
-//       const customer: CustomerSchema | null = await ctx.db.get(args.customerId);
-
-//       if (!customer) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.NOT_FOUND,
-//         };
-//       }
-//       if (customer.subscriptionTier !== SubscriptionTier.PLUS) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: "Not on Plus tier",
-//         };
-//       }
-//       const updatedCount: number = (customer.guestListEventCount || 0) + 1;
-//       await ctx.db.patch(args.customerId, {
-//         guestListEventCount: updatedCount,
-//       });
-//       return {
-//         status: ResponseStatus.SUCCESS,
-//         data: {
-//           remaingEvents: updatedCount,
-//         },
-//       };
-//     } catch (error) {
-//       const errorMessage =
-//         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-//       console.error(errorMessage, error);
-//       return {
-//         status: ResponseStatus.ERROR,
-//         data: null,
-//         error: errorMessage,
-//       };
-//     }
-//   },
-// });
-
-// export const resetGuestListEventAndPayment = internalMutation({
-//   args: { customerId: v.id("customers") },
-//   handler: async (ctx, { customerId }) => {
-//     // Fetch the customer's data
-//     const customer = await ctx.db.get(customerId);
-
-//     if (!customer) {
-//       console.log(`Customer with ID ${customerId} does not exist.`);
-//       return;
-//     }
-
-//     // Check if `nextPayment` is null and stop scheduling if it is
-//     if (
-//       customer.subscriptionStatus === SubscriptionStatus.CANCELED ||
-//       !customer.nextPayment
-//     ) {
-//       console.log(
-//         `Stopping scheduler for customer ${customerId} as subscription status is canceled.`
-//       );
-//       return;
-//     }
-//     // Reset the guestListEventCount
-//     await ctx.db.patch(customerId, {
-//       guestListEventCount: 0,
-//     });
-
-//     // Calculate the new `nextPayment` date (e.g., 1 month from now)
-//     const nextPaymentDate = new Date(customer.nextPayment);
-//     nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
-
-//     // Update the customer’s `nextPayment` field in the database
-//     await ctx.db.patch(customerId, {
-//       nextPayment: nextPaymentDate.toISOString(),
-//     });
-
-//     // Schedule this function to run again at the new `nextPayment` date
-//     await ctx.scheduler.runAt(
-//       nextPaymentDate.getTime(),
-//       internal.customers.resetGuestListEventAndPayment,
-//       { customerId }
-//     );
-//   },
-// });
-
-export const getCustomerDetails = action({
-  args: {
-    customerId: v.id("customers"),
-  },
-  handler: async (ctx, args): Promise<GetCustomerDetailsResponse> => {
+export const getCustomerSubscriptionTierBySlug = query({
+  args: { slug: v.string() },
+  handler: async (
+    ctx,
+    args
+  ): Promise<GetCustomerSubscriptionTierBySlugResponse> => {
+    const { slug } = args;
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
+      const identity = await requireAuthenticatedUser(ctx);
+
+      const organization: OrganizationsSchema | null = await ctx.db
+        .query("organizations")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+
+      const validatedOrganization = validateOrganization(organization, true);
+
+      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
+
+      const customer = await ctx.db.get(validatedOrganization.customerId);
+
+      const validatedCustomer = validateCustomer(customer, true);
+
+      function getCustomerSubscriptionInfo(
+        customer: CustomerSchema
+      ): CustomerSubscriptionInfo {
         return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
+          subscriptionTier: customer.subscriptionTier,
+          customerId: customer._id,
+          nextCycle: customer.nextPayment,
+          status: customer.subscriptionStatus,
         };
       }
 
-      const existingCustomer: CustomerSchema | null = await ctx.runQuery(
-        internal.customers.findCustomerById,
-        { customerId: args.customerId }
+      const customerSubscription =
+        getCustomerSubscriptionInfo(validatedCustomer);
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          customerSubscription,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+export const getCustomerDetailsBySlug = action({
+  args: {
+    slug: v.string(),
+  },
+  handler: async (ctx, args): Promise<GetCustomerDetailsBySlugResponse> => {
+    const { slug } = args;
+    try {
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Admin,
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+      ]);
+
+      const organization = await ctx.runQuery(
+        internal.organizations.getOrganizationBySlug,
+        { slug }
       );
-      if (!existingCustomer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
-      const createCustomerWithPayment = (
-        brand?: string,
-        last4?: string,
-        currentSubscriptionAmount?: number,
-        discountPercentage?: number
-      ): CustomerWithPayment => ({
-        ...existingCustomer!,
-        brand,
-        last4,
-        currentSubscriptionAmount,
-        discountPercentage,
-      });
-      const stripe = new Stripe(process.env.STRIPE_KEY!, {
-        apiVersion: "2024-06-20",
-      });
 
-      const paymentMethods: Stripe.Response<
-        Stripe.ApiList<Stripe.PaymentMethod>
-      > = await stripe.paymentMethods.list({
-        customer: existingCustomer.stripeCustomerId,
-        type: "card",
-      });
-      const defaultPaymentMethod: Stripe.PaymentMethod = paymentMethods.data[0];
+      const validatedOrganization: OrganizationsSchema =
+        validateOrganization(organization);
 
-      const subscription: Stripe.Response<Stripe.Subscription> =
-        await stripe.subscriptions.retrieve(
-          existingCustomer.stripeSubscriptionId
-        );
-      const currentPrice = subscription.items.data[0].price;
-      const amount = currentPrice.unit_amount; // Amount in cents
+      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
 
-      // Extract discount information if available
-      let discountPercentage = 0;
-
-      if (subscription.discount) {
-        discountPercentage = subscription.discount.coupon.percent_off || 0; // Get the discount percentage directly
-      }
+      const customer: CustomerSchema | null = await ctx.runQuery(
+        internal.customers.findCustomerById,
+        { customerId: validatedOrganization.customerId }
+      );
+      const validatedCustomer = validateCustomer(customer);
 
       const customerWithPayment: CustomerWithPayment =
-        createCustomerWithPayment(
-          defaultPaymentMethod?.card?.brand, // Use optional chaining to avoid undefined error
-          defaultPaymentMethod?.card?.last4,
-          amount ? amount / 100 : 0,
-          discountPercentage
-        );
+        await fetchCustomerPaymentDetails(validatedCustomer);
 
       return {
         status: ResponseStatus.SUCCESS,
@@ -532,44 +384,28 @@ export const getCustomerDetails = action({
     }
   },
 });
-export const cancelSubscription = action({
-  args: { customerEmail: v.string() },
-  handler: async (ctx, args): Promise<CancelSubscriptionResponse> => {
-    try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
 
-      const existingCustomer: CustomerSchema | null = await ctx.runQuery(
+export const cancelSubscription = action({
+  args: {},
+  handler: async (ctx): Promise<CancelSubscriptionResponse> => {
+    try {
+      const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+
+      const customer: CustomerSchema | null = await ctx.runQuery(
         internal.customers.findCustomerByEmail,
-        { email: args.customerEmail }
+        { email: idenitity.email as string }
       );
 
-      if (!existingCustomer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
-
-      const stripe = new Stripe(process.env.STRIPE_KEY!, {
-        apiVersion: "2024-06-20",
-      });
+      const validatedCustomer = validateCustomer(customer);
 
       await Promise.all([
-        stripe.subscriptions.update(existingCustomer.stripeSubscriptionId, {
-          cancel_at_period_end: true,
-        }),
+        cancelStripeSubscriptionAtPeriodEnd(
+          validatedCustomer.stripeSubscriptionId
+        ),
         ctx.runMutation(internal.customers.updateCustomer, {
-          id: existingCustomer._id,
+          id: validatedCustomer._id,
           updates: {
-            subscriptionStatus: SubscriptionStatus.CANCELED,
+            subscriptionStatus: SubscriptionStatus.PENDING_CANCELLATION,
           },
         }),
       ]);
@@ -577,7 +413,7 @@ export const cancelSubscription = action({
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          id: existingCustomer._id,
+          customerId: validatedCustomer._id,
         },
       };
     } catch (error) {
@@ -594,63 +430,34 @@ export const cancelSubscription = action({
 });
 
 export const resumeSubscription = action({
-  args: { customerEmail: v.string() },
-  handler: async (ctx, args): Promise<ResumeSubscriptionResponse> => {
+  args: {},
+  handler: async (ctx): Promise<ResumeSubscriptionResponse> => {
     try {
-      // Fetch existing customer by email
-      const existingCustomer: CustomerSchema | null = await ctx.runQuery(
+      const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+
+      const customer: CustomerSchema | null = await ctx.runQuery(
         internal.customers.findCustomerByEmail,
-        { email: args.customerEmail }
+        { email: idenitity.email as string }
       );
-      if (!existingCustomer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
-      const stripe = new Stripe(process.env.STRIPE_KEY!, {
-        apiVersion: "2024-06-20",
-      });
 
-      const subscription: Stripe.Response<Stripe.Subscription> =
-        await stripe.subscriptions.retrieve(
-          existingCustomer.stripeSubscriptionId
-        );
+      const validatedCustomer = validateCustomer(customer);
 
-      if (subscription.cancel_at_period_end) {
-        // Resume the subscription by setting cancel_at_period_end to false
-        await stripe.subscriptions.update(
-          existingCustomer.stripeSubscriptionId,
-          {
-            cancel_at_period_end: false, // Resuming the subscription
-          }
-        );
-
-        // Optionally, update the subscription status in your database to "active"
-        if (existingCustomer && existingCustomer._id) {
-          // Update customer subscription to ACTIVE if they had a previous account (no trial period)
-          await ctx.runMutation(internal.customers.updateCustomer, {
-            id: existingCustomer._id, // Update using the customer's ID
-            updates: {
-              subscriptionStatus: SubscriptionStatus.ACTIVE,
-            },
-          });
-        }
-        return {
-          status: ResponseStatus.SUCCESS,
-          data: {
-            id: existingCustomer._id,
+      await Promise.all([
+        resumeStripeSubscription(validatedCustomer.stripeSubscriptionId),
+        ctx.runMutation(internal.customers.updateCustomer, {
+          id: validatedCustomer._id,
+          updates: {
+            subscriptionStatus: SubscriptionStatus.ACTIVE,
           },
-        };
-      } else {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: "Subscription is already active.",
-        };
-        // If the subscription is not canceled or it was already resumed
-      }
+        }),
+      ]);
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          customerId: validatedCustomer._id,
+        },
+      };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;

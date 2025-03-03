@@ -13,7 +13,10 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as backendUtils_helper from "../backendUtils/helper.js";
 import type * as backendUtils_stripe from "../backendUtils/stripe.js";
+import type * as backendUtils_stripeConnect from "../backendUtils/stripeConnect.js";
+import type * as backendUtils_validation from "../backendUtils/validation.js";
 import type * as clerk from "../clerk.js";
 import type * as connectedAccounts from "../connectedAccounts.js";
 import type * as connectedPayments from "../connectedPayments.js";
@@ -43,7 +46,10 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "backendUtils/helper": typeof backendUtils_helper;
   "backendUtils/stripe": typeof backendUtils_stripe;
+  "backendUtils/stripeConnect": typeof backendUtils_stripeConnect;
+  "backendUtils/validation": typeof backendUtils_validation;
   clerk: typeof clerk;
   connectedAccounts: typeof connectedAccounts;
   connectedPayments: typeof connectedPayments;

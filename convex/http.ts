@@ -69,8 +69,6 @@ http.route({
               internal.users.updateUser,
               {
                 email: result.data.email_addresses[0]?.email_address,
-                clerkUserId: result.data.id,
-                acceptedInvite: true,
                 name: `${result.data.first_name} ${result.data.last_name}`,
                 imageUrl: result.data.image_url,
               }
@@ -105,6 +103,7 @@ http.route({
               customerId: existingCustomer._id,
               role: UserRole.Admin,
               name: `${result.data.first_name} ${result.data.last_name}`,
+              imageUrl: result.data.image_url,
             });
             return new Response(JSON.stringify({ message: "Success" }), {
               status: 200,
@@ -122,21 +121,28 @@ http.route({
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
-        case "organizationInvitation.created":
+        // case "organizationInvitation.created":
+        //   await ctx.runMutation(internal.users.createUser, {
+        //     email: result.data.email_address,
+        //     clerkOrganizationId: result.data.organization_id,
+        //     acceptedInvite: false,
+        //     role: result.data.role as UserRole,
+        //   });
+        //   return new Response(JSON.stringify({ message: "Success" }), {
+        //     status: 200,
+        //     headers: { "Content-Type": "application/json" },
+        //   });
+        case "organizationInvitation.accepted":
+          const organization = await ctx.runQuery(
+            internal.organizations.internalGetOrganizationByClerkId,
+            { clerkOrganizationId: result.data.organization_id }
+          );
+
           await ctx.runMutation(internal.users.createUser, {
             email: result.data.email_address,
-            clerkOrganizationId: result.data.organization_id,
-            acceptedInvite: false,
+            clerkUserId: result.data.id,
             role: result.data.role as UserRole,
-          });
-          return new Response(JSON.stringify({ message: "Success" }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          });
-        case "organizationInvitation.accepted":
-          await ctx.runMutation(internal.users.updateUser, {
-            email: result.data.email_address,
-            acceptedInvite: true,
+            organizationId: organization._id,
           });
           return new Response(JSON.stringify({ message: "Success" }), {
             status: 200,

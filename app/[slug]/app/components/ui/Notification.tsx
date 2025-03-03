@@ -21,7 +21,7 @@ export function Notification({
 
   const handleClick = () => {
     if (route) {
-      router.push(`${pathname}/${route}`); // ✅ Navigate to the given route
+      router.push(`${pathname}/${route}`);
     }
   };
 

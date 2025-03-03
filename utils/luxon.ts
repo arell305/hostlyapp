@@ -85,3 +85,7 @@ export const formatToTimeAndShortDate = (timestamp: number): string => {
 export const isPast = (timestamp: number): boolean => {
   return DateTime.now().toMillis() > timestamp;
 };
+
+export const formatArrivalTime = (timestamp: number) => {
+  return DateTime.fromMillis(timestamp).toFormat("h:mma");
+};

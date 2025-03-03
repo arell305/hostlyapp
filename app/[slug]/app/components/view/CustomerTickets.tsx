@@ -1,4 +1,3 @@
-import { TicketInfo } from "@/types/types";
 import React from "react";
 import { CiCircleMinus, CiCirclePlus } from "react-icons/ci";
 import {
@@ -12,10 +11,9 @@ import {
   CustomerTicket,
   PromoterPromoCodeWithDiscount,
   TicketInfoSchema,
-  TicketSchema,
 } from "@/types/schemas-types";
 import CustomerTicketCard from "../cards/CustomerTicketCard";
-import { CardElement, Elements, PaymentElement } from "@stripe/react-stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
 import { Stripe, loadStripe } from "@stripe/stripe-js";
 import TicketPaymentForm from "../TicketPaymentForm";
 
@@ -261,7 +259,7 @@ const CustomerTicketView: React.FC<CustomerTicketViewProps> = ({
               onClick={onCheckout}
               disabled={isCheckoutLoading}
             >
-              {isCheckoutLoading ? "CheckingOut..." : "Checkout"}
+              {isCheckoutLoading ? "Checking Out..." : "Checkout"}
             </Button>
             <p
               className={`pl-4 text-sm mt-1 ${checkoutError ? "text-red-500" : "text-transparent"}`}
@@ -274,44 +272,6 @@ const CustomerTicketView: React.FC<CustomerTicketViewProps> = ({
               <TicketPaymentForm />
             </Elements>
           )}
-          {/* <div className="mt-4">
-            <Label>Email</Label>
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setEmailError("");
-              }}
-              error={emailError}
-            />
-            <p
-              className={`pl-4 text-sm mt-1 ${emailError ? "text-red-500" : "text-transparent"}`}
-            >
-              {emailError || "Placeholder to maintain height"}
-            </p>
-          </div>
-          <div className="mt-4">
-            <Label>Payment Details</Label>
-            <div className="border border-gray-300 rounded p-3">
-              <CardElement options={{ hidePostalCode: true }} />
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <Button
-              className="w-full"
-              onClick={onPurchase}
-              disabled={isPurchaseLoading || !email}
-            >
-              {isPurchaseLoading ? "Processing..." : "Purchase Tickets"}
-            </Button>
-          </div>
-
-          {purchaseError && (
-            <p className="text-red-500 text-center mt-2">{purchaseError}</p>
-          )} */}
         </>
       )}
     </div>

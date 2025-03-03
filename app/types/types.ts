@@ -104,13 +104,13 @@ export interface EventData {
 }
 
 export interface PromoCodeUsage {
-  _id: Id<"promoCodeUsage">; // Unique identifier for the promo code usage
-  _creationTime: number; // Timestamp for when the usage was created
-  promoCodeId: Id<"promoterPromoCode">; // Reference to the associated promo code
-  eventId: Id<"events">; // Reference to the associated event
-  clerkPromoterUserId: string; // ID of the promoter using the promo code
-  maleUsageCount: number; // Count of male usages
-  femaleUsageCount: number; // Count of female usages
+  _id: Id<"promoCodeUsage">;
+  _creationTime: number;
+  promoCodeId: Id<"promoterPromoCode">;
+  eventId: Id<"events">;
+  promoterUserId: Id<"users">;
+  maleUsageCount: number;
+  femaleUsageCount: number;
 }
 
 export interface TotalUsage {
@@ -139,20 +139,13 @@ export interface EventFormData {
   femaleTicketCapacity?: string | null;
   ticketSalesEndTime?: number | null;
 }
-
-export interface getPromotersByOrganizationResponse {
-  status: ResponseStatus;
-  data: Promoter[] | null;
-  error?: string;
-}
-
 export interface Promoter {
-  clerkUserId?: string;
+  promoterUserId?: Id<"users">;
   name?: string;
 }
 
 export interface PromoCodeUsageData {
-  promoterId: string;
+  promoterUserId: Id<"users">;
   maleUsageCount: number;
   femaleUsageCount: number;
   promoCodeId: Id<"promoterPromoCode"> | null;
@@ -164,19 +157,6 @@ export interface GetPromoCodeUsageByPromoterAndEventResponse {
   error?: string;
 }
 
-export interface GetEventWithGuestListsResponse {
-  status: ResponseStatus;
-  data: EventWithGuestListsData | null;
-  error?: string | null;
-}
-
-export interface EventWithGuestListsData {
-  event: EventSchema;
-  guests: Guest[];
-  totalMales: number;
-  totalFemales: number;
-}
-
 export interface Guest {
   promoterId: string;
   promoterName: string;
@@ -185,8 +165,8 @@ export interface Guest {
   malesInGroup?: number;
   femalesInGroup?: number;
   checkInTime?: number;
-  id: string; // Assuming this is the guest's unique ID
-  name: string; // Assuming this is the guest's name
+  id: string;
+  name: string;
 }
 
 export interface VenueSchema {
@@ -207,7 +187,7 @@ export interface GuestListSchema {
   _id: Id<"guestLists">;
   names: GuestListNameSchema[];
   eventId: Id<"events">;
-  clerkPromoterId: string;
+  userPromoterId: Id<"users">;
 }
 
 export interface Promoters {
@@ -225,55 +205,6 @@ export interface AllGuestSchema {
   promoterId: string;
   promoterName: string;
   guestListId: Id<"guestLists">;
-}
-
-export interface UpdateGuestAttendanceResponse {
-  status: ResponseStatus;
-  data: GuestListNameSchema | null;
-  error?: string | null;
-}
-
-export interface GetGuestListByPromoterResponse {
-  status: ResponseStatus;
-  data: PromoterGuests | null;
-  error?: string | null;
-}
-export interface PromoterGuests {
-  guestListId: Id<"guestLists">;
-  names: GuestListNameSchema[];
-}
-
-export interface AddGuestListResponse {
-  status: ResponseStatus;
-  data: AddGuestListData | null;
-  error?: string | null;
-}
-
-export interface AddGuestListData {
-  guestListId: Id<"guestLists">;
-  names: NewGuest[];
-}
-
-export interface NewGuest {
-  id: string;
-  name: string;
-}
-
-export interface AddGuestListResponse {
-  status: ResponseStatus;
-  data: AddGuestListData | null;
-  error?: string | null;
-}
-
-export interface UpdateGuestNameResponse {
-  status: ResponseStatus;
-  data: UpdateGuestNameData | null;
-  error?: string | null;
-}
-
-export interface UpdateGuestNameData {
-  guestListId: Id<"guestLists">;
-  updatedGuest?: GuestListNameSchema;
 }
 
 export interface DeleteGuestNameResponse {
@@ -311,7 +242,7 @@ export interface OrganizationsSchema {
   _id: Id<"organizations">;
   clerkOrganizationId: string;
   name: string;
-  imageUrl?: string;
+  photo: Id<"_storage"> | null;
   customerId: Id<"customers">;
   promoDiscount: number;
   isActive?: boolean;
@@ -413,51 +344,6 @@ export interface GetEventsByOrgAndMonthData {
   eventData: EventSchema[];
 }
 
-export interface GetCustomerDetailsResponse {
-  status: ResponseStatus;
-  data: GetCustomerDetailsData | null;
-  error?: string | null;
-}
-export interface GetCustomerDetailsData {
-  customerData: CustomerWithPayment;
-}
-
-export interface CancelSubscriptionResponse {
-  status: ResponseStatus;
-  data: CancelSubscriptionData | null;
-  error?: string | null;
-}
-
-export interface CancelSubscriptionData {
-  id: Id<"customers">;
-}
-
-export interface ResumeSubscriptionResponse {
-  status: ResponseStatus;
-  data: ResumeSubscriptionData | null;
-  error?: string | null;
-}
-
-export interface ResumeSubscriptionData {
-  id: Id<"customers">;
-}
-
-export interface GetOrganizationMembershipsResponse {
-  status: ResponseStatus;
-  data: GetOrganizationMembershipsData | null;
-  error?: string | null;
-}
-
-export interface GetOrganizationMembershipsData {
-  memberships: Membership[];
-}
-
-export interface GetOrganizationMembershipsResponse {
-  status: ResponseStatus;
-  data: GetOrganizationMembershipsData | null;
-  error?: string | null;
-}
-
 export interface GetPendingInvitationListResponse {
   status: ResponseStatus;
   data: GetPendingInvitationListData | null;
@@ -466,26 +352,6 @@ export interface GetPendingInvitationListResponse {
 
 export interface GetPendingInvitationListData {
   pendingInvitationUsers: PendingInvitationUser[];
-}
-
-export interface RevokeOrganizationInvitationResponse {
-  status: ResponseStatus;
-  data: RevokeOrganizationInvitationData | null;
-  error?: string | null;
-}
-
-export interface RevokeOrganizationInvitationData {
-  clerkInvitationId: string;
-}
-
-export interface CreateClerkInvitationResponse {
-  status: ResponseStatus;
-  data: CreateClerkInvitationData | null;
-  error?: string | null;
-}
-
-export interface CreateClerkInvitationData {
-  clerkInvitationId: string;
 }
 
 export type FindUserByClerkIdResponse =
@@ -505,6 +371,7 @@ export interface UserSchema {
   role: UserRole | null;
   name?: string;
   isActive: boolean;
+  imageUrl?: string;
 }
 
 export interface UserWithPromoCode extends UserSchema {
@@ -549,3 +416,50 @@ export interface SubscriptionBillingCycle {
   endDate: number;
   eventCount: number;
 }
+
+export type CustomerSubscriptionInfo = {
+  subscriptionTier: SubscriptionTier; // Adjust to enum if needed
+  customerId: Id<"customers">;
+  nextCycle: string | null; // Adjust if it's stored differently
+  status: SubscriptionStatus; // Assuming you're using an enum
+};
+
+export type ModalConfig = {
+  title: string;
+  message: string;
+  confirmText: string;
+  cancelText: string;
+  onConfirm: () => void;
+  error: string | null;
+  isLoading: boolean;
+};
+
+export interface AddressValue {
+  label: string;
+  value: {
+    description: string;
+    place_id: string;
+    structured_formatting: {
+      main_text: string;
+      secondary_text: string;
+    };
+  };
+}
+
+export type OrganizationDetails = {
+  name: string;
+  slug: string;
+  organizationId: string;
+  photoStorageId: Id<"_storage"> | null;
+  subscriptionStatus: SubscriptionStatus | null;
+  subscriptionTier: SubscriptionTier | null;
+};
+
+export type CompanyDataWithImage = {
+  name: string;
+  slug: string;
+  organizationId: string;
+  imageUrl: string | null;
+  subscriptionStatus: SubscriptionStatus | null;
+  subscriptionTier: SubscriptionTier | null;
+};

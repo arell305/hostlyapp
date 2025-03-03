@@ -1,4 +1,3 @@
-import React, { ReactNode } from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import ConfirmModal, {
   ConfirmModalProps,
@@ -60,7 +59,7 @@ const ResponsiveConfirm: React.FC<ResponsiveConfirmProps> = ({
     );
   }
 
-  return null; // Or some fallback UI
+  return null;
 };
 
 export default ResponsiveConfirm;

@@ -1,34 +1,30 @@
 "use client";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
-import EventInfoSkeleton from "../../app/components/loading/EventInfoSkeleton";
 import { ResponseStatus } from "../../../../utils/enum";
-import NotFound from "../../app/components/errors/NotFound";
 import DetailsView from "../../app/components/view/DetailsView";
 import About from "../../app/components/view/About";
-import TicketView from "../../app/components/view/Tickets";
-import QRCode from "qrcode";
 import _ from "lodash";
 import { isValidEmail } from "../../../../utils/helpers";
 import {
   CustomerTicket,
   PromoterPromoCodeWithDiscount,
-  TicketSchema,
 } from "@/types/schemas-types";
 import CustomerTicketView from "../../app/components/view/CustomerTickets";
 import { Button } from "@/components/ui/button";
-import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { FrontendErrorMessages, StripePaymentType } from "@/types/enums";
+import { FrontendErrorMessages } from "@/types/enums";
 import { useIsStripeEnabled } from "@/hooks/useIsStripeEnabled";
+import FullLoading from "@/[slug]/app/components/loading/FullLoading";
+import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
+import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 
 const EventWrapper = () => {
   const params = useParams();
   const eventId = params.eventId as string;
-  const companyName = params.companyName as string;
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
-
+  const slug = params.slug as string;
   // ticket purchase
   const [maleCount, setMaleCount] = useState<number>(0);
   const [femaleCount, setFemaleCount] = useState<number>(0);
@@ -41,8 +37,11 @@ const EventWrapper = () => {
   >(null);
   const insertTicketsSold = useAction(api.tickets.insertTicketsSold);
 
+  const stripe = useStripe();
+  const elements = useElements();
+
   // promo code
-  const [shouldValidate, setShouldValidate] = useState(false);
+  const [shouldValidate, setShouldValidate] = useState<boolean>(false);
   const [promoCode, setPromoCode] = useState<string>("");
   const [promoCodeError, setPromoCodeError] = useState<string>("");
   const [validationResult, setValidationResult] =
@@ -64,10 +63,19 @@ const EventWrapper = () => {
   const createPaymentIntent = useAction(api.stripe.createPaymentIntent);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
 
+  const {
+    isStripeEnabled,
+    connectedAccountId,
+    isLoading,
+    connectedAccountError,
+  } = useIsStripeEnabled({
+    slug,
+  });
+
   useEffect(() => {
     if (shouldValidate) {
+      setIsApplyPromoCodeLoading(true);
       if (validatePromoterPromoCodeQuery === undefined) {
-        // Query is still loading
       } else if (
         validatePromoterPromoCodeQuery.status === ResponseStatus.ERROR
       ) {
@@ -75,11 +83,9 @@ const EventWrapper = () => {
         setIsApplyPromoCodeLoading(false);
         setShouldValidate(false);
       } else {
-        // successful
         setIsPromoApplied(true);
         setPromoterId(
-          validatePromoterPromoCodeQuery.data.promoterPromoCode
-            .clerkPromoterUserId
+          validatePromoterPromoCodeQuery.data.promoterPromoCode.promoterUserId
         );
         setValidationResult(
           validatePromoterPromoCodeQuery.data.promoterPromoCode
@@ -95,7 +101,7 @@ const EventWrapper = () => {
       setPromoCodeError(FrontendErrorMessages.PROMO_CODE_REQUIRED);
       return;
     }
-    setIsApplyPromoCodeLoading(true);
+
     setShouldValidate(true);
   };
 
@@ -179,12 +185,8 @@ const EventWrapper = () => {
     }
   };
 
-  const { isStripeEnabled, connectedAccountData } = useIsStripeEnabled({
-    companyName,
-  });
-
   const handleCheckout = async () => {
-    if (!connectedAccountData || !connectedAccountData.data) {
+    if (!connectedAccountId) {
       setCheckoutError("Error loading stripe");
       return;
     }
@@ -192,8 +194,7 @@ const EventWrapper = () => {
     setCheckoutError(null);
     try {
       const response = await createPaymentIntent({
-        stripeAccountId:
-          connectedAccountData?.data?.connectedAccount.stripeAccountId,
+        stripeAccountId: connectedAccountId,
         totalAmount: 10,
       });
       if (response.status === ResponseStatus.ERROR) {
@@ -208,21 +209,22 @@ const EventWrapper = () => {
       setIsCheckoutLoading(false);
     }
   };
-  console.log("secret", clientSecret);
 
   const handleBrowseMoreEvents = () => {
-    // Logic for navigating to more events
-    const companyName = pathname.split("/")[1];
-    const newUrl = `/${companyName}`;
+    const slug = pathname.split("/")[1];
+    const newUrl = `/${slug}`;
     router.push(newUrl);
   };
 
-  if (getEventByIdResponse === undefined) {
-    return <EventInfoSkeleton />;
+  if (!getEventByIdResponse || isLoading) {
+    return <FullLoading />;
   }
 
-  if (getEventByIdResponse.status === ResponseStatus.ERROR) {
-    return <NotFound text={"event"} />; // Or handle it in another way
+  if (
+    getEventByIdResponse.status === ResponseStatus.ERROR ||
+    connectedAccountError
+  ) {
+    return <ErrorComponent message={FrontendErrorMessages.GENERIC_ERROR} />;
   }
 
   return (
@@ -238,7 +240,7 @@ const EventWrapper = () => {
         <div className=" flex flex-col justify-center items-center space-y-4  pb-4 pt-4 min-h-[100vh]">
           <DetailsView eventData={getEventByIdResponse.data.event} />
           <About description={getEventByIdResponse.data.event.description} />
-          {getEventByIdResponse.data.ticketInfo && (
+          {getEventByIdResponse.data.ticketInfo && isStripeEnabled && (
             <CustomerTicketView
               ticketData={getEventByIdResponse.data.ticketInfo}
               maleCount={maleCount}
@@ -266,9 +268,7 @@ const EventWrapper = () => {
               checkoutError={checkoutError}
               isCheckoutLoading={isCheckoutLoading}
               clientSecret={clientSecret}
-              stripeAccountId={
-                connectedAccountData?.data?.connectedAccount.stripeAccountId
-              }
+              stripeAccountId={connectedAccountId}
             />
           )}
         </div>

@@ -76,10 +76,6 @@ export const canCreateEvents = (role: UserRole | null): boolean => {
   return role !== null && allowedRoles.includes(role);
 };
 
-export const formatArrivalTime = (timestamp: string) => {
-  return format(new Date(timestamp), "h:mma");
-};
-
 export const formatUnixArrivalTime = (timestamp: number): string => {
   return format(new Date(timestamp), "h:mma");
 };

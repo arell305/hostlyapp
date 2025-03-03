@@ -15,27 +15,34 @@ import { Textarea } from "@/components/ui/textarea";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import BaseDrawer from "./drawer/BaseDrawer";
 import _ from "lodash";
+import { FrontendErrorMessages } from "@/types/enums";
+import { ResponseStatus } from "../../../../utils/enum";
 
 interface AddGuestListModalProps {
   isOpen: boolean;
   onClose: () => void;
-  promoterId: string;
   eventId: Id<"events">;
 }
 
 const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
   isOpen,
   onClose,
-  promoterId,
   eventId,
 }) => {
   const [guestNames, setGuestNames] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<null | string>(null);
   const addGuestList = useMutation(api.guestLists.addGuestList);
   const { toast } = useToast();
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const handleSubmitGuestList = async () => {
+    setError(null);
+
+    if (guestNames.trim() === "") {
+      setError(FrontendErrorMessages.NAME_EMPTY);
+      return;
+    }
     const names = guestNames
       .split("\n")
       .map((name) => name.trim())
@@ -46,26 +53,27 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
           .map((word) => _.capitalize(word.toLowerCase()))
           .join(" ")
       );
+    setLoading(true);
     try {
-      setLoading(true);
-      await addGuestList({
+      const response = await addGuestList({
         newNames: names,
-        clerkPromoterId: promoterId,
         eventId,
       });
-      setGuestNames("");
-      toast({
-        title: "Guests Added",
-        description: "The guest lists has successfully been updated",
-      });
-      onClose();
+
+      if (response.status === ResponseStatus.SUCCESS) {
+        setGuestNames("");
+        toast({
+          title: "Guests Added",
+          description: "The guest lists has successfully been updated",
+        });
+        onClose();
+      } else {
+        setError(FrontendErrorMessages.GENERIC_ERROR);
+        console.error(response.error);
+      }
     } catch (error) {
       console.error("Error uploading guest list:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add guests. Please try again",
-        variant: "destructive",
-      });
+      setError(FrontendErrorMessages.GENERIC_ERROR);
     } finally {
       setLoading(false);
     }
@@ -92,6 +100,13 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
               {loading ? "Adding..." : "Add Guests"}{" "}
             </Button>{" "}
           </DialogFooter>
+          <p
+            className={`text-sm mt-1 ${
+              error ? "text-red-500" : "text-transparent"
+            }`}
+          >
+            {error || "Placeholder to maintain height"}
+          </p>
         </DialogContent>
       </Dialog>
     );
@@ -105,7 +120,7 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
       confirmText={loading ? "Saving..." : "Save"}
       cancelText="Cancel"
       onSubmit={handleSubmitGuestList}
-      error={null}
+      error={error}
       isLoading={loading}
     >
       <Textarea

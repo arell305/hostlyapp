@@ -19,8 +19,7 @@ interface DashboardNavbarProps {
 
 const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
   ({ toggleNavbar, isOpen }) => {
-    const { user, loaded } = useClerk();
-    const { organization, isLoaded } = useOrganization();
+    const { user, loaded, organization } = useClerk();
 
     const [isPromoCodeModalOpen, setIsPromoCodeModalOpen] = useState(false);
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
@@ -48,7 +47,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     }, []);
 
     // Show loading state until user data is loaded
-    if (!loaded) {
+    if (!loaded || !userFromDb) {
       return (
         <nav className="w-full z-10 top-0 border-b border-gray-200 fixed h-14 bg-white">
           {/* Loading indicator can be added here */}

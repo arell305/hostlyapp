@@ -6,13 +6,12 @@ import EditCompanyImageDrawer from "../drawer/EditCompanyImageDrawer";
 type CommonProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  photoPreview: string | null;
-  companyPhoto: File | null;
-  setCompanyPhoto: (file: File | null) => void;
+  photoPreview?: string | null;
   error: string | null;
   isLoading: boolean;
   onSavePhoto: () => void;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  photoUploadError: string | null;
 };
 
 type ResponsiveCompanyImageProps = CommonProps & {

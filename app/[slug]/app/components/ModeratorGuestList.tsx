@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { FaSearch } from "react-icons/fa";
 import GuestCard from "./GuestCard";
 import { toast } from "@/hooks/use-toast";
-import DetailsSkeleton from "./loading/DetailsSkeleton";
 import { GuestWithPromoter } from "@/types/types";
 import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";
 import { FiClock } from "react-icons/fi";
@@ -14,6 +13,9 @@ import { MdOutlineCancel } from "react-icons/md";
 import ResponsiveGuestCheckIn from "./responsive/ResponsiveGuestCheckIn";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { formatToTimeAndShortDate } from "../../../../utils/luxon";
+import FullLoading from "./loading/FullLoading";
+import { ResponseStatus } from "../../../../utils/enum";
+import ErrorComponent from "./errors/ErrorComponent";
 
 interface EventGuestListProps {
   eventId: Id<"events">;
@@ -75,7 +77,6 @@ const ModeratorGuestList = ({
   const handleCheckInGuest = (guestId: string) => {
     const guest = filteredGuests.find((g) => g.id === guestId);
     if (guest) {
-      console.log("check");
       setSelectedGuest(guest);
       setIsModalOpen(true);
     }
@@ -91,32 +92,43 @@ const ModeratorGuestList = ({
     maleCount: number,
     femaleCount: number
   ) => {
-    if (selectedGuest && selectedGuest.guestListId) {
-      setIsCheckInGuestLoading(true);
-      try {
-        await updateGuestAttendance({
-          guestListId: selectedGuest.guestListId,
-          guestId,
-          attended: true,
-          malesInGroup: maleCount,
-          femalesInGroup: femaleCount,
-        });
+    if (!selectedGuest || !selectedGuest.guestListId) {
+      setIsCheckInGuestError("No guest selected");
+      return;
+    }
+    setIsCheckInGuestLoading(true);
+    try {
+      const response = await updateGuestAttendance({
+        guestListId: selectedGuest.guestListId,
+        guestId,
+        attended: true,
+        malesInGroup: maleCount,
+        femalesInGroup: femaleCount,
+      });
+      if (response.status === ResponseStatus.SUCCESS) {
         toast({
           title: "Guest checked in successfully",
           description: "The guest's attendance has been recorded.",
         });
         closeModal();
-      } catch (error) {
-        console.error("Error updating guest attendance:", error);
-        setIsCheckInGuestError("Error updating guest attendance");
-      } finally {
-        setIsCheckInGuestLoading(false);
+      } else {
+        setIsCheckInGuestError(response.error);
+        console.error(response.error);
       }
+    } catch (error) {
+      console.error("Error updating guest attendance:", error);
+      setIsCheckInGuestError("Error updating guest attendance");
+    } finally {
+      setIsCheckInGuestLoading(false);
     }
   };
 
-  if (getEventWithGuestListsResponse === undefined) {
-    return <DetailsSkeleton />;
+  if (!getEventWithGuestListsResponse) {
+    return <FullLoading />;
+  }
+
+  if (getEventWithGuestListsResponse.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={getEventWithGuestListsResponse.error} />;
   }
 
   return (

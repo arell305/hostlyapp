@@ -3,81 +3,86 @@ import { Protect, useAuth, useClerk } from "@clerk/nextjs";
 import React, { useEffect, useState } from "react";
 import { useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { Membership, PendingInvitationUser } from "@/types/types";
+import { PendingInvitationUser } from "@/types/types";
 import MemberCard from "./MemberCard";
 import { ResponseStatus, UserRole } from "../../../../utils/enum";
 import { useToast } from "@/hooks/use-toast";
 import PendingUserCard from "./PendingUserCard";
-import SkeletonMemberCard from "../components/loading/MemberCardSkeleton";
 import ResponsiveConfirm from "@/[slug]/app/components/responsive/ResponsiveConfirm";
 import ResponsiveInviteUser from "../components/responsive/ResponsiveInviteUser";
 import { useParams } from "next/navigation";
+import { UserSchema } from "@/types/schemas-types";
+import FullLoading from "../components/loading/FullLoading";
+import ErrorComponent from "../components/errors/ErrorComponent";
+import { Permission } from "@/types/enums";
 
 const Team = () => {
-  const { organization, user, loaded } = useClerk();
+  const { organization, user } = useClerk();
   const { slug } = useParams();
   const { toast } = useToast();
-  const { isLoaded, orgRole } = useAuth();
-  console.log("org", organization);
-  console.log("user", user);
+  const { orgRole } = useAuth();
+
   const isHostlyAdmin =
     orgRole === UserRole.Hostly_Admin || orgRole === UserRole.Hostly_Moderator;
 
-  const cleanCompanyName =
+  const cleanSlug =
     typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
 
-  const isHostlyPage = cleanCompanyName === "admin";
+  const isHostlyPage = cleanSlug === "admin";
 
-  const organizationData = useQuery(
-    api.organizations.getOrganizationByNameQuery,
-    cleanCompanyName ? { name: cleanCompanyName } : "skip"
+  const companyUsersData = useQuery(
+    api.organizations.getUsersByOrganizationSlug,
+    cleanSlug ? { slug: cleanSlug } : "skip"
   );
 
-  const getOrganizationMembership = useAction(
-    api.clerk.getOrganizationMemberships
-  );
   const getPendingInvitationList = useAction(
     api.clerk.getPendingInvitationList
   );
-  const [organizationalMembership, setOrganizationalMembership] = useState<
-    Membership[]
-  >([]);
+
+  const [companyMembers, setCompanyMembers] = useState<UserSchema[]>([]);
+  const [deltedMembers, setDeletedMembers] = useState<UserSchema[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const deleteClerkUser = useAction(api.clerk.deleteClerkUser);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false);
   const [errorRevoke, setErrorRevoke] = useState<string | null>(null);
   const [isRevokeLoading, setIsRevokeLoading] = useState<boolean>(false);
   const [revokeUserId, setRevokeUserId] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<"active" | "pending">("active");
+  const [activeTab, setActiveTab] = useState<"active" | "pending" | "deleted">(
+    "active"
+  );
   const [pendingUsers, setPendingUsers] = useState<PendingInvitationUser[]>([]);
   const [loadingMembers, setLoadingMembers] = useState<boolean>(false);
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
 
   const fetchData = async () => {
-    if (!organizationData) return;
-    if (organizationData.data?.organization.clerkOrganizationId === undefined)
+    if (!companyUsersData) {
       return;
-    setLoadingMembers(true);
+    }
+    if (companyUsersData.status === ResponseStatus.ERROR) {
+      setError(companyUsersData.error);
+    } else {
+      const allUsers = companyUsersData.data?.users ?? [];
+      const activeUsers = allUsers
+        .filter((user) => user.isActive)
+        .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+      const deletedMembers = allUsers
+        .filter((user) => !user.isActive)
+        .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+      setCompanyMembers(activeUsers);
+      setDeletedMembers(deletedMembers);
+    }
 
     try {
-      const [membershipResult, pendingResult] = await Promise.all([
-        getOrganizationMembership({
-          clerkOrgId: organizationData.data?.organization.clerkOrganizationId,
-        }),
-        getPendingInvitationList({
-          clerkOrgId: organizationData.data?.organization.clerkOrganizationId,
-        }),
-      ]);
-
-      if (membershipResult.data?.memberships) {
-        setOrganizationalMembership(membershipResult.data.memberships);
-      }
-
-      if (pendingResult.data?.pendingInvitationUsers) {
-        setPendingUsers(pendingResult.data.pendingInvitationUsers);
+      if (companyUsersData.data?.clerkOrganizationId) {
+        const membership = await getPendingInvitationList({
+          clerkOrgId: companyUsersData.data?.clerkOrganizationId,
+        });
+        if (membership.data?.pendingInvitationUsers) {
+          setPendingUsers(membership.data.pendingInvitationUsers);
+        }
       }
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -88,15 +93,7 @@ const Team = () => {
   };
   useEffect(() => {
     fetchData();
-  }, [getOrganizationMembership, getPendingInvitationList, organizationData]);
-
-  const handleSaveRole = async (clerkUserId: string, role: UserRole) => {
-    setOrganizationalMembership((prevMembers) =>
-      prevMembers.map((member) =>
-        member.clerkUserId === clerkUserId ? { ...member, role } : member
-      )
-    );
-  };
+  }, [getPendingInvitationList, companyUsersData]);
 
   const revokeOrganizationInvitation = useAction(
     api.clerk.revokeOrganizationInvitation
@@ -108,27 +105,32 @@ const Team = () => {
   };
 
   const handleRevokeConfirmation = async () => {
+    setErrorRevoke(null);
+    if (!revokeUserId) {
+      setErrorRevoke("Error finding invitation");
+      return;
+    }
+    if (!companyUsersData?.data) {
+      setErrorRevoke("Error loading company");
+      return;
+    }
+    setIsRevokeLoading(true);
     try {
-      setIsRevokeLoading(true);
-      if (organization && user && revokeUserId) {
-        setIsRevokeLoading(true);
-        const result = await revokeOrganizationInvitation({
-          clerkOrgId: organization.id,
-          clerkUserId: user.id,
-          clerkInvitationId: revokeUserId,
-        });
+      const result = await revokeOrganizationInvitation({
+        clerkOrgId: companyUsersData?.data?.clerkOrganizationId,
+        clerkInvitationId: revokeUserId,
+      });
 
-        if (result.status === ResponseStatus.SUCCESS) {
-          // fetchData();
-          toast({
-            title: "Invitation Revoked",
-            description: "The invitation has successfully been revoked.",
-          });
-          setShowRevokeConfirm(false);
-          fetchData();
-        } else {
-          setErrorRevoke(result.error || "Failed to revoke invitation");
-        }
+      if (result.status === ResponseStatus.ERROR) {
+        console.log(result.error);
+        setErrorRevoke("Error revoking invitation");
+      } else {
+        toast({
+          title: "Invitation Revoked",
+          description: "The invitation has successfully been revoked.",
+        });
+        setShowRevokeConfirm(false);
+        fetchData();
       }
     } catch (error) {
       setErrorRevoke("Failed to revoke invitation");
@@ -144,21 +146,11 @@ const Team = () => {
 
   const isReady = organization && user && !loadingMembers;
 
-  if (!isLoaded) {
-    return;
-  }
   if (!isReady) {
-    return (
-      <div className="justify-center  max-w-3xl  mx-auto mt-1.5  md:min-h-[300px]">
-        <div className="flex flex-col justify-between items-center w-full px-4 pt-6 mb-4">
-          <SkeletonMemberCard />
-          <SkeletonMemberCard />
-        </div>
-      </div>
-    );
+    return <FullLoading />;
   }
   if (error) {
-    return <div>Error: {error}</div>;
+    return <ErrorComponent message={error} />;
   }
   return (
     <div className="justify-center  max-w-3xl  mx-auto mt-1.5 md:min-h-[300px]">
@@ -166,9 +158,9 @@ const Team = () => {
         <h1 className=" text-3xl md:text-4xl font-bold ">Team Members</h1>
         <Protect
           condition={(has) =>
-            has({ permission: "org:events:create" }) ||
-            (has({ permission: "org:app:moderate" }) &&
-              cleanCompanyName === "admin")
+            has({ permission: Permission.CREATE_EVENT }) ||
+            (has({ permission: Permission.MODERATE_APP }) &&
+              cleanSlug === "admin")
           }
         >
           <p
@@ -181,8 +173,8 @@ const Team = () => {
       </div>
       <Protect
         condition={(has) =>
-          has({ permission: "org:events:create" }) ||
-          has({ permission: "org:app:moderate" })
+          has({ permission: Permission.CREATE_EVENT }) ||
+          has({ permission: Permission.MODERATE_APP })
         }
       >
         <div className="relative w-full mb-1.5">
@@ -200,7 +192,7 @@ const Team = () => {
               }`}
               onClick={() => setActiveTab("active")}
             >
-              Active Users
+              Active
             </button>
             <button
               className={`tab pb-2 flex-1 text-center ${
@@ -210,29 +202,42 @@ const Team = () => {
               }`}
               onClick={() => setActiveTab("pending")}
             >
-              Pending Users
+              Pending
+            </button>
+            <button
+              className={`tab pb-2 flex-1 text-center ${
+                activeTab === "deleted"
+                  ? "font-bold text-black"
+                  : "hover:underline text-gray-600"
+              }`}
+              onClick={() => setActiveTab("deleted")}
+            >
+              Deleted
             </button>
           </div>
           {/* Active underline */}
           <div
-            className={`absolute rounded left-0 bottom-0 h-[3px] bg-customDarkBlue transition-all duration-300 ease-in-out`}
+            className="absolute rounded left-0 bottom-0 h-[3px] bg-customDarkBlue transition-all duration-300 ease-in-out"
             style={{
-              width: "50%",
+              width: "33.33%",
               transform:
-                activeTab === "active" ? "translateX(0)" : "translateX(100%)",
+                activeTab === "active"
+                  ? "translateX(0%)"
+                  : activeTab === "pending"
+                    ? "translateX(100%)"
+                    : "translateX(200%)",
             }}
           />
         </div>
       </Protect>
       {activeTab === "active" && (
         <div className="w-full">
-          {organizationalMembership.map((member) => (
+          {companyMembers.map((member) => (
             <MemberCard
               key={member.clerkUserId}
-              firstName={member.firstName}
-              lastName={member.lastName}
+              name={member.name}
               role={member.role as UserRole}
-              imageUrl={member.imageUrl || ""}
+              imageUrl={member.imageUrl}
               clerkUserId={member.clerkUserId || ""}
               isCurrentUser={user.id === member.clerkUserId}
             />
@@ -257,11 +262,28 @@ const Team = () => {
           )}
         </div>
       )}
+      {activeTab === "deleted" && (
+        <div className="w-full">
+          {deltedMembers.length === 0 ? (
+            <p className="text-center text-gray-500 mt-4">No deleted users.</p>
+          ) : (
+            deltedMembers.map((member) => (
+              <MemberCard
+                key={member.clerkUserId}
+                name={member.name}
+                role={member.role as UserRole}
+                imageUrl={member.imageUrl}
+                clerkUserId={member.clerkUserId || ""}
+                isCurrentUser={user.id === member.clerkUserId}
+              />
+            ))
+          )}
+        </div>
+      )}
       <ResponsiveInviteUser
         isOpen={isInviteModalOpen}
         onOpenChange={setIsInviteModalOpen}
         clerkOrganizationId={organization.id}
-        inviterUserClerkId={user.id}
         onInviteSuccess={handleInviteSuccess}
         isHostlyAdmin={isHostlyAdmin}
       />

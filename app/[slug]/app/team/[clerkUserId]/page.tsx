@@ -1,10 +1,9 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useAction, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import { notFound } from "next/navigation";
 import { ResponseStatus, UserRole } from "../../../../../utils/enum";
-import { ErrorMessages } from "@/types/enums";
+import { FrontendErrorMessages } from "@/types/enums";
 import UserIdContent from "./UserIdContent";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -12,13 +11,15 @@ import ResponsiveEditUser from "@/[slug]/app/components/responsive/ResponsiveEdi
 import { useEffect, useState } from "react";
 import ResponsiveConfirm from "@/[slug]/app/components/responsive/ResponsiveConfirm";
 import { useToast } from "@/hooks/use-toast";
+import FullLoading from "../../components/loading/FullLoading";
+import ErrorComponent from "../../components/errors/ErrorComponent";
 
 const UserWrapper = () => {
   const params = useParams();
   const currentClerkUserId = params.clerkUserId as string;
   const { has } = useAuth();
   const router = useRouter();
-  const { organization, user, loaded } = useClerk();
+  const { user } = useClerk();
   const [errorEditRole, setErrorEditRole] = useState<string | null>(null);
   const [loadingEditRole, setLoadingEditRole] = useState<boolean>(false);
   const [showResponsiveEditUser, setShowResponsiveEditUser] =
@@ -26,7 +27,12 @@ const UserWrapper = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [errorDeleteUser, setErrorDeleteUser] = useState<string | null>(null);
   const [loadingDeleteUser, setLoadingDeleteUser] = useState<boolean>(false);
-  const [userDeleted, setUserDeleted] = useState<boolean>(false);
+
+  const [errorResumeUser, setErrorReactivateUser] = useState<string | null>(
+    null
+  );
+  const [loadingReactivate, setLoadingReactivateUser] =
+    useState<boolean>(false);
 
   const onBack = () => {
     router.back();
@@ -36,7 +42,7 @@ const UserWrapper = () => {
   const updateOrganizationMemberships = useAction(
     api.clerk.updateOrganizationMemberships
   );
-  const deleteClerkUser = useAction(api.clerk.deleteClerkUser);
+  const updateUserByClerkId = useMutation(api.users.updateUserByClerkId);
 
   const userFromDb = useQuery(api.users.findUserByClerkId, {
     clerkUserId: currentClerkUserId,
@@ -50,44 +56,45 @@ const UserWrapper = () => {
     }
   }, [userFromDb?.data?.user?.role]);
 
-  useEffect(() => {
-    if (userDeleted) {
-      const timer = setTimeout(() => {
-        router.push("/");
-      }, 3000); // Navigate after 3 seconds
-
-      return () => clearTimeout(timer);
-    }
-  }, [userDeleted, router]);
-
   const handleShowEditUser = () => {
     setShowResponsiveEditUser(true);
   };
 
   const handleSaveRole = async () => {
-    if (!organization || !role) {
+    setErrorEditRole(null);
+
+    if (!role) {
+      setErrorEditRole("Role not selected");
       return;
     }
-
     if (userFromDb?.data?.user?.role === role) {
       return setShowResponsiveEditUser(false);
     }
-    setErrorEditRole(null);
+
+    if (!userFromDb?.data?.user.organizationId) {
+      setErrorEditRole(FrontendErrorMessages.GENERIC_ERROR);
+      return;
+    }
+
     setLoadingEditRole(true);
     try {
       const response = await updateOrganizationMemberships({
-        clerkOrgId: organization.id, // Get the organization ID from the user data
-        clerkUserId: currentClerkUserId, // Pass the current Clerk user ID
-        role, // Use the state directly
+        organizationId: userFromDb?.data?.user.organizationId,
+        role,
       });
       if (response.status === ResponseStatus.SUCCESS) {
+        toast({
+          title: "User Updated",
+          description: "The user role has successfully been updated",
+        });
         return setShowResponsiveEditUser(false);
       } else {
-        setErrorEditRole(response.error);
+        console.error(response.error);
+        setErrorEditRole(FrontendErrorMessages.GENERIC_ERROR);
       }
     } catch (error) {
-      console.error("Unexpected error occurred:", error);
-      setErrorEditRole("Unexpected error occurred");
+      console.error(FrontendErrorMessages.GENERIC_ERROR, error);
+      setErrorEditRole(FrontendErrorMessages.GENERIC_ERROR);
     } finally {
       setLoadingEditRole(false);
     }
@@ -98,13 +105,13 @@ const UserWrapper = () => {
   };
 
   const handleDeleteUser = async () => {
-    setUserDeleted(true); // Set this to true immediately
-    setShowDeleteConfirmation(false);
+    setErrorDeleteUser(null);
     setLoadingDeleteUser(true);
 
     try {
-      const response = await deleteClerkUser({
+      const response = await updateUserByClerkId({
         clerkUserId: currentClerkUserId,
+        isActive: false,
       });
 
       if (response.status === ResponseStatus.SUCCESS) {
@@ -112,63 +119,56 @@ const UserWrapper = () => {
           title: "User deleted",
           description: "The user has successfully been deleted",
         });
-        // Don't navigate here, let the useEffect handle it
+        setShowDeleteConfirmation(false);
       } else {
         console.error("Failed to delete user:", response.error);
-        toast({
-          title: "Error",
-          description: "Failed to delete the user. Please try again.",
-          variant: "destructive",
-        });
-        setUserDeleted(false); // Reset if deletion failed
+        setErrorDeleteUser(FrontendErrorMessages.GENERIC_ERROR);
       }
     } catch (error) {
       console.error("Failed to delete user:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete the user. Please try again.",
-        variant: "destructive",
-      });
-      setUserDeleted(false); // Reset if deletion failed
+      setErrorDeleteUser(FrontendErrorMessages.GENERIC_ERROR);
     } finally {
       setLoadingDeleteUser(false);
     }
   };
 
-  if (userDeleted) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center p-8 bg-white shadow-xl rounded-lg">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">
-            User Deleted
-          </h1>
-          <p className="text-gray-600">
-            This user has been successfully deleted. Redirecting...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const handleReactivateUser = async () => {
+    setErrorReactivateUser(null);
+    setLoadingReactivateUser(true);
 
-  if (!userFromDb || !has) {
-    return <div>Loading...</div>; // Or any loading indicator
-  }
+    try {
+      const response = await updateUserByClerkId({
+        clerkUserId: currentClerkUserId,
+        isActive: true,
+      });
 
-  // make this into function
-  if (userFromDb.status === ResponseStatus.ERROR) {
-    if (userFromDb.error === ErrorMessages.NOT_FOUND) {
-      return notFound(); // This will trigger Next.js 404 page
-    } else if (userFromDb.error === ErrorMessages.UNAUTHENTICATED) {
-      return <p>Unauthenticated</p>;
-    } else if (userFromDb.error === ErrorMessages.FORBIDDEN) {
-      return <p>Forbidden</p>;
-    } else {
-      return <p>Unkown Error</p>;
+      if (response.status === ResponseStatus.SUCCESS) {
+        toast({
+          title: "User Reactivated",
+          description: "The user has successfully been reactivated",
+        });
+        setShowDeleteConfirmation(false);
+      } else {
+        console.error("Failed to reactivate user:", response.error);
+        setErrorReactivateUser(FrontendErrorMessages.GENERIC_ERROR);
+      }
+    } catch (error) {
+      console.error("Failed to reactivate user:", error);
+      setErrorReactivateUser(FrontendErrorMessages.GENERIC_ERROR);
+    } finally {
+      setLoadingReactivateUser(false);
     }
+  };
+
+  if (!userFromDb || !has || !user) {
+    return <FullLoading />;
   }
 
-  const isAdmin = has({ role: UserRole.Admin });
-  console.log("admin", isAdmin);
+  const isCurrentUser = currentClerkUserId === user?.id;
+
+  if (userFromDb.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={userFromDb.error} />;
+  }
 
   return (
     <>
@@ -178,6 +178,10 @@ const UserWrapper = () => {
         onDelete={handleShowDeleteConfirmation}
         onEdit={handleShowEditUser}
         has={has}
+        isCurrentUser={isCurrentUser}
+        onReactivateUser={handleReactivateUser}
+        errorResumeUser={errorResumeUser}
+        loadingReactivate={loadingReactivate}
       />
       {role !== null && (
         <ResponsiveEditUser

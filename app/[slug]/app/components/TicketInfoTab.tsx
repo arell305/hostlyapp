@@ -2,9 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { TicketInfo } from "@/types/types";
 import { PiNewspaper } from "react-icons/pi";
-
 import {
   Select,
   SelectContent,
@@ -16,7 +14,6 @@ import DetailsSkeleton from "./loading/DetailsSkeleton";
 import { TbCircleLetterM } from "react-icons/tb";
 import { TbCircleLetterF } from "react-icons/tb";
 import { FiClock } from "react-icons/fi";
-import moment from "moment";
 import {
   TicketInfoSchema,
   TicketSchema,
@@ -31,24 +28,25 @@ import { Input } from "@/components/ui/input";
 import { MdOutlineCancel } from "react-icons/md";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { Gender, Permission } from "@/types/enums";
-import { formatToTimeAndShortDate } from "../../../../utils/luxon";
+import { formatToTimeAndShortDate, isPast } from "../../../../utils/luxon";
+import { Promoter } from "@/types/types";
 
 interface TicketInfoTabProps {
   ticketData?: TicketInfoSchema | null;
   canViewAllTickets?: boolean;
   eventId: Id<"events">;
-  promoterClerkId?: string | null;
+  promoterUserId?: Id<"users"> | null;
   hasPromoCode?: boolean;
   has: any;
-  clerkOrganizationId: string;
+  slug: string;
 }
 
 const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
   ticketData,
   eventId,
-  promoterClerkId,
+  promoterUserId,
   has,
-  clerkOrganizationId,
+  slug,
 }) => {
   const { toast } = useToast();
   const hasPromoCode = has({ permission: Permission.UPLOAD_GUESTLIST });
@@ -59,7 +57,6 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
     permission: Permission.CHECK_GUESTS,
   });
 
-  const [selectedPromoter, setSelectedPromoter] = useState<string>("all");
   const [isLoadingPromoters, setIsLoadingPromoters] = useState<boolean>(false);
 
   // ticket check in
@@ -80,31 +77,28 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
   });
 
   // Promoter Ticket Sales
-  const [selectedPromoterId, setSelectedPromoterId] = useState<string>("all");
+  const [selectedPromoterId, setSelectedPromoterId] = useState<
+    string | Id<"users">
+  >("all");
 
   const genderTotals: {
     male: number;
     female: number;
   } = useMemo(() => {
     if (!responseTickets || !responseTickets.data)
-      return { male: 0, female: 0 }; // Default values when data is not available
+      return { male: 0, female: 0 };
 
-    // Filter tickets based on the selected promoterId
     const filteredTickets = responseTickets?.data.tickets.filter(
       (ticket: TicketSchema) => {
-        // If "all" is selected, include tickets that have any non-null clerkPromoterId
         if (selectedPromoterId === "all") {
-          return ticket.clerkPromoterId !== null;
+          return ticket.userPromoterId !== null;
         }
-        // Otherwise, match the specific promoterId
-        return ticket.clerkPromoterId === selectedPromoterId;
+        return ticket.userPromoterId === selectedPromoterId;
       }
     );
 
-    // Initialize counts for male and female
     const totals = { male: 0, female: 0 };
 
-    // Count tickets by gender
     filteredTickets.forEach((ticket) => {
       if (ticket.gender === Gender.Male) {
         totals.male += 1;
@@ -125,7 +119,6 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
   }, [responseTickets, searchTerm]);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  // ticket total
   const { maleTickets, femaleTickets } = useMemo(() => {
     if (!responseTickets || !responseTickets.data)
       return { maleTickets: 0, femaleTickets: 0 };
@@ -144,42 +137,47 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
   }, [responseTickets]);
 
   const responsePromoters = useQuery(
-    api.organizations.getPromotersByOrganization,
-    canViewAllTickets ? { clerkOrganizationId } : "skip"
+    api.organizations.getPromotersBySlug,
+    canViewAllTickets ? { slug } : "skip"
   );
   const responseTotalPromoCodeUsage = useQuery(
     api.promoCodeUsage.getTotalPromoCodeUsageByEvent,
     canViewAllTickets ? { eventId } : "skip"
   );
 
+  const shouldFetchPromoterUsage =
+    (canViewAllTickets && selectedPromoterId !== "all") ||
+    (!canViewAllTickets && promoterUserId);
+
+  const selectedPromoterUserId: Id<"users"> | null = canViewAllTickets
+    ? (selectedPromoterId as Id<"users">) // ✅ Explicitly cast to Id<"users">
+    : promoterUserId || null; // ✅ Ensure it's null if unavailable
+
   const responseSelectedPromoterUsage = useQuery(
     api.promoCodeUsage.getPromoCodeUsageByPromoterAndEvent,
-    (canViewAllTickets && selectedPromoter !== "all") ||
-      (!canViewAllTickets && promoterClerkId)
-      ? {
-          clerkPromoterUserId: canViewAllTickets
-            ? selectedPromoter
-            : promoterClerkId!,
-          eventId,
-        }
+    shouldFetchPromoterUsage && selectedPromoterUserId
+      ? { promoterUserId: selectedPromoterUserId, eventId }
       : "skip"
   );
 
   useEffect(() => {
-    if (responsePromoters === undefined) {
+    if (!responsePromoters) {
       setIsLoadingPromoters(true);
     } else {
       setIsLoadingPromoters(false);
     }
   }, [responsePromoters]);
-  const now = moment();
-  const isTicketsSalesOpen = now.isBefore(
-    moment(ticketData?.ticketSalesEndTime)
-  );
+
+  const isTicketsSalesOpen = !isPast(ticketData?.ticketSalesEndTime ?? 0);
 
   const handleConfirmRedeem = async () => {
-    setIsRedeemTicketLoading(true);
     setRedeemTicketError(null);
+
+    if (selectedTicketId.trim() === "") {
+      setRedeemTicketError("No ticket selected");
+      return;
+    }
+    setIsRedeemTicketLoading(true);
     try {
       const response = await checkInTicket({
         ticketUniqueId: selectedTicketId,
@@ -190,6 +188,7 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
           description: "Ticket Redeemed",
         });
         setShowRedeemTicket(false);
+        setSelectedTicketId("");
       } else {
         console.error("error redeeming ticket", response.error);
         setRedeemTicketError(response.error);
@@ -296,27 +295,29 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
               <SelectItem value="loading" disabled>
                 Loading Promoters...
               </SelectItem>
-            ) : responsePromoters?.error && !responsePromoters?.data ? (
+            ) : responsePromoters?.status === ResponseStatus.ERROR ? (
               <SelectItem value="error" disabled>
                 Error loading promoters
               </SelectItem>
             ) : (
-              responsePromoters?.data && ( // Check if data exists before mapping
+              responsePromoters?.data && (
                 <>
-                  {responsePromoters.data.map((promoter) => (
-                    <SelectItem
-                      key={promoter.clerkUserId}
-                      value={promoter.clerkUserId || "unkown"}
-                    >
-                      {promoter.name}
-                    </SelectItem>
-                  ))}
+                  {responsePromoters.data.promoters.map(
+                    (promoter: Promoter) => (
+                      <SelectItem
+                        key={promoter.promoterUserId}
+                        value={promoter.promoterUserId || "unkown"}
+                      >
+                        {promoter.name}
+                      </SelectItem>
+                    )
+                  )}
                 </>
               )
             )}
           </SelectContent>
         </Select>
-        {selectedPromoter === "all" ? (
+        {selectedPromoterId === "all" ? (
           responseTotalPromoCodeUsage?.data ? (
             <div className="">
               <div className="flex items-center space-x-3 py-3 border-b">
@@ -347,13 +348,13 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
           <div className="mt-4">
             <p className="mb-1">
               Male Tickets Redeemed:{" "}
-              {selectedPromoter === "all"
+              {selectedPromoterId === "all"
                 ? responseTotalPromoCodeUsage?.data.totalMaleUsage
                 : responseSelectedPromoterUsage.data.maleUsageCount}{" "}
             </p>
             <p>
               Female Tickets Redeemed:{" "}
-              {selectedPromoter === "all"
+              {selectedPromoterId === "all"
                 ? responseTotalPromoCodeUsage?.data.totalFemaleUsage
                 : responseSelectedPromoterUsage.data.femaleUsageCount}{" "}
             </p>

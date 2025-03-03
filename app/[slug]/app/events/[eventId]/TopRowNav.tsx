@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { EventData, EventSchema } from "@/types/types";
+import { EventSchema } from "@/types/schemas-types";
 import { Protect } from "@clerk/nextjs";
 
 interface TopRowNavProps {
@@ -12,12 +12,10 @@ interface TopRowNavProps {
 
 const TopRowNav: React.FC<TopRowNavProps> = ({
   eventData,
-  isAdminOrg,
   isEditing,
   setIsEditing,
   onCancelEdit,
 }) => {
-  const backRoute = isAdminOrg ? `/${eventData.clerkOrganizationId}` : "/";
   return (
     <div className="flex items-center justify-between  pt-4">
       {isEditing ? (

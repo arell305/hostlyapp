@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -22,7 +22,6 @@ import { formatToTimeAndShortDate, isPast } from "../../../../utils/luxon";
 
 interface EventGuestListProps {
   eventId: Id<"events">;
-  endTime: number;
   guestListCloseTime: number;
   isCheckInOpen: boolean;
   checkInCloseTime: number;
@@ -30,7 +29,6 @@ interface EventGuestListProps {
 
 const EventGuestList = ({
   eventId,
-  endTime,
   guestListCloseTime,
   isCheckInOpen,
   checkInCloseTime,
@@ -41,7 +39,6 @@ const EventGuestList = ({
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPromoter, setSelectedPromoter] = useState<string>("all");
-  const [guests, setGuests] = useState<GuestWithPromoter[]>([]);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -86,28 +83,6 @@ const EventGuestList = ({
     return { totalMales, totalFemales };
   }, [getEventWithGuestListsResponse, filteredGuests, selectedPromoter]);
 
-  useEffect(() => {
-    if (
-      selectedPromoter === "all" &&
-      getEventWithGuestListsResponse &&
-      getEventWithGuestListsResponse.data
-    ) {
-      setGuests(getEventWithGuestListsResponse.data.guests);
-    } else if (
-      getEventWithGuestListsResponse &&
-      getEventWithGuestListsResponse.data
-    ) {
-      const filteredGuests =
-        getEventWithGuestListsResponse &&
-        getEventWithGuestListsResponse.data.guests.filter(
-          (guest) => guest.promoterName === selectedPromoter
-        );
-      setGuests(filteredGuests);
-      // Console log filtered guests
-    }
-  }, [selectedPromoter, getEventWithGuestListsResponse]);
-
-  const hasEnded = isPast(endTime);
   const guestListClosed = isPast(guestListCloseTime);
 
   const formattedCheckInEndTime = formatToTimeAndShortDate(checkInCloseTime);
@@ -182,13 +157,13 @@ const EventGuestList = ({
           className="relative items-center flex"
           onClick={() => {
             if (searchInputRef.current && !isDesktop) {
-              searchInputRef.current.focus(); // Ensure the input gains focus
+              searchInputRef.current.focus();
               setTimeout(() => {
-                const rect = searchInputRef.current!.getBoundingClientRect(); // Non-null assertion
+                const rect = searchInputRef.current!.getBoundingClientRect();
                 const scrollTop =
                   window.scrollY || document.documentElement.scrollTop;
                 window.scrollTo({
-                  top: scrollTop + rect.top - 20, // Adjust `20` for spacing
+                  top: scrollTop + rect.top - 20,
                   behavior: "smooth",
                 });
               }, 100);
@@ -202,7 +177,7 @@ const EventGuestList = ({
             placeholder="Search guests..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10" // Add padding to leave space for the icon
+            className="pl-10"
           />
           {searchTerm !== "" && (
             <MdOutlineCancel

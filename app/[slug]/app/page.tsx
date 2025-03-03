@@ -18,8 +18,7 @@ import { EventSchema } from "@/types/schemas-types";
 import EventPreview from "./components/calendar/EventPreview";
 import { SubscriptionTier, UserRole } from "../../../utils/enum";
 import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
-import { Protect, useAuth, useClerk } from "@clerk/nextjs";
-import { Permission } from "@/types/enums";
+import { Protect, useAuth } from "@clerk/nextjs";
 import { useIsStripeEnabled } from "@/hooks/useIsStripeEnabled";
 import { Notification } from "./components/ui/Notification";
 

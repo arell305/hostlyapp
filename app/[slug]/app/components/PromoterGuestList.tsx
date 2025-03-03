@@ -6,33 +6,30 @@ import { Button } from "@/components/ui/button";
 import AddGuestListModal from "./AddGuestList";
 import { useToast } from "@/hooks/use-toast";
 import GuestCard from "./GuestCard";
-import DetailsSkeleton from "./loading/DetailsSkeleton";
 import { GuestListNameSchema } from "@/types/types";
 import { FiClock } from "react-icons/fi";
 import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";
-import moment from "moment";
 import ToggleButton from "./ui/ToggleButton";
 import ResponsiveEditGuestName from "./responsive/ResponsiveEditGuestName";
 import ResponsiveConfirm from "./responsive/ResponsiveConfirm";
 import _ from "lodash";
-import { formatToTimeAndShortDate } from "../../../../utils/luxon";
+import { formatToTimeAndShortDate, isPast } from "../../../../utils/luxon";
+import FullLoading from "./loading/FullLoading";
+import { ResponseStatus } from "../../../../utils/enum";
+import ErrorComponent from "./errors/ErrorComponent";
+import { FrontendErrorMessages } from "@/types/enums";
 
 type GuestListManagerProps = {
   eventId: Id<"events">;
-  promoterId: string | null;
   isGuestListOpen: boolean;
   guestListCloseTime: number;
 };
 
 const PromoterGuestListPage = ({
   eventId,
-  promoterId,
   isGuestListOpen,
   guestListCloseTime,
 }: GuestListManagerProps) => {
-  if (!promoterId) {
-    return <p>Error in promoterId</p>;
-  }
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState<string>("");
   const [showEditNameModal, setShowEditNameModal] = useState<boolean>(false);
@@ -57,18 +54,126 @@ const PromoterGuestListPage = ({
   const getGuestListByPromoterResponse = useQuery(
     api.guestLists.getGuestListByPromoter,
     {
-      clerkPromoterId: promoterId,
       eventId,
     }
   );
   const updateGuestName = useMutation(api.guestLists.updateGuestName);
   const deleteGuestName = useMutation(api.guestLists.deleteGuestName);
   const { toast } = useToast();
-  const now = moment();
-  const guestListClosed = now.isAfter(moment(guestListCloseTime));
 
-  if (getGuestListByPromoterResponse === undefined) {
-    return <DetailsSkeleton />;
+  const guestListClosed = isPast(guestListCloseTime);
+
+  const handleEdit = (id: string, name: string) => {
+    setEditingId(id);
+    setEditName(name);
+    setInitialName(name);
+    setShowEditNameModal(true);
+  };
+
+  const handleShowDelete = (id: string) => {
+    setDeletingId(id);
+    setShowConfirmDeleteGuest(true);
+  };
+
+  const handleSave = async () => {
+    setEditNameError(null);
+
+    if (editName.trim() === "") {
+      setEditNameError(FrontendErrorMessages.NAME_EMPTY);
+      return;
+    }
+
+    const newName = editName
+      .split(" ")
+      .map((word) => _.capitalize(word.toLowerCase()))
+      .join(" ");
+
+    if (newName === initialName) {
+      setShowEditNameModal(false);
+      return;
+    }
+
+    if (!getGuestListByPromoterResponse?.data?.guestListId) {
+      setEditNameError(FrontendErrorMessages.GENERIC_ERROR);
+      console.error(FrontendErrorMessages.GUESTLIST_BY_PROMOTER_LOAD_ERROR);
+      return;
+    }
+
+    if (!editingId) {
+      setEditNameError("No name selected");
+      return;
+    }
+
+    setEditNameLoading(true);
+    try {
+      const response = await updateGuestName({
+        guestListId: getGuestListByPromoterResponse.data.guestListId,
+        guestId: editingId,
+        newName,
+      });
+      if (response.status === ResponseStatus.SUCCESS) {
+        setShowEditNameModal(false);
+        toast({
+          title: "Name updated",
+          description: "Name has been successfully updated",
+        });
+        setEditingId(null);
+      } else {
+        setEditNameError(FrontendErrorMessages.GENERIC_ERROR);
+        console.error(response.error);
+      }
+    } catch (error) {
+      console.error("Error updating guest name:", error);
+      setEditNameError("Failed to update name. Please try again");
+    } finally {
+      setEditNameLoading(false);
+      setInitialName(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleteNameError(null);
+    if (!deletingId) {
+      setDeleteNameError("No guest name selected");
+      return;
+    }
+
+    if (!getGuestListByPromoterResponse?.data?.guestListId) {
+      setDeleteNameError(FrontendErrorMessages.GENERIC_ERROR);
+      console.error("error loading guest list by promoter");
+      return;
+    }
+    setDeleteNameLoading(true);
+    try {
+      const response = await deleteGuestName({
+        guestListId: getGuestListByPromoterResponse.data.guestListId,
+        guestId: deletingId,
+      });
+      if (response.status === ResponseStatus.SUCCESS) {
+        setShowConfirmDeleteGuest(false);
+        toast({
+          title: "Guest Deleted",
+          description: "Guest has been successfully delted",
+        });
+        setDeletingId(null);
+      } else {
+        setDeleteNameError(FrontendErrorMessages.GENERIC_ERROR);
+        console.error(response.error);
+      }
+    } catch (error) {
+      console.error("Error deleting guest:", error);
+      setDeleteNameError("Error deleting guest");
+    } finally {
+      setDeleteNameLoading(false);
+    }
+  };
+
+  if (!getGuestListByPromoterResponse) {
+    return <FullLoading />;
+  }
+
+  if (getGuestListByPromoterResponse.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={getGuestListByPromoterResponse.error} />;
   }
 
   const isEmptyGuestList =
@@ -85,77 +190,6 @@ const PromoterGuestListPage = ({
     0
   );
 
-  const handleEdit = (id: string, name: string) => {
-    setEditingId(id);
-    setEditName(name);
-    setInitialName(name);
-    setShowEditNameModal(true);
-  };
-
-  const handleShowDelete = (id: string) => {
-    setDeletingId(id);
-    setShowConfirmDeleteGuest(true);
-  };
-  const handleSave = async () => {
-    if (editName.trim() === "") {
-      setEditNameError("Name can't be empty");
-      return;
-    }
-
-    const newName = editName
-      .split(" ")
-      .map((word) => _.capitalize(word.toLowerCase()))
-      .join(" ");
-
-    if (newName === initialName) {
-      setShowEditNameModal(false);
-      return;
-    }
-
-    setEditNameLoading(true);
-    try {
-      await updateGuestName({
-        guestListId: getGuestListByPromoterResponse.data?.guestListId!,
-        guestId: editingId || "",
-        newName,
-      });
-      setShowEditNameModal(false);
-      toast({
-        title: "Name updated",
-        description: "Name has been successfully updated",
-      });
-    } catch (error) {
-      console.error("Error updating guest name:", error);
-      setEditNameError("Failed to update name. Please try again");
-    } finally {
-      setEditNameLoading(false);
-      setInitialName(null);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deletingId) {
-      return;
-    }
-    setDeleteNameLoading(true);
-    try {
-      await deleteGuestName({
-        guestListId: getGuestListByPromoterResponse.data?.guestListId!,
-        guestId: deletingId,
-      });
-      setShowConfirmDeleteGuest(false);
-      toast({
-        title: "Guest Deleted",
-        description: "Guest has been successfully delted",
-      });
-    } catch (error) {
-      console.error("Error deleting guest:", error);
-      setDeleteNameError("Error deleting guest");
-    } finally {
-      setDeleteNameLoading(false);
-    }
-  };
-
   const filteredGuests = getGuestListByPromoterResponse.data?.names
     .filter((guest: GuestListNameSchema) =>
       showCheckedInGuests ? guest.attended : !guest.attended
@@ -170,10 +204,6 @@ const PromoterGuestListPage = ({
 
           {isGuestListOpen ? (
             <>
-              {/* <PiPlusCircle
-                className="text-3xl cursor-pointer"
-                onClick={() => setIsGuestListModalOpen(true)}
-              /> */}
               <Button
                 variant="navGhost"
                 onClick={() => setIsGuestListModalOpen(true)}
@@ -184,7 +214,6 @@ const PromoterGuestListPage = ({
               <AddGuestListModal
                 isOpen={isGuestListModalOpen}
                 onClose={() => setIsGuestListModalOpen(false)}
-                promoterId={promoterId}
                 eventId={eventId}
               />
             </>
@@ -239,7 +268,7 @@ const PromoterGuestListPage = ({
                 editName={editName}
                 canEditGuests={isGuestListOpen}
                 onEdit={handleEdit}
-                onSave={handleSave}
+                onCheckIn={handleSave}
                 onShowDelete={handleShowDelete}
                 onCancelEdit={() => setEditingId(null)}
                 setEditName={setEditName}

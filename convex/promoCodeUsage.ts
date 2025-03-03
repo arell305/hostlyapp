@@ -8,47 +8,53 @@ import {
   PromoCodeUsage,
   PromoCodeUsageData,
   TotalUsage,
+  UserSchema,
 } from "@/types/types";
+import { requireAuthenticatedUser } from "../utils/auth";
+import { validateEvent, validateUser } from "./backendUtils/validation";
+import { isUserInCompanyOfEvent } from "./backendUtils/helper";
 
 export const getPromoCodeUsageByPromoterAndEvent = query({
   args: {
-    clerkPromoterUserId: v.string(),
+    promoterUserId: v.id("users"),
     eventId: v.id("events"),
   },
   handler: async (
     ctx,
     args
   ): Promise<GetPromoCodeUsageByPromoterAndEventResponse> => {
-    const { clerkPromoterUserId, eventId } = args;
+    const { promoterUserId, eventId } = args;
 
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      await requireAuthenticatedUser(ctx);
+
+      const user: UserSchema | null = await ctx.db.get(promoterUserId);
+
+      const validatedUser = validateUser(user);
+
+      const event = await ctx.db.get(eventId);
+      const validatedEvent = validateEvent(event);
+      isUserInCompanyOfEvent(validatedUser, validatedEvent);
+
       const usage: PromoCodeUsage | null = await ctx.db
         .query("promoCodeUsage")
         .filter((q) =>
           q.and(
-            q.eq(q.field("clerkPromoterUserId"), clerkPromoterUserId),
+            q.eq(q.field("promoterUserId"), validatedUser._id),
             q.eq(q.field("eventId"), eventId)
           )
         )
-        .unique();
+        .first();
 
       const usageData: PromoCodeUsageData = usage
         ? {
-            promoterId: usage.clerkPromoterUserId,
+            promoterUserId: usage.promoterUserId || validatedUser._id,
             maleUsageCount: usage.maleUsageCount,
             femaleUsageCount: usage.femaleUsageCount,
             promoCodeId: usage.promoCodeId,
           }
         : {
-            promoterId: clerkPromoterUserId,
+            promoterUserId: validatedUser._id,
             maleUsageCount: 0,
             femaleUsageCount: 0,
             promoCodeId: null,

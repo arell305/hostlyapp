@@ -1,10 +1,10 @@
 import { ErrorMessages } from "@/types/enums";
 import { UserIdentity } from "convex/server";
-import { MutationCtx, ActionCtx } from "../convex/_generated/server";
+import { MutationCtx, ActionCtx, QueryCtx } from "../convex/_generated/server";
 import { UserRole } from "./enum";
 
 export async function requireAuthenticatedUser(
-  ctx: MutationCtx | ActionCtx,
+  ctx: MutationCtx | ActionCtx | QueryCtx,
   requiredRoles?: UserRole[]
 ): Promise<UserIdentity> {
   const identity = await ctx.auth.getUserIdentity();

@@ -1,4 +1,3 @@
-import { EventData, GuestListInfo } from "@/types/types";
 import React from "react";
 import PromoterGuestList from "@/[slug]/app/components/PromoterGuestList";
 import EventGuestList from "@/[slug]/app/components/EventGuestList";
@@ -10,7 +9,6 @@ import { isPast } from "../../../../../utils/luxon";
 
 interface GuestListTabProps {
   eventData: EventSchema;
-  promoterClerkId: string | null;
   guestListInfo?: GuestListInfoSchema | null;
   has: any;
 }
@@ -18,7 +16,6 @@ interface GuestListTabProps {
 const GuestListTab: React.FC<GuestListTabProps> = ({
   eventData,
   guestListInfo,
-  promoterClerkId,
   has,
 }) => {
   if (!guestListInfo) {
@@ -42,7 +39,9 @@ const GuestListTab: React.FC<GuestListTabProps> = ({
   const canCheckInGuests: boolean = has({
     permission: Permission.CHECK_GUESTS,
   });
-  const canUploadGuest: boolean = promoterClerkId ? true : false;
+  const canUploadGuest: boolean = has({
+    permission: Permission.UPLOAD_GUESTLIST,
+  });
 
   let isGuestListOpen: boolean = !isPast(guestListInfo.guestListCloseTime);
 
@@ -53,7 +52,6 @@ const GuestListTab: React.FC<GuestListTabProps> = ({
       {canUploadGuest && (
         <PromoterGuestList
           eventId={eventData._id}
-          promoterId={promoterClerkId}
           isGuestListOpen={isGuestListOpen}
           guestListCloseTime={guestListInfo.guestListCloseTime}
         />
@@ -61,7 +59,6 @@ const GuestListTab: React.FC<GuestListTabProps> = ({
       {canViewAllGuestList && (
         <EventGuestList
           eventId={eventData._id}
-          endTime={eventData.endTime}
           guestListCloseTime={guestListInfo.guestListCloseTime}
           isCheckInOpen={isCheckInOpen}
           checkInCloseTime={guestListInfo.checkInCloseTime}

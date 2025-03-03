@@ -13,7 +13,6 @@ interface ResponsiveInviteUserProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   clerkOrganizationId: string;
-  inviterUserClerkId: string;
   onInviteSuccess: (newPendingUser: PendingInvitationUser) => void;
   isHostlyAdmin: boolean;
 }
@@ -22,7 +21,6 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
   isOpen,
   onOpenChange,
   clerkOrganizationId,
-  inviterUserClerkId,
   onInviteSuccess,
   isHostlyAdmin,
 }) => {
@@ -46,12 +44,12 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
     try {
       const result = await createClerkInvitation({
         clerkOrgId: clerkOrganizationId,
-        clerkUserId: inviterUserClerkId,
         role: inviteRole,
         email: inviteEmail,
       });
-
-      if (result.status === ResponseStatus.SUCCESS && result.data) {
+      if (result.status === ResponseStatus.ERROR) {
+        setInviteError(result.error);
+      } else {
         const newPendingUser: PendingInvitationUser = {
           clerkInvitationId: result.data.clerkInvitationId,
           email: inviteEmail,

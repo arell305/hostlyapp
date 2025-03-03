@@ -1,44 +1,31 @@
 "use client";
-import { useAction } from "convex/react";
-import React, { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
-
-import { ClerkOrganization } from "@/types/types";
-import { SubscriptionStatus, SubscriptionTier } from "../../../../utils/enum";
+import {
+  ResponseStatus,
+  SubscriptionStatus,
+  SubscriptionTier,
+} from "../../../../utils/enum";
 import CompanyCard from "../components/cards/CompanyCard";
+import FullLoading from "../components/loading/FullLoading";
+import ErrorComponent from "../components/errors/ErrorComponent";
 
 const PromotionalCompaniesList = () => {
   const router = useRouter();
-  const [loadingCompanies, setLoadingCompanies] = useState<boolean>(false);
 
-  const getOrganizationList = useAction(api.clerk.getOrganizationList);
+  const organizationsResponse = useQuery(api.organizations.getAllOrganizations);
 
-  const [companies, setCompanies] = useState<ClerkOrganization[]>([]); // Initialize state for companies
-
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      setLoadingCompanies(true);
-      try {
-        const fetchedOrganizations = await getOrganizationList(); // Call the action to get memberships
-        setCompanies(fetchedOrganizations);
-      } catch (err) {
-        console.log("Failed to fetch companies:", err);
-      } finally {
-        setLoadingCompanies(false);
-      }
-    };
-
-    fetchCompanies();
-  }, [getOrganizationList]);
-
-  if (!companies) {
-    return <div>Loading...</div>;
+  if (!organizationsResponse) {
+    return <FullLoading />;
   }
 
-  const handleCompanyClick = (companyName: string) => {
-    const encodedName = encodeURIComponent(companyName); // Encode the name to handle spaces and special characters
-    router.push(`/${encodedName}/app/dashboard`);
+  if (organizationsResponse.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={organizationsResponse.error} />;
+  }
+
+  const handleCompanyClick = (slug: string) => {
+    router.push(`/${slug}/app/dashboard`);
   };
 
   return (
@@ -47,19 +34,19 @@ const PromotionalCompaniesList = () => {
         Companies
       </h1>
       <div className="flex flex-col flex-wrap  w-full ">
-        {companies
-          .filter((company) => company.name !== "admin") // Filter out companies named "Admin"
+        {organizationsResponse.data.organizationDetails
+          .filter((company) => company.slug !== "admin")
           .map((company) => (
             <div
-              key={company.clerkOrganizationId}
+              key={company.organizationId}
               className="cursor-pointer"
-              onClick={() => handleCompanyClick(company.name)}
+              onClick={() => handleCompanyClick(company.slug)}
             >
               <CompanyCard
-                imageUrl={company.imageUrl || "https://via.placeholder.com/50"} // Pass image URL
-                companyName={company.name} // Pass company name
-                status={company.publicMetadata.status as SubscriptionStatus} // Pass status, cast to SubscriptionStatus
-                tier={company.publicMetadata.tier as SubscriptionTier} // Pass tier, cast to SubscriptionTier
+                photoStorageId={company.photoStorageId}
+                companyName={company.name}
+                status={company.subscriptionStatus as SubscriptionStatus}
+                tier={company.subscriptionTier as SubscriptionTier}
               />
             </div>
           ))}

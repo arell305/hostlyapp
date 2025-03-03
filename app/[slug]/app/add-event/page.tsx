@@ -1,18 +1,12 @@
 "use client";
 
 import { FC, useState } from "react";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { useClerk, useOrganization } from "@clerk/nextjs";
-import {
-  ResponseStatus,
-  StripeAccountStatus,
-  SubscriptionTier,
-} from "../../../../utils/enum";
+import { ResponseStatus, SubscriptionTier } from "../../../../utils/enum";
 import EventForm from "../components/EventForm";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useRouter } from "next/navigation";
-import EventInfoSkeleton from "../components/loading/EventInfoSkeleton";
 import {
   EventFormInput,
   GuestListFormInput,
@@ -20,39 +14,40 @@ import {
 } from "@/types/types";
 import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
 import { useIsStripeEnabled } from "@/hooks/useIsStripeEnabled";
+import FullLoading from "../components/loading/FullLoading";
+import ErrorComponent from "../components/errors/ErrorComponent";
+import { FrontendErrorMessages } from "@/types/enums";
 
 const AddEventPage: FC = () => {
-  const { companyName: companyNameParams } = useParams();
-
-  const cleanCompanyName =
-    typeof companyNameParams === "string"
-      ? companyNameParams.split("?")[0].toLowerCase()
-      : "";
+  const { slug } = useParams();
+  const cleanSlug =
+    typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
 
   const router = useRouter();
 
-  const { organization, user } = useClerk();
   const { toast } = useToast();
   const [showCancelConfirmModal, setShowCancelConfirmModal] =
     useState<boolean>(false);
   const [saveEventError, setSaveEventError] = useState<string | null>(null);
 
-  const result = useQuery(api.customers.getCustomerSubscriptionTier, {
-    clerkOrganizationId: organization?.id ?? "",
-  });
+  const subscriptionResponse = useQuery(
+    api.customers.getCustomerSubscriptionTierBySlug,
+    {
+      slug: cleanSlug,
+    }
+  );
 
-  const { isStripeEnabled } = useIsStripeEnabled({
-    companyName: cleanCompanyName,
-  });
+  const { isStripeEnabled, isLoading, connectedAccountError } =
+    useIsStripeEnabled({
+      slug: cleanSlug,
+    });
   const addEvent = useAction(api.events.addEvent);
 
-  if (!user || !organization || result === undefined) {
-    return <EventInfoSkeleton />;
-  }
-
   const canAddGuestListOption =
-    result.subscriptionTier === SubscriptionTier.ELITE ||
-    result.subscriptionTier === SubscriptionTier.PLUS;
+    subscriptionResponse?.data?.customerSubscription.subscriptionTier ===
+      SubscriptionTier.ELITE ||
+    subscriptionResponse?.data?.customerSubscription.subscriptionTier ===
+      SubscriptionTier.PLUS;
 
   const handleSubmit = async (
     eventData: EventFormInput,
@@ -60,38 +55,26 @@ const AddEventPage: FC = () => {
     guestListData: GuestListFormInput | null
   ) => {
     try {
-      if (!organization) {
-        toast({
-          title: "Error",
-          description: "Failed to create event. Please try again",
-          variant: "destructive",
-        });
-        return;
-      }
-      if (result.subscriptionTier === SubscriptionTier.PLUS && guestListData) {
-      }
       const addEventResponse = await addEvent({
-        companyName: cleanCompanyName,
+        slug: cleanSlug,
         ...eventData,
         ticketData,
         guestListData,
       });
 
-      if (addEventResponse.status === ResponseStatus.ERROR) {
-        setSaveEventError(addEventResponse.error);
-        return;
+      if (addEventResponse.status === ResponseStatus.SUCCESS) {
+        toast({
+          title: "Event Created",
+          description: "The event has been successfully created",
+        });
+        const urlEventId: string = addEventResponse.data.eventId as string;
+        router.push(`events/${urlEventId}`);
+      } else {
+        console.error(addEventResponse.error);
+        setSaveEventError(FrontendErrorMessages.GENERIC_ERROR);
       }
-
-      toast({
-        title: "Event Created",
-        description: "The event has been successfully created",
-      });
-      const urlEventId: string = addEventResponse.data.eventId as string;
-
-      router.push(`events/${urlEventId}`);
-
-      console.log("Event added successfully with ID:", urlEventId);
     } catch (error) {
+      console.error(error);
       setSaveEventError("Failed to create an event: Internal Error");
       return;
     }
@@ -105,6 +88,18 @@ const AddEventPage: FC = () => {
     setShowCancelConfirmModal(false);
     router.back();
   };
+
+  if (!subscriptionResponse || isLoading) {
+    return <FullLoading />;
+  }
+
+  if (subscriptionResponse.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={subscriptionResponse.error} />;
+  }
+
+  if (connectedAccountError) {
+    return <ErrorComponent message={connectedAccountError} />;
+  }
 
   return (
     <div className="justify-center max-w-3xl mx-auto mt-1.5 mb-20">
@@ -122,7 +117,6 @@ const AddEventPage: FC = () => {
         onSubmit={handleSubmit}
         isEdit={false}
         canAddGuestListOption={canAddGuestListOption}
-        subscriptionTier={result.subscriptionTier}
         onCancelEdit={handleCancel}
         saveEventError={saveEventError}
       />

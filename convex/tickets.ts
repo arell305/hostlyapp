@@ -39,6 +39,11 @@ import { USD_CURRENCY } from "@/types/constants";
 import { getStripeCustomerIdForEmail } from "./stripe";
 import { CreatePaymentIntentResponse } from "@/types/convex/actions-types";
 import { stripe } from "./backendUtils/stripe";
+import { requireAuthenticatedUser } from "../utils/auth";
+import { validateEvent, validateUser } from "./backendUtils/validation";
+import { isUserInCompanyOfEvent } from "./backendUtils/helper";
+import { DateTime } from "luxon";
+import { formatToTimeAndShortDate } from "../utils/luxon";
 
 // export const insertTicketsSold = mutation({
 //   args: {
@@ -520,23 +525,20 @@ export const checkInTicket = mutation({
   args: { ticketUniqueId: v.string() },
   handler: async (ctx, args): Promise<CheckInTicketResponse> => {
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Moderator,
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+      ]);
 
-      const role: UserRole = identity.role as UserRole;
-      if (role !== UserRole.Moderator) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      const clerkUserId = identity.id as string;
+
+      const user = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+        .first();
+
+      const validatedUser = validateUser(user);
 
       const ticket: TicketSchema | null = await ctx.db
         .query("tickets")
@@ -547,7 +549,7 @@ export const checkInTicket = mutation({
         return {
           status: ResponseStatus.ERROR,
           data: null,
-          error: ErrorMessages.NOT_FOUND,
+          error: ErrorMessages.TICKET_NOT_FOUND,
         };
       }
 
@@ -556,21 +558,9 @@ export const checkInTicket = mutation({
         .filter((q) => q.eq(q.field("_id"), ticket.eventId))
         .first();
 
-      if (!event) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
+      const validatedEvent = validateEvent(event);
 
-      if (event.clerkOrganizationId !== identity.clerk_org_id) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      isUserInCompanyOfEvent(validatedUser, validatedEvent);
 
       if (ticket.checkInTime) {
         return {
@@ -580,17 +570,22 @@ export const checkInTicket = mutation({
         };
       }
 
-      const now = Date.now();
-      const eventStartTime = moment(event.startTime).valueOf();
-      const eventEndTime = moment(event.endTime).valueOf();
+      const now = DateTime.now().toMillis();
+      const eventStartTime = DateTime.fromMillis(
+        validatedEvent.startTime
+      ).toMillis();
+      const eventEndTime = DateTime.fromMillis(
+        validatedEvent.endTime
+      ).toMillis();
 
       if (now < eventStartTime || now > eventEndTime) {
         return {
           status: ResponseStatus.ERROR,
           data: null,
-          error: `Invalid check in. Ticket is for ${event.name} on ${formatToTimeAndShortDate(event.startTime)}`,
+          error: `Invalid check-in. Ticket is for ${validatedEvent.name} on ${formatToTimeAndShortDate(validatedEvent.startTime)}`,
         };
       }
+
       // Update the ticket to mark it as checked in
       await ctx.db.patch(ticket._id, {
         checkInTime: now,

@@ -2,15 +2,10 @@
 
 import Stripe from "stripe";
 
-import { action, internalAction, internalQuery } from "./_generated/server";
+import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { createClerkClient } from "@clerk/backend";
-import { findPromoIdByCode } from "./promoCode";
-import {
-  findCustomerByEmail,
-  insertCustomerAndSubscription,
-} from "./customers";
+
 import {
   ResponseStatus,
   StripeAccountStatus,
@@ -18,16 +13,16 @@ import {
   SubscriptionTier,
   UserRole,
 } from "../utils/enum";
-import { Customer, CustomerWithPayment } from "@/types/types";
+import { Customer } from "@/types/types";
 import { ERROR_MESSAGES } from "../constants/errorMessages";
-import { getFutureISOString } from "../utils/helpers";
 import { SubscriptionTierConvex } from "./schema";
-import { DateTime } from "luxon";
 import { ErrorMessages, Gender } from "@/types/enums";
 import {
   CreateConnectedAccountResponse,
   GetOnboardingLinkResponse,
   GetStripeDashboardUrlResponse,
+  UpdateSubscriptionPaymentMethodResponse,
+  UpdateSubscriptionTierResponse,
 } from "@/types/convex-types";
 import {
   CreatePaymentIntentResponse,
@@ -35,9 +30,25 @@ import {
   CreateStripeTicketPricesData,
   DisconnectStripeActionResponse,
 } from "@/types/convex/actions-types";
-import { STRIPE_API_VERSION, USD_CURRENCY } from "@/types/constants";
-import { sendClerkInvitation } from "../utils/clerk";
-import { stripe } from "./backendUtils/stripe";
+import { USD_CURRENCY } from "@/types/constants";
+import {
+  sendClerkInvitation,
+  updateClerkOrganizationMetadata,
+} from "../utils/clerk";
+import {
+  stripe,
+  updateStripePaymentMethodHelper,
+  updateSubscriptionTierInStripe,
+} from "./backendUtils/stripe";
+import { requireAuthenticatedUser } from "../utils/auth";
+import { CustomerSchema } from "@/types/schemas-types";
+import { validateCustomer } from "./backendUtils/validation";
+import {
+  createStripeConnectedAccount,
+  createStripeDashboardLoginLink,
+  createStripeOnboardingSession,
+} from "./backendUtils/stripeConnect";
+import { deactivateStripeConnectedAccount } from "./connectedAccounts";
 
 // export const pay = action({
 //   args: { priceId: v.string(), email: v.string() },
@@ -286,137 +297,115 @@ export const createStripeSubscription = action({
 
 export const updateSubscriptionPaymentMethod = action({
   args: {
-    email: v.string(),
     newPaymentMethodId: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<UpdateSubscriptionPaymentMethodResponse> => {
+    const { newPaymentMethodId } = args;
     try {
-      const existingCustomer: Customer | null = await ctx.runQuery(
+      const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+
+      const customer: CustomerSchema | null = await ctx.runQuery(
         internal.customers.findCustomerByEmail,
-        {
-          email: args.email,
-        }
+        { email: idenitity.email as string }
       );
 
-      if (!existingCustomer) {
-        throw new Error("Customer not found");
-      }
+      const validatedCustomer = validateCustomer(customer);
 
-      await stripe.paymentMethods.attach(args.newPaymentMethodId, {
-        customer: existingCustomer.stripeCustomerId,
-      });
-
-      await stripe.customers.update(existingCustomer.stripeCustomerId, {
-        invoice_settings: {
-          default_payment_method: args.newPaymentMethodId,
-        },
-      });
-
-      if (existingCustomer.stripeSubscriptionId) {
-        await stripe.subscriptions.update(
-          existingCustomer.stripeSubscriptionId,
-          {
-            default_payment_method: args.newPaymentMethodId,
-          }
-        );
-      }
-
-      if (existingCustomer._id) {
-        await ctx.runMutation(internal.customers.updateCustomer, {
-          id: existingCustomer._id,
+      await Promise.all([
+        updateStripePaymentMethodHelper(
+          stripe,
+          validatedCustomer.stripeCustomerId,
+          newPaymentMethodId,
+          validatedCustomer.stripeSubscriptionId
+        ),
+        ctx.runMutation(internal.customers.updateCustomer, {
+          id: validatedCustomer._id,
           updates: {
-            paymentMethodId: args.newPaymentMethodId,
+            paymentMethodId: newPaymentMethodId,
           },
-        });
-      }
+        }),
+      ]);
 
-      return { success: true, message: "Payment method updated successfully" };
-    } catch (error: any) {
-      console.error("Error updating payment method:", error);
-      throw new Error("Failed to update payment method");
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          customerId: validatedCustomer._id,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
   },
 });
 
 export const updateSubscriptionTier = action({
   args: {
-    email: v.string(),
     newTier: v.union(
       v.literal(SubscriptionTier.STANDARD),
       v.literal(SubscriptionTier.PLUS),
       v.literal(SubscriptionTier.ELITE)
     ),
   },
-  handler: async (
-    ctx,
-    args
-  ): Promise<{ success: boolean; message: string }> => {
-    const { email, newTier } = args;
+  handler: async (ctx, args): Promise<UpdateSubscriptionTierResponse> => {
+    const { newTier } = args;
 
     try {
-      const existingCustomer: Customer | null = await ctx.runQuery(
+      const identity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+
+      const customer: CustomerSchema | null = await ctx.runQuery(
         internal.customers.findCustomerByEmail,
-        { email }
+        { email: identity.email as string }
       );
 
-      if (
-        !existingCustomer ||
-        !existingCustomer.stripeSubscriptionId ||
-        !existingCustomer._id
-      ) {
-        throw new Error("Customer or subscription not found");
-      }
-
-      const subscription = await stripe.subscriptions.retrieve(
-        existingCustomer.stripeSubscriptionId
-      );
+      const validatedCustomer = validateCustomer(customer);
 
       const newPriceId = getPriceIdForTier(newTier);
 
-      // Update the subscription in Stripe
-      const updatedSubscription = await stripe.subscriptions.update(
-        existingCustomer.stripeSubscriptionId,
-        {
-          items: [
-            {
-              id: subscription.items.data[0].id,
-              price: newPriceId,
-            },
-          ],
-          proration_behavior: "always_invoice", // This will prorate immediately
-        }
-      );
-      const nextPayment = getFutureISOString(30);
+      const clerkOrganizationId = identity.clerk_org_id as string;
 
-      // Update the customer record in your database
-      await ctx.runMutation(internal.customers.updateCustomer, {
-        id: existingCustomer._id,
-        updates: {
+      const updatedSubscription = await updateSubscriptionTierInStripe(
+        validatedCustomer.stripeSubscriptionId,
+        newPriceId
+      );
+
+      await Promise.all([
+        ctx.runMutation(internal.customers.updateCustomer, {
+          id: validatedCustomer._id,
+          updates: {
+            subscriptionTier: newTier,
+            stripeSubscriptionId: updatedSubscription.id,
+            subscriptionStatus: SubscriptionStatus.ACTIVE,
+          },
+        }),
+        updateClerkOrganizationMetadata(clerkOrganizationId, {
           subscriptionTier: newTier,
-          stripeSubscriptionId: updatedSubscription.id,
-          subscriptionStatus: SubscriptionStatus.ACTIVE,
-          nextPayment,
-        },
-      });
-
-      await ctx.scheduler.runAt(
-        DateTime.fromISO(nextPayment).toMillis(),
-        internal.customers.resetGuestListEventAndPayment,
-        { customerId: existingCustomer._id }
-      );
+        }),
+      ]);
 
       return {
-        success: true,
-        message: `Subscription updated to ${newTier} successfully`,
+        status: ResponseStatus.SUCCESS,
+        data: {
+          customerId: validatedCustomer._id,
+        },
       };
     } catch (error) {
-      console.error("Error updating subscription:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
       return {
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to update subscription",
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
       };
     }
   },
@@ -530,11 +519,11 @@ export const calculateAllSubscriptionUpdates = action({
 function getPriceIdForTier(tier: SubscriptionTier): string {
   switch (tier) {
     case SubscriptionTier.STANDARD:
-      return "price_1PxexNRv8MX5Pza1YpAG3Znt";
+      return process.env.PRICE_ID_STANDARD as string;
     case SubscriptionTier.PLUS:
-      return "price_1PxfAnRv8MX5Pza1kFwM4gmI";
+      return process.env.PRICE_ID_PLUS as string;
     case SubscriptionTier.ELITE:
-      return "price_1PxfD5Rv8MX5Pza1TJKtcBHK";
+      return process.env.PRICE_ID_ELITE as string;
     default:
       throw new Error("Invalid subscription tier");
   }
@@ -543,58 +532,25 @@ function getPriceIdForTier(tier: SubscriptionTier): string {
 // stripe connect
 
 export const createConnectedAccount = action({
-  args: {
-    clerkUserId: v.string(),
-  },
+  args: {},
   handler: async (ctx, args): Promise<CreateConnectedAccountResponse> => {
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-      if (identity.role !== UserRole.Admin) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+      const clerkUserId = idenitity.id as string;
 
-      const customerResponse = await ctx.runQuery(
+      const customer = await ctx.runQuery(
         internal.customers.findCustomerWithCompanyNameByClerkId,
         {
-          clerkUserId: args.clerkUserId,
+          clerkUserId,
         }
       );
 
-      if (customerResponse.status === ResponseStatus.ERROR) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: customerResponse.error,
-        };
-      }
+      const account = await createStripeConnectedAccount(
+        customer.email,
+        customer.companyName
+      );
 
-      const customer = customerResponse.data.customer;
-
-      const account = await stripe.accounts.create({
-        type: "express",
-        country: "US",
-        email: customer.email,
-        business_profile: {
-          name: customer.companyName,
-        },
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-      });
-
-      const response = await ctx.runMutation(
+      const connectedAccountId = await ctx.runMutation(
         internal.connectedAccounts.saveConnectedAccount,
         {
           customerId: customer._id,
@@ -603,18 +559,10 @@ export const createConnectedAccount = action({
         }
       );
 
-      if (response.status === ResponseStatus.ERROR) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: response.error,
-        };
-      }
-
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          stripeAccountId: account.id,
+          connectedAccountId,
         },
       };
     } catch (error) {
@@ -631,53 +579,21 @@ export const createConnectedAccount = action({
 });
 
 export const getOnboardingLink = action({
-  args: { clerkUserId: v.string() },
-  handler: async (ctx, args): Promise<GetOnboardingLinkResponse> => {
-    const customer = await ctx.runQuery(
-      internal.customers.findCustomerByClerkId,
-      {
-        clerkUserId: args.clerkUserId,
-      }
-    );
+  args: {},
+  handler: async (ctx): Promise<GetOnboardingLinkResponse> => {
+    const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+    const clerkUserId = idenitity.id as string;
 
-    if (!customer) {
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: ErrorMessages.CUSTOMER_NOT_FOUND,
-      };
-    }
-
-    // Get stored Stripe Account ID
     const connectedAccount = await ctx.runQuery(
-      internal.connectedAccounts.getConnectedAccountByCustomerId,
+      internal.connectedAccounts.internalGetConnectedAccountByClerkUserId,
       {
-        customerId: customer._id,
+        clerkUserId,
       }
     );
 
-    if (!connectedAccount) {
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: "Connected account not found",
-      };
-    }
-
-    // Generate Onboarding Link
-    const accountSession: Stripe.Response<Stripe.AccountSession> =
-      await stripe.accountSessions.create({
-        account: connectedAccount.stripeAccountId,
-        components: {
-          account_onboarding: {
-            enabled: true,
-            features: { external_account_collection: true },
-          },
-          documents: { enabled: true },
-          payouts: { enabled: true },
-          payments: { enabled: true },
-        },
-      });
+    const accountSession = await createStripeOnboardingSession(
+      connectedAccount.stripeAccountId
+    );
 
     return {
       status: ResponseStatus.SUCCESS,
@@ -687,64 +603,27 @@ export const getOnboardingLink = action({
 });
 
 export const getStripeDashboardUrl = action({
-  args: { clerkUserId: v.string() },
-  handler: async (ctx, args): Promise<GetStripeDashboardUrlResponse> => {
+  args: {},
+  handler: async (ctx): Promise<GetStripeDashboardUrlResponse> => {
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-      if (identity.role !== UserRole.Admin) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+      const clerkUserId = idenitity.id as string;
 
-      const customer = await ctx.runQuery(
-        internal.customers.findCustomerByClerkId,
-        {
-          clerkUserId: args.clerkUserId,
-        }
-      );
-
-      if (!customer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CUSTOMER_NOT_FOUND,
-        };
-      }
-
-      // Get stored Stripe Account ID
       const connectedAccount = await ctx.runQuery(
-        internal.connectedAccounts.getConnectedAccountByCustomerId,
+        internal.connectedAccounts.internalGetConnectedAccountByClerkUserId,
         {
-          customerId: customer._id,
+          clerkUserId,
         }
       );
 
-      if (!connectedAccount) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND,
-        };
-      }
-
-      const loginLink = await stripe.accounts.createLoginLink(
+      const url = await createStripeDashboardLoginLink(
         connectedAccount.stripeAccountId
       );
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          url: loginLink.url,
+          url,
         },
       };
     } catch (error) {
@@ -761,57 +640,21 @@ export const getStripeDashboardUrl = action({
 });
 
 export const disconnectStripeAccount = action({
-  args: { clerkUserId: v.string() },
-  handler: async (ctx, args): Promise<DisconnectStripeActionResponse> => {
+  args: {},
+  handler: async (ctx): Promise<DisconnectStripeActionResponse> => {
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-      if (identity.role !== UserRole.Admin) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
-      const customer = await ctx.runQuery(
-        internal.customers.findCustomerByClerkId,
-        {
-          clerkUserId: args.clerkUserId,
-        }
-      );
+      const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+      const clerkUserId = idenitity.id as string;
 
-      if (!customer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CUSTOMER_NOT_FOUND,
-        };
-      }
-
-      // Get stored Stripe Account ID
       const connectedAccount = await ctx.runQuery(
-        internal.connectedAccounts.getConnectedAccountByCustomerId,
+        internal.connectedAccounts.internalGetConnectedAccountByClerkUserId,
         {
-          customerId: customer._id,
+          clerkUserId,
         }
       );
-
-      if (!connectedAccount) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND,
-        };
-      }
 
       await Promise.all([
-        stripe.accounts.del(connectedAccount.stripeAccountId),
+        deactivateStripeConnectedAccount(connectedAccount.stripeAccountId),
         ctx.runMutation(internal.connectedAccounts.deleteConnectedAccount, {
           connectedAccountId: connectedAccount._id,
         }),

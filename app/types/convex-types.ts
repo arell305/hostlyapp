@@ -13,8 +13,14 @@ import {
   UserSchema,
 } from "./schemas-types";
 import {
+  CustomerSubscriptionInfo,
+  CustomerWithPayment,
+  Guest,
   GuestListInfo,
+  GuestListNameSchema,
+  OrganizationDetails,
   OrganizationsSchema,
+  Promoter,
   SubscriptionBillingCycle,
   TicketInfo,
   TransformedOrganization,
@@ -56,16 +62,6 @@ export interface UpdateOrganizationMembershipsData {
   clerkUserId: string;
 }
 
-export type DeleteClerkUserResponse = DeleteClerkUserSucess | ErrorResponse;
-
-export interface DeleteClerkUserSucess {
-  status: ResponseStatus.SUCCESS;
-  data: DeleteClerkUserData;
-}
-export interface DeleteClerkUserData {
-  clerkUserId: string;
-}
-
 export type GetAllOrganizationsResponse =
   | GetAllOrganizationsSuccess
   | ErrorResponse;
@@ -76,7 +72,7 @@ export interface GetAllOrganizationsSuccess {
 }
 
 export interface GetAllOrganizationsData {
-  organizations: ListOrganizations[];
+  organizationDetails: OrganizationDetails[];
 }
 
 export interface ListOrganizations {
@@ -100,17 +96,17 @@ export interface CreateOrganizationData {
   clerkOrganizationId: string;
 }
 
-export type UpdateOrganizationResponse =
-  | UpdateOrganizationSuccess
+export type UpdateOrganizationNameResponse =
+  | UpdateOrganizationNameSuccess
   | ErrorResponse;
 
-export interface UpdateOrganizationSuccess {
+export interface UpdateOrganizationNameSuccess {
   status: ResponseStatus.SUCCESS;
-  data: UpdateOrganizationData;
+  data: UpdateOrganizationNameData;
 }
 
-export interface UpdateOrganizationData {
-  clerkOrgId: string;
+export interface UpdateOrganizationNameData {
+  slug: string;
 }
 
 export type UpdateOrganizationMetadataResponse =
@@ -279,7 +275,7 @@ export type UpdatePromoterPromoCodeResponse =
 
 export interface UpdatePromoterPromoCodeSuccess {
   status: ResponseStatus.SUCCESS;
-  data: UpdatePromoterPromoCodeData;
+  data: UpdatePromoterPromoCodeData | null;
 }
 
 export interface UpdatePromoterPromoCodeData {
@@ -323,7 +319,7 @@ export interface CreateConnectedAccountSuccess {
 }
 
 export interface CreateConnectedAccountData {
-  stripeAccountId: string;
+  connectedAccountId: Id<"connectedAccounts">;
 }
 
 export type GetOnboardingLinkResponse =
@@ -363,4 +359,256 @@ export interface GetStripeDashboardUrlSuccess {
 
 export interface GetStripeDashboardUrlData {
   url: string;
+}
+
+export type UpdateClerkOrganizationPhotoResponse =
+  | UpdateClerkOrganizationPhotoSuccess
+  | ErrorResponse;
+
+export interface UpdateClerkOrganizationPhotoSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateClerkOrganizationPhotoData | null;
+}
+
+export interface UpdateClerkOrganizationPhotoData {
+  clerkOrganizationId: string;
+}
+
+export type GetUsersByOrganizationSlugResponse =
+  | GetUsersByOrganizationSlugSuccess
+  | ErrorResponse;
+
+export interface GetUsersByOrganizationSlugSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetUsersByOrganizationSlugData | null;
+}
+
+export interface GetUsersByOrganizationSlugData {
+  clerkOrganizationId: string;
+  users: UserSchema[];
+}
+
+export type CreateClerkInvitationResponse =
+  | CreateClerkInvitationSuccess
+  | ErrorResponse;
+
+export interface CreateClerkInvitationSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CreateClerkInvitationData;
+}
+
+export interface CreateClerkInvitationData {
+  clerkInvitationId: string;
+}
+
+export type RevokeOrganizationInvitationResponse =
+  | RevokeOrganizationInvitationSuccess
+  | ErrorResponse;
+
+export interface RevokeOrganizationInvitationSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: RevokeOrganizationInvitationData;
+}
+
+export interface RevokeOrganizationInvitationData {
+  clerkInvitationId: string;
+}
+
+export type UpdateUserByClerkIdResponse =
+  | UpdateUserByClerkIdSuccess
+  | ErrorResponse;
+
+export interface UpdateUserByClerkIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateUserByClerkIdData | null;
+}
+
+export interface UpdateUserByClerkIdData {
+  clerkUserId: string;
+}
+
+export type GetCustomerDetailsBySlugResponse =
+  | GetCustomerDetailsBySlugSuccess
+  | ErrorResponse;
+
+export interface GetCustomerDetailsBySlugSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetCustomerDetailsBySlugData | null;
+}
+
+export interface GetCustomerDetailsBySlugData {
+  customerData: CustomerWithPayment;
+}
+
+export type CancelSubscriptionResponse =
+  | CancelSubscriptionSuccess
+  | ErrorResponse;
+
+export interface CancelSubscriptionSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CancelSubscriptionData | null;
+}
+
+export interface CancelSubscriptionData {
+  customerId: Id<"customers">;
+}
+
+export type ResumeSubscriptionResponse =
+  | ResumeSubscriptionSuccess
+  | ErrorResponse;
+
+export interface ResumeSubscriptionSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: ResumeSubscriptionData | null;
+}
+
+export interface ResumeSubscriptionData {
+  customerId: Id<"customers">;
+}
+
+export type UpdateSubscriptionPaymentMethodResponse =
+  | UpdateSubscriptionPaymentMethodSuccess
+  | ErrorResponse;
+
+export interface UpdateSubscriptionPaymentMethodSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateSubscriptionPaymentMethodData | null;
+}
+
+export interface UpdateSubscriptionPaymentMethodData {
+  customerId: Id<"customers">;
+}
+
+export type UpdateSubscriptionTierResponse =
+  | UpdateSubscriptionTierSuccess
+  | ErrorResponse;
+
+export interface UpdateSubscriptionTierSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateSubscriptionTierData | null;
+}
+
+export interface UpdateSubscriptionTierData {
+  customerId: Id<"customers">;
+}
+
+export type GetCustomerSubscriptionTierBySlugResponse =
+  | GetCustomerSubscriptionTierBySlugSuccess
+  | ErrorResponse;
+
+export interface GetCustomerSubscriptionTierBySlugSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetCustomerSubscriptionTierBySlugData | null;
+}
+
+export interface GetCustomerSubscriptionTierBySlugData {
+  customerSubscription: CustomerSubscriptionInfo;
+}
+
+export type GetGuestListByPromoterResponse =
+  | GetGuestListByPromoterSuccess
+  | ErrorResponse;
+
+export interface GetGuestListByPromoterSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: PromoterGuestsData | null;
+}
+export interface PromoterGuestsData {
+  guestListId: Id<"guestLists">;
+  names: GuestListNameSchema[];
+}
+
+export type UpdateGuestNameResponse = UpdateGuestNameSuccess | ErrorResponse;
+
+export interface UpdateGuestNameSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateGuestNameData | null;
+}
+
+export interface UpdateGuestNameData {
+  guestListId: Id<"guestLists">;
+  updatedGuest?: GuestListNameSchema;
+}
+
+export type AddGuestListResponse = AddGuestListSuccess | ErrorResponse;
+
+export interface AddGuestListSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: AddGuestListData | null;
+}
+
+export interface AddGuestListData {
+  guestListId: Id<"guestLists">;
+  names: NewGuest[];
+}
+
+export interface NewGuest {
+  id: string;
+  name: string;
+}
+
+export type GetEventWithGuestListsResponse =
+  | GetEventWithGuestListsSuccess
+  | ErrorResponse;
+
+export interface GetEventWithGuestListsSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetEventWithGuestListsData | null;
+}
+
+export interface GetEventWithGuestListsData {
+  event: EventSchema;
+  guests: Guest[];
+  totalMales: number;
+  totalFemales: number;
+}
+
+export type UpdateGuestAttendanceResponse =
+  | UpdateGuestAttendanceSuccess
+  | ErrorResponse;
+
+export interface UpdateGuestAttendanceSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateGuestAttendanceData | null;
+}
+
+export interface UpdateGuestAttendanceData {
+  guestListName: GuestListNameSchema;
+}
+
+export type GetConnectedAccountStatusBySlugResponse =
+  | GetConnectedAccountStatusBySlugSuccess
+  | ErrorResponse;
+
+export interface GetConnectedAccountStatusBySlugSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetConnectedAccountStatusBySlugData;
+}
+
+export interface GetConnectedAccountStatusBySlugData {
+  hasVerifiedConnectedAccount: boolean;
+}
+
+export type GetPromotersBySlugResponse =
+  | GetPromotersBySlugSuccess
+  | ErrorResponse;
+
+export interface GetPromotersBySlugSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetPromotersBySlugData;
+}
+
+export interface GetPromotersBySlugData {
+  promoters: Promoter[];
+}
+
+export type GetUserByClerkIdResponse = GetUserByClerkIdSuccess | ErrorResponse;
+
+export interface GetUserByClerkIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetUserByClerkIdData;
+}
+
+export interface GetUserByClerkIdData {
+  user: UserSchema;
 }

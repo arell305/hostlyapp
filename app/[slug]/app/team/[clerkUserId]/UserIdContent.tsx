@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { UserSchema } from "@/types/schemas-types";
 import Image from "next/image";
 import { UserRole, roleMap } from "../../../../../utils/enum";
 import { GoPencil } from "react-icons/go";
@@ -11,6 +10,10 @@ interface UserIdContentProps {
   onDelete: () => void;
   onEdit: () => void;
   has: any;
+  isCurrentUser: boolean;
+  onReactivateUser: () => void;
+  errorResumeUser: string | null;
+  loadingReactivate: boolean;
 }
 const UserIdContent: React.FC<UserIdContentProps> = ({
   userData,
@@ -18,14 +21,18 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
   onDelete,
   onEdit,
   has,
+  isCurrentUser,
+  onReactivateUser,
+  errorResumeUser,
+  loadingReactivate,
 }) => {
   const isHostlyPage = userData.role === UserRole.Hostly_Moderator;
   const isAdmin = has({ role: UserRole.Admin });
   const isHostlyAdmin =
     has({ role: UserRole.Hostly_Admin }) ||
     has({ role: UserRole.Hostly_Moderator });
-  const canEditUsers = has({ role: UserRole.Manager }) || isAdmin;
-
+  const canEditUsers =
+    has({ role: UserRole.Manager }) || (isAdmin && !isCurrentUser);
   const canDeleteAdminMods = isHostlyPage && isHostlyAdmin;
   return (
     <section className="container mx-auto  max-w-3xl ">
@@ -34,16 +41,33 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
           Back
         </Button>
         {canEditUsers ||
-          (canDeleteAdminMods && (
+          (canDeleteAdminMods && userData.isActive && (
             <Button variant="navGhost" onClick={onDelete}>
               Delete
             </Button>
           ))}
+        {canEditUsers ||
+          (canDeleteAdminMods && !userData.isActive && (
+            <>
+              <Button
+                disabled={loadingReactivate}
+                variant="navGhost"
+                onClick={onReactivateUser}
+              >
+                {loadingReactivate ? "Reactivating..." : "Reactivate"}
+              </Button>
+              <p
+                className={`pl-4 text-sm mt-1 ${errorResumeUser ? "text-red-500" : "text-transparent"}`}
+              >
+                {errorResumeUser || "Placeholder to maintain height"}
+              </p>{" "}
+            </>
+          ))}
       </div>
       <div className="flex items-center flex-col mb-4">
         <Image
-          src="https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVpvY3NtSG5PZE5PN2kyRVdpaUM5VENqMVAifQ"
-          alt="Example Image"
+          src={userData.imageUrl}
+          alt="Profile Image"
           width={100}
           height={100}
           className="rounded-full object-cover"

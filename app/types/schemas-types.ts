@@ -12,7 +12,6 @@ export interface UserSchema {
   clerkUserId?: string;
   email: string;
   organizationId?: Id<"organizations">;
-  acceptedInvite: boolean;
   customerId?: Id<"customers">;
   role: UserRole | null;
   name?: string;
@@ -37,7 +36,7 @@ interface OrganizationsSchema {
 export interface TicketSchema {
   _id: Id<"tickets">;
   eventId: Id<"events">;
-  clerkPromoterId: string | null;
+  userPromoterId: Id<"users"> | null;
   email: string;
   gender: Gender;
   checkInTime?: number;
@@ -60,7 +59,7 @@ export interface PromoterPromoCodeSchema {
   _id: Id<"promoterPromoCode">;
   _creationTime: number;
   name: string;
-  clerkPromoterUserId: string;
+  promoterUserId: Id<"users">;
 }
 
 export interface PromoterPromoCodeWithDiscount extends PromoterPromoCodeSchema {
@@ -69,7 +68,7 @@ export interface PromoterPromoCodeWithDiscount extends PromoterPromoCodeSchema {
 
 export interface EventSchema {
   _id: Id<"events">;
-  clerkOrganizationId: string;
+  organizationId: Id<"organizations">;
   name: string;
   description: string | null;
   startTime: number;
@@ -115,7 +114,6 @@ export interface ConnectedAccountsSchema {
   customerId: Id<"customers">;
   stripeAccountId: string;
   status: StripeAccountStatus;
-  isActive?: boolean;
   chargesEnabled?: boolean;
   payoutsEnabled?: boolean;
   lastStripeUpdate?: number;

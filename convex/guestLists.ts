@@ -4,51 +4,59 @@ import { v } from "convex/values";
 import { nanoid } from "nanoid";
 import { ResponseStatus, UserRole } from "../utils/enum";
 import {
-  AddGuestListResponse,
   DeleteGuestNameResponse,
-  EventSchema,
-  GetGuestListByPromoterResponse,
   GuestListNameSchema,
   GuestListSchema,
-  NewGuest,
-  UpdateGuestNameResponse,
+  UserSchema,
 } from "@/types/types";
 import { Id } from "./_generated/dataModel";
+import { requireAuthenticatedUser } from "../utils/auth";
+import {
+  validateEvent,
+  validateGuestList,
+  validateUser,
+} from "./backendUtils/validation";
+import {
+  isUserInCompanyOfEvent,
+  isUserThePromoter,
+} from "./backendUtils/helper";
+import { EventSchema } from "@/types/schemas-types";
+import {
+  GetGuestListByPromoterResponse,
+  UpdateGuestNameResponse,
+  AddGuestListResponse,
+  NewGuest,
+} from "@/types/convex-types";
 
 export const addGuestList = mutation({
   args: {
     newNames: v.array(v.string()),
-    clerkPromoterId: v.string(),
     eventId: v.id("events"),
   },
   handler: async (ctx, args): Promise<AddGuestListResponse> => {
+    const { newNames, eventId } = args;
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Promoter,
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+      ]);
 
-      if (identity.role !== UserRole.Promoter) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      const clerkUserId = identity.user as string;
+
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+        .unique();
+
+      const validatedUser = validateUser(user);
+
       const event: EventSchema | null = await ctx.db.get(args.eventId);
-      if (!event) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
+      const validatedEvent = validateEvent(event);
 
-      const newGuestObjects: NewGuest[] = args.newNames.map((name) => ({
+      isUserInCompanyOfEvent(validatedUser, validatedEvent);
+
+      const newGuestObjects: NewGuest[] = newNames.map((name) => ({
         id: `guest_${nanoid()}`,
         name,
       }));
@@ -57,8 +65,8 @@ export const addGuestList = mutation({
         .query("guestLists")
         .filter((q) =>
           q.and(
-            q.eq(q.field("clerkPromoterId"), args.clerkPromoterId),
-            q.eq(q.field("eventId"), args.eventId)
+            q.eq(q.field("userPromoterId"), validatedUser._id),
+            q.eq(q.field("eventId"), eventId)
           )
         )
         .first();
@@ -72,24 +80,25 @@ export const addGuestList = mutation({
           names: updatedNames,
         });
         return {
-          status: ResponseStatus.ERROR,
+          status: ResponseStatus.SUCCESS,
           data: {
             guestListId: existingGuestList._id,
             names: updatedNames,
           },
         };
       }
+
       const newGuestListId: Id<"guestLists"> = await ctx.db.insert(
         "guestLists",
         {
           names: newGuestObjects,
-          clerkPromoterId: args.clerkPromoterId,
-          eventId: args.eventId,
+          userPromoterId: validatedUser._id,
+          eventId,
         }
       );
 
       return {
-        status: ResponseStatus.ERROR,
+        status: ResponseStatus.SUCCESS,
         data: {
           guestListId: newGuestListId,
           names: newGuestObjects,
@@ -110,45 +119,43 @@ export const addGuestList = mutation({
 
 export const getGuestListByPromoter = query({
   args: {
-    clerkPromoterId: v.string(),
     eventId: v.id("events"),
   },
   handler: async (ctx, args): Promise<GetGuestListByPromoterResponse> => {
+    const { eventId } = args;
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-      // validate user
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Promoter,
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+      ]);
+
+      const clerkUserId = identity.user as string;
+
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+        .unique();
+
+      const validatedUser = validateUser(user);
 
       const guestList: GuestListSchema | null = await ctx.db
         .query("guestLists")
         .filter((q) =>
           q.and(
-            q.eq(q.field("clerkPromoterId"), args.clerkPromoterId),
-            q.eq(q.field("eventId"), args.eventId)
+            q.eq(q.field("userPromoterId"), validatedUser._id),
+            q.eq(q.field("eventId"), eventId)
           )
         )
         .first();
 
-      if (!guestList) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
-      // validate user belongs to org
+      const validatedGuestList = validateGuestList(guestList);
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          guestListId: guestList._id,
-          names: guestList.names,
+          guestListId: validatedGuestList._id,
+          names: validatedGuestList.names,
         },
       };
     } catch (error) {
@@ -174,33 +181,28 @@ export const updateGuestName = mutation({
     const { guestListId, guestId, newName } = args;
 
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Promoter,
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+      ]);
 
-      if (identity.role !== UserRole.Promoter) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      const clerkUserId = identity.user as string;
+
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+        .unique();
+
+      const validatedUser = validateUser(user);
+
       const guestList: GuestListSchema | null = await ctx.db.get(guestListId);
 
-      if (!guestList) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
+      const validatedGuestList = validateGuestList(guestList);
 
-      const updatedNames: GuestListNameSchema[] = guestList.names.map(
+      isUserThePromoter(validatedGuestList, validatedUser);
+
+      const updatedNames: GuestListNameSchema[] = validatedGuestList.names.map(
         (guest) => {
           if (guest.id === guestId) {
             return { ...guest, name: newName };
@@ -246,14 +248,11 @@ export const deleteGuestName = mutation({
     const { guestListId, guestId } = args;
 
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Promoter,
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+      ]);
 
       if (identity.role !== UserRole.Promoter) {
         return {
@@ -263,20 +262,24 @@ export const deleteGuestName = mutation({
         };
       }
 
+      const clerkUserId = identity.user as string;
+
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+        .unique();
+
+      const validatedUser = validateUser(user);
+
       const guestList: GuestListSchema | null = await ctx.db.get(guestListId);
 
-      if (!guestList) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
+      const validatedGuestList = validateGuestList(guestList);
 
-      const updatedNames: GuestListNameSchema[] = guestList.names.filter(
-        (guest) => guest.id !== guestId
-      );
-      if (updatedNames.length === guestList.names.length) {
+      isUserThePromoter(validatedGuestList, validatedUser);
+
+      const updatedNames: GuestListNameSchema[] =
+        validatedGuestList.names.filter((guest) => guest.id !== guestId);
+      if (updatedNames.length === validatedGuestList.names.length) {
         return {
           status: ResponseStatus.ERROR,
           data: null,
@@ -307,24 +310,3 @@ export const deleteGuestName = mutation({
     }
   },
 });
-
-// export const updateGuestListNamesByPromoter = mutation({
-//   args: {
-//     guestListId: v.id("guestLists"),
-//     names: v.array(v.string()),
-//   },
-//   handler: async (ctx, args) => {
-//     const { guestListId, names } = args;
-
-//     // Check if the guest list exists
-//     const existingGuestList = await ctx.db.get(guestListId);
-//     if (!existingGuestList) {
-//       throw new Error("Guest list not found");
-//     }
-
-//     // Update only the names field
-//     await ctx.db.patch(guestListId, { names });
-
-//     return { success: true, message: "Guest list names updated successfully" };
-//   },
-// });

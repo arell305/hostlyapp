@@ -7,24 +7,24 @@ import { Loader2, Upload } from "lucide-react";
 
 interface EditCompanyImageDrawerProps {
   isOpen: boolean;
-  photoPreview: string | null;
-  companyPhoto: File | null;
+  photoPreview?: string | null;
   error: string | null;
   isLoading: boolean;
   onSavePhoto: () => void;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onOpenChange: (open: boolean) => void;
+  photoUploadError: string | null;
 }
 
 const EditCompanyImageDrawer: React.FC<EditCompanyImageDrawerProps> = ({
   onOpenChange,
   isOpen,
   photoPreview,
-  companyPhoto,
   error,
   isLoading,
   onSavePhoto,
   handleFileChange,
+  photoUploadError,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,7 +58,6 @@ const EditCompanyImageDrawer: React.FC<EditCompanyImageDrawerProps> = ({
             <div className="w-full h-full border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center transition-colors duration-200 "></div>
           )}
         </div>
-
         <Input
           type="file"
           ref={fileInputRef}
@@ -66,7 +65,6 @@ const EditCompanyImageDrawer: React.FC<EditCompanyImageDrawerProps> = ({
           accept="image/*"
           className="hidden"
         />
-
         <Button
           onClick={triggerFileInput}
           variant="outline"
@@ -75,6 +73,11 @@ const EditCompanyImageDrawer: React.FC<EditCompanyImageDrawerProps> = ({
           <Upload className="mr-2 h-4 w-4" />
           Upload New Photo
         </Button>
+        <p
+          className={`pl-4 text-sm mt-1 ${photoUploadError ? "text-red-500" : "text-transparent"}`}
+        >
+          {photoUploadError || "Placeholder to maintain height"}
+        </p>{" "}
       </div>
     </BaseDrawer>
   );

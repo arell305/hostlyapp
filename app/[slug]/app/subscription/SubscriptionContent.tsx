@@ -1,80 +1,63 @@
 "use client";
-import {
-  useAuth,
-  useClerk,
-  useOrganization,
-  useOrganizationList,
-  useUser,
-} from "@clerk/nextjs";
-import { useAction, useQuery } from "convex/react";
+import { useAuth, useClerk } from "@clerk/nextjs";
+import { useAction } from "convex/react";
 import React, { useEffect, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
-import EventInfoSkeleton from "../components/loading/EventInfoSkeleton";
 import { CustomerWithPayment } from "@/types/types";
 import { DateTime } from "luxon";
 import { Button } from "@/components/ui/button";
 import {
   subscriptionStatusMap,
   SubscriptionStatus,
-  SubscriptionTier,
   ResponseStatus,
   UserRole,
   subscriptionBenefits,
 } from "../../../../utils/enum";
 import { useToast } from "@/hooks/use-toast";
-import { StripeCardElement, loadStripe } from "@stripe/stripe-js";
-import { Elements, useElements, useStripe } from "@stripe/react-stripe-js";
 import { truncatedToTwoDecimalPlaces } from "../../../../utils/helpers";
 import UpdateTierModal from "../components/modals/UpdateTierModal";
 import { GoPencil } from "react-icons/go";
 import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
 import ResponsivePayment from "../components/responsive/ResponsivePayment";
 import { useParams } from "next/navigation";
-
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
-);
+import { ERROR_MESSAGES } from "../../../../constants/errorMessages";
+import ErrorComponent from "../components/errors/ErrorComponent";
+import FullLoading from "../components/loading/FullLoading";
+import { FrontendErrorMessages } from "@/types/enums";
 
 const SubscriptionTab = () => {
-  const { user, organization, loaded } = useClerk();
-  const getCustomerDetails = useAction(api.customers.getCustomerDetails);
+  const { user } = useClerk();
   const [customerDetails, setCustomerDetails] = useState<
     CustomerWithPayment | null | undefined
   >(null);
-  const [loading, setLoading] = useState(true);
-  const [buttonLoading, setButtonLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [resumeLoading, setResumeLoading] = useState<boolean>(false);
+  const [resumeError, setResumeError] = useState<string | null>(null);
   const { toast } = useToast();
-  const [triggerUpdate, setTriggerUpdate] = useState(0);
   const [activeModal, setActiveModal] = useState<string | null>(null);
-  const { orgRole, isLoaded: isAuthLoaded } = useAuth();
-  const { isLoaded, setActive } = useOrganizationList({
-    userMemberships: true,
-  });
+  const { orgRole } = useAuth();
 
-  const { companyName: companyNameParams } = useParams();
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const cleanCompanyName =
-    typeof companyNameParams === "string"
-      ? companyNameParams.split("?")[0].toLowerCase()
-      : "";
-  const organizationData = useQuery(
-    api.organizations.getOrganizationByNameQuery,
-    cleanCompanyName ? { name: cleanCompanyName } : "skip"
-  );
+  const { slug } = useParams();
 
-  const [isLoading, setIsLoading] = useState(true);
+  const cleanSlug =
+    typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
 
-  useEffect(() => {
-    setIsLoading(false);
-  }, [organization, organizationData, user, cleanCompanyName]);
+  const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
+  const [pageError, setPageError] = useState<null | string>(null);
 
   const closeModal = () => {
     setActiveModal(null);
+    setRefreshKey((prev) => prev + 1);
   };
 
+  const getCustomerDetailsBySlug = useAction(
+    api.customers.getCustomerDetailsBySlug
+  );
+
   // Cancel Subscription
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [isCancelSubscriptionLoading, setIsCancelSubscriptionLoading] =
     useState<boolean>(false);
   const [cancelSubscriptionError, setCancelSubscriptionError] = useState<
@@ -83,195 +66,107 @@ const SubscriptionTab = () => {
 
   // Update Payment
   const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
-  const [isEditPaymentLoading, setIsEditPaymentLoading] =
-    useState<boolean>(false);
-  const [editPaymentError, setEditPaymentError] = useState<string | null>(null);
-  const [stripeCardElement, setStripeCardElement] =
-    useState<StripeCardElement | null>(null);
-  const updateSubscriptionPaymentMethod = useAction(
-    api.stripe.updateSubscriptionPaymentMethod
-  );
-  const handleCardChange = (event: any) => {
-    if (event.error) {
-      setEditPaymentError(event.error.message);
-    } else {
-      setEditPaymentError(null);
-    }
-    setStripeCardElement(event.complete ? event : null);
-  };
 
   const handleEditPaymentModalOpenChange = (open: boolean) => {
     if (open) {
       setShowEditPaymentModal(true);
     } else {
-      setStripeCardElement(null);
-      setEditPaymentError(null);
       setShowEditPaymentModal(false);
     }
   };
 
-  const stripe = useStripe();
-  const elements = useElements();
-
-  const handleEditPayment = async () => {
-    if (!stripe || !elements) {
-      setEditPaymentError("Stripe has not loaded yet. Please try again.");
-      return;
-    }
-    const email = user?.emailAddresses[0].emailAddress;
-    if (!email) {
-      setEditPaymentError("Email not found");
-      return;
-    }
-
-    if (!stripeCardElement) {
-      setEditPaymentError("Card not valid");
-      return;
-    }
-
-    try {
-      setIsEditPaymentLoading(true);
-      setEditPaymentError(null);
-
-      const { error, paymentMethod } = await stripe.createPaymentMethod({
-        type: "card",
-        card: stripeCardElement,
-      });
-
-      if (error) {
-        setEditPaymentError(error.message || "error processing payment");
-        return;
-      }
-
-      await updateSubscriptionPaymentMethod({
-        email,
-        newPaymentMethodId: paymentMethod.id,
-      });
-    } catch {}
-  };
-
   const cancelSubscription = useAction(api.customers.cancelSubscription);
   const resumeSubscription = useAction(api.customers.resumeSubscription);
-  const updateOrganizationMetadata = useAction(
-    api.clerk.updateOrganizationMetadata
-  );
 
   useEffect(() => {
-    const fetchCustomerDetails = async () => {
-      if (!organizationData?.data?.organization.customerId) {
-        return;
-      }
-      setLoading(true);
-      try {
-        console.log("id", organizationData?.data?.organization.customerId);
-        const getCustomerDetailsResponse = await getCustomerDetails({
-          customerId: organizationData?.data?.organization.customerId,
-        });
-        console.log("response", getCustomerDetailsResponse);
-        setCustomerDetails(getCustomerDetailsResponse.data?.customerData); // Save result to state
-      } catch (err) {
-        console.error("Error fetching customer details:", err);
-        setError("Failed to fetch customer details.");
-      } finally {
-        setLoading(false); // Set loading to false once the fetch is done
-      }
-    };
+    fetchCustomerDetails();
+  }, [cleanSlug, refreshKey]);
 
-    // Trigger the action on page load
-    if (organizationData?.data?.organization.customerId) {
-      fetchCustomerDetails();
+  const fetchCustomerDetails = async () => {
+    if (cleanSlug === "") {
+      return;
     }
-  }, [organizationData, organization]);
+    setIsPageLoading(true);
+    setPageError(null);
+    try {
+      const response = await getCustomerDetailsBySlug({ slug: cleanSlug });
+
+      if (response.status === ResponseStatus.SUCCESS) {
+        setCustomerDetails(response.data?.customerData);
+      } else {
+        console.error(response.error);
+        setPageError(ERROR_MESSAGES.GENERIC_ERROR);
+      }
+    } catch (error) {
+      console.error("Error fetching customer details:", error);
+      setPageError(ERROR_MESSAGES.GENERIC_ERROR);
+    } finally {
+      setIsPageLoading(false);
+    }
+  };
 
   const handleResume = async () => {
-    setButtonLoading(true);
-
-    const customerEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
+    setResumeError(null);
+    setResumeLoading(true);
 
     try {
-      const result = await resumeSubscription({
-        customerEmail,
-      });
-      if (result.status === ResponseStatus.SUCCESS && setActive) {
-        await setActive({ organization: result.data?.id });
+      const response = await resumeSubscription();
+
+      if (response.status === ResponseStatus.SUCCESS) {
         toast({
           title: "Subscription Resumed",
           description: "Your subscription has been resume.",
         });
+        setRefreshKey((prev) => prev + 1);
+      } else {
+        setResumeError(FrontendErrorMessages.GENERIC_ERROR);
+        console.error(response.error);
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed resume subscription. Please try again",
-        variant: "destructive",
-      });
+      setResumeError(FrontendErrorMessages.GENERIC_ERROR);
+      console.error(error);
     } finally {
-      setTriggerUpdate((prev) => prev + 1);
-      setButtonLoading(false);
+      setResumeLoading(false);
     }
   };
 
   const handleCancelSubscription = async () => {
-    if (!organization) {
-      toast({
-        title: "Error",
-        description: "Failed to cancel subscription. Please try again",
-        variant: "destructive",
-      });
-      return;
-    }
-    const customerEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
+    setCancelSubscriptionError(null);
+    setIsCancelSubscriptionLoading(true);
     try {
-      setIsCancelSubscriptionLoading(true);
-      const result = await Promise.all([
-        cancelSubscription({ customerEmail }),
-        updateOrganizationMetadata({
-          clerkOrganizationId: organization.id,
-          params: {
-            status: SubscriptionStatus.CANCELED,
-          },
-        }),
-      ]);
-      if (result[0].status === ResponseStatus.SUCCESS && setActive) {
-        await setActive({ organization: result[1].data?.clerkOrgId });
+      const result = await cancelSubscription();
+      if (result.status === ResponseStatus.SUCCESS) {
         setShowConfirmModal(false);
         toast({
           title: "Cancellation successful",
           description: "Your subscription has been cancelled.",
         });
+        setRefreshKey((prev) => prev + 1);
+      } else {
+        console.error(result.error);
+        setCancelSubscriptionError(
+          "Failed to cancel subscription. Please try again"
+        );
       }
     } catch (error) {
+      console.error(error);
       setCancelSubscriptionError(
         "Failed to cancel subscription. Please try again"
       );
     } finally {
-      setTriggerUpdate((prev) => prev + 1);
       setIsCancelSubscriptionLoading(false);
     }
   };
 
-  const handleTierUpdate = (newTier: SubscriptionTier) => {
-    if (setActive && organization) {
-      setActive({ organization: organization.id });
-    }
+  const canEditSettings = orgRole === UserRole.Admin;
 
-    toast({
-      title: "Subscription Updated",
-      description: `Your subscription has been updated to ${newTier}.`,
-    });
-  };
-  if (!organization || isLoading || customerDetails === undefined) {
-    return <EventInfoSkeleton />;
-  }
-
-  if (customerDetails === null) {
-    return <p>Error loading customer details</p>;
+  if (isPageLoading || !customerDetails || !orgRole) {
+    return <FullLoading />;
   }
 
   const subscriptionStatusText =
     subscriptionStatusMap[customerDetails.subscriptionStatus] ||
     "Unknown Status";
-
   let nextPaymentText: string = "Next Payment";
   if (customerDetails.subscriptionStatus === SubscriptionStatus.CANCELED) {
     nextPaymentText = "Last Access Date";
@@ -290,7 +185,10 @@ const SubscriptionTab = () => {
         (1 - customerDetails.discountPercentage / 100)
     );
   }
-  const canEditSettings = orgRole === UserRole.Admin;
+
+  if (pageError) {
+    return <ErrorComponent message={pageError} />;
+  }
 
   return (
     <>
@@ -387,20 +285,36 @@ const SubscriptionTab = () => {
         {canEditSettings && (
           <div className="mt-6 flex space-x-4 mb-8">
             {customerDetails.subscriptionStatus ===
-            SubscriptionStatus.CANCELED ? (
-              <Button
-                onClick={handleResume}
-                className="bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-              >
-                Resume
-              </Button>
+            SubscriptionStatus.PENDING_CANCELLATION ? (
+              <>
+                <Button
+                  disabled={resumeLoading}
+                  onClick={handleResume}
+                  className="bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  {resumeLoading ? "Loading..." : " Resume"}
+                  Resume
+                </Button>
+                <p
+                  className={`pl-4 text-sm mt-1 ${resumeError ? "text-red-500" : "text-transparent"}`}
+                >
+                  {resumeError || "Placeholder to maintain height"}
+                </p>{" "}
+              </>
             ) : (
-              <Button
-                onClick={() => setShowConfirmModal(true)}
-                className=" text-red-600 bg-white hover:bg-red-50"
-              >
-                Cancel Subscription
-              </Button>
+              <>
+                <Button
+                  onClick={() => setShowConfirmModal(true)}
+                  className=" text-red-600 bg-white hover:bg-red-50"
+                >
+                  Cancel Subscription
+                </Button>
+                <p
+                  className={`pl-4 text-sm mt-1 ${cancelSubscriptionError ? "text-red-500" : "text-transparent"}`}
+                >
+                  {cancelSubscriptionError || "Placeholder to maintain height"}
+                </p>
+              </>
             )}
           </div>
         )}
@@ -423,26 +337,18 @@ const SubscriptionTab = () => {
           error={cancelSubscriptionError}
           isLoading={isCancelSubscriptionLoading}
         />
-        <Elements stripe={stripePromise}>
-          <ResponsivePayment
-            isOpen={showEditPaymentModal}
-            onOpenChange={handleEditPaymentModalOpenChange}
-            error={editPaymentError}
-            isLoading={isEditPaymentLoading}
-            onEditPayment={handleEditPayment}
-            onChange={handleCardChange}
-          />
-          <UpdateTierModal
-            isOpen={activeModal === "update_tier"}
-            onClose={closeModal}
-            email={user?.emailAddresses?.[0]?.emailAddress || ""}
-            currentTier={customerDetails.subscriptionTier}
-            onTierUpdate={handleTierUpdate}
-            discountPercentage={customerDetails.discountPercentage}
-            clerkOrganizationId={organization.id}
-            setActive={setActive}
-          />
-        </Elements>
+
+        <ResponsivePayment
+          isOpen={showEditPaymentModal}
+          onOpenChange={handleEditPaymentModalOpenChange}
+        />
+        <UpdateTierModal
+          isOpen={activeModal === "update_tier"}
+          onClose={closeModal}
+          email={user?.emailAddresses?.[0]?.emailAddress || ""}
+          currentTier={customerDetails.subscriptionTier}
+          discountPercentage={customerDetails.discountPercentage}
+        />
       </div>
     </>
   );

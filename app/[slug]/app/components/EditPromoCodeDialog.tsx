@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,12 +9,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useAction, useMutation } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { UserWithPromoCode } from "@/types/types";
+import { ResponseStatus } from "../../../../utils/enum";
+
+// Need to add drawer and add on userId page
 
 interface EditPromoCodeDialogProps {
   isOpen: boolean;
@@ -28,26 +30,17 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
   user,
 }) => {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isValid, setIsValid] = useState(true);
   const [promoCode, setPromoCode] = useState<string | null | undefined>(
     user?.promoCode
   );
 
-  const updateUserMetadata = useAction(api.clerk.updateUserMetadata);
   const addPromoCode = useMutation(
     api.promoterPromoCode.addOrUpdatePromoterPromoCode
   );
 
-  console.log("promoCode", promoCode);
-
-  console.log("user?.promoterPromoCodeId", user?.promoCode);
   const handleSave = async () => {
-    if (!user || !user.clerkUserId) {
-      setError("User not available. Please Try again");
-      return;
-    }
     if (!promoCode || !promoCode.trim()) {
       setError("Promo code cannot be empty");
       return;
@@ -58,7 +51,8 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
       return;
     }
 
-    if (promoCode === user.promoCode) {
+    if (promoCode === user?.promoCode) {
+      setIsOpen(false);
       return;
     }
 
@@ -66,24 +60,19 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
     setError(null);
 
     try {
-      await Promise.all([
-        addPromoCode({
-          name: promoCode,
-          clerkPromoterUserId: user.clerkUserId,
-        }),
-        updateUserMetadata({
-          clerkUserId: user.clerkUserId,
-          params: {
-            promoCode,
-          },
-        }),
-      ]);
-
-      toast({
-        title: "Promo Code updated",
-        description: "Promo code has successfully been updated",
+      const response = await addPromoCode({
+        name: promoCode,
       });
-      setIsOpen(false);
+      if (response.status === ResponseStatus.SUCCESS) {
+        toast({
+          title: "Promo Code updated",
+          description: "Promo code has successfully been updated",
+        });
+        setIsOpen(false);
+      } else {
+        console.error(response.error);
+        setError(response.error);
+      }
     } catch (error) {
       console.error("Error updating promo code:", error);
       if (error instanceof Error) {
@@ -145,7 +134,7 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
           <Button
             className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
             onClick={handleSave}
-            disabled={isLoading || !isValid}
+            disabled={isLoading}
           >
             {isLoading ? (
               <>
