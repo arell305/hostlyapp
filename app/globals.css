@@ -349,13 +349,6 @@ input::-webkit-date-and-time-value {
   }
 }
 
-.MuiInputBase-input .MuiInputBase-input::placeholder {
-  /* font-family: "__Raleway_390885" !important; */
-  color: rgb(55, 65, 81);
-}
-
-/* rgb(47, 52, 58) */
-
 .dot-container {
   display: flex;
   justify-content: center;

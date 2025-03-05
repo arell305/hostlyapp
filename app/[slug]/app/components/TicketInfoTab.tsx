@@ -21,13 +21,13 @@ import {
 } from "@/types/schemas-types";
 import TicketCard from "./cards/TicketCard";
 import ResponsiveConfirm from "./responsive/ResponsiveConfirm";
-import { ResponseStatus } from "../../../../utils/enum";
+import { ClerkPermissions, ResponseStatus } from "../../../../utils/enum";
 import { useToast } from "@/hooks/use-toast";
 import { FaSearch } from "react-icons/fa";
 import { Input } from "@/components/ui/input";
 import { MdOutlineCancel } from "react-icons/md";
 import useMediaQuery from "@/hooks/useMediaQuery";
-import { Gender, Permission } from "@/types/enums";
+import { Gender } from "@/types/enums";
 import { formatToTimeAndShortDate, isPast } from "../../../../utils/luxon";
 import { Promoter } from "@/types/types";
 
@@ -49,12 +49,12 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
   slug,
 }) => {
   const { toast } = useToast();
-  const hasPromoCode = has({ permission: Permission.UPLOAD_GUESTLIST });
+  const hasPromoCode = has({ permission: ClerkPermissions.UPLOAD_GUESTLIST });
   const canViewAllTickets = has({
-    permission: Permission.VIEW_ALL_GUESTLISTS,
+    permission: ClerkPermissions.VIEW_ALL_GUESTLISTS,
   });
   const canCheckInGuests: boolean = has({
-    permission: Permission.CHECK_GUESTS,
+    permission: ClerkPermissions.CHECK_GUESTS,
   });
 
   const [isLoadingPromoters, setIsLoadingPromoters] = useState<boolean>(false);
@@ -150,8 +150,8 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
     (!canViewAllTickets && promoterUserId);
 
   const selectedPromoterUserId: Id<"users"> | null = canViewAllTickets
-    ? (selectedPromoterId as Id<"users">) // ✅ Explicitly cast to Id<"users">
-    : promoterUserId || null; // ✅ Ensure it's null if unavailable
+    ? (selectedPromoterId as Id<"users">)
+    : promoterUserId || null;
 
   const responseSelectedPromoterUsage = useQuery(
     api.promoCodeUsage.getPromoCodeUsageByPromoterAndEvent,
@@ -201,6 +201,7 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
     }
   };
 
+  // No tickets
   if (!ticketData) {
     return (
       <div className="mb-4 flex flex-col gap-4 bg-gray-100 min-h-[100vh]">
@@ -215,6 +216,7 @@ const TicketInfoTab: React.FC<TicketInfoTabProps> = ({
     );
   }
 
+  // Promoter
   if (hasPromoCode) {
     if (!responseSelectedPromoterUsage) {
       return <DetailsSkeleton />;

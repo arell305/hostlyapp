@@ -5,6 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { ResponseStatus } from "../../../../utils/enum";
 
+// TBD Deleted
 const QRCodeScanner: React.FC = () => {
   const [result, setResult] = useState<string>("");
   const [count, setCount] = useState<number>(0);
@@ -16,7 +17,7 @@ const QRCodeScanner: React.FC = () => {
     if (detectedCodes && detectedCodes.length > 0) {
       const qrData: string = detectedCodes[0].rawValue;
       setCount((prevCount) => prevCount + 1);
-      console.log("qr", qrData);
+
       try {
         const parsedData = JSON.parse(qrData);
         console.log("parsedData", parsedData);

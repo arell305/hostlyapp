@@ -2,22 +2,19 @@ import { pricingOptions } from "../constants/pricingOptions";
 import { PricingOption } from "@/types/types";
 import { OrganizationJSON } from "@clerk/backend";
 import { UserRole as ImportedUserRole, UserRoleEnum } from "./enum";
-import { toZonedTime, format } from "date-fns-tz";
-import moment from "moment-timezone";
 import { WEBSITE } from "@/types/constants";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
   if (!option) return undefined;
 
-  // Convert price string to integer cents (e.g., "$99.99" to 9999)
   const amount = parseFloat(option.price.replace(/[^0-9.-]+/g, "")) * 100;
-  return Math.round(amount); // Ensure it's an integer
+  return Math.round(amount);
 };
 
 export function getPricingOptionByName(name: string | null): PricingOption {
   const lowercasedName = name?.toLowerCase();
-  // return plus tier if no match
+
   return (
     pricingOptions.find(
       (option) => option.tier.toLowerCase() === lowercasedName
@@ -64,51 +61,9 @@ export function isOrganizationJSON(data: any): data is OrganizationJSON {
   );
 }
 
-type UserRole = (typeof UserRoleEnum)[keyof typeof UserRoleEnum];
-
-export const canCreateEvents = (role: UserRole | null): boolean => {
-  const allowedRoles: UserRole[] = [
-    UserRoleEnum.APP_ADMIN,
-    UserRoleEnum.PROMOTER_ADMIN,
-    UserRoleEnum.PROMOTER_MANAGER,
-  ];
-
-  return role !== null && allowedRoles.includes(role);
-};
-
-export const formatUnixArrivalTime = (timestamp: number): string => {
-  return format(new Date(timestamp), "h:mma");
-};
-
-export const formatDateTime = (dateTimeString: string): string => {
-  const pstDate = moment(dateTimeString).tz("America/Los_Angeles");
-
-  // Format the date and time
-  return pstDate.format("MMMM D, YYYY [at] h:mm A z");
-};
-
-export const utcToPstString = (utcDate: string | null) => {
-  if (!utcDate) return "";
-  return format(
-    toZonedTime(new Date(utcDate), "America/Los_Angeles"),
-    "yyyy-MM-dd'T'HH:mm",
-    { timeZone: "America/Los_Angeles" }
-  );
-};
-
 export const pstToUtc = (pstDateString: string) => {
   const pstDate = new Date(pstDateString);
   return pstDate.toISOString();
-};
-
-export const localToPst = (localDate: string) => {
-  // The user selects a local time, like "2024-10-25T10:00", in their local time zone.
-
-  // Now, treat that time as if it were in PST, regardless of the user's timezone.
-  const zonedPstDate = toZonedTime(localDate, "America/Los_Angeles");
-
-  // Format the PST time to a UTC string for storage
-  return zonedPstDate;
 };
 
 export const isValidEmail = (email: string) => {
@@ -121,33 +76,6 @@ export const formatCurrency = (amount: number): string => {
     style: "currency",
     currency: "USD",
   }).format(amount);
-};
-
-export const formatUnixToTimeAndShortDate = (timestamp: number): string => {
-  return moment(timestamp)
-    .tz("America/Los_Angeles")
-    .format("MMM D, YYYY h:mma");
-};
-
-export const formatUnixToTimeAndAbbreviatedDate = (
-  timestamp: number
-): string => {
-  return moment(timestamp).tz("America/Los_Angeles").format("M/D/YY h:mma"); // Updated format
-};
-
-export const checkIsHostlyAdmin = (role: string): boolean => {
-  return (
-    role === ImportedUserRole.Hostly_Admin ||
-    role === ImportedUserRole.Hostly_Moderator
-  );
-};
-
-export const containsUnderscore = (name: string): boolean => {
-  return name.includes("_");
-};
-
-export const replaceSpacesWithHyphens = (name: string): string => {
-  return name.replace(/\s/g, "-");
 };
 
 export const getBillingCycle = (
@@ -181,29 +109,17 @@ export const getTextBeforeComma = (text: string): string => {
   const commaIndex = text.indexOf(",");
 
   if (commaIndex === -1) {
-    return text.trim(); // Return the whole string if no comma is found
+    return text.trim();
   }
 
   return text.slice(0, commaIndex).trim();
 };
 
-// export const generateQRCode = (data: string): Promise<string> => {
-//   return new Promise((resolve, reject) => {
-//     qrcode.generate(data, { small: true }, (qrcode) => {
-//       resolve(qrcode);
-//     });
-//   });
-// };
-
 export const generateQRCode = async (
   ticketUniqueId: string
 ): Promise<string> => {
   const qrData = JSON.stringify({ ticketUniqueId });
-  // Use your QR code generation library here to create the QR code image
-  // For example, if you're using qrcode library:
-  // const qrCodeImage = await QRCode.toDataURL(qrData);
-  // return qrCodeImage;
-  return qrData; // For now, we're just returning the JSON string
+  return qrData;
 };
 
 // async function checkEventLimit(userId: string, eventStartDate: Date, subscriptionStartDate: Date) {
@@ -249,14 +165,6 @@ export const generateQRCode = async (
 
 //   return event;
 // }
-export const isAfterNowInPacificTime = (time: string | number): boolean => {
-  const targetTime = moment(time).tz("America/Los_Angeles"); // Parse the target time in Pacific Time
-  const now = moment().tz("America/Los_Angeles"); // Get the current time in Pacific Time
-  return targetTime.isAfter(now); // Check if the target time is after now
-};
-
-const base64Encode = (str: string) =>
-  typeof btoa !== "undefined" ? btoa(str) : Buffer.from(str).toString("base64");
 
 export const generateQRCodeBase64 = (ticketId: string) => {
   return `https://quickchart.io/qr?text=${encodeURIComponent(ticketId)}&size=200`;
@@ -268,11 +176,9 @@ export const getBaseUrl = (): string => {
     return appUrl;
   }
 
-  // Use window.location on the client side as a fallback
   if (typeof window !== "undefined") {
     return window.location.origin;
   }
 
-  // Default to localhost for server-side development
   return WEBSITE;
 };

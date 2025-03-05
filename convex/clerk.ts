@@ -6,7 +6,6 @@ import { Webhook } from "svix";
 import { v } from "convex/values";
 import { createClerkClient } from "@clerk/backend";
 import {
-  ClerkOrganization,
   GetPendingInvitationListResponse,
   PendingInvitationUser,
 } from "@/types/types";
@@ -25,6 +24,7 @@ import {
   UpdateOrganizationMembershipsResponse,
   UpdateOrganizationNameResponse,
   CreateClerkInvitationResponse,
+  UpdateOrganizationMetadataResponse,
 } from "@/types/convex-types";
 import { requireAuthenticatedUser } from "../utils/auth";
 import slugify from "slugify";
@@ -481,28 +481,6 @@ export const updateOrganizationName = action({
         data: null,
         error: errorMessage,
       };
-    }
-  },
-});
-
-export const getOrganizationList = action({
-  args: {},
-  handler: async (ctx, args): Promise<ClerkOrganization[]> => {
-    const clerkClient = createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY,
-    });
-    try {
-      const { data } = await clerkClient.organizations.getOrganizationList();
-      const filteredOrganizations: ClerkOrganization[] = data.map((org) => ({
-        clerkOrganizationId: org.id,
-        name: org.name,
-        imageUrl: org.imageUrl,
-        publicMetadata: org.publicMetadata,
-      }));
-      return filteredOrganizations;
-    } catch (err) {
-      console.log("Failed to update metadata", err);
-      throw new Error("Failed to fetch organization.");
     }
   },
 });

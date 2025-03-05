@@ -1,11 +1,11 @@
-import { roleMap } from "../../../../utils/enum";
+import { ClerkPermissions, UserRole, roleMap } from "../../../../utils/enum";
 import { PiTrashSimple } from "react-icons/pi";
 import { Protect } from "@clerk/nextjs";
 
 interface PendingUserCardProps {
   clerkInvitationId: string;
   email: string;
-  role: string;
+  role: UserRole;
   onRevoke: (clerkInvitationId: string) => void;
   isHostlyPage: boolean;
 }
@@ -30,8 +30,9 @@ const PendingUserCard: React.FC<PendingUserCardProps> = ({
       </div>
       <Protect
         condition={(has) =>
-          (isHostlyPage && has({ permission: "org:app:moderate" })) ||
-          has({ permission: "org:events:create" })
+          (isHostlyPage &&
+            has({ permission: ClerkPermissions.MODERATES_APP })) ||
+          has({ permission: ClerkPermissions.CREATE_EVENT })
         }
       >
         <PiTrashSimple

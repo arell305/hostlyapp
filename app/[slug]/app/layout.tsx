@@ -4,12 +4,16 @@ import DashboardMobileSidebar from "./components/DashboardMobileSidebar";
 import DashboardDesktopSidebar from "./components/DashboardDesktopSidebar";
 import FullLoading from "./components/loading/FullLoading";
 import DashboardNavbar from "./components/DashboardNavbar";
+import { Protect, useAuth } from "@clerk/nextjs";
+import { ClerkPermissions } from "../../../utils/enum";
+import TicketScannerFAB from "./components/ui/TicketScannerFAB";
 
 const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
+  const { has } = useAuth();
 
   const toggleSidebar = () => {
     if (isMobile) {
@@ -52,7 +56,7 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     };
   }, [isOpen]);
 
-  if (isLoading) {
+  if (isLoading || !has) {
     return <FullLoading />;
   }
 
@@ -73,8 +77,19 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
 
         {/* Main content */}
-        <div className={`relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}>
-          <div>{children}</div>
+        <div
+          className={`min-h-screen relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}
+        >
+          <div>
+            {children}
+            <Protect
+              condition={(has) =>
+                has({ permission: ClerkPermissions.CHECK_GUESTS })
+              }
+            >
+              <TicketScannerFAB />
+            </Protect>
+          </div>
         </div>
       </div>
     </div>

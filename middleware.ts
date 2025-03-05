@@ -6,6 +6,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { UserRole } from "./utils/enum";
 
 const isProtectedRoute = createRouteMatcher(["/create-company"]);
+const isHostlyAdminProtected = createRouteMatcher(["/admin/app/companies"]);
 const isSubscriptionRoute = (req: NextRequest) =>
   /^\/([^/]+)\/app\/subscription(?:\/|$)/.test(req.nextUrl.pathname);
 
@@ -41,6 +42,15 @@ export default clerkMiddleware(
     if (isStripeRoute(req)) {
       await auth.protect((has) => {
         return has({ role: UserRole.Admin });
+      });
+    }
+
+    if (isHostlyAdminProtected(req)) {
+      await auth.protect((has) => {
+        return (
+          has({ role: UserRole.Hostly_Admin }) ||
+          has({ role: UserRole.Hostly_Moderator })
+        );
       });
     }
 
@@ -85,6 +95,12 @@ export default clerkMiddleware(
           // unauthorize if organization is not
           if (!organization || !organization.isActive) {
             return NextResponse.redirect(new URL("/unauthorized", req.url));
+          }
+
+          if (organization.slug === "admin") {
+            return NextResponse.redirect(
+              new URL(`/${organization.slug}/app/companies`, req.url)
+            );
           }
 
           if (organization) {

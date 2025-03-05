@@ -4,8 +4,8 @@ import EventGuestList from "@/[slug]/app/components/EventGuestList";
 import ModeratorGuestList from "@/[slug]/app/components/ModeratorGuestList";
 import { LuClipboardList } from "react-icons/lu";
 import { EventSchema, GuestListInfoSchema } from "@/types/schemas-types";
-import { Permission } from "@/types/enums";
 import { isPast } from "../../../../../utils/luxon";
+import { ClerkPermissions } from "../../../../../utils/enum";
 
 interface GuestListTabProps {
   eventData: EventSchema;
@@ -33,14 +33,14 @@ const GuestListTab: React.FC<GuestListTabProps> = ({
   }
 
   const canViewAllGuestList: boolean = has({
-    permission: Permission.VIEW_ALL_GUESTLISTS,
+    permission: ClerkPermissions.VIEW_ALL_GUESTLISTS,
   });
 
   const canCheckInGuests: boolean = has({
-    permission: Permission.CHECK_GUESTS,
+    permission: ClerkPermissions.CHECK_GUESTS,
   });
   const canUploadGuest: boolean = has({
-    permission: Permission.UPLOAD_GUESTLIST,
+    permission: ClerkPermissions.UPLOAD_GUESTLIST,
   });
 
   let isGuestListOpen: boolean = !isPast(guestListInfo.guestListCloseTime);

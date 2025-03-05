@@ -135,16 +135,16 @@ export interface GetEventsByOrganizationData {
   events: PaginationResult<EventSchema>;
 }
 
-export type GetOrganizationByNameQueryResponse =
-  | GetOrganizationByNameQuerySuccess
+export type GetOrganizationBySlugQueryResponse =
+  | GetOrganizationBySlugQuerySuccess
   | ErrorResponse;
 
-export interface GetOrganizationByNameQuerySuccess {
+export interface GetOrganizationBySlugQuerySuccess {
   status: ResponseStatus.SUCCESS;
-  data: GetOrganizationByNameQueryData;
+  data: GetOrganizationBySlugQueryData;
 }
 
-export interface GetOrganizationByNameQueryData {
+export interface GetOrganizationBySlugQueryData {
   organization: OrganizationsSchema;
 }
 
@@ -611,4 +611,44 @@ export interface GetUserByClerkIdSuccess {
 
 export interface GetUserByClerkIdData {
   user: UserSchema;
+}
+
+export type GetEventsBySlugAndMonthResponse =
+  | GetEventsBySlugAndMonthSuccess
+  | ErrorResponse;
+
+export interface GetEventsBySlugAndMonthSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetEventsBySlugAndMonthData;
+}
+
+export interface GetEventsBySlugAndMonthData {
+  eventData: EventSchema[];
+}
+
+export type GetEventsByOrganizationPublicResponse =
+  | GetEventsByOrganizationPublicSuccess
+  | ErrorResponse;
+
+export interface GetEventsByOrganizationPublicSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetEventsByOrganizationPublicData | null;
+}
+
+export interface GetEventsByOrganizationPublicData {
+  events: PaginationResult<EventSchema>;
+}
+
+export type GetOrganizationImagePublicResponse =
+  | GetOrganizationImagePublicSuccess
+  | ErrorResponse;
+
+export interface GetOrganizationImagePublicSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetOrganizationImagePublicData | null;
+}
+
+export interface GetOrganizationImagePublicData {
+  photo: Id<"_storage"> | null;
+  name: string;
 }

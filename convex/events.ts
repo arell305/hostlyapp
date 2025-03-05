@@ -1,4 +1,4 @@
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
 import {
   query,
   mutation,
@@ -9,40 +9,31 @@ import {
 import {
   AllGuestSchema,
   CancelEventResponse,
-  GetEventsByOrgAndMonthResponse,
   GuestListNameSchema,
   GuestListSchema,
   OrganizationsSchema,
   Promoters,
-  UpdateEventFields,
 } from "@/types/types";
 import {
   ResponseStatus,
   StripeAccountStatus,
-  SubscriptionStatus,
   SubscriptionTier,
   UserRole,
 } from "../utils/enum";
 import { ErrorMessages, Gender } from "@/types/enums";
-import { ERROR_MESSAGES } from "../constants/errorMessages";
 import { Id } from "./_generated/dataModel";
 import { PaginationResult, paginationOptsValidator } from "convex/server";
 import {
   AddEventResponse,
-  CountGuestListsEventsResponse,
   GetEventByIdResponse,
-  GetEventsByOrganizationResponse,
   UpdateEventResponse,
   GetEventWithGuestListsResponse,
   UpdateGuestAttendanceResponse,
+  GetEventsBySlugAndMonthResponse,
+  GetEventsByOrganizationPublicResponse,
 } from "@/types/convex-types";
-import { checkIsHostlyAdmin } from "../utils/helpers";
-import moment from "moment";
-import { PLUS_GUEST_LIST_LIMIT, USD_CURRENCY } from "@/types/constants";
-import { DateTime } from "luxon";
+import { USD_CURRENCY } from "@/types/constants";
 import {
-  ConnectedAccountsSchema,
-  CustomerSchema,
   EventSchema,
   GuestListInfoSchema,
   PromoterPromoCodeSchema,
@@ -51,7 +42,6 @@ import {
 } from "@/types/schemas-types";
 import { getCurrentTime } from "../utils/luxon";
 import { api, internal } from "./_generated/api";
-import { createStripeProduct } from "./stripe";
 import { GetEventWithTicketsData } from "@/types/convex/internal-types";
 import { stripe } from "./backendUtils/stripe";
 import { requireAuthenticatedUser } from "../utils/auth";
@@ -66,348 +56,6 @@ import {
   isUserInCompanyOfEvent,
   isUserInOrganization,
 } from "./backendUtils/helper";
-
-// export const getEventsByOrgAndDate = query({
-//   args: {
-//     clerkOrganizationId: v.string(),
-//     startTime: v.string(),
-//     endTime: v.string(),
-//   },
-//   handler: async (ctx, args) => {
-//     const events: EventSchema[] = await ctx.db
-//       .query("events")
-//       .filter((q) =>
-//         q.and(
-//           q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId),
-//           q.gte(q.field("startTime"), args.startTime),
-//           q.lt(q.field("startTime"), args.endTime)
-//         )
-//       )
-//       .collect();
-
-//     return events || [];
-//   },
-// });
-
-// export const addEvent = mutation({
-//   args: {
-//     clerkOrganizationId: v.string(),
-//     name: v.string(),
-//     description: v.union(v.string(), v.null()),
-//     startTime: v.number(),
-//     endTime: v.number(),
-//     photo: v.union(v.id("_storage"), v.null()),
-//     address: v.string(),
-//     ticketData: v.union(
-//       v.object({
-//         maleTicketPrice: v.number(),
-//         femaleTicketPrice: v.number(),
-//         maleTicketCapacity: v.number(),
-//         femaleTicketCapacity: v.number(),
-//         ticketSalesEndTime: v.number(),
-//       }),
-//       v.null()
-//     ),
-//     guestListData: v.union(
-//       v.object({
-//         guestListCloseTime: v.number(),
-//         checkInCloseTime: v.number(),
-//       }),
-//       v.null()
-//     ),
-//   },
-//   handler: async (ctx, args): Promise<AddEventResponse> => {
-//     try {
-//       const identity = await ctx.auth.getUserIdentity();
-//       if (!identity) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.UNAUTHENTICATED,
-//         };
-//       }
-//       const role: UserRole = identity.role as UserRole;
-//       if (role !== UserRole.Admin && role !== UserRole.Manager) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.FORBIDDEN,
-//         };
-//       }
-
-//       if (args.clerkOrganizationId !== identity.clerk_org_id) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.FORBIDDEN,
-//         };
-//       }
-
-//       const organization: OrganizationsSchema | null = await ctx.db
-//         .query("organizations")
-//         .withIndex("by_clerkOrganizationId", (q) =>
-//           q.eq("clerkOrganizationId", args.clerkOrganizationId)
-//         )
-//         .first();
-
-//       if (!organization) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.NOT_FOUND,
-//         };
-//       }
-
-//       const customer: CustomerSchema | null = await ctx.db
-//         .query("customers")
-//         .filter((q) => q.eq(q.field("_id"), organization.customerId))
-//         .first();
-
-//       if (!customer) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.NOT_FOUND,
-//         };
-//       }
-
-//       if (
-//         args.guestListData &&
-//         customer.subscriptionTier === SubscriptionTier.PLUS
-//       ) {
-//         const subscriptionStart = moment(customer.subscriptionStartDate);
-//         const eventStart = moment(args.startTime);
-
-//         let cycleStart = subscriptionStart.clone();
-//         while (cycleStart.add(1, "months").isBefore(eventStart)) {
-//           // Intentionally empty; the loop advances cycleStart to the correct month
-//         }
-//         const cycleEnd = cycleStart.clone().add(1, "months");
-
-//         const events: EventSchema[] = await ctx.db
-//         .query("events")
-//         .filter((q) => q.eq(q.field("clerkOrganizationId"), organization._id))
-//         .filter((q) => q.gte(q.field("startTime"), cycleStart.toMillis()))
-//         .filter((q) => q.lte(q.field("startTime"), cycleEnd.toMillis()))
-//         .collect();
-
-//         const overLimit = events.length >= PLUS_GUEST_LIST_LIMIT;
-
-//         if (overLimit) {
-//           return {
-//             status: ResponseStatus.ERROR,
-//             data: null,
-//             error: `Guest List Events limit of ${PLUS_GUEST_LIST_LIMIT} reached for pay period ${cycleStart.format("MMM D, YYYY")} to ${cycleEnd.format("MMM D, YYYY")}. Unable to add more guest list events during this period.`,
-//           };
-//         }
-//       }
-
-//       const eventId: Id<"events"> = await ctx.db.insert("events", {
-//         clerkOrganizationId: args.clerkOrganizationId,
-//         name: args.name,
-//         description: args.description,
-//         startTime: args.startTime,
-//         endTime: args.endTime,
-//         photo: args.photo,
-//         address: args.address,
-//         isActive: true,
-//       });
-
-//       if (args.ticketData) {
-//         const ticketInfoId: Id<"ticketInfo"> = await ctx.db.insert(
-//           "ticketInfo",
-//           {
-//             eventId: eventId,
-//             maleTicketPrice: args.ticketData.maleTicketPrice,
-//             femaleTicketPrice: args.ticketData.femaleTicketPrice,
-//             maleTicketCapacity: args.ticketData.maleTicketCapacity,
-//             femaleTicketCapacity: args.ticketData.femaleTicketCapacity,
-//             ticketSalesEndTime: args.ticketData.ticketSalesEndTime,
-//           }
-//         );
-//         await ctx.db.patch(eventId, {
-//           ticketInfoId,
-//         });
-//       }
-
-//       if (args.guestListData) {
-//         const guestListInfoId: Id<"guestListInfo"> = await ctx.db.insert(
-//           "guestListInfo",
-//           {
-//             eventId: eventId,
-//             guestListCloseTime: args.guestListData.guestListCloseTime,
-//             checkInCloseTime: args.guestListData.checkInCloseTime,
-//             guestListIds: [],
-//           }
-//         );
-//         await ctx.db.patch(eventId, {
-//           guestListInfoId,
-//         });
-//       }
-
-//       await ctx.db.patch(organization._id, {
-//         eventIds: [...organization.eventIds, eventId],
-//       });
-
-//       return {
-//         status: ResponseStatus.SUCCESS,
-//         data: {
-//           eventId,
-//         },
-//       };
-//     } catch (error) {
-//       const errorMessage =
-//         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-//       console.error(errorMessage, error);
-//       return {
-//         status: ResponseStatus.ERROR,
-//         data: null,
-//         error: errorMessage,
-//       };
-//     }
-//   },
-// });
-
-// export const addEvent = mutation({
-//   args: {
-//     clerkOrganizationId: v.string(),
-//     name: v.string(),
-//     description: v.union(v.string(), v.null()),
-//     startTime: v.number(), // Expecting timestamp
-//     endTime: v.number(), // Expecting timestamp
-//     photo: v.union(v.id("_storage"), v.null()),
-//     address: v.string(),
-//     ticketData: v.union(
-//       v.object({
-//         maleTicketPrice: v.number(),
-//         femaleTicketPrice: v.number(),
-//         maleTicketCapacity: v.number(),
-//         femaleTicketCapacity: v.number(),
-//         ticketSalesEndTime: v.number(),
-//       }),
-//       v.null()
-//     ),
-//     guestListData: v.union(
-//       v.object({
-//         guestListCloseTime: v.number(),
-//         checkInCloseTime: v.number(),
-//       }),
-//       v.null()
-//     ),
-//   },
-//   handler: async (ctx, args): Promise<AddEventResponse> => {
-//     try {
-//       const identity = await ctx.auth.getUserIdentity();
-//       if (!identity) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.UNAUTHENTICATED,
-//         };
-//       }
-
-//       const role: UserRole = identity.role as UserRole;
-//       if (role !== UserRole.Admin && role !== UserRole.Manager) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.FORBIDDEN,
-//         };
-//       }
-
-//       if (args.clerkOrganizationId !== identity.clerk_org_id) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.FORBIDDEN,
-//         };
-//       }
-
-//       const organization: OrganizationsSchema | null = await ctx.db
-//         .query("organizations")
-//         .withIndex("by_clerkOrganizationId", (q) =>
-//           q.eq("clerkOrganizationId", args.clerkOrganizationId)
-//         )
-//         .first();
-
-//       if (!organization) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.NOT_FOUND,
-//         };
-//       }
-
-//       const customer: CustomerSchema | null = await ctx.db
-//         .query("customers")
-//         .filter((q) => q.eq(q.field("_id"), organization.customerId))
-//         .first();
-
-//       if (!customer) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.NOT_FOUND,
-//         };
-//       }
-
-//       // Insert the event into the database
-//       const eventId: Id<"events"> = await ctx.db.insert("events", {
-//         clerkOrganizationId: args.clerkOrganizationId,
-//         name: args.name,
-//         description: args.description,
-//         startTime: args.startTime, // Already a number (timestamp)
-//         endTime: args.endTime, // Already a number (timestamp)
-//         photo: args.photo,
-//         address: args.address,
-//         isActive: true,
-//       });
-
-//       // Handle ticket data if provided
-//       let ticketInfoId: Id<"ticketInfo"> | null = null;
-//       if (args.ticketData) {
-//         ticketInfoId = await ctx.db.insert("ticketInfo", {
-//           eventId,
-//           maleTicketPrice: args.ticketData.maleTicketPrice,
-//           femaleTicketPrice: args.ticketData.femaleTicketPrice,
-//           maleTicketCapacity: args.ticketData.maleTicketCapacity,
-//           femaleTicketCapacity: args.ticketData.femaleTicketCapacity,
-//           ticketSalesEndTime: args.ticketData.ticketSalesEndTime,
-//         });
-//         await ctx.db.patch(eventId, {
-//           ticketInfoId,
-//         });
-//       }
-
-//       let guestListInfoId: Id<"guestListInfo"> | null = null;
-//       // Handle guest list data if provided
-//       if (args.guestListData) {
-//         guestListInfoId = await ctx.db.insert("guestListInfo", {
-//           eventId,
-//           guestListCloseTime: args.guestListData.guestListCloseTime,
-//           checkInCloseTime: args.guestListData.checkInCloseTime,
-//         });
-//         await ctx.db.patch(eventId, {
-//           guestListInfoId,
-//         });
-//       }
-
-//       return {
-//         status: ResponseStatus.SUCCESS,
-//         data: { eventId, ticketInfoId, guestListInfoId },
-//       };
-//     } catch (error) {
-//       const errorMessage =
-//         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-//       console.error(errorMessage, error);
-//       return {
-//         status: ResponseStatus.ERROR,
-//         data: null,
-//         error: errorMessage,
-//       };
-//     }
-//   },
-// });
 
 export const addEvent = action({
   args: {
@@ -577,7 +225,7 @@ export const addEvent = action({
             }
           );
         } else {
-          console.log("customer does not guest list commision.");
+          console.log("customer does not have guest list options.");
         }
       }
       return {
@@ -1114,14 +762,16 @@ export const internalGetEventById = internalQuery({
 
 export const getEventsByOrganizationPublic = query({
   args: {
-    organizationName: v.string(),
+    slug: v.string(),
     paginationOpts: paginationOptsValidator,
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<PaginationResult<EventSchema>> => {
+    const { slug, paginationOpts } = args;
+
     const currenTime = getCurrentTime();
     const organization = await ctx.db
       .query("organizations")
-      .withIndex("by_name", (q) => q.eq("name", args.organizationName))
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
       .first();
 
     if (!organization) {
@@ -1132,10 +782,10 @@ export const getEventsByOrganizationPublic = query({
       } as unknown as PaginationResult<EventSchema>;
     }
 
-    const events = await ctx.db
+    const events: PaginationResult<EventSchema> = await ctx.db
       .query("events")
-      .withIndex("by_clerkOrganizationId_and_startTime", (q) =>
-        q.eq("clerkOrganizationId", organization.clerkOrganizationId)
+      .withIndex("by_organizationId_and_startTime", (q) =>
+        q.eq("organizationId", organization._id)
       )
       .filter((q) =>
         q.and(
@@ -1144,61 +794,38 @@ export const getEventsByOrganizationPublic = query({
         )
       )
       .order("asc")
-      .paginate(args.paginationOpts);
+      .paginate(paginationOpts);
 
-    return { ...events, organizationImage: organization.imageUrl || null };
+    return events;
   },
 });
 
-export const getEventsByNameAndMonth = query({
+export const getEventsBySlugAndMonth = query({
   args: {
-    organizationName: v.string(),
+    slug: v.string(),
     year: v.number(),
     month: v.number(),
   },
-  handler: async (ctx, args): Promise<GetEventsByOrgAndMonthResponse> => {
-    const { organizationName, year, month } = args;
+  handler: async (ctx, args): Promise<GetEventsBySlugAndMonthResponse> => {
+    const { slug, year, month } = args;
     const startDate = new Date(year, month - 2, 1);
     const endDate = new Date(year, month + 1, 0);
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      const identity = await requireAuthenticatedUser(ctx);
 
       const organization: OrganizationsSchema | null = await ctx.db
         .query("organizations")
-        .withIndex("by_name", (q) => q.eq("name", organizationName))
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
         .first();
 
-      if (!organization) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
-      const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
+      const validatedOrganization = validateOrganization(organization);
 
-      if (
-        organization.clerkOrganizationId !== identity.clerk_org_id &&
-        !isHostlyAdmin
-      ) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
 
       const events: EventSchema[] = await ctx.db
         .query("events")
         .filter((q) =>
-          q.eq(q.field("clerkOrganizationId"), organization.clerkOrganizationId)
+          q.eq(q.field("organizationId"), validatedOrganization._id)
         )
         .filter((q) => q.gte(q.field("startTime"), startDate.getTime()))
         .filter((q) => q.lte(q.field("startTime"), endDate.getTime()))
@@ -1228,8 +855,8 @@ export const createEvent = internalMutation({
     organizationId: v.id("organizations"),
     name: v.string(),
     description: v.union(v.string(), v.null()),
-    startTime: v.number(), // Timestamp
-    endTime: v.number(), // Timestamp
+    startTime: v.number(),
+    endTime: v.number(),
     photo: v.union(v.id("_storage"), v.null()),
     address: v.string(),
   },
@@ -1292,101 +919,6 @@ export const internalUpdateEvent = internalMutation({
     }
   },
 });
-
-// export const countGuestListEvents = query({
-//   args: {
-//     clerkOrganizationId: v.string(),
-//     eventStartTime: v.string(),
-//   },
-//   handler: async (ctx, args): Promise<CountGuestListsEventsResponse> => {
-//     try {
-//       const identity = await ctx.auth.getUserIdentity();
-//       if (!identity) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.UNAUTHENTICATED,
-//         };
-//       }
-
-//       const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
-
-//       if (
-//         args.clerkOrganizationId !== identity.clerk_org_id &&
-//         !isHostlyAdmin
-//       ) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.FORBIDDEN,
-//         };
-//       }
-
-//       const organization: OrganizationsSchema | null = await ctx.db
-//         .query("organizations")
-//         .withIndex("by_clerkOrganizationId", (q) =>
-//           q.eq("clerkOrganizationId", args.clerkOrganizationId)
-//         )
-//         .first();
-
-//       if (!organization) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.NOT_FOUND,
-//         };
-//       }
-
-//       const customer: CustomerSchema | null = await ctx.db
-//         .query("customers")
-//         .filter((q) => q.eq(q.field("_id"), organization.customerId))
-//         .first();
-
-//       if (!customer) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.NOT_FOUND,
-//         };
-//       }
-//       const subscriptionStart = moment(customer.subscriptionStartDate);
-//       const eventStart = moment(args.eventStartTime);
-
-//       let cycleStart = subscriptionStart.clone();
-//       while (cycleStart.add(1, "months").isBefore(eventStart)) {
-//         // Intentionally empty; the loop advances cycleStart to the correct month
-//       }
-//       const cycleEnd = cycleStart.clone().add(1, "months");
-
-//       const events: EventSchema[] = await ctx.db
-//         .query("events")
-//         .filter((q) => q.eq(q.field("clerkOrganizationId"), organization._id))
-//         .filter((q) => q.gte(q.field("startTime"), cycleStart.toISOString()))
-//         .filter((q) => q.lte(q.field("startTime"), cycleEnd.toISOString()))
-//         .collect();
-
-//       return {
-//         status: ResponseStatus.SUCCESS,
-//         data: {
-//           countData: {
-//             eventsCount: events.length,
-//             cycleStart: cycleStart.toISOString(),
-//             cycleEnd: cycleEnd.toISOString(),
-//           },
-//         },
-//       };
-//     } catch (error) {
-//       const errorMessage =
-//         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-//       console.error(errorMessage, error);
-//       return {
-//         status: ResponseStatus.ERROR,
-//         data: null,
-//         error: errorMessage,
-//       };
-//     }
-//   },
-// });
 
 export const getEventsWithTickets = internalQuery({
   args: { eventId: v.id("events"), promoCode: v.union(v.string(), v.null()) },

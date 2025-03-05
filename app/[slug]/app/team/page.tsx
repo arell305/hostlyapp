@@ -5,7 +5,11 @@ import { useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { PendingInvitationUser } from "@/types/types";
 import MemberCard from "./MemberCard";
-import { ResponseStatus, UserRole } from "../../../../utils/enum";
+import {
+  ClerkPermissions,
+  ResponseStatus,
+  UserRole,
+} from "../../../../utils/enum";
 import { useToast } from "@/hooks/use-toast";
 import PendingUserCard from "./PendingUserCard";
 import ResponsiveConfirm from "@/[slug]/app/components/responsive/ResponsiveConfirm";
@@ -14,7 +18,6 @@ import { useParams } from "next/navigation";
 import { UserSchema } from "@/types/schemas-types";
 import FullLoading from "../components/loading/FullLoading";
 import ErrorComponent from "../components/errors/ErrorComponent";
-import { Permission } from "@/types/enums";
 
 const Team = () => {
   const { organization, user } = useClerk();
@@ -158,8 +161,8 @@ const Team = () => {
         <h1 className=" text-3xl md:text-4xl font-bold ">Team Members</h1>
         <Protect
           condition={(has) =>
-            has({ permission: Permission.CREATE_EVENT }) ||
-            (has({ permission: Permission.MODERATE_APP }) &&
+            has({ permission: ClerkPermissions.CREATE_EVENT }) ||
+            (has({ permission: ClerkPermissions.MODERATES_APP }) &&
               cleanSlug === "admin")
           }
         >
@@ -173,8 +176,8 @@ const Team = () => {
       </div>
       <Protect
         condition={(has) =>
-          has({ permission: Permission.CREATE_EVENT }) ||
-          has({ permission: Permission.MODERATE_APP })
+          has({ permission: ClerkPermissions.CREATE_EVENT }) ||
+          has({ permission: ClerkPermissions.MODERATES_APP })
         }
       >
         <div className="relative w-full mb-1.5">
@@ -254,7 +257,7 @@ const Team = () => {
                 key={pendingUser.clerkInvitationId}
                 clerkInvitationId={pendingUser.clerkInvitationId}
                 email={pendingUser.email}
-                role={pendingUser.role}
+                role={pendingUser.role as UserRole}
                 onRevoke={handleShowRevokeConfirmation}
                 isHostlyPage={isHostlyPage}
               />

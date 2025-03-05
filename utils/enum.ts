@@ -40,15 +40,6 @@ export const subscriptionStatusMap = {
   pending_cancellation: "Pending Cancellation",
 };
 
-export const roleMap: Record<string, string> = {
-  "org:promoter": "Promoter",
-  "org:moderator": "Moderator",
-  "org:manager": "Manager",
-  "org:admin": "Admin",
-  "org:hostly_admin": "Hostly Admin",
-  "org:hostly_moderator": "Hostly Moderator",
-};
-
 export enum UserRole {
   Promoter = "org:promoter",
   Moderator = "org:moderator",
@@ -57,6 +48,15 @@ export enum UserRole {
   Hostly_Admin = "org:hostly_admin",
   Hostly_Moderator = "org:hostly_moderator",
 }
+
+export const roleMap: Record<UserRole, string> = {
+  [UserRole.Promoter]: "Promoter",
+  [UserRole.Moderator]: "Moderator",
+  [UserRole.Manager]: "Manager",
+  [UserRole.Admin]: "Admin",
+  [UserRole.Hostly_Admin]: "Hostly Admin",
+  [UserRole.Hostly_Moderator]: "Hostly Moderator",
+};
 
 export enum ClerkPermissions {
   MODERATES_APP = "org:app:moderate",

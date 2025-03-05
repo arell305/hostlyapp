@@ -64,12 +64,12 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [isOpen]);
 
   return (
-    <div className="relative  flex flex-col w-full">
-      {/* Main content area */}
-      <div className={` relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}>
-        <div className={``}>{children}</div>
-      </div>
-    </div>
+    // <div className="relative  flex flex-col w-full">
+    //   {/* Main content area */}
+    //   <div className={` relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}>
+    <div className={``}>{children}</div>
+    // </div>
+    // </div>
   );
 };
 

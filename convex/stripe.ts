@@ -2,7 +2,7 @@
 
 import Stripe from "stripe";
 
-import { action } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 
@@ -49,6 +49,9 @@ import {
   createStripeOnboardingSession,
 } from "./backendUtils/stripeConnect";
 import { deactivateStripeConnectedAccount } from "./connectedAccounts";
+import { WebhookEvent } from "@clerk/backend";
+import { Webhook } from "svix";
+import { metadata } from "@/layout";
 
 // export const pay = action({
 //   args: { priceId: v.string(), email: v.string() },
@@ -832,31 +835,30 @@ export const getStripeCustomerIdForEmail = action({
 
 export const createPaymentIntent = action({
   args: {
-    totalAmount: v.number(), // Ticket price (in dollars, will be converted to cents)
-    stripeAccountId: v.string(), // Connected account ID
+    totalAmount: v.number(),
+    stripeAccountId: v.string(),
+    metadata: v.optional(
+      v.object({
+        eventId: v.string(),
+        promoCode: v.optional(v.string()),
+        email: v.string(),
+        maleCount: v.number(),
+        femaleCount: v.number(),
+      })
+    ),
   },
   handler: async (ctx, args): Promise<CreatePaymentIntentResponse> => {
-    const { totalAmount, stripeAccountId } = args;
+    const { totalAmount, stripeAccountId, metadata } = args;
     try {
       const paymentIntent = await stripe.paymentIntents.create(
         {
-          amount: Math.round(totalAmount * 100), // Convert to cents
+          amount: Math.round(totalAmount * 100),
           currency: USD_CURRENCY,
-          automatic_payment_methods: { enabled: true }, // Enables various payment methods
+          automatic_payment_methods: { enabled: true },
+          metadata: metadata,
         },
-        { stripeAccount: stripeAccountId } // Ensure it's created in the correct connected account
+        { stripeAccount: stripeAccountId }
       );
-
-      // to be deleted
-      await stripe.accounts.update(stripeAccountId, {
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-      });
-
-      const account = await stripe.accounts.retrieve(stripeAccountId);
-      console.log("cap", account.capabilities);
 
       if (!paymentIntent.client_secret) {
         return {
@@ -880,5 +882,14 @@ export const createPaymentIntent = action({
         error: errorMessage,
       };
     }
+  },
+});
+
+export const fulfill = internalAction({
+  args: { headers: v.any(), payload: v.string() },
+  handler: async (ctx, args) => {
+    const wh = new Webhook(process.env.STRIPE_WEBHOOKS_SECRET as string);
+    const payload = wh.verify(args.payload, args.headers) as Stripe.Event;
+    return payload;
   },
 });

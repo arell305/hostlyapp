@@ -1,11 +1,9 @@
 "use client";
-import React, { useState, useEffect, memo, useCallback } from "react";
-import { UserButton, useAuth, useClerk } from "@clerk/nextjs";
-import { useOrganization } from "@clerk/nextjs";
+import React, { useState, memo, useCallback } from "react";
+import { useClerk } from "@clerk/nextjs";
 import EditPromoCodeDialog from "./EditPromoCodeDialog";
 import PromoterUserButton from "./PromoterUserbutton";
 import AdminUserButton from "./AdminUserButton";
-import EditSubscriptionDialog from "./EditSubscriptionDialog";
 import { HiOutlineMenuAlt4 } from "react-icons/hi";
 import { RiCloseLargeLine } from "react-icons/ri";
 import { UserRole } from "../../../../utils/enum";
@@ -22,8 +20,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     const { user, loaded, organization } = useClerk();
 
     const [isPromoCodeModalOpen, setIsPromoCodeModalOpen] = useState(false);
-    const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
-      useState(false);
+    // const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
+    //   useState(false);
 
     const userFromDb = useQuery(
       api.users.findUserByClerkId,
@@ -42,9 +40,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
       setIsPromoCodeModalOpen((prev) => !prev);
     }, []);
 
-    const toggleSubscriptionModal = useCallback(() => {
-      setIsSubscriptionModalOpen((prev) => !prev);
-    }, []);
+    // const toggleSubscriptionModal = useCallback(() => {
+    //   setIsSubscriptionModalOpen((prev) => !prev);
+    // }, []);
 
     // Show loading state until user data is loaded
     if (!loaded || !userFromDb) {
@@ -108,12 +106,12 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
             user={userFromDb?.data?.user}
           />
         )}
-        {isSubscriptionModalOpen && (
+        {/* {isSubscriptionModalOpen && (
           <EditSubscriptionDialog
             isOpen={isSubscriptionModalOpen}
             setIsOpen={setIsSubscriptionModalOpen}
           />
-        )}
+        )} */}
       </nav>
     );
   }

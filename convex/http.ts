@@ -34,9 +34,49 @@ import { isOrganizationJSON } from "../utils/helpers";
 import { ResponseStatus, UserRole, UserRoleEnum } from "../utils/enum";
 import { RoleConvex } from "./schema";
 import { createClerkClient } from "@clerk/backend";
+import { stripe } from "./backendUtils/stripe";
 // import { stripeWebhook } from "./webhooks/stripeWebhook";
 
 const http = httpRouter();
+
+http.route({
+  path: "/stripeWebhook", // 🔹 No `/api/`
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const payload = await request.text();
+    const sig = request.headers.get("stripe-signature"); // 🔹 Extract headers
+
+    if (!sig) {
+      console.error("❌ Missing Stripe signature header!");
+      return new Response("Webhook Error: Missing headers", { status: 400 });
+    }
+
+    try {
+      // ✅ Verify Webhook Signature
+      const event = await stripe.webhooks.constructEventAsync(
+        payload,
+        sig,
+        process.env.STRIPE_WEBHOOKS_SECRET!
+      );
+
+      console.log("✅ Stripe Webhook Event Received:", event.type);
+
+      if (event.type === "checkout.session.completed") {
+        console.log("✅ Checkout Session Completed:", event.data.object);
+        console.log("meta", event.data.object.metadata);
+      }
+      if (event.type === "payment_intent.succeeded") {
+        console.log("payment intent succeed", event.data.object);
+      }
+      return new Response("Success", { status: 200 });
+    } catch (error) {
+      console.error("❌ Stripe Webhook Verification Failed:", error);
+      return new Response("Webhook Verification Failed", { status: 400 });
+    }
+  }),
+});
+
+// export default http;
 
 http.route({
   path: "/clerk",

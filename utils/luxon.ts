@@ -50,7 +50,7 @@ export const isTodayInPST = (date: Date): boolean => {
 
 interface DateTimeOptions {
   zone?: string | Zone<boolean> | undefined;
-  locale?: string; // Add locale here
+  locale?: string;
 }
 
 export const formatNarrowWeekday = (
@@ -88,4 +88,21 @@ export const isPast = (timestamp: number): boolean => {
 
 export const formatArrivalTime = (timestamp: number) => {
   return DateTime.fromMillis(timestamp).toFormat("h:mma");
+};
+
+export const formatUnixToTimeAndAbbreviatedDate = (
+  timestamp: number
+): string => {
+  return DateTime.fromMillis(timestamp)
+    .setZone("America/Los_Angeles")
+    .toFormat("M/d/yy h:mma");
+};
+
+export const isAfterNowInPacificTime = (timestamp: number): boolean => {
+  const targetTime = DateTime.fromMillis(timestamp).setZone(
+    "America/Los_Angeles"
+  );
+  const now = DateTime.now().setZone("America/Los_Angeles");
+
+  return targetTime > now;
 };

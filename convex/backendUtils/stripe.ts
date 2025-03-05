@@ -2,6 +2,7 @@ import { STRIPE_API_VERSION } from "@/types/constants";
 import { ErrorMessages } from "@/types/enums";
 import { CustomerSchema } from "@/types/schemas-types";
 import { CustomerWithPayment } from "@/types/types";
+import { DateTime } from "luxon";
 import Stripe from "stripe";
 
 if (!process.env.STRIPE_KEY) {
@@ -130,3 +131,26 @@ export const updateSubscriptionTierInStripe = async (
     throw new Error(ErrorMessages.STRIPE_UPDATE_SUBSCRIPTION_ERROR);
   }
 };
+
+async function getNextPaymentDate(stripeCustomerId: string) {
+  try {
+    const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
+      customer: stripeCustomerId,
+    });
+
+    if (!upcomingInvoice.next_payment_attempt) {
+      return null;
+    }
+
+    const nextPaymentDatePST = DateTime.fromSeconds(
+      upcomingInvoice.next_payment_attempt
+    )
+      .setZone("America/Los_Angeles")
+      .toFormat("yyyy-MM-dd hh:mm a z");
+
+    return nextPaymentDatePST;
+  } catch (error) {
+    console.error("Error fetching next payment date:", error);
+    return null;
+  }
+}

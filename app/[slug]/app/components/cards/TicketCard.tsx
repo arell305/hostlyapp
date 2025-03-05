@@ -1,12 +1,12 @@
 import { FaCheckCircle } from "react-icons/fa";
-import { TicketSchema, TicketSchemaWithPromoter } from "@/types/schemas-types";
-import {
-  formatUnixArrivalTime,
-  formatUnixToTimeAndAbbreviatedDate,
-} from "../../../../../utils/helpers";
+import { TicketSchemaWithPromoter } from "@/types/schemas-types";
 import { Gender } from "@/types/enums";
 import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";
 import { Badge } from "@/components/ui/badge";
+import {
+  formatArrivalTime,
+  formatUnixToTimeAndAbbreviatedDate,
+} from "../../../../../utils/luxon";
 interface TicketCardProps {
   ticket: TicketSchemaWithPromoter;
   canCheckInTickets: boolean;
@@ -41,13 +41,11 @@ const TicketCard: React.FC<TicketCardProps> = ({
           ) : (
             <TbCircleLetterF className="text-2xl pr-1" />
           )}
-          {/* <p className="font-semibold text-lg">{ticket.email}</p> */}
           <p className="font-semibold">{ticket.ticketUniqueId}</p>
           {ticket.promoterName && (
             <Badge className="ml-2 text-xs text-gray-500">{`Promoter: ${ticket.promoterName}`}</Badge>
           )}
         </div>
-        {/* <p className="text-gray-500 text-xs">{ticket.qrCode as string}</p> */}
         <div className="flex flex-col">
           <div className="flex">
             <p className="text-gray-500 text-xs">
@@ -56,7 +54,6 @@ const TicketCard: React.FC<TicketCardProps> = ({
           </div>
           <p className="text-gray-500 text-xs">{ticket.email}</p>
         </div>
-        {/* <QRCode value={ticket.qrCode} /> */}
       </div>
       {ticket.checkInTime && (
         <div className="flex items-center justify-center flex-col w-[40px]">
@@ -66,7 +63,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
           />
           <p className="text-[10px] text-gray-500">
             {" "}
-            {formatUnixArrivalTime(ticket.checkInTime)}
+            {formatArrivalTime(ticket.checkInTime)}
           </p>
         </div>
       )}

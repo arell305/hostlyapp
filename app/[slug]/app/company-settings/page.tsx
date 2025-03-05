@@ -29,7 +29,7 @@ const CompanySettings = () => {
   const cleanSlug =
     typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
   const organizationData = useQuery(
-    api.organizations.getOrganizationByNameQuery,
+    api.organizations.getOrganizationBySlugQuery,
     cleanSlug ? { slug: cleanSlug } : "skip"
   );
 

@@ -37,8 +37,8 @@ const EventWrapper = () => {
   >(null);
   const insertTicketsSold = useAction(api.tickets.insertTicketsSold);
 
-  const stripe = useStripe();
-  const elements = useElements();
+  // const stripe = useStripe();
+  // const elements = useElements();
 
   // promo code
   const [shouldValidate, setShouldValidate] = useState<boolean>(false);
@@ -71,6 +71,23 @@ const EventWrapper = () => {
   } = useIsStripeEnabled({
     slug,
   });
+  const discountAmount = validationResult ? validationResult.promoDiscount : 0;
+
+  const discountedMalePrice = Math.max(
+    (getEventByIdResponse?.data?.ticketInfo?.ticketTypes?.male?.price ?? 0) -
+      discountAmount,
+    0
+  );
+
+  const discountedFemalePrice = Math.max(
+    (getEventByIdResponse?.data?.ticketInfo?.ticketTypes?.female?.price ?? 0) -
+      discountAmount,
+    0
+  );
+  const totalMalePrice = maleCount * discountedMalePrice;
+  const totalFemalePrice = femaleCount * discountedFemalePrice;
+  const totalPrice = totalMalePrice + totalFemalePrice;
+  const totalDiscount = (maleCount + femaleCount) * discountAmount;
 
   useEffect(() => {
     if (shouldValidate) {
@@ -106,83 +123,62 @@ const EventWrapper = () => {
   };
 
   const handlePurchase = async () => {
-    if (!stripe || !elements) {
-      setPurchaseError(FrontendErrorMessages.STRIPE_NOT_INITALIZED);
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      setEmailError(FrontendErrorMessages.EMAIL_REQUIRED);
-      return;
-    }
-    setIsPurchaseLoading(true);
-    setPurchaseError(null);
-    if (!getEventByIdResponse?.data) {
-      setPurchaseError("Error purchasing ticket. Please try again.");
-      setIsPurchaseLoading(false);
-      return;
-    }
-    try {
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) {
-        setPurchaseError(FrontendErrorMessages.PAYMENT_METHOD_UNAVAILABLE);
-        setIsPurchaseLoading(false);
-        return;
-      }
-
-      const { paymentMethod, error: paymentMethodError } =
-        await stripe.createPaymentMethod({
-          type: "card",
-          card: cardElement,
-        });
-
-      if (paymentMethodError) {
-        setIsPurchaseLoading(false);
-        setPurchaseError(
-          paymentMethodError.message ||
-            FrontendErrorMessages.PAYMENT_METHOD_FAILED
-        );
-        return;
-      }
-
-      const result = await insertTicketsSold({
-        eventId: getEventByIdResponse?.data?.event._id,
-        promoCode,
-        email,
-        maleCount,
-        femaleCount,
-        paymentMethodId: paymentMethod.id,
-      });
-      if (result.status === ResponseStatus.SUCCESS) {
-        const { client_secret } = result.data.paymentIntent;
-
-        const { paymentIntent, error } = await stripe.confirmCardPayment(
-          client_secret,
-          {
-            payment_method: paymentMethod.id,
-          }
-        );
-
-        if (error) {
-          setPurchaseError(
-            error.message || FrontendErrorMessages.PAYMENT_METHOD_FAILED
-          );
-        } else if (paymentIntent.status === "succeeded") {
-          setPurchasedTickets(result.data.tickets);
-        }
-      } else {
-        console.error(
-          FrontendErrorMessages.ERROR_PURCHASING_TICKET,
-          result.error
-        );
-        setPurchaseError(FrontendErrorMessages.ERROR_PURCHASING_TICKET);
-      }
-    } catch (error) {
-      console.error(FrontendErrorMessages.ERROR_PURCHASING_TICKET, error);
-      setPurchaseError(FrontendErrorMessages.ERROR_PURCHASING_TICKET);
-    } finally {
-      setIsPurchaseLoading(false);
-    }
+    // if (!stripe || !elements || !connectedAccountId) {
+    //   setPurchaseError(FrontendErrorMessages.STRIPE_NOT_INITALIZED);
+    //   return;
+    // }
+    // if (!isValidEmail(email)) {
+    //   setEmailError(FrontendErrorMessages.EMAIL_REQUIRED);
+    //   return;
+    // }
+    // setIsPurchaseLoading(true);
+    // setPurchaseError(null);
+    // if (!getEventByIdResponse?.data) {
+    //   setPurchaseError("Error purchasing ticket. Please try again.");
+    //   setIsPurchaseLoading(false);
+    //   return;
+    // }
+    // try {
+    //   const cardElement = elements.getElement(CardElement);
+    //   if (!cardElement) {
+    //     setPurchaseError(FrontendErrorMessages.PAYMENT_METHOD_UNAVAILABLE);
+    //     setIsPurchaseLoading(false);
+    //     return;
+    //   }
+    //   const response = await createPaymentIntent({
+    //     stripeAccountId: connectedAccountId,
+    //     totalAmount: totalPrice,
+    //     metadata: {
+    //       eventId: getEventByIdResponse?.data?.event._id,
+    //       promoCode,
+    //       email,
+    //       maleCount,
+    //       femaleCount,
+    //     },
+    //   });
+    //   if (response.status === ResponseStatus.ERROR) {
+    //     setPurchaseError(response.error);
+    //     setIsPurchaseLoading(false);
+    //     return;
+    //   }
+    //   const clientSecret = response.data.clientSecret;
+    //   const { paymentIntent, error } = await stripe.confirmCardPayment(
+    //     clientSecret,
+    //     {
+    //       payment_method: { card: cardElement },
+    //     }
+    //   );
+    //   if (error) {
+    //     setPurchaseError(error.message || "Payment failed.");
+    //   } else if (paymentIntent.status === "succeeded") {
+    //     console.log("purchase success");
+    //   }
+    // } catch (error) {
+    //   console.error(FrontendErrorMessages.ERROR_PURCHASING_TICKET, error);
+    //   setPurchaseError(FrontendErrorMessages.ERROR_PURCHASING_TICKET);
+    // } finally {
+    //   setIsPurchaseLoading(false);
+    // }
   };
 
   const handleCheckout = async () => {
@@ -195,11 +191,19 @@ const EventWrapper = () => {
     try {
       const response = await createPaymentIntent({
         stripeAccountId: connectedAccountId,
-        totalAmount: 10,
+        totalAmount: totalPrice,
+        metadata: {
+          eventId: getEventByIdResponse?.data?.event._id as string,
+          promoCode,
+          email: "tes@gmail.com",
+          maleCount,
+          femaleCount,
+        },
       });
       if (response.status === ResponseStatus.ERROR) {
         setCheckoutError(response.error);
       } else {
+        console.log("secret", response.data.clientSecret);
         setClientSecret(response.data.clientSecret);
       }
     } catch (error) {
@@ -269,6 +273,13 @@ const EventWrapper = () => {
               isCheckoutLoading={isCheckoutLoading}
               clientSecret={clientSecret}
               stripeAccountId={connectedAccountId}
+              totalMalePrice={totalMalePrice}
+              totalFemalePrice={totalFemalePrice}
+              totalDiscount={totalDiscount}
+              discountAmount={discountAmount}
+              totalPrice={totalPrice}
+              discountedMalePrice={discountedMalePrice}
+              discountedFemalePrice={discountedFemalePrice}
             />
           )}
         </div>

@@ -1,3 +1,4 @@
+"use client";
 import EventWrapper from "./EventWrapper";
 
 const page = () => {

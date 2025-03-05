@@ -6,29 +6,21 @@ import {
   mutation,
   query,
 } from "./_generated/server";
-import { InsertTicektResponse, TicketInput, UserSchema } from "@/types/types";
+import { TicketInput } from "@/types/types";
 import { ErrorMessages, Gender } from "@/types/enums";
 import { ResponseStatus, UserRole } from "../utils/enum";
 import { Id } from "./_generated/dataModel";
 import {
   CustomerTicket,
   EventSchema,
-  PromoterPromoCodeSchema,
   TicketSchema,
   TicketSchemaWithPromoter,
 } from "@/types/schemas-types";
 import {
   CheckInTicketResponse,
-  GetEventByIdResponse,
   GetTicketsByEventIdResponse,
   InsertTicketSoldResponse,
 } from "@/types/convex-types";
-import {
-  formatUnixToTimeAndShortDate,
-  generateQRCodeBase64,
-  isAfterNowInPacificTime,
-} from "../utils/helpers";
-import moment from "moment";
 import { nanoid } from "nanoid";
 
 import { api, internal } from "./_generated/api";
@@ -36,127 +28,15 @@ import { sendTicketEmail } from "../utils/sendgrid";
 import { generatePDF } from "../utils/pdf";
 
 import { USD_CURRENCY } from "@/types/constants";
-import { getStripeCustomerIdForEmail } from "./stripe";
-import { CreatePaymentIntentResponse } from "@/types/convex/actions-types";
 import { stripe } from "./backendUtils/stripe";
 import { requireAuthenticatedUser } from "../utils/auth";
 import { validateEvent, validateUser } from "./backendUtils/validation";
 import { isUserInCompanyOfEvent } from "./backendUtils/helper";
 import { DateTime } from "luxon";
-import { formatToTimeAndShortDate } from "../utils/luxon";
-
-// export const insertTicketsSold = mutation({
-//   args: {
-//     eventId: v.id("events"),
-//     promoterPromoCodeId: v.union(v.id("promoterPromoCode"), v.null()),
-//     email: v.string(),
-//     maleCount: v.number(),
-//     femaleCount: v.number(),
-//   },
-//   handler: async (ctx, args): Promise<InsertTicketSoldResponse> => {
-//     try {
-//       const event: EventSchema | null = await ctx.db.get(args.eventId);
-//       if (!event) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.EVENT_NOT_FOUND,
-//         };
-//       }
-//       const ticketInfo = await ctx.db
-//         .query("ticketInfo")
-//         .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
-//         .unique();
-
-//       if (!ticketInfo) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.TICKET_INFO_NOT_FOUND,
-//         };
-//       }
-
-//       if (!isAfterNowInPacificTime(ticketInfo.ticketSalesEndTime)) {
-//         return {
-//           status: ResponseStatus.ERROR,
-//           data: null,
-//           error: ErrorMessages.TICKET_SALES_ENDED,
-//         };
-//       }
-
-//       let clerkPromoterId: string | null = null;
-//       if (args.promoterPromoCodeId) {
-//         const promoterPromoCode: PromoterPromoCodeSchema | null =
-//           await ctx.db.get(args.promoterPromoCodeId);
-//         if (!promoterPromoCode) {
-//           return {
-//             status: ResponseStatus.ERROR,
-//             data: null,
-//             error: ErrorMessages.NOT_FOUND,
-//           };
-//         }
-//         clerkPromoterId = promoterPromoCode.clerkPromoterUserId;
-//       }
-
-//       const shortEventId = event._id.slice(0, 4);
-
-//       const tickets: CustomerTicket[] = [];
-
-//       const createCustomerTicket = (ticket: TicketSchema): CustomerTicket => ({
-//         ...ticket,
-//         name: event.name,
-//         startTime: event.startTime,
-//         endTime: event.endTime,
-//         address: event.address,
-//       });
-
-//       // Create male tickets
-//       for (let i = 0; i < args.maleCount; i++) {
-//         const ticketUniqueId = `${shortEventId}_${nanoid(6)}`;
-//         const ticketId: Id<"tickets"> = await ctx.db.insert("tickets", {
-//           eventId: args.eventId,
-//           clerkPromoterId: clerkPromoterId,
-//           email: args.email,
-//           gender: Gender.Male,
-//           ticketUniqueId,
-//         });
-
-//         const ticket: TicketSchema | null = await ctx.db.get(ticketId);
-//         if (ticket) tickets.push(createCustomerTicket(ticket));
-//       }
-
-//       // Create female tickets
-//       for (let i = 0; i < args.femaleCount; i++) {
-//         const ticketUniqueId = `${shortEventId}_${nanoid(6)}`;
-//         const ticketId: Id<"tickets"> = await ctx.db.insert("tickets", {
-//           eventId: args.eventId,
-//           clerkPromoterId: clerkPromoterId,
-//           email: args.email,
-//           gender: Gender.Female,
-//           ticketUniqueId,
-//         });
-
-//         const ticket: TicketSchema | null = await ctx.db.get(ticketId);
-//         if (ticket) tickets.push(createCustomerTicket(ticket));
-//       }
-
-//       const email =
-//       return {
-//         status: ResponseStatus.SUCCESS,
-//         data: { tickets },
-//       };
-//     } catch (error) {
-//       const errorMessage =
-//         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-//       console.error(errorMessage, error);
-//       return {
-//         status: ResponseStatus.ERROR,
-//         data: null,
-//         error: errorMessage,
-//       };
-//     }
-//   },
-// });
+import {
+  formatToTimeAndShortDate,
+  isAfterNowInPacificTime,
+} from "../utils/luxon";
 
 export const insertTicketsSold = action({
   args: {
@@ -207,7 +87,6 @@ export const insertTicketsSold = action({
       const setupIntent = await stripe.setupIntents.create({
         customer: stripeCustomerId,
       });
-      console.log("stripeCustomer", setupIntent);
 
       const paymentMethod = await stripe.paymentMethods.create(
         {
@@ -219,20 +98,9 @@ export const insertTicketsSold = action({
         }
       );
 
-      // const paymentMethod = await stripe.paymentMethods.create(
-      //   {
-      //     customer: stripeCustomerId,
-      //     payment_method: paymentMethodId,
-      //   },
-      //   {
-      //     stripeAccount: stripeAccountId,
-      //   }
-      // );
       await stripe.paymentMethods.attach(paymentMethodId, {
         customer: stripeCustomerId,
       });
-
-      // console.log("Stripe Customer ID:", stripeCustomerId);
 
       let maleTicketTotal = maleCount * ticketInfo.ticketTypes.male.price;
       let femaleTicketTotal = femaleCount * ticketInfo.ticketTypes.female.price;
@@ -298,7 +166,7 @@ export const insertTicketsSold = action({
         {
           amount: totalPrice,
           currency: USD_CURRENCY,
-          confirm: true, // C harge immediately
+          confirm: true,
           off_session: true,
           metadata: {
             eventId,
@@ -316,14 +184,11 @@ export const insertTicketsSold = action({
       );
 
       if (!paymentIntent.client_secret) {
-        console.error(
-          "Stripe paymentIntent missing client_secret:",
-          paymentIntent
-        );
+        console.error(ErrorMessages.STRIPE_SECRET_MISSING, paymentIntent);
         return {
           status: ResponseStatus.ERROR,
           data: null,
-          error: ErrorMessages.PAYMENT_PROCESSING_FAILED,
+          error: ErrorMessages.STRIPE_SECRET_MISSING,
         };
       }
 
@@ -357,7 +222,6 @@ export const insertTicketsSold = action({
         address: event.address,
       });
 
-      // Create male tickets
       for (let i = 0; i < args.maleCount; i++) {
         const ticketUniqueId = `${shortEventId}_${nanoid(6)}`;
         const ticketInput: TicketInput = {
@@ -377,7 +241,6 @@ export const insertTicketsSold = action({
         if (ticket) tickets.push(createCustomerTicket(ticket));
       }
 
-      // Create female tickets
       for (let i = 0; i < args.femaleCount; i++) {
         const ticketUniqueId = `${shortEventId}_${nanoid(6)}`;
         const ticketInput: TicketInput = {
@@ -428,46 +291,28 @@ export const insertTicketsSold = action({
 export const getTicketsByEventId = query({
   args: { eventId: v.id("events") },
   handler: async (ctx, args): Promise<GetTicketsByEventIdResponse> => {
+    const { eventId } = args;
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-      const role: UserRole = identity.role as UserRole;
-      if (
-        role !== UserRole.Admin &&
-        role !== UserRole.Manager &&
-        role !== UserRole.Moderator &&
-        role !== UserRole.Hostly_Admin &&
-        role !== UserRole.Hostly_Moderator
-      ) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Moderator,
+      ]);
 
-      const event: EventSchema | null = await ctx.db.get(args.eventId);
-      if (!event) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_FOUND,
-        };
-      }
+      const clerkUserId = identity.id as string;
+      const user = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+        .first();
 
-      if (event.clerkOrganizationId !== identity.clerk_org_id) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.NOT_BELONG,
-        };
-      }
+      const validatedUser = validateUser(user);
+
+      const event: EventSchema | null = await ctx.db.get(eventId);
+
+      const validatedEvent = validateEvent(event);
+      isUserInCompanyOfEvent(validatedUser, validatedEvent);
 
       const tickets: TicketSchema[] = await ctx.db
         .query("tickets")
@@ -477,8 +322,8 @@ export const getTicketsByEventId = query({
       const promoterIds = Array.from(
         new Set(
           tickets
-            .map((ticket) => ticket.clerkPromoterId)
-            .filter((id): id is string => id !== null)
+            .map((ticket) => ticket.userPromoterId)
+            .filter((id): id is Id<"users"> => id !== null)
         )
       );
 
@@ -488,8 +333,8 @@ export const getTicketsByEventId = query({
       // Create a map of promoterId to name
       const promoterMap = allUsers.reduce(
         (acc, user) => {
-          if (user.clerkUserId && promoterIds.includes(user.clerkUserId)) {
-            acc[user.clerkUserId] = user.name || null;
+          if (user._id && promoterIds.includes(user._id)) {
+            acc[user._id] = user.name || null;
           }
           return acc;
         },
@@ -500,8 +345,8 @@ export const getTicketsByEventId = query({
       const ticketsWithPromoterName: TicketSchemaWithPromoter[] = tickets.map(
         (ticket) => ({
           ...ticket,
-          promoterName: ticket.clerkPromoterId
-            ? promoterMap[ticket.clerkPromoterId] || null
+          promoterName: ticket.userPromoterId
+            ? promoterMap[ticket.userPromoterId] || null
             : null,
         })
       );
@@ -566,7 +411,7 @@ export const checkInTicket = mutation({
         return {
           status: ResponseStatus.ERROR,
           data: null,
-          error: `Ticket already checked in on ${formatUnixToTimeAndShortDate(ticket.checkInTime)}`,
+          error: `Ticket already checked in on ${formatToTimeAndShortDate(ticket.checkInTime)}`,
         };
       }
 
@@ -586,7 +431,6 @@ export const checkInTicket = mutation({
         };
       }
 
-      // Update the ticket to mark it as checked in
       await ctx.db.patch(ticket._id, {
         checkInTime: now,
       });

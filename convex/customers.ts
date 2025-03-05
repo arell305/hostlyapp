@@ -11,10 +11,9 @@ import {
   CustomerWithPayment,
   OrganizationsSchema,
 } from "../app/types/types";
-import { checkIsHostlyAdmin, getFutureISOString } from "../utils/helpers";
+import { getFutureISOString } from "../utils/helpers";
 import { SubscriptionStatusConvex, SubscriptionTierConvex } from "./schema";
 import { internal } from "./_generated/api";
-import Stripe from "stripe";
 import { ErrorMessages } from "@/types/enums";
 import {
   GetCustomerDetailsBySlugResponse,
@@ -122,8 +121,8 @@ export const findCustomerById = internalQuery({
 
       return {
         ...customer,
-        subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus, // Cast or map the status
-      }; // Ensure the returned type is the `Customer` interface
+        subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus,
+      };
     } catch (error) {
       console.error(ErrorMessages.CUSTOMER_DB_QUERY_ID_ERROR, error);
       throw new Error(ErrorMessages.CUSTOMER_DB_QUERY_ID_ERROR);
@@ -245,39 +244,6 @@ export const updateCustomer = internalMutation({
     }
   },
 });
-
-// To be Deleted
-export const getCustomerSubscriptionTier = query({
-  args: { clerkOrganizationId: v.string() },
-  handler: async (ctx, args) => {
-    // First, find the organization by its clerkOrganizationId
-    const organization = await ctx.db
-      .query("organizations")
-      .withIndex("by_clerkOrganizationId", (q) =>
-        q.eq("clerkOrganizationId", args.clerkOrganizationId)
-      )
-      .first();
-    if (!organization) {
-      throw new Error("Organization not found");
-    }
-
-    // Then, get the customer associated with this organization
-    const customer = await ctx.db.get(organization.customerId);
-
-    if (!customer) {
-      throw new Error("Customer not found for this organization");
-    }
-
-    // Return the subscription tier
-    return {
-      subscriptionTier: customer.subscriptionTier,
-      customerId: customer._id,
-      nextCycle: customer.nextPayment,
-      status: customer.subscriptionStatus,
-    };
-  },
-});
-
 export const getCustomerSubscriptionTierBySlug = query({
   args: { slug: v.string() },
   handler: async (
@@ -471,65 +437,37 @@ export const resumeSubscription = action({
   },
 });
 
-export const GetCustomerTierByOrganizationName = query({
+export const GetCustomerTierBySlug = query({
   args: {
-    name: v.string(),
+    slug: v.string(),
   },
   handler: async (
     ctx,
     args
   ): Promise<GetCustomerTierByOrganizationNameResponse> => {
+    const { slug } = args;
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
+      const identity = await requireAuthenticatedUser(ctx);
       const organization: OrganizationsSchema | null = await ctx.db
         .query("organizations")
-        .filter((q) => q.eq(q.field("name"), args.name))
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
         .first();
-      if (!organization) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.COMPANY_NOT_FOUND,
-        };
-      }
-      const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
 
-      if (
-        organization.clerkOrganizationId !==
-          (identity.clerk_org_id as string) &&
-        !isHostlyAdmin
-      ) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      const validatedOrganization = validateOrganization(organization);
+
+      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
 
       const customer: CustomerSchema | null = await ctx.db.get(
-        organization.customerId
+        validatedOrganization.customerId
       );
 
-      if (!customer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CUSTOMER_NOT_FOUND,
-        };
-      }
+      const validatedCustomer = validateCustomer(customer);
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          customerTier: customer.subscriptionTier,
-          customerId: customer._id,
+          customerTier: validatedCustomer.subscriptionTier,
+          customerId: validatedCustomer._id,
         },
       };
     } catch (error) {

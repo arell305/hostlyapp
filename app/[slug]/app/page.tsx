@@ -16,11 +16,19 @@ import {
 } from "../../../utils/luxon";
 import { EventSchema } from "@/types/schemas-types";
 import EventPreview from "./components/calendar/EventPreview";
-import { SubscriptionTier, UserRole } from "../../../utils/enum";
+import {
+  ResponseStatus,
+  SubscriptionTier,
+  UserRole,
+} from "../../../utils/enum";
 import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
 import { Protect, useAuth } from "@clerk/nextjs";
 import { useIsStripeEnabled } from "@/hooks/useIsStripeEnabled";
 import { Notification } from "./components/ui/Notification";
+import FullLoading from "./components/loading/FullLoading";
+import ErrorComponent from "./components/errors/ErrorComponent";
+import Loading from "./components/loading/Loading";
+import { ClerkPermissionsEnum } from "@/types/enums";
 
 type Value = Date | null | [Date | null, Date | null];
 
@@ -35,32 +43,34 @@ const WeekViewCalendar: React.FC = () => {
   const [selectedEvents, setSelectedEvents] = useState<EventSchema[]>([]);
   const { has } = useAuth();
 
-  const { companyName: companyNameParams } = useParams();
+  const { slug } = useParams();
 
-  const isCompanyAdmin = has ? has({ role: UserRole.Admin }) : null;
+  const isCompanyAdmin = has ? has({ role: UserRole.Admin }) : false;
 
-  const cleanCompanyName =
-    typeof companyNameParams === "string"
-      ? companyNameParams.split("?")[0].toLowerCase()
-      : "";
+  const cleanSlug =
+    typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
 
-  const { isStripeEnabled } = useIsStripeEnabled({
-    companyName: cleanCompanyName,
+  const {
+    isStripeEnabled,
+    isLoading: isStripeLoading,
+    connectedAccountError,
+  } = useIsStripeEnabled({
+    slug: cleanSlug,
   });
 
   const monthlyEventsData = useQuery(
-    api.events.getEventsByNameAndMonth,
-    cleanCompanyName
+    api.events.getEventsBySlugAndMonth,
+    cleanSlug
       ? {
-          organizationName: cleanCompanyName,
+          slug: cleanSlug,
           year: calendarMonthYear.year,
           month: calendarMonthYear.month,
         }
       : "skip"
   );
   const subscriptionTierData = useQuery(
-    api.customers.GetCustomerTierByOrganizationName,
-    cleanCompanyName ? { name: cleanCompanyName } : "skip"
+    api.customers.GetCustomerTierBySlug,
+    cleanSlug ? { slug: cleanSlug } : "skip"
   );
   const subscriptionBillingCycle = useQuery(
     api.subscription.getSubDatesAndGuestEventsCountByDate,
@@ -73,9 +83,8 @@ const WeekViewCalendar: React.FC = () => {
   );
 
   useEffect(() => {
-    // Update month and year when the date changes
     setCalendarMonthYear({
-      month: date.getMonth() + 1, // Month is 0-indexed
+      month: date.getMonth() + 1,
       year: date.getFullYear(),
     });
   }, [date]);
@@ -224,6 +233,17 @@ const WeekViewCalendar: React.FC = () => {
     );
   };
 
+  if (isStripeLoading || !monthlyEventsData) {
+    return <FullLoading />;
+  }
+  if (connectedAccountError) {
+    return <ErrorComponent message={connectedAccountError} />;
+  }
+
+  if (monthlyEventsData.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={monthlyEventsData.error} />;
+  }
+
   return (
     <div className="mt-2 px-1 max-w-[600px] min-w-[420px] mx-auto">
       {!isStripeEnabled && isCompanyAdmin && (
@@ -310,8 +330,16 @@ const WeekViewCalendar: React.FC = () => {
           )}
         </div>
       </div>
-      <Protect condition={(has) => has({ permission: "org:events:create" })}>
-        {subscriptionBillingCycle && subscriptionBillingCycle.data && (
+      <Protect
+        condition={(has) =>
+          has({ permission: ClerkPermissionsEnum.ORG_EVENTS_CREATE })
+        }
+      >
+        {!subscriptionBillingCycle && <Loading />}
+        {subscriptionBillingCycle?.status === ResponseStatus.ERROR && (
+          <ErrorComponent message={subscriptionBillingCycle.error} />
+        )}
+        {subscriptionBillingCycle?.data && (
           <div className="mb-8">
             <h4 className="font-bold text-xl md:text-2xl font-playfair pl-4">
               Plus Tier Data
@@ -320,11 +348,11 @@ const WeekViewCalendar: React.FC = () => {
               <p className="font-bold">Subscription Cycle</p>
               <p>
                 {formatDateMDY(
-                  subscriptionBillingCycle.data?.billingCycle.startDate
+                  subscriptionBillingCycle.data.billingCycle.startDate
                 )}{" "}
                 -{" "}
                 {formatDateMDY(
-                  subscriptionBillingCycle.data?.billingCycle.endDate
+                  subscriptionBillingCycle.data.billingCycle.endDate
                 )}
               </p>
             </div>

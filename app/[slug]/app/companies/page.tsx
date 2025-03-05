@@ -25,7 +25,7 @@ const PromotionalCompaniesList = () => {
   }
 
   const handleCompanyClick = (slug: string) => {
-    router.push(`/${slug}/app/dashboard`);
+    router.push(`/${slug}/app/`);
   };
 
   return (

@@ -1,9 +1,8 @@
-import { TicketInfo } from "@/types/types";
+import { formatCurrency } from "../../../../../utils/helpers";
 import {
-  formatCurrency,
+  formatToTimeAndShortDate,
   isAfterNowInPacificTime,
-} from "../../../../../utils/helpers";
-import { formatToTimeAndShortDate } from "../../../../../utils/luxon";
+} from "../../../../../utils/luxon";
 import { TicketInfoSchema } from "@/types/schemas-types";
 
 interface TicketViewProps {

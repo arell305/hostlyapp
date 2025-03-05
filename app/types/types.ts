@@ -258,24 +258,12 @@ export interface EventFormInput {
   address: string; // Replace `Venue` with its actual type definition if needed
 }
 
-export interface InsertTicektResponse {
-  status: ResponseStatus;
-  data: Id<"ticketInfo"> | null;
-  error?: string | null;
-}
-
 export interface TicketFormInput {
   maleTicketPrice: number;
   femaleTicketPrice: number;
   maleTicketCapacity: number;
   femaleTicketCapacity: number;
   ticketSalesEndTime: number;
-}
-
-export interface InsertGuestListResponse {
-  status: ResponseStatus;
-  data: Id<"guestListInfo"> | null;
-  error?: string | null;
 }
 
 export interface GuestListFormInput {
@@ -303,16 +291,6 @@ export interface UpdateTicketInfoData {
   ticketInfoId: Id<"ticketInfo">;
 }
 
-export interface UpdateGuestListCloseTimeResponse {
-  status: ResponseStatus;
-  data: UpdateGuestListCloseTimeData | null;
-  error?: string | null;
-}
-
-export interface UpdateGuestListCloseTimeData {
-  guestListInfoId: Id<"guestListInfo">;
-}
-
 export interface UpdateEventFields {
   name?: string;
   description?: string | null;
@@ -332,16 +310,6 @@ export interface CancelEventResponse {
 
 export interface CancelEventData {
   eventId: Id<"events">;
-}
-
-export interface GetEventsByOrgAndMonthResponse {
-  status: ResponseStatus;
-  data: GetEventsByOrgAndMonthData | null;
-  error?: string | null;
-}
-
-export interface GetEventsByOrgAndMonthData {
-  eventData: EventSchema[];
 }
 
 export interface GetPendingInvitationListResponse {

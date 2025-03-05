@@ -1,11 +1,11 @@
 "use client";
+
 import {
   useStripe,
   useElements,
   PaymentElement,
 } from "@stripe/react-stripe-js";
 import { useState, FormEvent } from "react";
-import { PaymentIntent } from "@stripe/stripe-js";
 
 const TicketPaymentForm: React.FC = () => {
   const stripe = useStripe();
@@ -18,7 +18,7 @@ const TicketPaymentForm: React.FC = () => {
     event.preventDefault();
 
     if (!stripe || !elements) {
-      setErrorMessage("Stripe is not initialized.");
+      setErrorMessage("Stripe is still loading. Please wait.");
       return;
     }
 
@@ -27,9 +27,9 @@ const TicketPaymentForm: React.FC = () => {
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: window.location.origin + "/success", // Redirect to success page if necessary
+        return_url: window.location.origin + "/success",
       },
-      redirect: "if_required", // Prevents automatic redirection
+      redirect: "if_required",
     });
 
     if (error) {
@@ -38,11 +38,15 @@ const TicketPaymentForm: React.FC = () => {
     } else if (paymentIntent?.status === "succeeded") {
       console.log("Payment successful:", paymentIntent);
       setPaymentSuccess(true);
-      setErrorMessage(null); // Clear any previous errors
+      setErrorMessage(null);
     }
 
     setIsProcessing(false);
   };
+
+  if (!stripe || !elements) {
+    return <div>Loading payment form...</div>; // ✅ Prevent rendering until ready
+  }
 
   return (
     <div>

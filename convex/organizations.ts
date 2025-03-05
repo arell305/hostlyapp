@@ -11,13 +11,13 @@ import {
 import { ErrorMessages } from "@/types/enums";
 import {
   GetAllOrganizationsResponse,
-  GetOrganizationByNameQueryResponse,
+  GetOrganizationBySlugQueryResponse,
+  GetOrganizationImagePublicResponse,
   GetPromotersBySlugResponse,
   GetUsersByOrganizationSlugResponse,
 } from "@/types/convex-types";
 import { Id } from "./_generated/dataModel";
 import { requireAuthenticatedUser } from "../utils/auth";
-import { checkIsHostlyAdmin } from "../utils/helpers";
 import { isUserInOrganization } from "./backendUtils/helper";
 import { validateOrganization } from "./backendUtils/validation";
 
@@ -149,49 +149,31 @@ export const getOrganizationByName = internalQuery({
   },
 });
 
-export const getOrganizationByNameQuery = query({
+export const getOrganizationBySlugQuery = query({
   args: {
     slug: v.string(),
   },
-  handler: async (ctx, args): Promise<GetOrganizationByNameQueryResponse> => {
+  handler: async (ctx, args): Promise<GetOrganizationBySlugQueryResponse> => {
     try {
-      const identity = await requireAuthenticatedUser(ctx);
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Hostly_Admin,
+        UserRole.Hostly_Moderator,
+      ]);
 
       const organization: OrganizationsSchema | null = await ctx.db
         .query("organizations")
         .filter((q) => q.eq(q.field("slug"), args.slug))
         .first();
-      if (!organization) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.COMPANY_NOT_FOUND,
-        };
-      }
-      if (!organization.isActive) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.COMPANY_INACTIVE,
-        };
-      }
-      const isHostlyAdmin = checkIsHostlyAdmin(identity.role as string);
+      const validatedOrganization = validateOrganization(organization);
 
-      if (
-        organization.clerkOrganizationId !==
-          (identity.clerk_org_id as string) &&
-        !isHostlyAdmin
-      ) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
-      }
+      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
+
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          organization,
+          organization: validatedOrganization,
         },
       };
     } catch (error) {
@@ -230,7 +212,6 @@ export const getAllOrganizations = query({
         )
         .collect();
 
-      // Create a lookup table for customers by ID
       const customerMap = new Map(customers.map((c) => [c._id, c]));
 
       const organizationDetails: OrganizationDetails[] = organizations.map(
@@ -398,18 +379,34 @@ export const getPromotersBySlug = query({
 
 export const getOrganizationImagePublic = query({
   args: {
-    organizationName: v.string(),
+    slug: v.string(),
   },
-  handler: async (ctx, args) => {
-    const organization = await ctx.db
-      .query("organizations")
-      .withIndex("by_name", (q) => q.eq("name", args.organizationName))
-      .first();
+  handler: async (ctx, args): Promise<GetOrganizationImagePublicResponse> => {
+    const { slug } = args;
+    try {
+      const organization = await ctx.db
+        .query("organizations")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
 
-    if (!organization) {
-      return null;
+      const validatedOrganization = validateOrganization(organization);
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          photo: validatedOrganization.photo,
+          name: validatedOrganization.name,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage);
+      return {
+        status: ResponseStatus.ERROR,
+        data: null,
+        error: errorMessage,
+      };
     }
-    return organization.imageUrl;
   },
 });
 

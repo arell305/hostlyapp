@@ -88,6 +88,7 @@ export enum ErrorMessages {
   STRIPE_CONNECT_CREATE_ERROR = "Stripe connect error creating account",
   STRIPE_CONNECT_DASHBOARD_ERROR = "Stripe connect error creating dashboard link",
   STRIPE_CONNECT_ONBOARDING_ERROR = "Stripe connect error creating onboarding session",
+  STRIPE_SECRET_MISSING = "Stripe client secret missing",
   STRIPE_RESUME_ERROR = "Stripe error resuming subscription",
   STRIPE_UPDATE_PAYMENT_ERROR = "Stripe error updating payment",
   STRIPE_UPDATE_SUBSCRIPTION_ERROR = "Stripe error updating subscription",
@@ -129,14 +130,6 @@ export enum FrontendErrorMessages {
 export enum Gender {
   Male = "male",
   Female = "female",
-}
-
-export enum Permission {
-  VIEW_ALL_GUESTLISTS = "org:events:view_all_guestlists",
-  CHECK_GUESTS = "org:events:check_guests",
-  UPLOAD_GUESTLIST = "org:events:upload_guest_list",
-  CREATE_EVENT = "org:events:create",
-  MODERATE_APP = "org:app:moderate",
 }
 
 export enum StripePaymentType {

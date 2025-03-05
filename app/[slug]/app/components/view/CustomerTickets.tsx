@@ -1,9 +1,6 @@
 import React from "react";
 import { CiCircleMinus, CiCirclePlus } from "react-icons/ci";
-import {
-  formatCurrency,
-  isAfterNowInPacificTime,
-} from "../../../../../utils/helpers";
+import { formatCurrency } from "../../../../../utils/helpers";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,9 +10,11 @@ import {
   TicketInfoSchema,
 } from "@/types/schemas-types";
 import CustomerTicketCard from "../cards/CustomerTicketCard";
-import { Elements } from "@stripe/react-stripe-js";
+import { Elements, PaymentElement } from "@stripe/react-stripe-js";
 import { Stripe, loadStripe } from "@stripe/stripe-js";
 import TicketPaymentForm from "../TicketPaymentForm";
+import { isAfterNowInPacificTime } from "../../../../../utils/luxon";
+import { stripePromise } from "../../../../../utils/stripe";
 
 interface OrderReceiptProps {
   onBrowseMoreEvents: () => void;
@@ -80,6 +79,13 @@ interface CustomerTicketViewProps {
   isCheckoutLoading: boolean;
   clientSecret: string | null;
   stripeAccountId?: string | null;
+  totalMalePrice: number;
+  totalFemalePrice: number;
+  totalDiscount: number;
+  discountAmount: number;
+  totalPrice: number;
+  discountedMalePrice: number;
+  discountedFemalePrice: number;
 }
 
 const CustomerTicketView: React.FC<CustomerTicketViewProps> = ({
@@ -110,20 +116,27 @@ const CustomerTicketView: React.FC<CustomerTicketViewProps> = ({
   isCheckoutLoading,
   clientSecret,
   stripeAccountId,
+  discountedMalePrice,
+  discountedFemalePrice,
+  totalMalePrice,
+  totalFemalePrice,
+  totalDiscount,
+  discountAmount,
+  totalPrice,
 }) => {
-  const discountAmount = validationResult ? validationResult.promoDiscount : 0;
-  const discountedMalePrice = Math.max(
-    ticketData.ticketTypes.male.price - discountAmount,
-    0
-  );
-  const discountedFemalePrice = Math.max(
-    ticketData.ticketTypes.female.price - discountAmount,
-    0
-  );
-  const totalMalePrice = maleCount * discountedMalePrice;
-  const totalFemalePrice = femaleCount * discountedFemalePrice;
-  const totalPrice = totalMalePrice + totalFemalePrice;
-  const totalDiscount = (maleCount + femaleCount) * discountAmount;
+  // const discountAmount = validationResult ? validationResult.promoDiscount : 0;
+  // const discountedMalePrice = Math.max(
+  //   ticketData.ticketTypes.male.price - discountAmount,
+  //   0
+  // );
+  // const discountedFemalePrice = Math.max(
+  //   ticketData.ticketTypes.female.price - discountAmount,
+  //   0
+  // );
+  // const totalMalePrice = maleCount * discountedMalePrice;
+  // const totalFemalePrice = femaleCount * discountedFemalePrice;
+  // const totalPrice = totalMalePrice + totalFemalePrice;
+  // const totalDiscount = (maleCount + femaleCount) * discountAmount;
 
   const isTicketsSalesOpen = isAfterNowInPacificTime(
     ticketData.ticketSalesEndTime
@@ -267,6 +280,7 @@ const CustomerTicketView: React.FC<CustomerTicketViewProps> = ({
               {checkoutError || "Placeholder to maintain height"}
             </p>
           </div>
+
           {clientSecret && stripePromise && (
             <Elements stripe={stripePromise} options={{ clientSecret }}>
               <TicketPaymentForm />

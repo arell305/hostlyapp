@@ -36,9 +36,11 @@ const MemberCard: React.FC<MemberCardProps> = ({
       <div className="flex justify-between items-center">
         <div className="flex items-center justify-between">
           <Image
-            src={imageUrl}
+            src={imageUrl || "https://avatar.iran.liara.run/public"}
             alt={`${name}`}
             className="w-16 h-16 rounded-full mr-4"
+            width={16}
+            height={16}
           />
           <div className="flex-grow">
             <h2 className="text-lg font-semibold">
