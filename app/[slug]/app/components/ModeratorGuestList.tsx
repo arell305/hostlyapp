@@ -173,13 +173,13 @@ const ModeratorGuestList = ({
           className="relative flex items-center bg-white mx-3 p-3 rounded-md shadow"
           onClick={() => {
             if (searchInputRef.current && !isDesktop) {
-              searchInputRef.current.focus(); // Ensure the input gains focus
+              searchInputRef.current.focus();
               setTimeout(() => {
-                const rect = searchInputRef.current!.getBoundingClientRect(); // Non-null assertion
+                const rect = searchInputRef.current!.getBoundingClientRect();
                 const scrollTop =
                   window.scrollY || document.documentElement.scrollTop;
                 window.scrollTo({
-                  top: scrollTop + rect.top - 20, // Adjust `20` for spacing
+                  top: scrollTop + rect.top - 20,
                   behavior: "smooth",
                 });
               }, 100);

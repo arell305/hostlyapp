@@ -3,6 +3,7 @@ import { PricingOption } from "@/types/types";
 import { OrganizationJSON } from "@clerk/backend";
 import { UserRole as ImportedUserRole, UserRoleEnum } from "./enum";
 import { WEBSITE } from "@/types/constants";
+import { DateTime } from "luxon";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -120,6 +121,28 @@ export const generateQRCode = async (
 ): Promise<string> => {
   const qrData = JSON.stringify({ ticketUniqueId });
   return qrData;
+};
+
+export const getStripeBillingCycle = (
+  inputDate: DateTime,
+  billingCycleAnchor: number
+): { startDate: DateTime; endDate: DateTime } => {
+  const anchorDate = DateTime.fromSeconds(billingCycleAnchor).toUTC();
+
+  let startDate = anchorDate;
+  if (inputDate < anchorDate) {
+    while (startDate > inputDate) {
+      startDate = startDate.minus({ months: 1 });
+    }
+  } else {
+    while (startDate.plus({ months: 1 }) <= inputDate) {
+      startDate = startDate.plus({ months: 1 });
+    }
+  }
+  const endDate = startDate.plus({ months: 1 });
+  startDate = startDate.plus({ days: 1 });
+
+  return { startDate, endDate };
 };
 
 // async function checkEventLimit(userId: string, eventStartDate: Date, subscriptionStartDate: Date) {

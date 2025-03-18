@@ -3,6 +3,8 @@ import {
   ConnectedAccountsSchema,
   CustomerSchema,
   EventSchema,
+  SubscriptionSchema,
+  TicketInfoSchema,
   UserSchema,
 } from "@/types/schemas-types";
 import { GuestListSchema, OrganizationsSchema } from "@/types/types";
@@ -100,4 +102,22 @@ export function validateGuestList(
     throw new Error(ErrorMessages.GUEST_LIST_NOT_FOUND);
   }
   return guestList;
+}
+
+export function validateSubscription(
+  subscription: SubscriptionSchema | null
+): SubscriptionSchema {
+  if (!subscription) {
+    throw new Error(ErrorMessages.SUBSCRIPTION_NOT_FOUND);
+  }
+  return subscription;
+}
+
+export function validateTicketInfo(
+  ticketInfo: TicketInfoSchema | null
+): TicketInfoSchema {
+  if (!ticketInfo) {
+    throw new Error(ErrorMessages.TICKET_INFO_NOT_FOUND);
+  }
+  return ticketInfo;
 }

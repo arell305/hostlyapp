@@ -15,16 +15,9 @@ export interface DisconnectStripeActionData {
   connectedAccountId: Id<"connectedAccounts">;
 }
 
-export interface CreateStripeTicketPricesData {
-  stripeMalePriceId: string;
-  stripeFemalePriceId: string;
-}
-
-export interface CreateStripeProductData {
-  stripeProductId: string;
-}
-
-export type CreatePaymentIntentResponse = CreatePaymentIntentSuccess  | ErrorResponse;
+export type CreatePaymentIntentResponse =
+  | CreatePaymentIntentSuccess
+  | ErrorResponse;
 
 export interface CreatePaymentIntentSuccess {
   status: ResponseStatus.SUCCESS;

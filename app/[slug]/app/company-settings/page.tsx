@@ -10,7 +10,7 @@ import { ResponseStatus, UserRole } from "../../../../utils/enum";
 import ResponsivePromoDiscount from "../components/responsive/ResponsivePromoDiscount";
 import Image from "next/image";
 import ResponsiveCompanyImage from "../components/responsive/ResponsiveCompanyImage";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import ErrorComponent from "../components/errors/ErrorComponent";
 import FullLoading from "../components/loading/FullLoading";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -19,22 +19,25 @@ import { compressAndUploadImage } from "../../../../utils/image";
 import { Input } from "@/components/ui/input";
 import Loading from "../components/loading/Loading";
 import { RiImageAddFill } from "react-icons/ri";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
 
 const CompanySettings = () => {
   const { toast } = useToast();
   const router = useRouter();
   const { orgRole } = useAuth();
 
-  const { slug } = useParams();
-  const cleanSlug =
-    typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
-  const organizationData = useQuery(
-    api.organizations.getOrganizationBySlugQuery,
-    cleanSlug ? { slug: cleanSlug } : "skip"
-  );
+  const { organization, organizationContextError } = useContextOrganization();
+
+  if (!organization) {
+    return <FullLoading />;
+  }
+
+  if (organizationContextError) {
+    return <ErrorComponent message={organizationContextError} />;
+  }
 
   const [companyName, setCompanyName] = useState<string | null | undefined>(
-    organizationData?.data?.organization.name
+    organization.name
   );
   const [showTeamNameModal, setShowTeamNameModal] = useState<boolean>(false);
   const [isTeamNameLoading, setTeamNameLoading] = useState<boolean>(false);
@@ -43,7 +46,7 @@ const CompanySettings = () => {
 
   // promo discount settings
   const [promoDiscount, setPromoDiscount] = useState<string>(
-    organizationData?.data?.organization.promoDiscount.toString() || ""
+    organization.promoDiscount.toString() || ""
   );
   const [showPromoDiscountModal, setShowPromoDiscountModal] =
     useState<boolean>(false);
@@ -64,13 +67,14 @@ const CompanySettings = () => {
   );
   const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
   const [photoStorageId, setPhotoStorageId] = useState<Id<"_storage"> | null>(
-    organizationData?.data?.organization.photo || null
+    organization.photo || null
   );
   const [isPhotoLoading, setIsPhotoLoading] = useState<boolean>(false);
   const displayCompanyPhoto = useQuery(api.photo.getFileUrl, {
     storageId: photoStorageId,
   });
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+
   const updateClerkOrganizationPhoto = useAction(
     api.clerk.updateClerkOrganizationPhoto
   );
@@ -103,20 +107,14 @@ const CompanySettings = () => {
   };
 
   const handleSaveCompanyPhoto = async () => {
-    if (organizationData?.data?.organization.photo === photoStorageId) {
-      return;
-    }
-
-    if (!organizationData?.data) {
-      setCompanyImageError("Error loading company");
+    if (organization.photo === photoStorageId) {
       return;
     }
 
     setIsCompanyImageLoading(true);
     try {
       const response = await updateClerkOrganizationPhoto({
-        clerkOrganizationId:
-          organizationData?.data?.organization.clerkOrganizationId,
+        clerkOrganizationId: organization.clerkOrganizationId,
         photo: photoStorageId,
       });
       if (response.status === ResponseStatus.ERROR) {
@@ -141,7 +139,7 @@ const CompanySettings = () => {
     if (open) {
       setShowCompanyImageModal(true);
     } else {
-      setPhotoStorageId(organizationData?.data?.organization.photo || null);
+      setPhotoStorageId(organization.photo || null);
       setCompanyImageError(null);
       setShowCompanyImageModal(false);
     }
@@ -152,15 +150,13 @@ const CompanySettings = () => {
   );
 
   useEffect(() => {
-    setCompanyName(organizationData?.data?.organization.name);
-    setPromoDiscount(
-      organizationData?.data?.organization.promoDiscount.toString() || ""
-    );
-    setPhotoStorageId(organizationData?.data?.organization.photo || null);
-  }, [organizationData]);
+    setCompanyName(organization.name);
+    setPromoDiscount(organization.promoDiscount.toString() || "");
+    setPhotoStorageId(organization.photo || null);
+  }, [organization]);
 
   const handleUpdateTeamName = async () => {
-    if (companyName === organizationData?.data?.organization.name) {
+    if (companyName === organization.name) {
       return setShowTeamNameModal(false);
     }
     if (!companyName || companyName.trim() === "") {
@@ -168,7 +164,7 @@ const CompanySettings = () => {
       return;
     }
 
-    if (!organizationData?.data) {
+    if (!organization) {
       setTeamNameError("Error Loading Team. Please try again.");
       return;
     }
@@ -176,8 +172,7 @@ const CompanySettings = () => {
     setTeamNameLoading(true);
     try {
       const response = await updateOrganizationName({
-        clerkOrganizationId:
-          organizationData.data.organization.clerkOrganizationId,
+        clerkOrganizationId: organization.clerkOrganizationId,
         name: companyName,
       });
       if (response.status === ResponseStatus.SUCCESS) {
@@ -186,8 +181,7 @@ const CompanySettings = () => {
           description: "Team name set.",
         });
         setShowTeamNameModal(false);
-
-        router.replace(`/${response.data.slug}/app/company-settings`);
+        window.location.href = `/${response.data.slug}/app/company-settings`;
       } else {
         console.error("Failed to update team name", response.error);
         setTeamNameError(response.error);
@@ -206,9 +200,7 @@ const CompanySettings = () => {
     const { promoDiscountValue, promoDiscountValueError } =
       validatePromoDiscount(promoDiscount, true);
 
-    if (
-      promoDiscountValue === organizationData?.data?.organization.promoDiscount
-    ) {
+    if (promoDiscountValue === organization.promoDiscount) {
       return setShowPromoDiscountModal(false);
     }
 
@@ -222,7 +214,7 @@ const CompanySettings = () => {
       return;
     }
 
-    if (!organizationData?.data) {
+    if (!organization) {
       setTeamNameError("Error Loading Team. Please try again.");
       return;
     }
@@ -231,8 +223,7 @@ const CompanySettings = () => {
       setPromoDiscountLoading(true);
 
       const response = await updateOrganizationMetadata({
-        clerkOrganizationId:
-          organizationData.data.organization.clerkOrganizationId,
+        clerkOrganizationId: organization.clerkOrganizationId,
         params: {
           promoDiscount: promoDiscountValue,
         },
@@ -267,7 +258,7 @@ const CompanySettings = () => {
     if (open) {
       setShowTeamNameModal(true);
     } else {
-      setCompanyName(organizationData?.data?.organization.name);
+      setCompanyName(organization.name);
       setTeamNameError(null);
       setShowTeamNameModal(false);
     }
@@ -277,9 +268,7 @@ const CompanySettings = () => {
     if (open) {
       setShowPromoDiscountModal(true);
     } else {
-      setPromoDiscount(
-        organizationData?.data?.organization.promoDiscount as unknown as string
-      );
+      setPromoDiscount(organization.promoDiscount as unknown as string);
       setPromoDiscountError(null);
       setShowPromoDiscountModal(false);
     }
@@ -290,14 +279,6 @@ const CompanySettings = () => {
     orgRole === UserRole.Manager ||
     orgRole === UserRole.Hostly_Admin ||
     orgRole === UserRole.Hostly_Moderator;
-
-  if (organizationData === undefined) {
-    return <FullLoading />;
-  }
-
-  if (organizationData?.status === ResponseStatus.ERROR) {
-    <ErrorComponent message={organizationData.error} />;
-  }
 
   return (
     <div className="justify-center max-w-3xl rounded-lg mx-auto mt-1.5 ">

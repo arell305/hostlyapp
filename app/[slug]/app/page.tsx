@@ -6,99 +6,77 @@ import { RiArrowDropLeftLine, RiArrowDropRightLine } from "react-icons/ri";
 import { RiArrowDownWideLine, RiArrowUpWideLine } from "react-icons/ri";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { useParams } from "next/navigation";
 import {
-  convertToPST,
-  formatDateMDY,
   formatLongDate,
   formatNarrowWeekday,
   formatShortDate,
+  getCurrentDate,
 } from "../../../utils/luxon";
 import { EventSchema } from "@/types/schemas-types";
 import EventPreview from "./components/calendar/EventPreview";
-import {
-  ResponseStatus,
-  SubscriptionTier,
-  UserRole,
-} from "../../../utils/enum";
-import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
+import { ResponseStatus, UserRole } from "../../../utils/enum";
+import { TIME_ZONE } from "@/types/constants";
 import { Protect, useAuth } from "@clerk/nextjs";
-import { useIsStripeEnabled } from "@/hooks/useIsStripeEnabled";
 import { Notification } from "./components/ui/Notification";
 import FullLoading from "./components/loading/FullLoading";
 import ErrorComponent from "./components/errors/ErrorComponent";
-import Loading from "./components/loading/Loading";
 import { ClerkPermissionsEnum } from "@/types/enums";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { DateTime } from "luxon";
+import PlusTierData from "./components/PlusTierData";
 
 type Value = Date | null | [Date | null, Date | null];
 
 const WeekViewCalendar: React.FC = () => {
-  const [date, setDate] = useState<Date>(convertToPST(new Date()));
+  const [date, setDate] = useState(() => getCurrentDate());
   const [isWeekView, setIsWeekView] = useState<boolean>(true);
   const [calendarMonthYear, setCalendarMonthYear] = useState({
     month: 0,
     year: 0,
   });
-  const today = convertToPST(new Date());
+  const today = getCurrentDate();
   const [selectedEvents, setSelectedEvents] = useState<EventSchema[]>([]);
   const { has } = useAuth();
 
-  const { slug } = useParams();
-
   const isCompanyAdmin = has ? has({ role: UserRole.Admin }) : false;
 
-  const cleanSlug =
-    typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
-
   const {
-    isStripeEnabled,
-    isLoading: isStripeLoading,
-    connectedAccountError,
-  } = useIsStripeEnabled({
-    slug: cleanSlug,
-  });
+    organization,
+    organizationContextError,
+    connectedAccountEnabled,
+    subscription,
+  } = useContextOrganization();
 
   const monthlyEventsData = useQuery(
-    api.events.getEventsBySlugAndMonth,
-    cleanSlug
+    api.events.getEventsByMonth,
+    organization
       ? {
-          slug: cleanSlug,
+          organizationId: organization._id,
           year: calendarMonthYear.year,
           month: calendarMonthYear.month,
-        }
-      : "skip"
-  );
-  const subscriptionTierData = useQuery(
-    api.customers.GetCustomerTierBySlug,
-    cleanSlug ? { slug: cleanSlug } : "skip"
-  );
-  const subscriptionBillingCycle = useQuery(
-    api.subscription.getSubDatesAndGuestEventsCountByDate,
-    subscriptionTierData?.data?.customerTier === SubscriptionTier.PLUS
-      ? {
-          customerId: subscriptionTierData.data.customerId,
-          date: date.getTime(),
         }
       : "skip"
   );
 
   useEffect(() => {
     setCalendarMonthYear({
-      month: date.getMonth() + 1,
-      year: date.getFullYear(),
+      month: DateTime.fromJSDate(date).month,
+      year: DateTime.fromJSDate(date).year,
     });
   }, [date]);
 
   useEffect(() => {
     if (monthlyEventsData?.data?.eventData) {
-      const selectedDate = convertToPST(date);
+      const selectedDate = DateTime.fromJSDate(date);
       setSelectedEvents(
         monthlyEventsData.data.eventData.filter((event: EventSchema) => {
-          const eventStartTime = convertToPST(new Date(event.startTime));
+          const eventStartTime = DateTime.fromMillis(event.startTime).setZone(
+            TIME_ZONE
+          );
           return (
-            eventStartTime.getFullYear() === selectedDate.getFullYear() &&
-            eventStartTime.getMonth() === selectedDate.getMonth() &&
-            eventStartTime.getDate() === selectedDate.getDate()
+            eventStartTime.hasSame(selectedDate, "day") &&
+            eventStartTime.hasSame(selectedDate, "month") &&
+            eventStartTime.hasSame(selectedDate, "year")
           );
         })
       );
@@ -115,37 +93,33 @@ const WeekViewCalendar: React.FC = () => {
   };
 
   const hasEventOnDate = (date: Date): boolean => {
-    if (!monthlyEventsData || !monthlyEventsData.data) {
+    if (!monthlyEventsData?.data) {
       return false;
     }
 
-    const timeZoneDate = convertToPST(date);
+    const selectedDate = DateTime.fromJSDate(date).setZone(TIME_ZONE);
 
     return monthlyEventsData.data.eventData.some((event: EventSchema) => {
-      const eventDate = new Date(event.startTime);
-      const timeZoneEventDate = convertToPST(eventDate);
-      return (
-        timeZoneEventDate.getFullYear() === timeZoneDate.getFullYear() &&
-        timeZoneEventDate.getMonth() === timeZoneDate.getMonth() &&
-        timeZoneEventDate.getDate() === timeZoneDate.getDate()
-      );
+      const eventDate = DateTime.fromMillis(event.startTime).setZone(TIME_ZONE);
+      return eventDate.hasSame(selectedDate, "day");
     });
   };
 
   const getWeekDates = (currentDate: Date) => {
-    const startOfWeek = new Date(currentDate);
-    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay()); // Start on Sunday
-    return Array.from({ length: 7 }, (_, i) => {
-      const day = new Date(startOfWeek);
-      day.setDate(startOfWeek.getDate() + i);
-      return day;
-    });
+    const startOfWeek = DateTime.fromJSDate(currentDate)
+      .setZone(TIME_ZONE)
+      .startOf("week");
+
+    return Array.from({ length: 7 }, (_, i) =>
+      startOfWeek.plus({ days: i }).toJSDate()
+    );
   };
 
   const handleNavigation = (direction: "prev" | "next") => {
-    const newDate = new Date(date);
-    newDate.setDate(newDate.getDate() + (direction === "next" ? 7 : -7));
-    setDate(newDate);
+    const newDate = DateTime.fromJSDate(date)
+      .setZone(TIME_ZONE)
+      .plus({ days: direction === "next" ? 7 : -7 });
+    setDate(newDate.toJSDate());
   };
 
   const handleDateClick = (value: Value) => {
@@ -153,12 +127,22 @@ const WeekViewCalendar: React.FC = () => {
       return;
     }
 
-    let selectedDate: Date = Array.isArray(value)
-      ? value[0] || new Date()
-      : value;
+    const selectedDate = Array.isArray(value)
+      ? value[0]
+        ? DateTime.fromJSDate(value[0]).setZone(TIME_ZONE)
+        : DateTime.now().setZone(TIME_ZONE)
+      : DateTime.fromJSDate(value).setZone(TIME_ZONE);
 
-    setDate(convertToPST(selectedDate));
+    setDate(selectedDate.toJSDate());
   };
+
+  if (!subscription || !organization) {
+    return <FullLoading />;
+  }
+
+  if (organizationContextError) {
+    return <ErrorComponent message={organizationContextError} />;
+  }
 
   const renderWeekView = () => {
     const weekDates = getWeekDates(date);
@@ -233,11 +217,8 @@ const WeekViewCalendar: React.FC = () => {
     );
   };
 
-  if (isStripeLoading || !monthlyEventsData) {
+  if (!monthlyEventsData) {
     return <FullLoading />;
-  }
-  if (connectedAccountError) {
-    return <ErrorComponent message={connectedAccountError} />;
   }
 
   if (monthlyEventsData.status === ResponseStatus.ERROR) {
@@ -246,7 +227,7 @@ const WeekViewCalendar: React.FC = () => {
 
   return (
     <div className="mt-2 px-1 max-w-[600px] min-w-[420px] mx-auto">
-      {!isStripeEnabled && isCompanyAdmin && (
+      {!connectedAccountEnabled && isCompanyAdmin && (
         <div className="p-1">
           <Notification
             title="Stripe Required"
@@ -320,7 +301,13 @@ const WeekViewCalendar: React.FC = () => {
           {selectedEvents.length > 0 ? (
             <div className="py-4  flex flex-wrap justify-center  gap-x-4 gap-y-3 bg-gray-200 md:rounded">
               {selectedEvents.map((event: EventSchema) => {
-                return <EventPreview eventData={event} isApp={true} />;
+                return (
+                  <EventPreview
+                    key={event._id}
+                    eventData={event}
+                    isApp={true}
+                  />
+                );
               })}
             </div>
           ) : (
@@ -335,36 +322,7 @@ const WeekViewCalendar: React.FC = () => {
           has({ permission: ClerkPermissionsEnum.ORG_EVENTS_CREATE })
         }
       >
-        {!subscriptionBillingCycle && <Loading />}
-        {subscriptionBillingCycle?.status === ResponseStatus.ERROR && (
-          <ErrorComponent message={subscriptionBillingCycle.error} />
-        )}
-        {subscriptionBillingCycle?.data && (
-          <div className="mb-8">
-            <h4 className="font-bold text-xl md:text-2xl font-playfair pl-4">
-              Plus Tier Data
-            </h4>
-            <div className="border-b py-3 px-4">
-              <p className="font-bold">Subscription Cycle</p>
-              <p>
-                {formatDateMDY(
-                  subscriptionBillingCycle.data.billingCycle.startDate
-                )}{" "}
-                -{" "}
-                {formatDateMDY(
-                  subscriptionBillingCycle.data.billingCycle.endDate
-                )}
-              </p>
-            </div>
-            <div className=" py-3 px-4 border-b">
-              <p className="font-bold">Guest List Events For Cycle</p>
-              <p>
-                {subscriptionBillingCycle.data.billingCycle.eventCount} /{" "}
-                {PLUS_GUEST_LIST_LIMIT}
-              </p>
-            </div>
-          </div>
-        )}
+        <PlusTierData subscription={subscription} />
       </Protect>
     </div>
   );

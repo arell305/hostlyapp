@@ -1,6 +1,9 @@
 import { ErrorMessages } from "@/types/enums";
 import { stripe } from "./stripe";
 import Stripe from "stripe";
+import { GenericActionCtx } from "convex/server";
+import { api } from "../_generated/api";
+import { Id } from "../_generated/dataModel";
 
 export async function createStripeConnectedAccount(
   email: string,
@@ -63,3 +66,39 @@ export async function createStripeDashboardLoginLink(
     throw new Error(ErrorMessages.STRIPE_CONNECT_DASHBOARD_ERROR);
   }
 }
+
+export async function verifyStripeConnectedWebhook(
+  payload: string,
+  sig: string
+): Promise<Stripe.Event> {
+  const secret = process.env.STRIPE_CONNECTED_WEBHOOK_SECRET;
+  if (!secret) {
+    console.error("Stripe connected account webhook secret is not configured!");
+    throw new Error(ErrorMessages.ENV_NOT_SET_CONNECTED);
+  }
+
+  try {
+    return await stripe.webhooks.constructEventAsync(payload, sig, secret);
+  } catch (error) {
+    console.error(" Webhook verification failed:", error);
+    throw new Error(ErrorMessages.CONNECTED_ACCOUNT_VERIFICATION);
+  }
+}
+
+export const handlePaymentIntentSucceeded = async (
+  ctx: GenericActionCtx<any>,
+  session: Stripe.PaymentIntent
+) => {
+  try {
+    await ctx.runAction(api.tickets.insertTicketsSold, {
+      eventId: session.metadata.eventId as Id<"events">,
+      promoCode: session.metadata.promoCode || null,
+      email: session.metadata.email,
+      maleCount: Number(session.metadata.maleCount) || 0,
+      femaleCount: Number(session.metadata.femaleCount) || 0,
+    });
+  } catch (error) {
+    console.error("Error processing handle payment Intent:", error);
+    throw new Error(ErrorMessages.CONNECTED_ACCOUNT_PAYMENT_INTENT_SUCCEEDED);
+  }
+};

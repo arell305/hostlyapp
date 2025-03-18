@@ -7,12 +7,17 @@ import {
 } from "@stripe/react-stripe-js";
 import { useState, FormEvent } from "react";
 
-const TicketPaymentForm: React.FC = () => {
+interface TicketPaymentFormProps {
+  setPaymentSuccess: (arg0: boolean) => void;
+}
+
+const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({
+  setPaymentSuccess,
+}) => {
   const stripe = useStripe();
   const elements = useElements();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
 
   const handlePayment = async (event: FormEvent) => {
     event.preventDefault();
@@ -23,6 +28,11 @@ const TicketPaymentForm: React.FC = () => {
     }
 
     setIsProcessing(true);
+
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+      return;
+    }
 
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
@@ -45,23 +55,17 @@ const TicketPaymentForm: React.FC = () => {
   };
 
   if (!stripe || !elements) {
-    return <div>Loading payment form...</div>; // ✅ Prevent rendering until ready
+    return <div>Loading payment form...</div>;
   }
 
   return (
-    <div>
-      {paymentSuccess ? (
-        <div className="text-green-500">✅ Payment successful!</div>
-      ) : (
-        <form onSubmit={handlePayment}>
-          <PaymentElement />
-          <button type="submit" disabled={isProcessing || !stripe}>
-            {isProcessing ? "Processing..." : "Pay Now"}
-          </button>
-          {errorMessage && <div className="text-red-500">{errorMessage}</div>}
-        </form>
-      )}
-    </div>
+    <form onSubmit={handlePayment}>
+      <PaymentElement />
+      <button type="submit" disabled={isProcessing || !stripe}>
+        {isProcessing ? "Processing..." : "Pay Now"}
+      </button>
+      {errorMessage && <div className="text-red-500">{errorMessage}</div>}
+    </form>
   );
 };
 

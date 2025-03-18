@@ -1,5 +1,10 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery, query } from "./_generated/server";
+import {
+  internalAction,
+  internalMutation,
+  internalQuery,
+  query,
+} from "./_generated/server";
 import { ResponseStatus, StripeAccountStatus, UserRole } from "../utils/enum";
 import { ErrorMessages } from "@/types/enums";
 import { ConnectedAccountsSchema, UserSchema } from "@/types/schemas-types";
@@ -18,6 +23,10 @@ import {
 } from "./backendUtils/validation";
 import { stripe } from "./backendUtils/stripe";
 import { requireAuthenticatedUser } from "../utils/auth";
+import {
+  handlePaymentIntentSucceeded,
+  verifyStripeConnectedWebhook,
+} from "./backendUtils/stripeConnect";
 
 export const saveConnectedAccount = internalMutation({
   args: {
@@ -164,54 +173,6 @@ export const getConnectedAccountByClerkUserId = query({
   },
 });
 
-export const getConnectedAccountBySlug = query({
-  args: {
-    slug: v.string(),
-  },
-  handler: async (
-    ctx,
-    args
-  ): Promise<GetConnectedAccountByClerkUserIdResponse> => {
-    const { slug } = args;
-    try {
-      const organization: OrganizationsSchema | null = await ctx.db
-        .query("organizations")
-        .withIndex("by_slug", (q) => q.eq("slug", slug))
-        .first();
-
-      const validatedOrganization = validateOrganization(organization, true);
-
-      const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
-        .query("connectedAccounts")
-        .withIndex("by_customerId", (q) =>
-          q.eq("customerId", validatedOrganization.customerId)
-        )
-        .first();
-
-      if (!connectedAccount) {
-        return {
-          status: ResponseStatus.SUCCESS,
-          data: null,
-        };
-      }
-
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: { connectedAccount },
-      };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
-    }
-  },
-});
-
 export const internalGetConnectedAccountByClerkUserId = internalQuery({
   args: {
     clerkUserId: v.string(),
@@ -300,6 +261,52 @@ export const getConnectedAccountStatusBySlug = query({
         data: null,
         error: "An error occurred while checking the connected account status.",
       };
+    }
+  },
+});
+
+export const updateConnectedAccountByStripeId = internalMutation({
+  args: { stripeAccountId: v.string(), status: StripeAccountStatusConvex },
+  handler: async (ctx, args) => {
+    try {
+      const connectedAcount = validateConnectedAccount(
+        await ctx.db
+          .query("connectedAccounts")
+          .withIndex("by_stripeAccountId", (q) =>
+            q.eq("stripeAccountId", args.stripeAccountId)
+          )
+          .first(),
+        false
+      );
+
+      await ctx.db.patch(connectedAcount._id, { status: args.status });
+    } catch (error) {
+      console.error("Error fetching connected account by Stripe ID:", error);
+      throw new Error(ErrorMessages.CONNECTED_ACCOUNT_DB_UPDATE_BY_STRIPE);
+    }
+  },
+});
+
+export const fulfill = internalAction({
+  args: { signature: v.string(), payload: v.string() },
+  handler: async (ctx, { signature, payload }) => {
+    try {
+      const event = await verifyStripeConnectedWebhook(payload, signature);
+      switch (event.type) {
+        case "payment_intent.succeeded":
+          await handlePaymentIntentSucceeded(ctx, event.data.object);
+          const paymentIntent = event.data.object;
+          console.log("✅ Payment successful:", paymentIntent);
+          break;
+
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error("Error processing webhook:", err);
+      return { success: false, error: (err as { message: string }).message };
     }
   },
 });

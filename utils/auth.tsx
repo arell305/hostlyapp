@@ -8,6 +8,7 @@ export async function requireAuthenticatedUser(
   requiredRoles?: UserRole[]
 ): Promise<UserIdentity> {
   const identity = await ctx.auth.getUserIdentity();
+  console.log("identity", identity);
   if (!identity) {
     throw new Error(ErrorMessages.UNAUTHENTICATED);
   }

@@ -3,6 +3,7 @@ import { internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { TicketInfoSchema } from "@/types/schemas-types";
+import { validateTicketInfo } from "./backendUtils/validation";
 
 export const createTicketInfo = internalMutation({
   args: {
@@ -104,6 +105,22 @@ export const internalUpdateTicketInfo = internalMutation({
     } catch (error) {
       console.error("Error updating ticket info:", error);
       throw new Error("Failed to update ticket info");
+    }
+  },
+});
+
+export const deleteTicketInfo = internalMutation({
+  args: { ticketInfoId: v.id("ticketInfo") },
+  handler: async (ctx, args): Promise<void> => {
+    const { ticketInfoId } = args;
+
+    try {
+      validateTicketInfo(await ctx.db.get(ticketInfoId));
+
+      await ctx.db.delete(ticketInfoId);
+    } catch (error) {
+      console.error(`Failed to delete ticket info ${ticketInfoId}:`, error);
+      throw new Error(ErrorMessages.TICKET_INFO_DB_DELETE);
     }
   },
 });

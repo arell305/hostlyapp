@@ -54,7 +54,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             onClick={onClose}
             variant="ghost"
             disabled={isLoading}
-            className="font-semibold w-[140px]"
+            className="font-semibold "
           >
             {cancelText}
           </Button>
@@ -64,7 +64,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             }}
             variant={confirmVariant}
             disabled={isLoading}
-            className="rounded-[20px] w-[140px] font-semibold"
+            className="font-semibold md:w-full"
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">

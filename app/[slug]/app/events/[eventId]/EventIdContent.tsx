@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   EventFormInput,
   GuestListFormInput,
+  OrganizationsSchema,
   Tab,
   TicketFormInput,
 } from "@/types/types";
@@ -14,7 +15,6 @@ import {
   UserRole,
 } from "../../../../../utils/enum";
 import EventForm from "@/[slug]/app/components/EventForm";
-import TicketInfoTab from "@/[slug]/app/components/TicketInfoTab";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { toast } from "@/hooks/use-toast";
@@ -25,11 +25,13 @@ import { UpdateEventResponse } from "@/types/convex-types";
 import {
   EventSchema,
   GuestListInfoSchema,
+  SubscriptionSchema,
   TicketInfoSchema,
   UserSchema,
 } from "@/types/schemas-types";
 import { FrontendErrorMessages } from "@/types/enums";
 import { Id } from "../../../../../convex/_generated/dataModel";
+import TicketTab from "../../components/tickets/TicketTab";
 
 interface EventIdContentProps {
   data: {
@@ -38,19 +40,19 @@ interface EventIdContentProps {
     guestListInfo?: GuestListInfoSchema | null;
   };
   isAppAdmin: boolean;
-  user: UserSchema;
   has: any;
   isStripeEnabled: boolean;
-  slug: string;
+  organization: OrganizationsSchema;
+  subscription: SubscriptionSchema;
 }
 
 const EventIdContent: React.FC<EventIdContentProps> = ({
   data,
   isAppAdmin,
-  user,
   has,
   isStripeEnabled,
-  slug,
+  organization,
+  subscription,
 }) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showConfirmCancelEdit, setShowConfirmCancelEdit] =
@@ -86,7 +88,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
 
     try {
       const response: UpdateEventResponse = await updateEvent({
-        slug,
+        organizationId: organization._id,
         ...updatedEventData,
         ticketData: updatedTicketData,
         guestListData: updatedGuestListData,
@@ -101,7 +103,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
         setIsEditing(false);
       } else {
         console.error(response.error);
-        setSaveEventError(FrontendErrorMessages.GENERIC_ERROR);
+        setSaveEventError(response.error);
       }
     } catch (error) {
       console.error(error);
@@ -111,13 +113,9 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     }
   };
 
-  let promoterId: Id<"users"> | null = null;
-  if (has({ role: UserRole.Promoter })) {
-    promoterId = user._id;
-  }
-
   return (
-    <section className="container mx-auto md:border-2 max-w-3xl md:p-6 rounded-lg">
+    // <section className="container mx-auto max-w-3xl md:p-6 rounded-lg">
+    <section>
       <TopRowNav
         eventData={data.event}
         isAdminOrg={isAppAdmin}
@@ -133,10 +131,10 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           onSubmit={handleUpdateEvent}
           isEdit={isEditing}
           onCancelEdit={handleCancelEdit}
-          canAddGuestListOption={true}
           saveEventError={saveEventError}
           isStripeEnabled={isStripeEnabled}
           isUpdateEventLoading={isUpdateEventLoading}
+          subscription={subscription}
         />
       ) : (
         <>
@@ -146,12 +144,11 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
             tabs={tabs}
           />
           {activeTab === ActiveTab.TICKET_INFO && (
-            <TicketInfoTab
+            <TicketTab
               ticketData={data.ticketInfo}
               has={has}
               eventId={data.event._id}
-              promoterUserId={promoterId}
-              slug={slug}
+              organization={organization}
             />
           )}
           {activeTab === ActiveTab.GUEST_LIST && (

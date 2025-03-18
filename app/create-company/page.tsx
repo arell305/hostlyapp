@@ -151,7 +151,7 @@ export default function CreateCompanyPage() {
           organization: newOrganizationId,
         });
         const slug = response.data.slug;
-        router.push(`${slug}/app/team`);
+        window.location.href = `/${slug}/app`;
 
         toast({
           title: "Success",

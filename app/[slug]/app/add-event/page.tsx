@@ -1,28 +1,25 @@
 "use client";
 
 import { FC, useState } from "react";
-import { useAction, useQuery } from "convex/react";
+import { useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { ResponseStatus, SubscriptionTier } from "../../../../utils/enum";
+import { ResponseStatus } from "../../../../utils/enum";
 import EventForm from "../components/EventForm";
 import { useToast } from "@/hooks/use-toast";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   EventFormInput,
   GuestListFormInput,
   TicketFormInput,
 } from "@/types/types";
 import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
-import { useIsStripeEnabled } from "@/hooks/useIsStripeEnabled";
 import FullLoading from "../components/loading/FullLoading";
 import ErrorComponent from "../components/errors/ErrorComponent";
-import { FrontendErrorMessages } from "@/types/enums";
+import { ErrorMessages, FrontendErrorMessages } from "@/types/enums";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { Notification } from "../components/ui/Notification";
 
 const AddEventPage: FC = () => {
-  const { slug } = useParams();
-  const cleanSlug =
-    typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
-
   const router = useRouter();
 
   const { toast } = useToast();
@@ -30,24 +27,14 @@ const AddEventPage: FC = () => {
     useState<boolean>(false);
   const [saveEventError, setSaveEventError] = useState<string | null>(null);
 
-  const subscriptionResponse = useQuery(
-    api.customers.getCustomerSubscriptionTierBySlug,
-    {
-      slug: cleanSlug,
-    }
-  );
+  const {
+    organization,
+    organizationContextError,
+    subscription,
+    connectedAccountEnabled,
+  } = useContextOrganization();
 
-  const { isStripeEnabled, isLoading, connectedAccountError } =
-    useIsStripeEnabled({
-      slug: cleanSlug,
-    });
   const addEvent = useAction(api.events.addEvent);
-
-  const canAddGuestListOption =
-    subscriptionResponse?.data?.customerSubscription.subscriptionTier ===
-      SubscriptionTier.ELITE ||
-    subscriptionResponse?.data?.customerSubscription.subscriptionTier ===
-      SubscriptionTier.PLUS;
 
   const handleSubmit = async (
     eventData: EventFormInput,
@@ -55,8 +42,13 @@ const AddEventPage: FC = () => {
     guestListData: GuestListFormInput | null
   ) => {
     try {
+      if (!organization) {
+        setSaveEventError(FrontendErrorMessages.GENERIC_ERROR);
+        console.error(ErrorMessages.ORGANIZATION_NOT_LOADED);
+        return;
+      }
       const addEventResponse = await addEvent({
-        slug: cleanSlug,
+        organizationId: organization._id,
         ...eventData,
         ticketData,
         guestListData,
@@ -75,7 +67,7 @@ const AddEventPage: FC = () => {
       }
     } catch (error) {
       console.error(error);
-      setSaveEventError("Failed to create an event: Internal Error");
+      setSaveEventError(FrontendErrorMessages.GENERIC_ERROR);
       return;
     }
   };
@@ -89,16 +81,12 @@ const AddEventPage: FC = () => {
     router.back();
   };
 
-  if (!subscriptionResponse || isLoading) {
+  if (!subscription || connectedAccountEnabled === undefined || !organization) {
     return <FullLoading />;
   }
 
-  if (subscriptionResponse.status === ResponseStatus.ERROR) {
-    return <ErrorComponent message={subscriptionResponse.error} />;
-  }
-
-  if (connectedAccountError) {
-    return <ErrorComponent message={connectedAccountError} />;
+  if (organizationContextError) {
+    return <ErrorComponent message={organizationContextError} />;
   }
 
   return (
@@ -112,13 +100,24 @@ const AddEventPage: FC = () => {
           Cancel
         </p>
       </div>
+      {!connectedAccountEnabled && (
+        <div className="p-1">
+          <Notification
+            title="Stripe Required"
+            description="Please integrate Stripe to create ticket events."
+            variant="customDarkBlue"
+            route="stripe"
+          />
+        </div>
+      )}
+
       <EventForm
-        isStripeEnabled={isStripeEnabled}
+        isStripeEnabled={connectedAccountEnabled}
         onSubmit={handleSubmit}
         isEdit={false}
-        canAddGuestListOption={canAddGuestListOption}
         onCancelEdit={handleCancel}
         saveEventError={saveEventError}
+        subscription={subscription}
       />
       <ResponsiveConfirm
         isOpen={showCancelConfirmModal}

@@ -14,28 +14,25 @@ import { useToast } from "@/hooks/use-toast";
 import PendingUserCard from "./PendingUserCard";
 import ResponsiveConfirm from "@/[slug]/app/components/responsive/ResponsiveConfirm";
 import ResponsiveInviteUser from "../components/responsive/ResponsiveInviteUser";
-import { useParams } from "next/navigation";
 import { UserSchema } from "@/types/schemas-types";
 import FullLoading from "../components/loading/FullLoading";
 import ErrorComponent from "../components/errors/ErrorComponent";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
 
 const Team = () => {
-  const { organization, user } = useClerk();
-  const { slug } = useParams();
+  const { user } = useClerk();
   const { toast } = useToast();
   const { orgRole } = useAuth();
+  const { organization } = useContextOrganization();
 
   const isHostlyAdmin =
     orgRole === UserRole.Hostly_Admin || orgRole === UserRole.Hostly_Moderator;
 
-  const cleanSlug =
-    typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
-
-  const isHostlyPage = cleanSlug === "admin";
+  const isHostlyPage = organization?.name === "admin";
 
   const companyUsersData = useQuery(
-    api.organizations.getUsersByOrganizationSlug,
-    cleanSlug ? { slug: cleanSlug } : "skip"
+    api.organizations.getUsersByOrganization,
+    organization ? { organizationId: organization._id } : "skip"
   );
 
   const getPendingInvitationList = useAction(
@@ -163,7 +160,7 @@ const Team = () => {
           condition={(has) =>
             has({ permission: ClerkPermissions.CREATE_EVENT }) ||
             (has({ permission: ClerkPermissions.MODERATES_APP }) &&
-              cleanSlug === "admin")
+              isHostlyPage)
           }
         >
           <p
@@ -286,7 +283,7 @@ const Team = () => {
       <ResponsiveInviteUser
         isOpen={isInviteModalOpen}
         onOpenChange={setIsInviteModalOpen}
-        clerkOrganizationId={organization.id}
+        clerkOrganizationId={organization.clerkOrganizationId}
         onInviteSuccess={handleInviteSuccess}
         isHostlyAdmin={isHostlyAdmin}
       />

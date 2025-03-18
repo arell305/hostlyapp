@@ -1,4 +1,3 @@
-import { EventData } from "@/types/types";
 import React from "react";
 import { MdOutlineCalendarToday } from "react-icons/md";
 import { FiClock } from "react-icons/fi";
@@ -15,13 +14,12 @@ interface DetailsViewProps {
 }
 
 const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
-  // Assuming that photo is a URL. If it's an ID, you'll need to fetch it accordingly.
   const displayEventPhoto = eventData.photo
     ? useQuery(api.photo.getFileUrl, { storageId: eventData.photo })
     : null;
 
   const handleAddressClick = () => {
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventData.address)}`;
     window.open(googleMapsUrl, "_blank");
   };
 

@@ -1,34 +1,34 @@
 import { ErrorMessages } from "@/types/enums";
-import { ResponseStatus, SubscriptionTier } from "../../utils/enum";
+import {
+  ResponseStatus,
+  StripeAccountStatus,
+  SubscriptionTier,
+} from "../../utils/enum";
 import {
   ConnectedAccountsSchema,
+  CustomerSchema,
   CustomerTicket,
   EventSchema,
   GuestListInfoSchema,
-  PromoterPromoCodeSchema,
   PromoterPromoCodeWithDiscount,
+  SubscriptionSchema,
   TicketInfoSchema,
-  TicketSchema,
   TicketSchemaWithPromoter,
   UserSchema,
 } from "./schemas-types";
 import {
-  CustomerSubscriptionInfo,
-  CustomerWithPayment,
   Guest,
-  GuestListInfo,
   GuestListNameSchema,
   OrganizationDetails,
+  OrganizationPublic,
   OrganizationsSchema,
   Promoter,
+  ProratedPrice,
   SubscriptionBillingCycle,
-  TicketInfo,
-  TransformedOrganization,
+  TicketCounts,
 } from "./types";
 import { Id } from "../../convex/_generated/dataModel";
 import { PaginationResult } from "convex/server";
-import { Organization } from "@clerk/backend";
-import Stripe from "stripe";
 
 export interface ErrorResponse {
   status: ResponseStatus.ERROR;
@@ -135,19 +135,6 @@ export interface GetEventsByOrganizationData {
   events: PaginationResult<EventSchema>;
 }
 
-export type GetOrganizationBySlugQueryResponse =
-  | GetOrganizationBySlugQuerySuccess
-  | ErrorResponse;
-
-export interface GetOrganizationBySlugQuerySuccess {
-  status: ResponseStatus.SUCCESS;
-  data: GetOrganizationBySlugQueryData;
-}
-
-export interface GetOrganizationBySlugQueryData {
-  organization: OrganizationsSchema;
-}
-
 export type UpdateOrganizationLogoResponse =
   | UpdateOrganizationLogoSuccess
   | ErrorResponse;
@@ -226,10 +213,6 @@ export interface InsertTicketSoldSuccess {
 
 export interface InsertTicketSoldData {
   tickets: CustomerTicket[];
-  paymentIntent: {
-    id: string;
-    client_secret: string;
-  };
 }
 
 export type GetTicketsByEventIdResponse =
@@ -302,7 +285,7 @@ export type GetSubDatesAndGuestEventsCountByDateResponse =
 
 export interface GetSubDatesAndGuestEventsCountByDateSuccess {
   status: ResponseStatus.SUCCESS;
-  data: GetSubDatesAndGuestEventsCountByDateData;
+  data: GetSubDatesAndGuestEventsCountByDateData | null;
 }
 
 export interface GetSubDatesAndGuestEventsCountByDateData {
@@ -427,17 +410,17 @@ export interface UpdateUserByClerkIdData {
   clerkUserId: string;
 }
 
-export type GetCustomerDetailsBySlugResponse =
-  | GetCustomerDetailsBySlugSuccess
+export type GetCustomerDetailsResponse =
+  | GetCustomerDetailsSuccess
   | ErrorResponse;
 
-export interface GetCustomerDetailsBySlugSuccess {
+export interface GetCustomerDetailsSuccess {
   status: ResponseStatus.SUCCESS;
-  data: GetCustomerDetailsBySlugData | null;
+  data: GetCustomerDetailsData;
 }
 
-export interface GetCustomerDetailsBySlugData {
-  customerData: CustomerWithPayment;
+export interface GetCustomerDetailsData {
+  customer: CustomerSchema;
 }
 
 export type CancelSubscriptionResponse =
@@ -490,19 +473,6 @@ export interface UpdateSubscriptionTierSuccess {
 
 export interface UpdateSubscriptionTierData {
   customerId: Id<"customers">;
-}
-
-export type GetCustomerSubscriptionTierBySlugResponse =
-  | GetCustomerSubscriptionTierBySlugSuccess
-  | ErrorResponse;
-
-export interface GetCustomerSubscriptionTierBySlugSuccess {
-  status: ResponseStatus.SUCCESS;
-  data: GetCustomerSubscriptionTierBySlugData | null;
-}
-
-export interface GetCustomerSubscriptionTierBySlugData {
-  customerSubscription: CustomerSubscriptionInfo;
 }
 
 export type GetGuestListByPromoterResponse =
@@ -589,16 +559,16 @@ export interface GetConnectedAccountStatusBySlugData {
   hasVerifiedConnectedAccount: boolean;
 }
 
-export type GetPromotersBySlugResponse =
-  | GetPromotersBySlugSuccess
+export type GetPromotersByOrgResponse =
+  | GetPromotersByOrgSuccess
   | ErrorResponse;
 
-export interface GetPromotersBySlugSuccess {
+export interface GetPromotersByOrgSuccess {
   status: ResponseStatus.SUCCESS;
-  data: GetPromotersBySlugData;
+  data: GetPromotersByOrgData;
 }
 
-export interface GetPromotersBySlugData {
+export interface GetPromotersByOrgData {
   promoters: Promoter[];
 }
 
@@ -613,16 +583,14 @@ export interface GetUserByClerkIdData {
   user: UserSchema;
 }
 
-export type GetEventsBySlugAndMonthResponse =
-  | GetEventsBySlugAndMonthSuccess
-  | ErrorResponse;
+export type GetEventsByMonthResponse = GetEventsByMonthSuccess | ErrorResponse;
 
-export interface GetEventsBySlugAndMonthSuccess {
+export interface GetEventsByMonthSuccess {
   status: ResponseStatus.SUCCESS;
-  data: GetEventsBySlugAndMonthData;
+  data: GetEventsByMonthData;
 }
 
-export interface GetEventsBySlugAndMonthData {
+export interface GetEventsByMonthData {
   eventData: EventSchema[];
 }
 
@@ -652,3 +620,106 @@ export interface GetOrganizationImagePublicData {
   photo: Id<"_storage"> | null;
   name: string;
 }
+
+export type CreateStripeSubscriptionResponse =
+  | CreateStripeSubscriptionSuccess
+  | ErrorResponse;
+
+export interface CreateStripeSubscriptionSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CreateStripeSubscriptionData | null;
+}
+
+export interface CreateStripeSubscriptionData {
+  customerId: Id<"customers">;
+  subscriptionId: Id<"subscriptions">;
+}
+
+export type GetOrganizationContextResponse =
+  | GetOrganizationContextSuccess
+  | ErrorResponse;
+
+export interface GetOrganizationContextSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetOrganizationContextData;
+}
+
+export interface GetOrganizationContextData {
+  organization: OrganizationsSchema;
+  connectedAccountId: string | null;
+  connectedAccountStatus: StripeAccountStatus | null;
+  subscription: SubscriptionSchema;
+}
+
+export type RetryInvoicePaymentResponse =
+  | RetryInvoicePaymentSuccess
+  | ErrorResponse;
+
+export interface RetryInvoicePaymentSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: RetryInvoicePaymentData;
+}
+
+export interface RetryInvoicePaymentData {
+  invoiceId: string;
+}
+
+export type GetProratedPricesResponse =
+  | GetProratedPricesSuccess
+  | ErrorResponse;
+
+export interface GetProratedPricesSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetProratedPricesData;
+}
+
+export interface GetProratedPricesData {
+  proratedPrices: ProratedPrice[];
+}
+
+export type GetTicketsByClerkUserResponse =
+  | GetTicketsByClerkUserSuccess
+  | ErrorResponse;
+
+export interface GetTicketsByClerkUserSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetTicketsByClerkUserData;
+}
+
+export interface GetTicketsByClerkUserData {
+  ticketCounts: TicketCounts;
+}
+
+export type GetOrganizationPublicContextResponse =
+  | GetOrganizationPublicContextSuccess
+  | ErrorResponse;
+
+export interface GetOrganizationPublicContextSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetOrganizationPublicContextData;
+}
+
+export interface GetOrganizationPublicContextData {
+  organizationPublic: OrganizationPublic;
+}
+
+export type UpdateStripeSubscriptionResponse =
+  | UpdateStripeSubscriptionSuccess
+  | ErrorResponse;
+
+export interface UpdateStripeSubscriptionSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateStripeSubscriptionData;
+}
+
+export interface UpdateStripeSubscriptionData {
+  customerId: Id<"customers">;
+  subscriptionId: Id<"subscriptions">;
+  organization: OrganizationsSchema;
+}
+
+export type ValidatePromoCodeResponse = {
+  isValid: boolean;
+  promoCodeId: string | null;
+  discount: number | null;
+};

@@ -19,24 +19,10 @@ export interface UserSchema {
   isActive?: boolean;
 }
 
-interface OrganizationsSchema {
-  _id: Id<"organizations">;
-  _creationTime: number;
-  clerkOrganizationId: string;
-  name: string;
-  clerkUserIds: string[];
-  imageUrl?: string;
-  eventIds: Id<"events">[];
-  customerId: Id<"customers">;
-  promoDiscount: number;
-  isActive?: boolean;
-  slug: string;
-}
-
 export interface TicketSchema {
   _id: Id<"tickets">;
   eventId: Id<"events">;
-  userPromoterId: Id<"users"> | null;
+  promoterUserId: Id<"users"> | null;
   email: string;
   gender: Gender;
   checkInTime?: number;
@@ -119,20 +105,35 @@ export interface ConnectedAccountsSchema {
   lastStripeUpdate?: number;
 }
 
+export interface SubscriptionSchema {
+  _id: Id<"subscriptions">;
+  _creationTime: number;
+  stripeSubscriptionId: string;
+  priceId: string;
+  trialEnd: number | null;
+  currentPeriodStart: number;
+  currentPeriodEnd: number;
+  stripeBillingCycleAnchor: number;
+  subscriptionStatus: SubscriptionStatus;
+  subscriptionTier: SubscriptionTier;
+  customerId: Id<"customers">;
+  guestListEventsCount: number;
+  discount?: {
+    stripePromoCodeId?: string;
+    discountPercentage?: number;
+  };
+  amount: number;
+}
+
 export interface CustomerSchema {
   _id: Id<"customers">;
   _creationTime: number;
   stripeCustomerId: string;
-  subscriptionStatus: SubscriptionStatus;
-  trialEndDate?: string | null;
-  stripeSubscriptionId: string;
   email: string;
   paymentMethodId: string;
-  subscriptionTier: SubscriptionTier;
-  nextPayment: string | null;
-  cancelAt: string | null;
-  subscriptionStartDate: string;
-  isActive?: boolean;
+  isActive: boolean;
+  cardBrand?: string;
+  last4?: string;
 }
 
 export interface CustomerWithCompanyName extends CustomerSchema {

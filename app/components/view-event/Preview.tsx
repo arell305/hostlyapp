@@ -2,7 +2,6 @@ import { EventData } from "@/types/types";
 import { FiClock } from "react-icons/fi";
 import { LuMapPin } from "react-icons/lu";
 import { MdOutlineCalendarToday } from "react-icons/md";
-import Link from "next/link";
 import { useQuery } from "convex/react";
 import { useRouter, usePathname } from "next/navigation";
 

@@ -20,8 +20,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     const { user, loaded, organization } = useClerk();
 
     const [isPromoCodeModalOpen, setIsPromoCodeModalOpen] = useState(false);
-    // const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
-    //   useState(false);
 
     const userFromDb = useQuery(
       api.users.findUserByClerkId,
@@ -39,10 +37,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     const togglePromoCodeModal = useCallback(() => {
       setIsPromoCodeModalOpen((prev) => !prev);
     }, []);
-
-    // const toggleSubscriptionModal = useCallback(() => {
-    //   setIsSubscriptionModalOpen((prev) => !prev);
-    // }, []);
 
     // Show loading state until user data is loaded
     if (!loaded || !userFromDb) {
@@ -106,12 +100,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
             user={userFromDb?.data?.user}
           />
         )}
-        {/* {isSubscriptionModalOpen && (
-          <EditSubscriptionDialog
-            isOpen={isSubscriptionModalOpen}
-            setIsOpen={setIsSubscriptionModalOpen}
-          />
-        )} */}
       </nav>
     );
   }

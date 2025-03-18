@@ -54,39 +54,36 @@ export const createUser = internalMutation({
   },
 });
 
-export const updateUser = internalMutation({
+export const updateUserByEmail = internalMutation({
   args: {
     email: v.string(),
-    clerkUserId: v.optional(v.string()),
     organizationId: v.optional(v.id("organizations")),
-    newEmail: v.optional(v.string()),
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    role: v.optional(v.union(RoleConvex, v.null())),
+    newEmail: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Id<"users">> => {
     try {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", args.email))
-        .first();
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .withIndex("by_email", (q) => q.eq("email", args.email))
+          .first()
+      );
 
-      if (!user) {
-        throw new Error(`User with email ${args.email} not found.`);
-      }
-
-      // Update the user with the provided fields
       await ctx.db.patch(user._id, {
-        clerkUserId: args.clerkUserId || user.clerkUserId,
         organizationId: args.organizationId || user.organizationId,
         email: args.newEmail || user.email,
         name: args.name || user.name,
         imageUrl: args.imageUrl || user.imageUrl,
+        role: args.role || user.role,
       });
 
       return user._id;
     } catch (error) {
-      console.error("Error updating user in the database:", error);
-      throw new Error("Failed to update user");
+      console.error("Error updating user in the database by email:", error);
+      throw new Error(ErrorMessages.USER_DB_UPDATE_BY_EMAIL);
     }
   },
 });
@@ -235,7 +232,7 @@ export const findUserByClerkId = query({
         .query("users")
         .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
         .unique();
-
+      console.log("user in query", user);
       if (!user) {
         return {
           status: ResponseStatus.ERROR,
@@ -273,7 +270,7 @@ export const findUserByClerkId = query({
         ...user,
         promoCode: promoterPromoCode?.name,
       };
-
+      console.log("data returned", data);
       return {
         status: ResponseStatus.SUCCESS,
         data: { user: data },
@@ -287,6 +284,23 @@ export const findUserByClerkId = query({
         data: null,
         error: errorMessage,
       };
+    }
+  },
+});
+
+export const publicfindUserByClerkId = query({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args): Promise<UserSchema | null> => {
+    try {
+      return await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
+        .unique();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
+      console.error(errorMessage, error);
+      return null;
     }
   },
 });

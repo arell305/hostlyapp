@@ -29,9 +29,7 @@ export const addOrUpdatePromoterPromoCode = mutation({
     const { name } = args;
 
     try {
-      const identity = await requireAuthenticatedUser(ctx, [
-        UserRole.Moderator,
-      ]);
+      const identity = await requireAuthenticatedUser(ctx, [UserRole.Promoter]);
       const clerkUserId = identity.id as string;
 
       const user = await ctx.db

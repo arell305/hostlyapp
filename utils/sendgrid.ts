@@ -1,31 +1,27 @@
 import fetch from "node-fetch";
-import { CustomerTicket } from "@/types/schemas-types";
-import { Buffer } from "buffer";
-import { formatTime } from "./luxon";
+import { ErrorMessages } from "@/types/enums";
 
 export const sendTicketEmail = async (
   recipientEmail: string,
-  tickets: CustomerTicket[],
-  pdfBase64: string
+  downloadUrl: string
 ) => {
   try {
     const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-    const SENDGRID_FROM_EMAIL = "david.anuson@gmail.com"; // Use a verified sender
+    const SENDGRID_FROM_EMAIL = "david.anuson@gmail.com";
 
     if (!SENDGRID_API_KEY) {
-      throw new Error("SendGrid API key is missing in Convex environment.");
+      throw new Error(ErrorMessages.SENDGRID_MISSING_API_KEY);
     }
-    const responseDownload = await fetch(pdfBase64);
+
+    const responseDownload = await fetch(downloadUrl);
     if (!responseDownload.ok) {
       throw new Error(`Failed to fetch PDF: ${responseDownload.statusText}`);
     }
-
     const arrayBuffer = await responseDownload.arrayBuffer();
-    const pdfBuffer = Buffer.from(arrayBuffer);
 
-    // ✅ Generate the PDF and get it as Base64
-    // const pdfBase64 = await generateTestPDF();
-    // if (!pdfBase64) throw new Error("Failed to generate PDF");
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const pdfBase64 = btoa(String.fromCharCode(...uint8Array));
+
     const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
       method: "POST",
       headers: {
@@ -33,33 +29,25 @@ export const sendTicketEmail = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: { email: SENDGRID_FROM_EMAIL }, // ✅ Verified sender email
-        template_id: "d-684d73557dea485f851b241bcef15ca9", // ✅ SendGrid Template ID
+        from: { email: SENDGRID_FROM_EMAIL },
+        subject: "Your PDF is Ready 📄",
         personalizations: [
           {
             to: [{ email: recipientEmail }],
-            dynamic_template_data: {
-              event_name: tickets[0]?.name || "No Event Name",
-              event_address: tickets[0]?.address || "No Address",
-              event_start_time: tickets[0]?.startTime
-                ? formatTime(tickets[0]?.startTime)
-                : "No Start Time",
-              event_end_time: tickets[0]?.endTime
-                ? formatTime(tickets[0]?.endTime)
-                : "No End Time",
-              tickets: tickets.map((ticket) => ({
-                ticketUniqueId: ticket.ticketUniqueId,
-                gender: ticket.gender,
-              })),
-            },
+          },
+        ],
+        content: [
+          {
+            type: "text/plain",
+            value: "Attached is your PDF. Please find it below.",
           },
         ],
         attachments: [
           {
-            content: pdfBuffer.toString("base64"), // Attach the PDF as Base64
-            filename: "tickets.pdf", // Filename for the attachment
-            type: "application/pdf", // MIME type for PDF
-            disposition: "attachment", // Indicates this is an attachment
+            content: pdfBase64,
+            filename: "document.pdf",
+            type: "application/pdf",
+            disposition: "attachment",
           },
         ],
       }),
@@ -72,8 +60,9 @@ export const sendTicketEmail = async (
       );
     }
 
-    console.log(`✅ Email with PDF sent to ${recipientEmail}`);
+    console.log(` Email with PDF sent to ${recipientEmail}`);
   } catch (error) {
-    console.error("❌ Error sending email:", error);
+    console.error(" Error sending email:", error);
+    throw new Error(ErrorMessages.SENDGRID_EMAIL);
   }
 };

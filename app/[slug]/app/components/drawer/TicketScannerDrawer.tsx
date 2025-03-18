@@ -5,6 +5,7 @@ import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { ResponseStatus } from "../../../../../utils/enum";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 
 const TicketScannerModal = ({
   open,
@@ -42,19 +43,54 @@ const TicketScannerModal = ({
     }
   };
 
+  // return (
+  //   <Dialog
+  //     open={open}
+  //     onOpenChange={() => {
+  //       setCheckInStatus(null);
+  //       onClose();
+  //     }}
+  //   >
+  //     <DialogContent className="max-w-screen h-screen ">
+  //       {" "}
+  //       <DialogTitle className="text-center text-2xl font-bold">
+  //         Scan Ticket
+  //       </DialogTitle>
+  //       <div className="flex-grow flex items-center justify-center">
+  //         <Scanner
+  //           onScan={handleScan}
+  //           constraints={{ facingMode: "environment" }}
+  //           paused={false}
+  //         />
+  //       </div>
+  //       {checkInStatus && (
+  //         <p className="text-center text-lg font-semibold mt-4 text-gray-700">
+  //           {checkInStatus}
+  //         </p>
+  //       )}
+  //       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-3/4">
+  //         <button
+  //           onClick={onClose}
+  //           className="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition"
+  //         >
+  //           Close
+  //         </button>
+  //       </div>
+  //     </DialogContent>
+  //   </Dialog>
+  // );
   return (
-    <Dialog
+    <Drawer
       open={open}
       onOpenChange={() => {
         setCheckInStatus(null);
         onClose();
       }}
     >
-      <DialogContent className="fixed inset-0 w-full h-full flex flex-col bg-white p-6">
-        <DialogTitle className="text-center text-2xl font-bold">
+      <DrawerContent className="fixed inset-x-0 bottom-0 h-[100vh] bg-white rounded-t-lg shadow-lg flex flex-col">
+        <DrawerTitle className="text-center text-2xl font-bold py-4">
           Scan Ticket
-        </DialogTitle>
-
+        </DrawerTitle>
         <div className="flex-grow flex items-center justify-center">
           <Scanner
             onScan={handleScan}
@@ -62,13 +98,11 @@ const TicketScannerModal = ({
             paused={false}
           />
         </div>
-
         {checkInStatus && (
           <p className="text-center text-lg font-semibold mt-4 text-gray-700">
             {checkInStatus}
           </p>
         )}
-
         <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-3/4">
           <button
             onClick={onClose}
@@ -77,8 +111,8 @@ const TicketScannerModal = ({
             Close
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 };
 

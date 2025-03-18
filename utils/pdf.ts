@@ -1,3 +1,4 @@
+import { ErrorMessages } from "@/types/enums";
 import { CustomerTicket } from "@/types/schemas-types";
 import fetch from "node-fetch";
 
@@ -5,59 +6,46 @@ interface DocumentResponse {
   document: {
     id: string;
     status: "pending" | "generating" | "success" | "failure";
-    download_url?: string;
   };
 }
 
 export const generatePDF = async (
-  tickets: CustomerTicket[]
+  tickets: CustomerTicket[],
+  email: string
 ): Promise<string> => {
-  const apiKey = process.env.PDFMONKEY_API_KEY; // Your PDFMonkey API key
+  const apiKey = process.env.PDFMONKEY_API_KEY;
+  if (!apiKey) {
+    throw new Error(ErrorMessages.PDF_MONKEY_MISSING_API_KEY);
+  }
+
   const url = "https://api.pdfmonkey.io/api/v1/documents";
 
-  // Step 1: Create a new document
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      document: {
-        document_template_id: "8100AF29-ACA9-4F13-BBD4-2E2555689D54",
-        payload: { tickets },
-        status: "pending", // Set status as 'pending' for synchronous generation
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create document: ${response.statusText}`);
-  }
-
-  const data: DocumentResponse = await response.json();
-
-  // Step 2: Poll until the document generation is complete
-  while (
-    data.document.status === "pending" ||
-    data.document.status === "generating"
-  ) {
-    console.log("Waiting for PDF generation...");
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for 2 seconds
-
-    const checkResponse = await fetch(`${url}/${data.document.id}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        document: {
+          document_template_id: "4577D5A9-27B1-416C-82C9-3EC1D4BBE634",
+          payload: { tickets },
+          meta: JSON.stringify({ email }),
+          status: "pending",
+        },
+      }),
     });
 
-    const updatedData: DocumentResponse = await checkResponse.json();
-
-    if (updatedData.document.status === "success") {
-      console.log("PDF generation successful!");
-      return updatedData.document.download_url!; // Return the download URL
-    } else if (updatedData.document.status === "failure") {
-      throw new Error("PDF generation failed");
+    if (!response.ok) {
+      throw new Error(`Failed to create document: ${response.statusText}`);
     }
-  }
 
-  throw new Error("Unexpected error during PDF generation");
+    const data: DocumentResponse = await response.json();
+
+    return data.document.id;
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    throw new Error(ErrorMessages.PDF_MONKEY_GENERATE);
+  }
 };

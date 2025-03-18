@@ -55,7 +55,7 @@ const EventPreview: React.FC<EventPreviewProps> = ({ eventData, isApp }) => {
           {eventData.address && (
             <div className="flex space-x-2 items-center">
               <LuMapPin />
-              <p>{eventData.address}</p>
+              <p className="truncate w-full">{eventData.address}</p>
             </div>
           )}
           <div className="pb-1"></div>

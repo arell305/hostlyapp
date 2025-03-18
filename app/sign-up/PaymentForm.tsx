@@ -17,9 +17,9 @@ import { api } from "../../convex/_generated/api";
 import { useAction } from "convex/react";
 import { useRouter } from "next/navigation";
 import { PricingOption } from "@/types/types";
-import { ERROR_MESSAGES } from "../../constants/errorMessages";
 import { FrontendErrorMessages } from "@/types/enums";
 import { FaCreditCard } from "react-icons/fa";
+import { ResponseStatus } from "../../utils/enum";
 
 const PaymentForm = () => {
   const stripe = useStripe();
@@ -31,18 +31,18 @@ const PaymentForm = () => {
   );
 
   const validatePromoCode = useAction(api.stripe.validatePromoCode);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState<string>("");
   const [focused, setFocused] = useState<boolean>(false);
   const [cardError, setCardError] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<PricingOption | null>(
     pricingOptions[1]
   );
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
     null
   );
-  const [canMakePayment, setCanMakePayment] = useState(false);
+  const [canMakePayment, setCanMakePayment] = useState<boolean>(false);
   const [promoCodeError, setPromoCodeError] = useState<string>("");
   const [promoState, setPromoState] = useState({
     discount: 0,
@@ -108,7 +108,7 @@ const PaymentForm = () => {
       currency: "usd",
       total: {
         label: "Total",
-        amount, // Ensure amount is an integer
+        amount,
       },
       requestPayerName: true,
       requestPayerEmail: true,
@@ -138,7 +138,7 @@ const PaymentForm = () => {
           subscriptionTier: selectedPlan.tier,
         });
 
-        if (result.customerId && result.subscriptionId) {
+        if (result.status === ResponseStatus.SUCCESS) {
           ev.complete("success");
           router.push("/confirmation");
         } else {
@@ -165,12 +165,18 @@ const PaymentForm = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!stripe || !elements) return;
+    if (!stripe || !elements) {
+      setErrorMessage(FrontendErrorMessages.GENERIC_ERROR);
+      return;
+    }
 
     setLoading(true);
 
     const cardElement = elements.getElement(CardElement);
-    if (!cardElement) return;
+    if (!cardElement) {
+      setErrorMessage(FrontendErrorMessages.ENTER_CARD);
+      return;
+    }
 
     const { error, paymentMethod } = await stripe.createPaymentMethod({
       type: "card",
@@ -179,7 +185,8 @@ const PaymentForm = () => {
     });
 
     if (error) {
-      setErrorMessage(error.message || ERROR_MESSAGES.GENERIC_PAYMENT_ERROR);
+      console.error(error);
+      setErrorMessage(FrontendErrorMessages.PAYMENT_PROCESSING);
       setLoading(false);
       return;
     }
@@ -195,18 +202,15 @@ const PaymentForm = () => {
         subscriptionTier: selectedPlan.tier,
       });
 
-      if (result.customerId && result.subscriptionId) {
+      if (result.status === ResponseStatus.SUCCESS) {
         router.push("/confirmation");
       } else {
-        setErrorMessage(ERROR_MESSAGES.SUBSCRIPTION_CREATION_FAILED);
+        console.error("error creating stripe subscription", result.error);
+        setErrorMessage(result.error);
       }
-    } catch (error: any) {
-      console.log("error", error.message);
-      if (error.message.includes(ERROR_MESSAGES.ACTIVE_SUBSCRIPTION_EXISTS)) {
-        setErrorMessage(ERROR_MESSAGES.ACTIVE_SUBSCRIPTION_EXISTS);
-      } else {
-        setErrorMessage(ERROR_MESSAGES.SUBSCRIPTION_CREATION_FAILED);
-      }
+    } catch (error) {
+      console.error("error", error);
+      setErrorMessage(FrontendErrorMessages.GENERIC_ERROR);
     } finally {
       setLoading(false);
     }
@@ -300,7 +304,7 @@ const PaymentForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="Enter your email"
-            className="  md:mt-1"
+            className="focus:bg-white"
           />
         </div>
 
@@ -319,7 +323,7 @@ const PaymentForm = () => {
                 }))
               }
               placeholder="Enter promo code"
-              className="md:w-[400px]"
+              className="md:w-[400px] focus:bg-white"
               disabled={isPromoLoading}
             />
 

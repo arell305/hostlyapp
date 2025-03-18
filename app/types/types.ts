@@ -1,4 +1,3 @@
-import { PaymentMethod } from "@stripe/stripe-js";
 import { Id } from "../../convex/_generated/dataModel";
 import {
   ActiveStripeTab,
@@ -9,7 +8,7 @@ import {
   UserRole,
 } from "../../utils/enum";
 import { ErrorMessages, Gender } from "./enums";
-import { EventSchema } from "./schemas-types";
+import { CustomerSchema } from "./schemas-types";
 
 export interface PricingOption {
   id: string;
@@ -32,13 +31,6 @@ export interface Customer {
   nextPayment: string | null;
 }
 
-export interface CustomerWithPayment extends Customer {
-  brand?: string;
-  last4?: string;
-  currentSubscriptionAmount?: number;
-  discountPercentage?: number;
-}
-
 export interface Membership {
   clerkUserId: string | null;
   role: string;
@@ -57,7 +49,7 @@ export interface ClerkOrganization {
   clerkOrganizationId: string;
   name: string;
   imageUrl: string;
-  publicMetadata: any; // Adjust this based on your actual metadata structure
+  publicMetadata: any;
 }
 
 export interface Tab {
@@ -84,10 +76,9 @@ export interface TicketInfo {
 export type TicketInfoWithoutEventId = Omit<TicketInfo, "eventId">;
 
 export interface GuestListInfo {
-  eventId: Id<"events">; // Reference to the event
+  eventId: Id<"events">;
   guestListCloseTime: number;
-  checkInCloseTime: number;
-  guestListIds: Id<"guestLists">[]; // Array of guest list IDs
+  checkInCloseTime: number; // Array of guest list IDs
 }
 export type GuestListInfoWithoutEventId = Omit<GuestListInfo, "eventId">;
 
@@ -98,7 +89,7 @@ export interface EventData {
   description: string | null;
   startTime: number;
   endTime: number;
-  photo: Id<"_storage"> | null; // Optional reference to photo storage
+  photo: Id<"_storage"> | null;
   address: string;
   isActive: boolean;
 }
@@ -118,12 +109,6 @@ export interface TotalUsage {
   totalFemaleUsage: number;
 }
 
-export interface GetTotalPromoCodeUsageByEventResponse {
-  status: ResponseStatus;
-  data: TotalUsage | null;
-  error?: string | null;
-}
-
 export interface EventFormData {
   eventName: string;
   description: string;
@@ -140,8 +125,8 @@ export interface EventFormData {
   ticketSalesEndTime?: number | null;
 }
 export interface Promoter {
-  promoterUserId?: Id<"users">;
-  name?: string;
+  promoterUserId: Id<"users">;
+  name: string;
 }
 
 export interface PromoCodeUsageData {
@@ -149,12 +134,6 @@ export interface PromoCodeUsageData {
   maleUsageCount: number;
   femaleUsageCount: number;
   promoCodeId: Id<"promoterPromoCode"> | null;
-}
-
-export interface GetPromoCodeUsageByPromoterAndEventResponse {
-  status: ResponseStatus;
-  data: PromoCodeUsageData | null;
-  error?: string;
 }
 
 export interface Guest {
@@ -188,11 +167,6 @@ export interface GuestListSchema {
   names: GuestListNameSchema[];
   eventId: Id<"events">;
   userPromoterId: Id<"users">;
-}
-
-export interface Promoters {
-  id: string;
-  name: string;
 }
 
 export interface AllGuestSchema {
@@ -245,7 +219,7 @@ export interface OrganizationsSchema {
   photo: Id<"_storage"> | null;
   customerId: Id<"customers">;
   promoDiscount: number;
-  isActive?: boolean;
+  isActive: boolean;
   slug: string;
 }
 
@@ -255,7 +229,7 @@ export interface EventFormInput {
   startTime: number;
   endTime: number;
   photo: Id<"_storage"> | null;
-  address: string; // Replace `Venue` with its actual type definition if needed
+  address: string;
 }
 
 export interface TicketFormInput {
@@ -372,11 +346,11 @@ export interface TransformedOrganization {
 }
 
 export interface TicketInput {
-  eventId: Id<"events">; // Assuming eventId is of type Id<"events">
-  clerkPromoterId: string | null; // Can be a string or null
-  email: string; // Email address as a string
-  gender: Gender; // Assuming Gender is an enum or a union type defined elsewhere
-  ticketUniqueId: string; // Unique identifier for the ticket
+  eventId: Id<"events">;
+  promoterUserId: Id<"users"> | null;
+  email: string;
+  gender: Gender;
+  ticketUniqueId: string;
 }
 
 export interface SubscriptionBillingCycle {
@@ -386,10 +360,10 @@ export interface SubscriptionBillingCycle {
 }
 
 export type CustomerSubscriptionInfo = {
-  subscriptionTier: SubscriptionTier; // Adjust to enum if needed
+  subscriptionTier: SubscriptionTier;
   customerId: Id<"customers">;
-  nextCycle: string | null; // Adjust if it's stored differently
-  status: SubscriptionStatus; // Assuming you're using an enum
+  nextCycle: string | null;
+  status: SubscriptionStatus;
 };
 
 export type ModalConfig = {
@@ -431,3 +405,23 @@ export type CompanyDataWithImage = {
   subscriptionStatus: SubscriptionStatus | null;
   subscriptionTier: SubscriptionTier | null;
 };
+
+export interface ProratedPrice {
+  tier: string;
+  newAmount: string;
+  currency: string;
+  discountApplied: boolean;
+}
+
+export interface TicketCounts {
+  male: number;
+  female: number;
+}
+
+export interface OrganizationPublic {
+  name: string;
+  photo: Id<"_storage"> | null;
+  connectedAccountStripeId?: string | null;
+  isStripeEnabled: boolean;
+  id: Id<"organizations">;
+}

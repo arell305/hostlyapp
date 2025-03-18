@@ -9,7 +9,7 @@ import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { ResponseStatus, SubscriptionTier } from "../../../../../utils/enum";
 import { truncatedToTwoDecimalPlaces } from "../../../../../utils/helpers";
-import { PricingOption } from "@/types/types";
+import { PricingOption, ProratedPrice } from "@/types/types";
 import { pricingOptions } from "../../../../../constants/pricingOptions";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import BaseDrawer from "../drawer/BaseDrawer";
@@ -47,43 +47,35 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
   const [updateTierError, setUpdateTierError] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PricingOption | null>(null);
   const [prorationDetails, setProrationDetails] = useState<
-    Record<SubscriptionTier, CalculateSubscriptionUpdateResult>
-  >({
-    [SubscriptionTier.STANDARD]: { success: false },
-    [SubscriptionTier.PLUS]: { success: false },
-    [SubscriptionTier.ELITE]: { success: false },
-  });
+    ProratedPrice[] | null
+  >(null);
 
-  const calculateAllSubscriptionUpdates = useAction(
-    api.stripe.calculateAllSubscriptionUpdates
-  );
+  const getProratedPrices = useAction(api.stripe.getProratedPrices);
   const updateSubscriptionTier = useAction(api.stripe.updateSubscriptionTier);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   useEffect(() => {
     const fetchProrationDetails = async () => {
-      if (currentTier) {
-        setIsPageLoading(true);
-        try {
-          const results = await calculateAllSubscriptionUpdates({
-            email,
-            currentTier,
-            percentageDiscount: discountPercentage,
-          });
-          setProrationDetails(results);
-        } catch (err) {
-          console.error(err);
-          setPageError(FrontendErrorMessages.GENERIC_ERROR);
-        } finally {
-          setIsPageLoading(false);
+      setIsPageLoading(true);
+      try {
+        const results = await getProratedPrices();
+        if (results.status === ResponseStatus.SUCCESS) {
+          setProrationDetails(results.data.proratedPrices);
+        } else {
+          setPageError(results.error);
         }
+      } catch (err) {
+        console.error(err);
+        setPageError(FrontendErrorMessages.GENERIC_ERROR);
+      } finally {
+        setIsPageLoading(false);
       }
     };
 
     fetchProrationDetails();
-  }, [email, currentTier, calculateAllSubscriptionUpdates]);
-
+  }, [getProratedPrices]);
+  console.log("prices", prorationDetails);
   useEffect(() => {
     const currentPlan = pricingOptions.find(
       (option) => option.tier === currentTier
@@ -172,7 +164,7 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
               <p className="text-gray-600">${option.price}/month</p>
             )}
             <p className="text-sm text-gray-500">{option.description}</p>
-            {option.tier !== currentTier &&
+            {/* {option.tier !== currentTier &&
               prorationDetails[option.tier]?.success && (
                 <div className="mt-2 text-sm">
                   <p>
@@ -186,7 +178,7 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
                     )}
                   </p>
                 </div>
-              )}
+              )} */}
           </div>
         ))}
       </BaseDrawer>
@@ -239,6 +231,27 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
                 )}
             </div>
           ))}
+        </div>
+
+        {/* ✅ Action Buttons */}
+        <div className="flex justify-end space-x-4 mt-4">
+          <button
+            className="px-4 py-2 rounded-md border border-gray-400 bg-gray-100 hover:bg-gray-200"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md text-white ${
+              isUpdateTierLoading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-customDarkBlue hover:bg-blue-700"
+            }`}
+            onClick={handleSubmit}
+            disabled={isUpdateTierLoading}
+          >
+            {isUpdateTierLoading ? "Saving..." : "Confirm"}
+          </button>
         </div>
       </DialogContent>
     </Dialog>

@@ -92,7 +92,7 @@ const EventGuestList = ({
   }
 
   return (
-    <div className="mb-4 flex flex-col gap-4 bg-gray-100 min-h-[150vh]">
+    <div className="mb-4 flex flex-col gap-4 bg-gray-100 min-h-[100vh]">
       <div className=" bg-white w-[95%] mx-auto px-4 pt-4 mt-4 rounded-md mb-4 shadow-md">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold  pb-3">Guest List</h1>

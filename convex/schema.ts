@@ -41,7 +41,8 @@ export const SubscriptionStatusConvex = v.union(
   v.literal(SubscriptionStatus.INCOMPLETE_EXPIRED),
   v.literal(SubscriptionStatus.PAST_DUE),
   v.literal(SubscriptionStatus.UNPAID),
-  v.literal(SubscriptionStatus.PENDING_CANCELLATION)
+  v.literal(SubscriptionStatus.PENDING_CANCELLATION),
+  v.literal(SubscriptionStatus.PAUSED)
 );
 
 export const StripeAccountStatusConvex = v.union(
@@ -64,29 +65,37 @@ export const GuestListNames = v.object({
 
 export default defineSchema({
   subscriptions: defineTable({
-    email: v.string(),
-    stripeCustomerId: v.string(),
     stripeSubscriptionId: v.string(),
     priceId: v.string(),
-    status: v.string(),
-    isTrial: v.boolean(),
-    trialEnd: v.number(),
-    createdAt: v.number(),
-    endDate: v.string(),
-  }),
-  customers: defineTable({
-    stripeCustomerId: v.string(),
-    stripeSubscriptionId: v.string(),
-    email: v.string(),
-    paymentMethodId: v.string(),
+    trialEnd: v.union(v.number(), v.null()),
+    currentPeriodEnd: v.number(),
+    currentPeriodStart: v.number(),
+    stripeBillingCycleAnchor: v.number(),
     subscriptionStatus: SubscriptionStatusConvex,
     subscriptionTier: SubscriptionTierConvex,
-    trialEndDate: v.union(v.string(), v.null()),
-    cancelAt: v.union(v.string(), v.null()),
-    nextPayment: v.union(v.string(), v.null()),
-    subscriptionStartDate: v.string(),
-    isActive: v.optional(v.boolean()),
-  }).index("by_email", ["email"]),
+    guestListEventsCount: v.number(),
+    customerId: v.id("customers"),
+    discount: v.optional(
+      v.object({
+        stripePromoCodeId: v.optional(v.string()),
+        discountPercentage: v.optional(v.number()),
+      })
+    ),
+    amount: v.number(),
+  })
+    .index("by_customerId", ["customerId"])
+    .index("by_stripeSubscriptionId", ["stripeSubscriptionId"]),
+
+  customers: defineTable({
+    stripeCustomerId: v.string(),
+    email: v.string(),
+    paymentMethodId: v.string(),
+    isActive: v.boolean(),
+    last4: v.optional(v.string()),
+    cardBrand: v.optional(v.string()),
+  })
+    .index("by_email", ["email"])
+    .index("by_stripeCustomerId", ["stripeCustomerId"]),
   connectedAccounts: defineTable({
     customerId: v.id("customers"),
     status: StripeAccountStatusConvex,
@@ -94,7 +103,9 @@ export default defineSchema({
     payoutsEnabled: v.optional(v.boolean()),
     lastStripeUpdate: v.optional(v.number()),
     stripeAccountId: v.string(),
-  }).index("by_customerId", ["customerId"]),
+  })
+    .index("by_customerId", ["customerId"])
+    .index("by_stripeAccountId", ["stripeAccountId"]),
   promoCodes: defineTable({
     promoCode: v.string(),
     promoId: v.string(),
@@ -120,10 +131,10 @@ export default defineSchema({
     customerId: v.id("customers"),
     promoDiscount: v.number(),
     slug: v.string(),
-    isActive: v.optional(v.boolean()),
+    isActive: v.boolean(),
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
-    .index("by_name", ["name"])
+    .index("by_customerId", ["customerId"])
     .index("by_slug", ["slug"]),
   events: defineTable({
     organizationId: v.id("organizations"),
@@ -193,7 +204,7 @@ export default defineSchema({
   }).index("by_ticketInfoId", ["ticketInfoId"]),
   tickets: defineTable({
     eventId: v.id("events"),
-    userPromoterId: v.union(v.id("users"), v.null()),
+    promoterUserId: v.union(v.id("users"), v.null()),
     email: v.string(),
     gender: v.union(v.literal(Gender.Male), v.literal(Gender.Female)),
     checkInTime: v.optional(v.number()),

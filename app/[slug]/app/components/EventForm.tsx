@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ResponseStatus } from "../../../../utils/enum";
+import { ResponseStatus, SubscriptionTier } from "../../../../utils/enum";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { DateTime } from "luxon";
 import { useMutation, useQuery } from "convex/react";
@@ -33,11 +33,13 @@ import {
 import {
   EventSchema,
   GuestListInfoSchema,
+  SubscriptionSchema,
   TicketInfoSchema,
 } from "@/types/schemas-types";
 import { FrontendErrorMessages } from "@/types/enums";
 import { compressAndUploadImage } from "../../../../utils/image";
 import Image from "next/image";
+import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
 
 interface EventFormProps {
   initialEventData?: EventSchema;
@@ -49,7 +51,6 @@ interface EventFormProps {
     guesListData: GuestListFormInput | null
   ) => Promise<void>;
   isEdit: boolean;
-  canAddGuestListOption?: boolean;
   onCancelEdit?: () => void;
   saveEventError?: string | null;
   onSubmitUpdate?: (
@@ -59,6 +60,7 @@ interface EventFormProps {
   ) => Promise<void>;
   isStripeEnabled: boolean;
   isUpdateEventLoading?: boolean;
+  subscription: SubscriptionSchema;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -67,11 +69,11 @@ const EventForm: React.FC<EventFormProps> = ({
   initialGuestListData,
   onSubmit,
   isEdit,
-  canAddGuestListOption,
   onCancelEdit,
   saveEventError,
   isStripeEnabled,
   isUpdateEventLoading,
+  subscription,
 }) => {
   // GOOGLE
   const [value, setValue] = useState<AddressValue | null>(null);
@@ -135,6 +137,14 @@ const EventForm: React.FC<EventFormProps> = ({
 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+
+  const canAddGuestListOption =
+    subscription.subscriptionTier === SubscriptionTier.ELITE ||
+    subscription.subscriptionTier === SubscriptionTier.PLUS;
+
+  const guestListLimitReached =
+    subscription.subscriptionTier === SubscriptionTier.PLUS &&
+    subscription.guestListEventsCount === PLUS_GUEST_LIST_LIMIT;
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
@@ -683,7 +693,10 @@ const EventForm: React.FC<EventFormProps> = ({
             }}
           >
             <div className="flex justify-between px-4">
-              <h2 className=" text-lg">GUEST LIST OPTION</h2>
+              <h2 className=" text-lg">
+                GUEST LIST OPTION{" "}
+                <span className="text-sm pl-1">{` (${subscription.guestListEventsCount}/${PLUS_GUEST_LIST_LIMIT} guest list events this)`}</span>
+              </h2>
               {isGuestListSelected ? (
                 <PiMinus className="text-2xl" />
               ) : (
@@ -692,56 +705,67 @@ const EventForm: React.FC<EventFormProps> = ({
             </div>
           </div>
         )}
-        {isGuestListSelected && (
-          <>
-            <div className="mb-6 flex flex-col px-4">
-              <Label htmlFor="guestListCloseTime">
-                Guest List Upload Close Time*
-              </Label>
-              <div className="relative">
-                <Input
-                  type="datetime-local"
-                  id="guestListCloseTime"
-                  value={timestampToPstString(guestListCloseTime)}
-                  onChange={(e) =>
-                    handleDateTimeChange(e, setGuestListCloseTime)
-                  }
-                  className={`w-full max-w-[500px] h-10  ${!guestListCloseTime && isIOSDevice ? "text-transparent" : ""}`}
-                  error={errors.guestListCloseTime}
-                />
-                {!guestListCloseTime && isIOSDevice && (
-                  <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-                    Select date and time
-                  </span>
+        {isGuestListSelected &&
+          (guestListLimitReached ? (
+            <p>Guest list limit reached</p>
+          ) : (
+            <>
+              <div className="mb-6 flex flex-col px-4">
+                <Label htmlFor="guestListCloseTime">
+                  Guest List Upload Close Time*
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="datetime-local"
+                    id="guestListCloseTime"
+                    value={timestampToPstString(guestListCloseTime)}
+                    onChange={(e) =>
+                      handleDateTimeChange(e, setGuestListCloseTime)
+                    }
+                    className={`w-full max-w-[500px] h-10  ${
+                      !guestListCloseTime && isIOSDevice
+                        ? "text-transparent"
+                        : ""
+                    }`}
+                    error={errors.guestListCloseTime}
+                  />
+                  {!guestListCloseTime && isIOSDevice && (
+                    <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                      Select date and time
+                    </span>
+                  )}
+                </div>
+                {errors.guestListCloseTime && (
+                  <p className="text-red-500">{errors.guestListCloseTime}</p>
                 )}
               </div>
-              {errors.guestListCloseTime && (
-                <p className="text-red-500">{errors.guestListCloseTime}</p>
-              )}
-            </div>
-            <div className="mb-6 flex flex-col px-4">
-              <Label htmlFor="checkInCloseTime">Check In Close Time*</Label>
-              <div className="relative">
-                <Input
-                  type="datetime-local"
-                  id="checkInCloseTime"
-                  value={timestampToPstString(checkInCloseTime)}
-                  onChange={(e) => handleDateTimeChange(e, setCheckInCloseTime)}
-                  className={`w-full max-w-[500px] h-10  ${!checkInCloseTime && isIOSDevice ? "text-transparent" : ""}`}
-                  error={errors.checkInCloseTime}
-                />
-                {!checkInCloseTime && isIOSDevice && (
-                  <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-                    Select date and time
-                  </span>
+              <div className="mb-6 flex flex-col px-4">
+                <Label htmlFor="checkInCloseTime">Check In Close Time*</Label>
+                <div className="relative">
+                  <Input
+                    type="datetime-local"
+                    id="checkInCloseTime"
+                    value={timestampToPstString(checkInCloseTime)}
+                    onChange={(e) =>
+                      handleDateTimeChange(e, setCheckInCloseTime)
+                    }
+                    className={`w-full max-w-[500px] h-10  ${
+                      !checkInCloseTime && isIOSDevice ? "text-transparent" : ""
+                    }`}
+                    error={errors.checkInCloseTime}
+                  />
+                  {!checkInCloseTime && isIOSDevice && (
+                    <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                      Select date and time
+                    </span>
+                  )}
+                </div>
+                {errors.checkInCloseTime && (
+                  <p className="text-red-500">{errors.checkInCloseTime}</p>
                 )}
               </div>
-              {errors.checkInCloseTime && (
-                <p className="text-red-500">{errors.checkInCloseTime}</p>
-              )}
-            </div>
-          </>
-        )}
+            </>
+          ))}
         {isStripeEnabled ? (
           <div
             className="mb-6 mt-12 border-b pb-2 pt-2 cursor-pointer md:rounded hover:bg-gray-100"
@@ -783,7 +807,6 @@ const EventForm: React.FC<EventFormProps> = ({
                 }}
                 className="w-full max-w-[500px]"
                 min="0"
-                defaultValue="0"
                 error={errors.maleTicketPrice}
                 placeholder="Enter male ticket price"
               />
@@ -806,7 +829,6 @@ const EventForm: React.FC<EventFormProps> = ({
                 }}
                 className="w-full max-w-[500px]"
                 min="0"
-                defaultValue="0"
                 error={errors.femaleTicketPrice}
                 placeholder="Enter female ticket price"
               />
@@ -824,7 +846,6 @@ const EventForm: React.FC<EventFormProps> = ({
                 onChange={(e) => setMaleTicketCapacity(e.target.value)}
                 className="w-full max-w-[500px]"
                 min="0"
-                defaultValue="0"
                 error={errors.maleTicketCapacity}
                 placeholder="Enter male ticket capacity"
               />
@@ -844,7 +865,6 @@ const EventForm: React.FC<EventFormProps> = ({
                 onChange={(e) => setFemaleTicketCapacity(e.target.value)}
                 className="w-full max-w-[500px]"
                 min="0"
-                defaultValue="0"
                 error={errors.femaleTicketCapacity}
                 placeholder="Enter female ticket capacity"
               />

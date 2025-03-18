@@ -7,6 +7,7 @@ import DashboardNavbar from "./components/DashboardNavbar";
 import { Protect, useAuth } from "@clerk/nextjs";
 import { ClerkPermissions } from "../../../utils/enum";
 import TicketScannerFAB from "./components/ui/TicketScannerFAB";
+import { OrganizationProvider } from "@/contexts/OrganizationContext";
 
 const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -77,20 +78,22 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
 
         {/* Main content */}
-        <div
-          className={`min-h-screen relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}
-        >
-          <div>
-            {children}
-            <Protect
-              condition={(has) =>
-                has({ permission: ClerkPermissions.CHECK_GUESTS })
-              }
-            >
-              <TicketScannerFAB />
-            </Protect>
+        <OrganizationProvider>
+          <div
+            className={`min-h-screen relative flex-grow ${!isMobile ? "ml-[250px]" : ""}`}
+          >
+            <div>
+              {children}
+              <Protect
+                condition={(has) =>
+                  has({ permission: ClerkPermissions.CHECK_GUESTS })
+                }
+              >
+                <TicketScannerFAB />
+              </Protect>
+            </div>
           </div>
-        </div>
+        </OrganizationProvider>
       </div>
     </div>
   );

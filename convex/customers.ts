@@ -6,21 +6,14 @@ import {
   query,
 } from "./_generated/server";
 import { ResponseStatus, SubscriptionStatus, UserRole } from "../utils/enum";
-import {
-  CustomerSubscriptionInfo,
-  CustomerWithPayment,
-  OrganizationsSchema,
-} from "../app/types/types";
-import { getFutureISOString } from "../utils/helpers";
-import { SubscriptionStatusConvex, SubscriptionTierConvex } from "./schema";
+import { OrganizationsSchema } from "../app/types/types";
 import { internal } from "./_generated/api";
 import { ErrorMessages } from "@/types/enums";
 import {
-  GetCustomerDetailsBySlugResponse,
   GetCustomerTierByOrganizationNameResponse,
   CancelSubscriptionResponse,
   ResumeSubscriptionResponse,
-  GetCustomerSubscriptionTierBySlugResponse,
+  GetCustomerDetailsResponse,
 } from "@/types/convex-types";
 import {
   CustomerSchema,
@@ -31,52 +24,15 @@ import { requireAuthenticatedUser } from "../utils/auth";
 import {
   validateCustomer,
   validateOrganization,
+  validateSubscription,
   validateUser,
 } from "./backendUtils/validation";
 import {
   cancelStripeSubscriptionAtPeriodEnd,
-  fetchCustomerPaymentDetails,
   resumeStripeSubscription,
 } from "./backendUtils/stripe";
-import { isUserInOrganization } from "./backendUtils/helper";
+import { isUserInOrganization, shouldExposeError } from "./backendUtils/helper";
 import { Id } from "./_generated/dataModel";
-
-export const insertCustomerAndSubscription = internalMutation({
-  args: {
-    stripeCustomerId: v.string(),
-    stripeSubscriptionId: v.string(),
-    email: v.string(),
-    paymentMethodId: v.string(),
-    subscriptionTier: SubscriptionTierConvex,
-    trialEndDate: v.union(v.string(), v.null()),
-    subscriptionStatus: SubscriptionStatusConvex,
-  },
-  handler: async (ctx, args) => {
-    try {
-      const nextPayment = args.trialEndDate || getFutureISOString(30);
-      const customerId = await ctx.db.insert("customers", {
-        stripeCustomerId: args.stripeCustomerId,
-        stripeSubscriptionId: args.stripeSubscriptionId,
-        email: args.email,
-        paymentMethodId: args.paymentMethodId,
-        subscriptionStatus: args.subscriptionStatus,
-        subscriptionTier: args.subscriptionTier,
-        trialEndDate: args.trialEndDate,
-        cancelAt: null,
-        nextPayment,
-        subscriptionStartDate: Date.now().toString(),
-        isActive: true,
-      });
-      console.log(
-        `Scheduled resetGuestListEvent for customer ${customerId} at ${nextPayment}`
-      );
-      return customerId;
-    } catch (error) {
-      console.error("Error inserting customer into the database:", error);
-      throw new Error("Failed to insert customer");
-    }
-  },
-});
 
 export const findCustomerByEmail = internalQuery({
   args: {
@@ -84,22 +40,13 @@ export const findCustomerByEmail = internalQuery({
   },
   handler: async (ctx, args): Promise<CustomerSchema | null> => {
     try {
-      const customer: CustomerSchema | null = await ctx.db
+      return await ctx.db
         .query("customers")
         .filter((q) => q.eq(q.field("email"), args.email))
         .first();
-
-      if (customer) {
-        return {
-          ...customer,
-          subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus, // Cast or map the status
-        };
-      }
-
-      return null;
     } catch (error) {
       console.error("Error finding customer by email:", error);
-      return null;
+      throw new Error(ErrorMessages.CUSTOMER_DB_QUERY_BY_EMAIL);
     }
   },
 });
@@ -110,19 +57,10 @@ export const findCustomerById = internalQuery({
   },
   handler: async (ctx, args): Promise<CustomerSchema | null> => {
     try {
-      const customer: CustomerSchema | null = await ctx.db
+      return await ctx.db
         .query("customers")
         .filter((q) => q.eq(q.field("_id"), args.customerId))
         .first();
-
-      if (!customer) {
-        return null;
-      }
-
-      return {
-        ...customer,
-        subscriptionStatus: customer.subscriptionStatus as SubscriptionStatus,
-      };
     } catch (error) {
       console.error(ErrorMessages.CUSTOMER_DB_QUERY_ID_ERROR, error);
       throw new Error(ErrorMessages.CUSTOMER_DB_QUERY_ID_ERROR);
@@ -150,16 +88,13 @@ export const findCustomerByClerkId = internalQuery({
       throw Error(ErrorMessages.CUSTOMER_NOT_FOUND);
     }
 
-    if (!user.clerkOrganizationId) {
+    if (!user.organizationId) {
       throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
     }
 
-    const organization: OrganizationsSchema | null = await ctx.db
-      .query("organizations")
-      .withIndex("by_clerkOrganizationId", (q) =>
-        q.eq("clerkOrganizationId", user.clerkOrganizationId as string)
-      )
-      .first();
+    const organization: OrganizationsSchema | null = await ctx.db.get(
+      user.organizationId
+    );
 
     if (!organization) {
       throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
@@ -215,14 +150,11 @@ export const findCustomerWithCompanyNameByClerkId = internalQuery({
 
 const allowedFields = {
   stripeCustomerId: v.optional(v.string()),
-  subscriptionStatus: v.optional(SubscriptionStatusConvex), // Adjust if SubscriptionStatus has specific values
-  trialEndDate: v.optional(v.union(v.string(), v.null())),
-  stripeSubscriptionId: v.optional(v.string()),
   email: v.optional(v.string()),
   paymentMethodId: v.optional(v.string()),
-  subscriptionTier: v.optional(SubscriptionTierConvex), // Adjust if SubscriptionTier has specific values
-  nextPayment: v.optional(v.union(v.string(), v.null())),
   isActive: v.optional(v.boolean()),
+  cardBrand: v.optional(v.string()),
+  last4: v.optional(v.string()),
 };
 
 export const updateCustomer = internalMutation({
@@ -244,68 +176,13 @@ export const updateCustomer = internalMutation({
     }
   },
 });
-export const getCustomerSubscriptionTierBySlug = query({
-  args: { slug: v.string() },
-  handler: async (
-    ctx,
-    args
-  ): Promise<GetCustomerSubscriptionTierBySlugResponse> => {
-    const { slug } = args;
-    try {
-      const identity = await requireAuthenticatedUser(ctx);
 
-      const organization: OrganizationsSchema | null = await ctx.db
-        .query("organizations")
-        .withIndex("by_slug", (q) => q.eq("slug", slug))
-        .first();
-
-      const validatedOrganization = validateOrganization(organization, true);
-
-      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
-
-      const customer = await ctx.db.get(validatedOrganization.customerId);
-
-      const validatedCustomer = validateCustomer(customer, true);
-
-      function getCustomerSubscriptionInfo(
-        customer: CustomerSchema
-      ): CustomerSubscriptionInfo {
-        return {
-          subscriptionTier: customer.subscriptionTier,
-          customerId: customer._id,
-          nextCycle: customer.nextPayment,
-          status: customer.subscriptionStatus,
-        };
-      }
-
-      const customerSubscription =
-        getCustomerSubscriptionInfo(validatedCustomer);
-
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          customerSubscription,
-        },
-      };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
-    }
-  },
-});
-
-export const getCustomerDetailsBySlug = action({
+export const getCustomerDetails = query({
   args: {
-    slug: v.string(),
+    organizationId: v.id("organizations"),
   },
-  handler: async (ctx, args): Promise<GetCustomerDetailsBySlugResponse> => {
-    const { slug } = args;
+  handler: async (ctx, args): Promise<GetCustomerDetailsResponse> => {
+    const { organizationId } = args;
     try {
       const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Admin,
@@ -313,29 +190,20 @@ export const getCustomerDetailsBySlug = action({
         UserRole.Hostly_Admin,
       ]);
 
-      const organization = await ctx.runQuery(
-        internal.organizations.getOrganizationBySlug,
-        { slug }
+      const organization = validateOrganization(
+        await ctx.db.get(organizationId)
       );
 
-      const validatedOrganization: OrganizationsSchema =
-        validateOrganization(organization);
+      isUserInOrganization(identity, organization.clerkOrganizationId);
 
-      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
-
-      const customer: CustomerSchema | null = await ctx.runQuery(
-        internal.customers.findCustomerById,
-        { customerId: validatedOrganization.customerId }
+      const customer = validateCustomer(
+        await ctx.db.get(organization.customerId)
       );
-      const validatedCustomer = validateCustomer(customer);
-
-      const customerWithPayment: CustomerWithPayment =
-        await fetchCustomerPaymentDetails(validatedCustomer);
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          customerData: customerWithPayment,
+          customer,
         },
       };
     } catch (error) {
@@ -357,29 +225,29 @@ export const cancelSubscription = action({
     try {
       const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
 
-      const customer: CustomerSchema | null = await ctx.runQuery(
-        internal.customers.findCustomerByEmail,
-        { email: idenitity.email as string }
+      const customer = validateCustomer(
+        await ctx.runQuery(internal.customers.findCustomerByEmail, {
+          email: idenitity.email as string,
+        })
       );
 
-      const validatedCustomer = validateCustomer(customer);
+      const subscription = validateSubscription(
+        await ctx.runQuery(
+          internal.subscription.getUsableSubscriptionByCustomerId,
+          {
+            customerId: customer._id,
+          }
+        )
+      );
 
-      await Promise.all([
-        cancelStripeSubscriptionAtPeriodEnd(
-          validatedCustomer.stripeSubscriptionId
-        ),
-        ctx.runMutation(internal.customers.updateCustomer, {
-          id: validatedCustomer._id,
-          updates: {
-            subscriptionStatus: SubscriptionStatus.PENDING_CANCELLATION,
-          },
-        }),
-      ]);
+      await cancelStripeSubscriptionAtPeriodEnd(
+        subscription.stripeSubscriptionId
+      );
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          customerId: validatedCustomer._id,
+          customerId: customer._id,
         },
       };
     } catch (error) {
@@ -401,27 +269,27 @@ export const resumeSubscription = action({
     try {
       const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
 
-      const customer: CustomerSchema | null = await ctx.runQuery(
-        internal.customers.findCustomerByEmail,
-        { email: idenitity.email as string }
+      const customer = validateCustomer(
+        await ctx.runQuery(internal.customers.findCustomerByEmail, {
+          email: idenitity.email as string,
+        })
       );
 
-      const validatedCustomer = validateCustomer(customer);
-
-      await Promise.all([
-        resumeStripeSubscription(validatedCustomer.stripeSubscriptionId),
-        ctx.runMutation(internal.customers.updateCustomer, {
-          id: validatedCustomer._id,
-          updates: {
-            subscriptionStatus: SubscriptionStatus.ACTIVE,
-          },
-        }),
-      ]);
+      const subscription = validateSubscription(
+        await ctx.runQuery(
+          internal.subscription.getSubscriptionByCustomerAndStatus,
+          {
+            customerId: customer._id,
+            subscriptionStatus: SubscriptionStatus.PENDING_CANCELLATION,
+          }
+        )
+      );
+      await resumeStripeSubscription(subscription.stripeSubscriptionId);
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          customerId: validatedCustomer._id,
+          customerId: customer._id,
         },
       };
     } catch (error) {
@@ -462,23 +330,123 @@ export const GetCustomerTierBySlug = query({
       );
 
       const validatedCustomer = validateCustomer(customer);
+      const subscription = validateSubscription(
+        await ctx.db
+          .query("subscriptions")
+          .withIndex("by_customerId", (q) =>
+            q.eq("customerId", validatedCustomer._id)
+          )
+          .filter((q) =>
+            q.or(
+              q.eq("subscriptionStatus", SubscriptionStatus.ACTIVE as string),
+              q.eq("subscriptionStatus", SubscriptionStatus.TRIALING as string),
+              q.eq("subscriptionStatus", SubscriptionStatus.PAST_DUE as string),
+              q.eq(
+                "subscriptionStatus",
+                SubscriptionStatus.PENDING_CANCELLATION as string
+              )
+            )
+          )
+          .first()
+      );
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          customerTier: validatedCustomer.subscriptionTier,
+          customerTier: subscription.subscriptionTier,
           customerId: validatedCustomer._id,
         },
       };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
+      console.error(ErrorMessages.INTERNAL_ERROR, errorMessage, error);
+
       return {
         status: ResponseStatus.ERROR,
         data: null,
-        error: errorMessage,
+        error: shouldExposeError(errorMessage)
+          ? errorMessage
+          : ErrorMessages.GENERIC_ERROR,
       };
+    }
+  },
+});
+
+export const createCustomer = internalMutation({
+  args: {
+    stripeCustomerId: v.string(),
+    email: v.string(),
+    paymentMethodId: v.string(),
+    cardBrand: v.optional(v.string()),
+    last4: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<Id<"customers">> => {
+    try {
+      const { stripeCustomerId, email, paymentMethodId, cardBrand, last4 } =
+        args;
+
+      const customerId = await ctx.db.insert("customers", {
+        stripeCustomerId,
+        email,
+        paymentMethodId,
+        isActive: true,
+        cardBrand,
+        last4,
+      });
+
+      return customerId;
+    } catch (error) {
+      console.error("Error inserting customer into the database:", error);
+      throw new Error(ErrorMessages.CUSTOMER_DB_CREATE);
+    }
+  },
+});
+
+export const updateCustomerByStripeCustomerId = internalMutation({
+  args: {
+    stripeCustomerId: v.string(),
+    paymentDetails: v.optional(
+      v.object({
+        paymentMethodId: v.optional(v.string()),
+        last4: v.optional(v.string()),
+        cardBrand: v.optional(v.string()),
+      })
+    ),
+  },
+  handler: async (ctx, args): Promise<Id<"customers">> => {
+    try {
+      const customer = validateCustomer(
+        await ctx.db
+          .query("customers")
+          .withIndex("by_stripeCustomerId", (q) =>
+            q.eq("stripeCustomerId", args.stripeCustomerId)
+          )
+          .first()
+      );
+
+      const updateFields: Record<string, string | undefined> = {};
+
+      if (args.paymentDetails) {
+        if (args.paymentDetails.paymentMethodId !== undefined) {
+          updateFields.paymentMethodId = args.paymentDetails.paymentMethodId;
+        }
+        if (args.paymentDetails.last4 !== undefined) {
+          updateFields.last4 = args.paymentDetails.last4;
+        }
+        if (args.paymentDetails.cardBrand !== undefined) {
+          updateFields.cardBrand = args.paymentDetails.cardBrand;
+        }
+      }
+
+      if (Object.keys(updateFields).length > 0) {
+        await ctx.db.patch(customer._id, updateFields);
+      }
+
+      return customer._id;
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      throw new Error(ErrorMessages.CUSTOMER_DB_UPDATE_ERROR);
     }
   },
 });

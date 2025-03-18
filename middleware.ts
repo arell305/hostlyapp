@@ -3,7 +3,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import type { NextFetchEvent } from "next/server";
 import { api } from "./convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
-import { UserRole } from "./utils/enum";
+import { ResponseStatus, UserRole } from "./utils/enum";
 
 const isProtectedRoute = createRouteMatcher(["/create-company"]);
 const isHostlyAdminProtected = createRouteMatcher(["/admin/app/companies"]);
@@ -34,7 +34,6 @@ export default clerkMiddleware(
       return NextResponse.next();
     }
 
-    // If it's an API route, skip Clerk middleware and continue
     if (path.startsWith("/api")) {
       return NextResponse.next();
     }
@@ -143,22 +142,49 @@ export default clerkMiddleware(
         }
       );
 
-      // unauthorize if organization is not
-      if (!organization || !organization.isActive) {
+      if (!organization) {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
+
+      const userSchema = await convex.query(api.users.publicfindUserByClerkId, {
+        clerkUserId: userId,
+      });
+
+      if (!userSchema) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
+
+      if (!userSchema.isActive) {
+        if (!url.pathname.includes("account-not-found")) {
+          return NextResponse.redirect(
+            new URL(`/${slug}/app/account-not-found`, req.url)
+          );
+        }
+      }
+
+      if (!organization.isActive && userSchema.role === UserRole.Admin) {
+        if (!url.pathname.includes("reactivate")) {
+          return NextResponse.redirect(
+            new URL(`/${slug}/app/reactivate`, req.url)
+          );
+        }
+      }
+
+      if (!organization.isActive && userSchema.role !== UserRole.Admin) {
+        if (!url.pathname.includes("deactivated")) {
+          return NextResponse.redirect(
+            new URL(`/${slug}/app/deactivated`, req.url)
+          );
+        }
       }
 
       if (organization.slug === slug) {
         return NextResponse.next();
       }
 
-      const user = await convex.query(api.users.findUserByClerkId, {
-        clerkUserId: userId,
-      });
-
       if (
-        user.data?.user.role === UserRole.Hostly_Admin ||
-        user.data?.user.role === UserRole.Hostly_Moderator
+        userSchema.role === UserRole.Hostly_Admin ||
+        userSchema.role === UserRole.Hostly_Moderator
       ) {
         return NextResponse.next();
       }

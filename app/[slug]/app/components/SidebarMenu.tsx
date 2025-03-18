@@ -79,6 +79,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
         menuItemStyles={{
           button: {
             height: "var(--menu-item-height)",
+            width: "100%",
           },
         }}
       >
@@ -87,7 +88,10 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
             has({ permission: ClerkPermissions.MODERATES_APP })
           }
         >
-          <MenuItem onClick={() => handleItemClick("/admin/app/companies")}>
+          <MenuItem
+            className=""
+            onClick={() => handleItemClick("/admin/app/companies")}
+          >
             <div className="flex items-center gap-x-3">
               <IoBusinessOutline className="text-xl md:text-lg" />
               <p className="sm:text-xs">Companies</p>

@@ -15,6 +15,7 @@ export enum SubscriptionStatus {
   INCOMPLETE_EXPIRED = "incomplete_expired",
   PAST_DUE = "past_due",
   UNPAID = "unpaid",
+  PAUSED = "paused",
 }
 
 export enum SubscriptionTier {
@@ -30,14 +31,15 @@ export const subscriptionBenefits = {
 };
 
 export const subscriptionStatusMap = {
-  active: "Active",
-  trialing: "Trial",
-  canceled: "Canceled",
-  incomplete: "Incomplete",
-  incomplete_expired: "Expired Trial",
-  past_due: "Past Due",
-  unpaid: "Unpaid",
-  pending_cancellation: "Pending Cancellation",
+  [SubscriptionStatus.ACTIVE]: "Active",
+  [SubscriptionStatus.TRIALING]: "Trial",
+  [SubscriptionStatus.PENDING_CANCELLATION]: "Pending Cancellation",
+  [SubscriptionStatus.CANCELED]: "Canceled",
+  [SubscriptionStatus.INCOMPLETE]: "Incomplete",
+  [SubscriptionStatus.INCOMPLETE_EXPIRED]: "Incomplete Expired",
+  [SubscriptionStatus.PAST_DUE]: "Past Due",
+  [SubscriptionStatus.UNPAID]: "Unpaid",
+  [SubscriptionStatus.PAUSED]: "Paused",
 };
 
 export enum UserRole {
@@ -63,7 +65,7 @@ export enum ClerkPermissions {
   CHECK_GUESTS = "org:events:check_guests",
   CREATE_EVENT = "org:events:create",
   UPLOAD_GUESTLIST = "org:events:upload_guest_list",
-  VIEW_ALL_GUESTLISTS = "org:events:upload_guest_list",
+  VIEW_ALL_GUESTLISTS = "org:events:view_all_guestlists",
   VIEW_SUBSCRIPTION = "org:view:subscription",
 }
 

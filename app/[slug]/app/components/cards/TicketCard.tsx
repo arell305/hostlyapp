@@ -10,8 +10,8 @@ import {
 interface TicketCardProps {
   ticket: TicketSchemaWithPromoter;
   canCheckInTickets: boolean;
-  setShowRedeemTicket: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedTicketId: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedTicketId?: (id: string) => void;
+  setShowRedeemTicket?: (show: boolean) => void;
 }
 
 const TicketCard: React.FC<TicketCardProps> = ({
@@ -21,7 +21,12 @@ const TicketCard: React.FC<TicketCardProps> = ({
   setSelectedTicketId,
 }) => {
   const handleClick = () => {
-    if (canCheckInTickets && !ticket.checkInTime) {
+    if (
+      canCheckInTickets &&
+      !ticket.checkInTime &&
+      setSelectedTicketId &&
+      setShowRedeemTicket
+    ) {
       setSelectedTicketId(ticket.ticketUniqueId);
       setShowRedeemTicket(true);
     }

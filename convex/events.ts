@@ -12,15 +12,10 @@ import {
   GuestListNameSchema,
   GuestListSchema,
   OrganizationsSchema,
-  Promoters,
+  Promoter,
 } from "@/types/types";
-import {
-  ResponseStatus,
-  StripeAccountStatus,
-  SubscriptionTier,
-  UserRole,
-} from "../utils/enum";
-import { ErrorMessages, Gender } from "@/types/enums";
+import { ResponseStatus, SubscriptionTier, UserRole } from "../utils/enum";
+import { ErrorMessages, Gender, ShowErrorMessages } from "@/types/enums";
 import { Id } from "./_generated/dataModel";
 import { PaginationResult, paginationOptsValidator } from "convex/server";
 import {
@@ -29,10 +24,9 @@ import {
   UpdateEventResponse,
   GetEventWithGuestListsResponse,
   UpdateGuestAttendanceResponse,
-  GetEventsBySlugAndMonthResponse,
-  GetEventsByOrganizationPublicResponse,
+  GetEventsByMonthResponse,
 } from "@/types/convex-types";
-import { USD_CURRENCY } from "@/types/constants";
+import { PLUS_GUEST_LIST_LIMIT, TIME_ZONE } from "@/types/constants";
 import {
   EventSchema,
   GuestListInfoSchema,
@@ -43,23 +37,30 @@ import {
 import { getCurrentTime } from "../utils/luxon";
 import { api, internal } from "./_generated/api";
 import { GetEventWithTicketsData } from "@/types/convex/internal-types";
-import { stripe } from "./backendUtils/stripe";
 import { requireAuthenticatedUser } from "../utils/auth";
 import {
-  validateCustomer,
   validateEvent,
   validateGuestList,
   validateOrganization,
+  validateSubscription,
   validateUser,
 } from "./backendUtils/validation";
 import {
+  handleError,
+  handleGuestListData,
+  handleGuestListUpdateData,
+  handleTicketData,
+  handleTicketUpdateData,
   isUserInCompanyOfEvent,
   isUserInOrganization,
+  performAddEventCleanup,
+  shouldExposeError,
 } from "./backendUtils/helper";
+import { DateTime } from "luxon";
 
 export const addEvent = action({
   args: {
-    slug: v.string(),
+    organizationId: v.id("organizations"),
     name: v.string(),
     description: v.union(v.string(), v.null()),
     startTime: v.number(),
@@ -86,7 +87,7 @@ export const addEvent = action({
   },
   handler: async (ctx, args): Promise<AddEventResponse> => {
     const {
-      slug,
+      organizationId,
       name,
       description,
       startTime,
@@ -97,8 +98,13 @@ export const addEvent = action({
       guestListData,
     } = args;
 
+    let eventId: Id<"events"> | null = null;
+    let ticketInfoId: Id<"ticketInfo"> | null = null;
+    let guestListInfoId: Id<"guestListInfo"> | null = null;
+    let stripeProductId: string | null = null;
+
     try {
-      const idenitity = await requireAuthenticatedUser(ctx, [
+      const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Admin,
         UserRole.Manager,
         UserRole.Hostly_Moderator,
@@ -106,141 +112,47 @@ export const addEvent = action({
       ]);
 
       const organization = await ctx.runQuery(
-        internal.organizations.getOrganizationBySlug,
-        {
-          slug,
-        }
+        internal.organizations.getOrganizationById,
+        { organizationId }
       );
+      isUserInOrganization(identity, organization.clerkOrganizationId);
 
-      const validatedOrganization = validateOrganization(organization, true);
+      eventId = await ctx.runMutation(internal.events.createEvent, {
+        organizationId: organization._id,
+        name,
+        description,
+        startTime,
+        endTime,
+        photo,
+        address,
+      });
 
-      isUserInOrganization(
-        idenitity,
-        validatedOrganization.clerkOrganizationId
-      );
-
-      const eventId: Id<"events"> = await ctx.runMutation(
-        internal.events.createEvent,
-        {
-          organizationId: validatedOrganization._id,
-          name,
-          description,
-          startTime,
-          endTime,
-          photo,
-          address,
-        }
-      );
-      let ticketInfoId: Id<"ticketInfo"> | null = null;
       if (ticketData) {
-        const {
-          maleTicketPrice,
-          femaleTicketPrice,
-          maleTicketCapacity,
-          femaleTicketCapacity,
-          ticketSalesEndTime,
-        } = ticketData;
-        const connectedAccount = await ctx.runQuery(
-          internal.connectedAccounts.getConnectedAccountByCustomerId,
-          { customerId: validatedOrganization.customerId }
-        );
-        const product = await stripe.products.create(
-          {
-            name: `Event Ticket - ${eventId}`,
-            description: `Tickets for event ${eventId}`,
-            metadata: {
-              eventId,
-              ticketSalesEndTime: ticketSalesEndTime,
-            },
-          },
-          { stripeAccount: connectedAccount.stripeAccountId }
-        );
-        const [malePrice, femalePrice] = await Promise.all([
-          stripe.prices.create(
-            {
-              unit_amount: ticketData.maleTicketPrice * 100,
-              currency: USD_CURRENCY,
-              product: product.id,
-              metadata: {
-                ticketType: Gender.Male,
-                capacity: maleTicketCapacity,
-              },
-            },
-            { stripeAccount: connectedAccount.stripeAccountId }
-          ),
-          stripe.prices.create(
-            {
-              unit_amount: femaleTicketPrice * 100,
-              currency: USD_CURRENCY,
-              product: product.id,
-              metadata: {
-                ticketType: Gender.Female,
-                capacity: femaleTicketCapacity,
-              },
-            },
-            { stripeAccount: connectedAccount.stripeAccountId }
-          ),
-        ]);
-        ticketInfoId = await ctx.runMutation(
-          internal.ticketInfo.createTicketInfo,
-          {
-            eventId,
-            ticketSalesEndTime,
-            stripeProductId: product.id,
-            ticketTypes: {
-              male: {
-                price: maleTicketPrice,
-                capacity: maleTicketCapacity,
-                stripePriceId: malePrice.id,
-              },
-              female: {
-                price: femaleTicketPrice,
-                capacity: femaleTicketCapacity,
-                stripePriceId: femalePrice.id,
-              },
-            },
-          }
+        ticketInfoId = await handleTicketData(
+          ctx,
+          eventId,
+          ticketData,
+          organization
         );
       }
-      let guestListInfoId: Id<"guestListInfo"> | null = null;
 
       if (guestListData) {
-        const customer = await ctx.runQuery(
-          internal.customers.findCustomerById,
-          { customerId: validatedOrganization.customerId }
+        guestListInfoId = await handleGuestListData(
+          ctx,
+          organization,
+          eventId,
+          guestListData
         );
-
-        const validatedCustomer = validateCustomer(customer);
-
-        if (
-          validatedCustomer.subscriptionTier === SubscriptionTier.ELITE ||
-          validatedCustomer.subscriptionTier === SubscriptionTier.PLUS
-        ) {
-          guestListInfoId = await ctx.runMutation(
-            internal.guestListInfo.createGuestListInfo,
-            {
-              eventId,
-              guestListCloseTime: guestListData.guestListCloseTime,
-              checkInCloseTime: guestListData.checkInCloseTime,
-            }
-          );
-        } else {
-          console.log("customer does not have guest list options.");
-        }
       }
+
       return {
         status: ResponseStatus.SUCCESS,
         data: { eventId, ticketInfoId, guestListInfoId },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      await performAddEventCleanup(ctx, eventId, ticketInfoId, stripeProductId);
+
+      return handleError(error);
     }
   },
 });
@@ -327,12 +239,12 @@ export const getEventWithGuestLists = query({
         UserRole.Hostly_Admin,
       ]);
 
-      const clerkUserId = identity.user as string;
+      const clerkUserId = identity.id as string;
 
       const user: UserSchema | null = await ctx.db
         .query("users")
         .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique();
+        .first();
 
       const validatedUser = validateUser(user);
 
@@ -349,14 +261,14 @@ export const getEventWithGuestLists = query({
       const promoterIds: Id<"users">[] = Array.from(
         new Set(guestLists.map((gl) => gl.userPromoterId))
       );
-      const promoters: Promoters[] = await Promise.all(
+      const promoters: Promoter[] = await Promise.all(
         promoterIds.map(async (promoterId) => {
           const user = await ctx.db.get(promoterId);
-          return { id: promoterId, name: user?.name || "Unknown" };
+          return { promoterUserId: promoterId, name: user?.name || "Unknown" };
         })
       );
       const promoterMap: Map<string, string> = new Map(
-        promoters.map((p) => [p.id, p.name])
+        promoters.map((p) => [p.promoterUserId, p.name])
       );
 
       const allGuests: AllGuestSchema[] = guestLists.flatMap((guestList) =>
@@ -491,7 +403,7 @@ export const updateGuestAttendance = mutation({
 
 export const updateEvent = action({
   args: {
-    slug: v.string(),
+    organizationId: v.id("organizations"),
     eventId: v.id("events"),
     name: v.optional(v.string()),
     description: v.optional(v.union(v.string(), v.null())),
@@ -520,7 +432,7 @@ export const updateEvent = action({
   handler: async (ctx, args): Promise<UpdateEventResponse> => {
     const {
       eventId,
-      slug,
+      organizationId,
       name,
       description,
       startTime,
@@ -540,9 +452,9 @@ export const updateEvent = action({
       ]);
 
       const organization = await ctx.runQuery(
-        internal.organizations.getOrganizationBySlug,
+        internal.organizations.getOrganizationById,
         {
-          slug,
+          organizationId,
         }
       );
 
@@ -550,113 +462,20 @@ export const updateEvent = action({
 
       isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
 
-      let ticketInfoId: Id<"ticketInfo"> | null = null;
-      let guestListInfoId: Id<"guestListInfo"> | null = null;
-
-      const existingTicketInfo = await ctx.runQuery(
-        internal.ticketInfo.getTicketInfoByEventId,
-        { eventId }
-      );
-      if (ticketData) {
-        const connectedAccount = await ctx.runQuery(
-          internal.connectedAccounts.getConnectedAccountByCustomerId,
-          { customerId: validatedOrganization.customerId }
+      const ticketInfoId: Id<"ticketInfo"> | null =
+        await handleTicketUpdateData(
+          ctx,
+          eventId,
+          ticketData,
+          validatedOrganization
         );
-        const {
-          maleTicketPrice,
-          femaleTicketPrice,
-          maleTicketCapacity,
-          femaleTicketCapacity,
-          ticketSalesEndTime,
-        } = ticketData;
-        if (existingTicketInfo) {
-          const { stripeMalePriceId, stripeFemalePriceId } =
-            await ctx.runAction(api.stripe.createStripeTicketPrices, {
-              stripeAccountId: connectedAccount.stripeAccountId,
-              stripeProductId: existingTicketInfo.stripeProductId,
-              maleTicketPrice,
-              maleTicketCapacity,
-              femaleTicketCapacity,
-              femaleTicketPrice,
-            });
-          ticketInfoId = await ctx.runMutation(
-            internal.ticketInfo.internalUpdateTicketInfo,
-            {
-              ticketInfoId: existingTicketInfo._id,
-              maleTicketPrice,
-              femaleTicketPrice,
-              maleTicketCapacity,
-              femaleTicketCapacity,
-              ticketSalesEndTime,
-              stripeMalePriceId,
-              stripeFemalePriceId,
-            }
-          );
-        } else {
-          const { stripeProductId } = await ctx.runAction(
-            api.stripe.createStripeProduct,
-            {
-              stripeAccountId: connectedAccount.stripeAccountId,
-              eventId,
-              ticketSalesEndTime,
-            }
-          );
-
-          const { stripeMalePriceId, stripeFemalePriceId } =
-            await ctx.runAction(api.stripe.createStripeTicketPrices, {
-              stripeAccountId: connectedAccount.stripeAccountId,
-              stripeProductId,
-              maleTicketPrice,
-              maleTicketCapacity,
-              femaleTicketCapacity,
-              femaleTicketPrice,
-            });
-
-          ticketInfoId = await ctx.runMutation(
-            internal.ticketInfo.createTicketInfo,
-            {
-              eventId,
-              ticketSalesEndTime,
-              stripeProductId,
-              ticketTypes: {
-                male: {
-                  price: maleTicketPrice,
-                  capacity: maleTicketCapacity,
-                  stripePriceId: stripeMalePriceId,
-                },
-                female: {
-                  price: femaleTicketPrice,
-                  capacity: femaleTicketCapacity,
-                  stripePriceId: stripeFemalePriceId,
-                },
-              },
-            }
-          );
-        }
-      }
-
-      const existingGuestListInfo = await ctx.runQuery(
-        internal.guestListInfo.getGuestListInfoByEventId,
-        { eventId }
-      );
-
-      if (existingGuestListInfo && guestListData) {
-        guestListInfoId = await ctx.runMutation(
-          internal.guestListInfo.updateGuestListInfo,
-          {
-            guestListInfoId: existingGuestListInfo._id,
-            ...guestListData,
-          }
+      const guestListInfoId: Id<"guestListInfo"> | null =
+        await handleGuestListUpdateData(
+          ctx,
+          organization,
+          eventId,
+          guestListData
         );
-      } else if (!existingGuestListInfo && guestListData) {
-        guestListInfoId = await ctx.runMutation(
-          internal.guestListInfo.createGuestListInfo,
-          {
-            eventId,
-            ...guestListData,
-          }
-        );
-      }
 
       await ctx.runMutation(internal.events.internalUpdateEvent, {
         eventId,
@@ -679,14 +498,7 @@ export const updateEvent = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -734,45 +546,16 @@ export const cancelEvent = mutation({
   },
 });
 
-export const internalGetEventById = internalQuery({
-  args: {
-    eventId: v.id("events"),
-  },
-  handler: async (ctx, args): Promise<EventSchema> => {
-    try {
-      const { eventId } = args;
-
-      const event = await ctx.db.get(eventId);
-
-      if (!event) {
-        throw new Error(ErrorMessages.EVENT_NOT_FOUND);
-      }
-
-      if (!event.isActive) {
-        throw new Error(ErrorMessages.EVENT_INACTIVE);
-      }
-
-      return event;
-    } catch (error) {
-      console.error("Error fetching event by ID:", error);
-      throw new Error("Failed to fetch event");
-    }
-  },
-});
-
 export const getEventsByOrganizationPublic = query({
   args: {
-    slug: v.string(),
+    organizationId: v.id("organizations"),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args): Promise<PaginationResult<EventSchema>> => {
-    const { slug, paginationOpts } = args;
+    const { organizationId, paginationOpts } = args;
 
     const currenTime = getCurrentTime();
-    const organization = await ctx.db
-      .query("organizations")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .first();
+    const organization = await ctx.db.get(organizationId);
 
     if (!organization) {
       return {
@@ -800,35 +583,38 @@ export const getEventsByOrganizationPublic = query({
   },
 });
 
-export const getEventsBySlugAndMonth = query({
+export const getEventsByMonth = query({
   args: {
-    slug: v.string(),
+    organizationId: v.id("organizations"),
     year: v.number(),
     month: v.number(),
   },
-  handler: async (ctx, args): Promise<GetEventsBySlugAndMonthResponse> => {
-    const { slug, year, month } = args;
-    const startDate = new Date(year, month - 2, 1);
-    const endDate = new Date(year, month + 1, 0);
+  handler: async (ctx, args): Promise<GetEventsByMonthResponse> => {
+    const { organizationId, year, month } = args;
+
+    const startDate = DateTime.fromObject(
+      { year, month, day: 1 },
+      { zone: TIME_ZONE }
+    ).startOf("month");
+
+    const endDate = DateTime.fromObject(
+      { year, month },
+      { zone: TIME_ZONE }
+    ).endOf("month");
     try {
       const identity = await requireAuthenticatedUser(ctx);
 
-      const organization: OrganizationsSchema | null = await ctx.db
-        .query("organizations")
-        .withIndex("by_slug", (q) => q.eq("slug", slug))
-        .first();
+      const organization = validateOrganization(
+        await ctx.db.get(organizationId)
+      );
 
-      const validatedOrganization = validateOrganization(organization);
-
-      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
+      isUserInOrganization(identity, organization.clerkOrganizationId);
 
       const events: EventSchema[] = await ctx.db
         .query("events")
-        .filter((q) =>
-          q.eq(q.field("organizationId"), validatedOrganization._id)
-        )
-        .filter((q) => q.gte(q.field("startTime"), startDate.getTime()))
-        .filter((q) => q.lte(q.field("startTime"), endDate.getTime()))
+        .filter((q) => q.eq(q.field("organizationId"), organization._id))
+        .filter((q) => q.gte(q.field("startTime"), startDate.toMillis()))
+        .filter((q) => q.lte(q.field("startTime"), endDate.toMillis()))
         .collect();
 
       return {
@@ -936,29 +722,7 @@ export const getEventsWithTickets = internalQuery({
         throw new Error(ErrorMessages.TICKET_INFO_NOT_FOUND);
       }
 
-      const ticketInfo = await ctx.db.get(event.ticketInfoId);
-
-      if (!ticketInfo) {
-        throw new Error(ErrorMessages.TICKET_INFO_NOT_FOUND);
-      }
-
-      const organization = await ctx.db
-        .query("organizations")
-        .withIndex("by_clerkOrganizationId", (q) =>
-          q.eq("clerkOrganizationId", event.clerkOrganizationId)
-        )
-        .first();
-
-      if (!organization) {
-        throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
-      }
-
-      if (!organization.isActive) {
-        throw new Error(ErrorMessages.COMPANY_INACTIVE);
-      }
-
-      let promoDiscount: number = 0;
-      let clerkPromoterId: string | null = null;
+      let promoterUserId: Id<"users"> | null = null;
 
       if (promoCode) {
         const normalizedInputName = promoCode.toLowerCase();
@@ -974,14 +738,14 @@ export const getEventsWithTickets = internalQuery({
         const user: UserSchema | null = await ctx.db
           .query("users")
           .withIndex("by_clerkUserId", (q) =>
-            q.eq("clerkUserId", promoterPromoCode.clerkPromoterUserId)
+            q.eq("clerkUserId", promoterPromoCode.promoterUserId)
           )
           .unique();
 
         if (!user) {
           throw new Error(ErrorMessages.USER_NOT_FOUND);
         }
-        if (!user.clerkOrganizationId) {
+        if (!user.organizationId) {
           throw new Error(ErrorMessages.USER_NO_COMPANY);
         }
         if (!user.isActive) {
@@ -990,41 +754,35 @@ export const getEventsWithTickets = internalQuery({
         if (!user.clerkUserId) {
           throw new Error(ErrorMessages.USER_INACTIVE);
         }
-        if (event.clerkOrganizationId !== user.clerkOrganizationId) {
+        if (event.organizationId !== user.organizationId) {
           throw new Error(ErrorMessages.INVALID_PROMO_CODE);
         }
-        promoDiscount = organization.promoDiscount;
-        clerkPromoterId = user.clerkUserId;
-      }
-
-      const connectedAccount = await ctx.db
-        .query("connectedAccounts")
-        .withIndex("by_customerId", (q) =>
-          q.eq("customerId", organization.customerId)
-        )
-        .first();
-
-      if (!connectedAccount) {
-        throw new Error(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND);
-      }
-
-      if (connectedAccount.status !== StripeAccountStatus.VERIFIED) {
-        throw new Error(ErrorMessages.CONNECTED_ACCOUNT_INACTIVE);
+        promoterUserId = user._id;
       }
 
       return {
         event,
-        ticketInfo,
-        stripeAccountId: connectedAccount.stripeAccountId,
-        promoDiscount,
-        clerkPromoterId,
+        promoterUserId,
       };
     } catch (error) {
-      console.error(
-        "Error fetching event, ticket info, and Stripe account:",
-        error
-      );
-      throw new Error("Failed to fetch event and ticket info.");
+      console.error("Error fetching event", error);
+      throw new Error(ErrorMessages.EVENT_DB_QUERY);
+    }
+  },
+});
+
+export const deleteEvent = internalMutation({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, args): Promise<void> => {
+    const { eventId } = args;
+
+    try {
+      validateEvent(await ctx.db.get(eventId));
+
+      await ctx.db.delete(eventId);
+    } catch (error) {
+      console.error(` Failed to delete event ${eventId}:`, error);
+      throw new Error(ErrorMessages.EVENT_DB_DELETE);
     }
   },
 });

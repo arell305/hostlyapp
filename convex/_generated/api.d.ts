@@ -13,9 +13,12 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as backendUtils_clerkWebhooks from "../backendUtils/clerkWebhooks.js";
 import type * as backendUtils_helper from "../backendUtils/helper.js";
+import type * as backendUtils_pdfMonkeyWebhooks from "../backendUtils/pdfMonkeyWebhooks.js";
 import type * as backendUtils_stripe from "../backendUtils/stripe.js";
 import type * as backendUtils_stripeConnect from "../backendUtils/stripeConnect.js";
+import type * as backendUtils_stripeWebhooks from "../backendUtils/stripeWebhooks.js";
 import type * as backendUtils_validation from "../backendUtils/validation.js";
 import type * as clerk from "../clerk.js";
 import type * as connectedAccounts from "../connectedAccounts.js";
@@ -26,9 +29,9 @@ import type * as guestListInfo from "../guestListInfo.js";
 import type * as guestLists from "../guestLists.js";
 import type * as http from "../http.js";
 import type * as organizations from "../organizations.js";
+import type * as pdfMonkey from "../pdfMonkey.js";
 import type * as photo from "../photo.js";
 import type * as promoCode from "../promoCode.js";
-import type * as promoCodeUsage from "../promoCodeUsage.js";
 import type * as promoterPromoCode from "../promoterPromoCode.js";
 import type * as stripe from "../stripe.js";
 import type * as stripeConnectedCustomers from "../stripeConnectedCustomers.js";
@@ -46,9 +49,12 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "backendUtils/clerkWebhooks": typeof backendUtils_clerkWebhooks;
   "backendUtils/helper": typeof backendUtils_helper;
+  "backendUtils/pdfMonkeyWebhooks": typeof backendUtils_pdfMonkeyWebhooks;
   "backendUtils/stripe": typeof backendUtils_stripe;
   "backendUtils/stripeConnect": typeof backendUtils_stripeConnect;
+  "backendUtils/stripeWebhooks": typeof backendUtils_stripeWebhooks;
   "backendUtils/validation": typeof backendUtils_validation;
   clerk: typeof clerk;
   connectedAccounts: typeof connectedAccounts;
@@ -59,9 +65,9 @@ declare const fullApi: ApiFromModules<{
   guestLists: typeof guestLists;
   http: typeof http;
   organizations: typeof organizations;
+  pdfMonkey: typeof pdfMonkey;
   photo: typeof photo;
   promoCode: typeof promoCode;
-  promoCodeUsage: typeof promoCodeUsage;
   promoterPromoCode: typeof promoterPromoCode;
   stripe: typeof stripe;
   stripeConnectedCustomers: typeof stripeConnectedCustomers;

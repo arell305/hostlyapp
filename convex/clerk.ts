@@ -1,10 +1,7 @@
 "use node";
 
-import type { WebhookEvent } from "@clerk/clerk-sdk-node";
 import { action, internalAction } from "./_generated/server";
-import { Webhook } from "svix";
 import { v } from "convex/values";
-import { createClerkClient } from "@clerk/backend";
 import {
   GetPendingInvitationListResponse,
   PendingInvitationUser,
@@ -29,6 +26,7 @@ import {
 import { requireAuthenticatedUser } from "../utils/auth";
 import slugify from "slugify";
 import {
+  clerkClient,
   clerkInviteUserToOrganization,
   createClerkOrg,
   revokeOrganizationInvitationHelper,
@@ -38,38 +36,52 @@ import {
   updateOrganizationMembershipHelper,
 } from "../utils/clerk";
 import { isUserInOrganization } from "./backendUtils/helper";
-
-export const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY,
-});
+import {
+  handleOrganizationInvitationAccepted,
+  handleUserCreated,
+  handleUserUpdated,
+  verifyClerkWebhook,
+} from "./backendUtils/clerkWebhooks";
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
   handler: async (ctx, args) => {
-    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET as string);
-    const payload = wh.verify(args.payload, args.headers) as WebhookEvent;
-    return payload;
+    try {
+      const payload = await verifyClerkWebhook(args.payload, args.headers);
+      console.log("payload", payload);
+      switch (payload.type) {
+        case "user.created":
+          await handleUserCreated(ctx, payload.data);
+          break;
+        case "user.updated":
+          await handleUserUpdated(ctx, payload.data);
+          break;
+        case "organizationInvitation.accepted":
+          await handleOrganizationInvitationAccepted(ctx, payload.data);
+          break;
+        default:
+          console.log(`⚠️ Unhandled event type: ${payload.type}`);
+      }
+      return { success: true };
+    } catch (err) {
+      console.error(" Error processing Clerk webhook:", err);
+      return { success: false, error: (err as { message: string }).message };
+    }
   },
 });
 
 export const getPendingInvitationList = action({
   args: { clerkOrgId: v.string() },
   handler: async (ctx, args): Promise<GetPendingInvitationListResponse> => {
+    const { clerkOrgId } = args;
     try {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.UNAUTHENTICATED,
-        };
-      }
-      const clerkClient = createClerkClient({
-        secretKey: process.env.CLERK_SECRET_KEY,
-      });
+      const identity = await requireAuthenticatedUser(ctx);
+
+      isUserInOrganization(identity, clerkOrgId);
+
       const { data } =
         await clerkClient.organizations.getOrganizationInvitationList({
-          organizationId: args.clerkOrgId,
+          organizationId: clerkOrgId,
           status: ["pending"],
         });
 
@@ -310,8 +322,6 @@ export const createClerkOrganization = action({
         companyName,
         publicMetadata: {
           urlSlug: slug,
-          status: customer.subscriptionStatus,
-          tier: customer.subscriptionTier,
         },
         createdBy: clerkUserId,
       });

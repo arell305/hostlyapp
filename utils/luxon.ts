@@ -10,7 +10,9 @@ export const formatTime = (timestamp: number): string => {
 };
 
 export const formatDateMDY = (timestamp: number): string => {
-  return DateTime.fromMillis(timestamp).toFormat("MMMM d, yyyy");
+  return DateTime.fromMillis(timestamp)
+    .setZone(TIME_ZONE)
+    .toFormat("MMMM d, yyyy");
 };
 
 export const convertToPstTimestamp = (dateTimeString: string): number => {
@@ -34,6 +36,9 @@ export const convertToPST = (date: Date): Date => {
 export const getCurrentTime = (): number => {
   const now = DateTime.now().setZone(TIME_ZONE);
   return now.toMillis();
+};
+export const getCurrentDate = (): Date => {
+  return DateTime.now().setZone(TIME_ZONE).toJSDate();
 };
 
 export const isTodayInPST = (date: Date): boolean => {

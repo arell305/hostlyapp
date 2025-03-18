@@ -22,7 +22,7 @@ const GuestListTab: React.FC<GuestListTabProps> = ({
     return (
       <div className="mb-4 flex flex-col gap-4 bg-gray-100 min-h-[100vh]">
         <div className=" bg-white w-[95%] mx-auto px-4 pt-4 mt-4 rounded-md mb-4 shadow-md">
-          <h1 className="text-2xl font-bold pb-3">Ticket Info</h1>
+          <h1 className="text-2xl font-bold pb-3">Guest List Info</h1>
           <div className="flex items-center  space-x-3 py-3 ">
             <LuClipboardList className="text-2xl" />
             <p>There is no guest list option for this event</p>

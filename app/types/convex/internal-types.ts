@@ -49,8 +49,5 @@ export interface SaveConnectedAccountData {
 
 export interface GetEventWithTicketsData {
   event: EventSchema;
-  ticketInfo: TicketInfoSchema;
-  stripeAccountId: string;
-  promoDiscount: number;
-  clerkPromoterId: string | null;
+  promoterUserId: Id<"users"> | null;
 }
