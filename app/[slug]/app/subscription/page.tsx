@@ -57,17 +57,16 @@ const SubscriptionTab = () => {
     subscription,
   } = useContextOrganization();
 
-  if (organizationContextLoading || !subscription || !organization) {
-    return <FullLoading />;
-  }
+  const customerDetails = useQuery(
+    api.customers.getCustomerDetails,
+    organization
+      ? {
+          organizationId: organization._id,
+        }
+      : "skip"
+  );
 
-  if (organizationContextError) {
-    return <ErrorComponent message={organizationContextError} />;
-  }
-
-  const customerDetails = useQuery(api.customers.getCustomerDetails, {
-    organizationId: organization?._id,
-  });
+  useEffect(() => {}, [, refreshKey]);
 
   const handleEditPaymentModalOpenChange = (open: boolean) => {
     if (open) {
@@ -79,33 +78,6 @@ const SubscriptionTab = () => {
 
   const cancelSubscription = useAction(api.customers.cancelSubscription);
   const resumeSubscription = useAction(api.customers.resumeSubscription);
-
-  useEffect(() => {}, [, refreshKey]);
-
-  // const fetchCustomerDetails = async () => {
-  //   if (!organization) {
-  //     return;
-  //   }
-  //   setIsPageLoading(true);
-  //   setPageError(null);
-  //   try {
-  //     const response = await getCustomerDetails({
-  //       organizationId: organization._id,
-  //     });
-
-  //     if (response.status === ResponseStatus.SUCCESS) {
-  //       setCustomerDetails(response.data?.customerData);
-  //     } else {
-  //       console.error(response.error);
-  //       setPageError(ERROR_MESSAGES.GENERIC_ERROR);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching customer details:", error);
-  //     setPageError(ERROR_MESSAGES.GENERIC_ERROR);
-  //   } finally {
-  //     setIsPageLoading(false);
-  //   }
-  // };
 
   const handleResume = async () => {
     setResumeError(null);
@@ -162,16 +134,6 @@ const SubscriptionTab = () => {
 
   const canEditSettings = orgRole === UserRole.Admin;
 
-  if (!customerDetails) {
-    return <FullLoading />;
-  }
-
-  if (customerDetails.status === ResponseStatus.ERROR) {
-    return <ErrorComponent message={customerDetails.error} />;
-  }
-
-  const customer: CustomerSchema = customerDetails.data?.customer;
-
   let subscriptionStatusText: string = "Unknown Status";
   if (subscription) {
     subscriptionStatusText =
@@ -197,6 +159,24 @@ const SubscriptionTab = () => {
   //       (1 - customerDetails.discountPercentage / 100)
   //   );
   // }
+
+  if (
+    organizationContextLoading ||
+    !subscription ||
+    !organization ||
+    !customerDetails
+  ) {
+    return <FullLoading />;
+  }
+
+  if (organizationContextError) {
+    return <ErrorComponent message={organizationContextError} />;
+  }
+
+  if (customerDetails.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={customerDetails.error} />;
+  }
+  const customer: CustomerSchema = customerDetails.data?.customer;
 
   return (
     <>

@@ -8,15 +8,17 @@ import EventFormSkeleton from "../loading/EventFormSkeleton";
 import { formatTime, formatDateMDY } from "../../../../../utils/luxon";
 import { EventSchema } from "@/types/schemas-types";
 import _ from "lodash";
+import Image from "next/image";
 
 interface DetailsViewProps {
   eventData: EventSchema;
 }
 
 const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
-  const displayEventPhoto = eventData.photo
-    ? useQuery(api.photo.getFileUrl, { storageId: eventData.photo })
-    : null;
+  const displayEventPhoto = useQuery(
+    api.photo.getFileUrl,
+    eventData.photo ? { storageId: eventData.photo } : "skip"
+  );
 
   const handleAddressClick = () => {
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventData.address)}`;
@@ -26,14 +28,15 @@ const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
   return (
     <div className="flex flex-col rounded border border-altGray w-[400px] p-3 shadow bg-white">
       {displayEventPhoto === undefined && <EventFormSkeleton />}
-      {displayEventPhoto === null ? (
-        <div className="w-full h-[200px] mb-2 bg-gray-200 rounded-lg animate-pulse"></div> // Placeholder skeleton
-      ) : (
-        <img
+      {displayEventPhoto ? (
+        // Placeholder skeleton
+        <Image
           src={displayEventPhoto}
           alt={eventData.name || "Event photo"}
           className="w-full h-auto mb-2 rounded-lg"
         />
+      ) : (
+        <div className="w-full h-[200px] mb-2 bg-gray-200 rounded-lg animate-pulse"></div>
       )}
       <h2 className="text-2xl font-playfair font-bold mb-1 text-center md:text-start">
         {_.capitalize(eventData.name) || "Event Name"}

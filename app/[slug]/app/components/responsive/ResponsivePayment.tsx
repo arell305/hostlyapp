@@ -23,6 +23,7 @@ import { toast } from "@/hooks/use-toast";
 import { FrontendErrorMessages } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
 import { ResponseStatus } from "../../../../../utils/enum";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 type ResponsivePaymentProps = {
   isOpen: boolean;
@@ -94,7 +95,7 @@ const PaymentForm: React.FC<ResponsivePaymentProps> = ({
     }
   };
 
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const CardInput = (
     <div

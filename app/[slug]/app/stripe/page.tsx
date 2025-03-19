@@ -175,7 +175,11 @@ const Page = () => {
     if (connectedAccountData?.data && !stripeConnectInstance) {
       initializeStripeConnect();
     }
-  }, [connectedAccountData?.data, stripeConnectInstance]);
+  }, [
+    connectedAccountData?.data,
+    stripeConnectInstance,
+    initializeStripeConnect,
+  ]);
 
   const tabs: Tab[] = [
     { label: "Documents", value: ActiveStripeTab.DOCUMENTS },

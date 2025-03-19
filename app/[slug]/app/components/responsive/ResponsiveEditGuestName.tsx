@@ -2,6 +2,7 @@ import React from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import EditGuestNameDrawer from "../drawer/EditGuestNameDrawer";
 import EditGuestNameModal from "../modals/EditGuestNameModal";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 type CommonProps = {
   isOpen: boolean;
@@ -14,16 +15,8 @@ type CommonProps = {
   onSaveGuestName: () => Promise<void>;
 };
 
-type ResponsiveEditGuestProps = CommonProps & {
-  isDesktop?: boolean;
-};
-
-const ResponsiveEditGuestName: React.FC<ResponsiveEditGuestProps> = ({
-  isDesktop: isDesktopProp,
-  ...commonProps
-}) => {
-  const isDesktop = isDesktopProp ?? useMediaQuery("(min-width: 768px)");
-
+const ResponsiveEditGuestName: React.FC<CommonProps> = (commonProps) => {
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   if (isDesktop) {
     return (
       <EditGuestNameModal

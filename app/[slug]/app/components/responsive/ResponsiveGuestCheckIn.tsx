@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BaseDrawer from "../drawer/BaseDrawer";
 import { Loader2 } from "lucide-react";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 interface ResponsiveGuestCheckInProps {
   isOpen: boolean;
@@ -32,9 +33,11 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
   isLoading,
   error,
 }) => {
-  const [maleCount, setMaleCount] = useState(guest.malesInGroup || 0);
-  const [femaleCount, setFemaleCount] = useState(guest.femalesInGroup || 0);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [maleCount, setMaleCount] = useState<number>(guest.malesInGroup || 0);
+  const [femaleCount, setFemaleCount] = useState<number>(
+    guest.femalesInGroup || 0
+  );
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const handleSave = () => {
     onSave(guest.id, maleCount, femaleCount);

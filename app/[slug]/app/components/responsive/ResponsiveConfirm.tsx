@@ -3,6 +3,7 @@ import ConfirmModal, {
   ConfirmModalProps,
 } from "@/[slug]/app/components/ConfirmModal";
 import BaseDrawer, { BaseDrawerProps } from "../drawer/BaseDrawer";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 type CommonProps = {
   isOpen: boolean;
@@ -22,21 +23,18 @@ type CommonProps = {
 };
 
 type ResponsiveConfirmProps = CommonProps & {
-  isDesktop?: boolean;
   modalProps?: Omit<ConfirmModalProps, keyof CommonProps | "message">;
   drawerProps?: Omit<BaseDrawerProps, keyof CommonProps | "description">;
 };
 
 const ResponsiveConfirm: React.FC<ResponsiveConfirmProps> = ({
-  isDesktop: isDesktopProp,
   modalProps,
   drawerProps,
   content,
   confirmVariant = "default",
   ...commonProps
 }) => {
-  const isDesktop = isDesktopProp ?? useMediaQuery("(min-width: 768px)");
-
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   if (isDesktop && modalProps) {
     return (
       <ConfirmModal

@@ -12,11 +12,11 @@ import ErrorComponent from "./app/components/errors/ErrorComponent";
 import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
 
 const CompanyEvents = () => {
-  const { name, photo, publicOrganizationContextError, organizationId, user } =
+  const { name, photo, publicOrganizationContextError, organizationId } =
     useContextPublicOrganization();
 
   const router = useRouter();
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
 
   const response = usePaginatedQuery(
     api.events.getEventsByOrganizationPublic,
@@ -71,13 +71,15 @@ const CompanyEvents = () => {
   return (
     <main className="bg-gray-100 min-h-screen flex justify-center">
       <div className="flex flex-col  pt-10">
-        {/* <Image
-          src={displayCompanyPhoto || ""}
-          alt={`Company image`}
-          width={150}
-          height={150}
-          className="object-cover"
-        /> */}
+        {displayCompanyPhoto && (
+          <Image
+            src={displayCompanyPhoto}
+            alt={`Company image`}
+            width={150}
+            height={150}
+            className="object-cover"
+          />
+        )}
 
         <h1 className="text-4xl text-center pb-8"> {_.capitalize(name)}</h1>
         <div className="px-4 sm:px-6 lg:px-8">

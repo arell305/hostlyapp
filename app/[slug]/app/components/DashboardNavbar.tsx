@@ -2,13 +2,13 @@
 import React, { useState, memo, useCallback } from "react";
 import { useClerk } from "@clerk/nextjs";
 import EditPromoCodeDialog from "./EditPromoCodeDialog";
-import PromoterUserButton from "./PromoterUserbutton";
 import AdminUserButton from "./AdminUserButton";
 import { HiOutlineMenuAlt4 } from "react-icons/hi";
 import { RiCloseLargeLine } from "react-icons/ri";
 import { UserRole } from "../../../../utils/enum";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import PromoterUserButton from "./PromoterUserbutton";
 
 interface DashboardNavbarProps {
   toggleNavbar: () => void;
@@ -25,7 +25,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
       api.users.findUserByClerkId,
       user
         ? {
-            clerkUserId: user?.id,
+            clerkUserId: user.id,
           }
         : "skip"
     );
@@ -48,10 +48,14 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     }
     return (
       <nav
-        className={`w-full items-center shadow md:shadow-none md:border-none bg-white z-10 top-0 fixed h-12 transition-colors duration-300  ${isOpen ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]" : " border-b border-gray-200"}`}
+        className={`w-full items-center shadow md:shadow-none md:border-none bg-white z-10 top-0 fixed h-12 transition-colors duration-300 ${
+          isOpen
+            ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]"
+            : " border-b border-gray-200"
+        }`}
       >
         <div className="flex h-full items-center justify-between mx-auto p-2.5">
-          <div className="flex-grow  md:block hidden">
+          <div className="flex-grow md:block hidden">
             <a href="/" className="text-2xl font-semibold font-playfair pl-4">
               {organization?.name ?? "Hostly"}
             </a>
@@ -61,7 +65,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
             <button
               onClick={toggleNavbar}
               type="button"
-              className={`inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg focus:outline-none focus:ring-1 focus:ring-white transition-transform duration-300 ${isOpen ? "rotate-90" : ""} md:hidden`}
+              className={`inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg focus:outline-none focus:ring-1 focus:ring-white transition-transform duration-300 ${
+                isOpen ? "rotate-90" : ""
+              } md:hidden`}
               style={{ zIndex: 60 }}
             >
               {isOpen ? (
@@ -74,7 +80,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
 
           {/* Center: Organization Name */}
           <div className="flex-grow flex justify-center md:hidden">
-            <a href="/" className="text-2xl font-semibold font-playfair ">
+            <a href="/" className="text-2xl font-semibold font-playfair">
               {organization?.name ?? "Hostly"}
             </a>
           </div>
@@ -104,5 +110,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
     );
   }
 );
+
+// Set the displayName property for better debugging
+DashboardNavbar.displayName = "DashboardNavbar";
 
 export default DashboardNavbar;

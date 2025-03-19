@@ -2,6 +2,7 @@ import React from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import EditTeamNameDrawer from "../drawer/EditTeamNameDrawer";
 import EditTeamNameModal from "../modals/EditTeamNameModal";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 type CommonProps = {
   isOpen: boolean;
@@ -14,15 +15,8 @@ type CommonProps = {
   teamName: string;
 };
 
-type ResponsiveTeamNameProps = CommonProps & {
-  isDesktop?: boolean;
-};
-
-const ResponsiveTeamName: React.FC<ResponsiveTeamNameProps> = ({
-  isDesktop: isDesktopProp,
-  ...commonProps
-}) => {
-  const isDesktop = isDesktopProp ?? useMediaQuery("(min-width: 768px)");
+const ResponsiveTeamName: React.FC<CommonProps> = (commonProps) => {
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   if (isDesktop) {
     return (

@@ -4,6 +4,7 @@ import useMediaQuery from "@/hooks/useMediaQuery";
 import { UserRole } from "../../../../../utils/enum";
 import EditingUserModal from "../modals/EditingUserModal";
 import EditUserDrawer from "../drawer/EditUserDrawer";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 type CommonProps = {
   isOpen: boolean;
@@ -16,15 +17,8 @@ type CommonProps = {
   onSaveRole: () => void;
 };
 
-type ResponsiveEditUserProps = CommonProps & {
-  isDesktop?: boolean;
-};
-
-const ResponsiveEditUser: React.FC<ResponsiveEditUserProps> = ({
-  isDesktop: isDesktopProp,
-  ...commonProps
-}) => {
-  const isDesktop = isDesktopProp ?? useMediaQuery("(min-width: 768px)");
+const ResponsiveEditUser: React.FC<CommonProps> = (commonProps) => {
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   if (isDesktop) {
     return (

@@ -12,3 +12,4 @@ export const PLUS_GUEST_LIST_LIMIT = 3;
 export const TIME_ZONE = "America/Los_Angeles";
 export const STRIPE_API_VERSION = "2024-06-20";
 export const USD_CURRENCY = "usd";
+export const DESKTOP_WIDTH = "(min-width: 768px)";

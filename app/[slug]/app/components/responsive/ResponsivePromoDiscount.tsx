@@ -2,6 +2,7 @@ import React from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import EditPromoDiscountModal from "../modals/EditPromoDiscountModal";
 import EditPromoDiscountDrawer from "../drawer/EditPromoDiscountDrawer";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 type CommonProps = {
   isOpen: boolean;
@@ -14,15 +15,8 @@ type CommonProps = {
   promoDiscount: string;
 };
 
-type ResponsivePromoDiscountProps = CommonProps & {
-  isDesktop?: boolean;
-};
-
-const ResponsivePromoDiscount: React.FC<ResponsivePromoDiscountProps> = ({
-  isDesktop: isDesktopProp,
-  ...commonProps
-}) => {
-  const isDesktop = isDesktopProp ?? useMediaQuery("(min-width: 768px)");
+const ResponsivePromoDiscount: React.FC<CommonProps> = (commonProps) => {
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   if (isDesktop) {
     return (

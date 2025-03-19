@@ -2,6 +2,7 @@ import React, { ChangeEvent } from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import EditCompanyImageModal from "../modals/EditCompanyImageModal";
 import EditCompanyImageDrawer from "../drawer/EditCompanyImageDrawer";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 type CommonProps = {
   isOpen: boolean;
@@ -14,15 +15,8 @@ type CommonProps = {
   photoUploadError: string | null;
 };
 
-type ResponsiveCompanyImageProps = CommonProps & {
-  isDesktop?: boolean;
-};
-
-const ResponsiveCompanyImage: React.FC<ResponsiveCompanyImageProps> = ({
-  isDesktop: isDesktopProp,
-  ...commonProps
-}) => {
-  const isDesktop = isDesktopProp ?? useMediaQuery("(min-width: 768px)");
+const ResponsiveCompanyImage: React.FC<CommonProps> = (commonProps) => {
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   if (isDesktop) {
     return (

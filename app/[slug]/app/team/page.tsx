@@ -93,7 +93,7 @@ const Team = () => {
   };
   useEffect(() => {
     fetchData();
-  }, [getPendingInvitationList, companyUsersData]);
+  }, [getPendingInvitationList, companyUsersData, fetchData]);
 
   const revokeOrganizationInvitation = useAction(
     api.clerk.revokeOrganizationInvitation

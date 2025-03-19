@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import Loading from "../components/loading/Loading";
 import { RiImageAddFill } from "react-icons/ri";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { ErrorMessages, FrontendErrorMessages } from "@/types/enums";
 
 const CompanySettings = () => {
   const { toast } = useToast();
@@ -28,16 +29,8 @@ const CompanySettings = () => {
 
   const { organization, organizationContextError } = useContextOrganization();
 
-  if (!organization) {
-    return <FullLoading />;
-  }
-
-  if (organizationContextError) {
-    return <ErrorComponent message={organizationContextError} />;
-  }
-
   const [companyName, setCompanyName] = useState<string | null | undefined>(
-    organization.name
+    organization?.name
   );
   const [showTeamNameModal, setShowTeamNameModal] = useState<boolean>(false);
   const [isTeamNameLoading, setTeamNameLoading] = useState<boolean>(false);
@@ -46,7 +39,7 @@ const CompanySettings = () => {
 
   // promo discount settings
   const [promoDiscount, setPromoDiscount] = useState<string>(
-    organization.promoDiscount.toString() || ""
+    organization?.promoDiscount.toString() || ""
   );
   const [showPromoDiscountModal, setShowPromoDiscountModal] =
     useState<boolean>(false);
@@ -67,7 +60,7 @@ const CompanySettings = () => {
   );
   const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
   const [photoStorageId, setPhotoStorageId] = useState<Id<"_storage"> | null>(
-    organization.photo || null
+    organization?.photo || null
   );
   const [isPhotoLoading, setIsPhotoLoading] = useState<boolean>(false);
   const displayCompanyPhoto = useQuery(api.photo.getFileUrl, {
@@ -107,14 +100,20 @@ const CompanySettings = () => {
   };
 
   const handleSaveCompanyPhoto = async () => {
-    if (organization.photo === photoStorageId) {
+    if (organization?.photo === photoStorageId) {
+      return;
+    }
+
+    if (!organization) {
+      setCompanyImageError(FrontendErrorMessages.GENERIC_ERROR);
+      console.error(ErrorMessages.ORGANIZATION_NOT_LOADED);
       return;
     }
 
     setIsCompanyImageLoading(true);
     try {
       const response = await updateClerkOrganizationPhoto({
-        clerkOrganizationId: organization.clerkOrganizationId,
+        clerkOrganizationId: organization?.clerkOrganizationId,
         photo: photoStorageId,
       });
       if (response.status === ResponseStatus.ERROR) {
@@ -139,7 +138,7 @@ const CompanySettings = () => {
     if (open) {
       setShowCompanyImageModal(true);
     } else {
-      setPhotoStorageId(organization.photo || null);
+      setPhotoStorageId(organization?.photo || null);
       setCompanyImageError(null);
       setShowCompanyImageModal(false);
     }
@@ -150,13 +149,13 @@ const CompanySettings = () => {
   );
 
   useEffect(() => {
-    setCompanyName(organization.name);
-    setPromoDiscount(organization.promoDiscount.toString() || "");
-    setPhotoStorageId(organization.photo || null);
+    setCompanyName(organization?.name);
+    setPromoDiscount(organization?.promoDiscount.toString() || "");
+    setPhotoStorageId(organization?.photo || null);
   }, [organization]);
 
   const handleUpdateTeamName = async () => {
-    if (companyName === organization.name) {
+    if (companyName === organization?.name) {
       return setShowTeamNameModal(false);
     }
     if (!companyName || companyName.trim() === "") {
@@ -200,7 +199,7 @@ const CompanySettings = () => {
     const { promoDiscountValue, promoDiscountValueError } =
       validatePromoDiscount(promoDiscount, true);
 
-    if (promoDiscountValue === organization.promoDiscount) {
+    if (promoDiscountValue === organization?.promoDiscount) {
       return setShowPromoDiscountModal(false);
     }
 
@@ -258,7 +257,7 @@ const CompanySettings = () => {
     if (open) {
       setShowTeamNameModal(true);
     } else {
-      setCompanyName(organization.name);
+      setCompanyName(organization?.name);
       setTeamNameError(null);
       setShowTeamNameModal(false);
     }
@@ -268,7 +267,7 @@ const CompanySettings = () => {
     if (open) {
       setShowPromoDiscountModal(true);
     } else {
-      setPromoDiscount(organization.promoDiscount as unknown as string);
+      setPromoDiscount(organization?.promoDiscount as unknown as string);
       setPromoDiscountError(null);
       setShowPromoDiscountModal(false);
     }
@@ -279,6 +278,14 @@ const CompanySettings = () => {
     orgRole === UserRole.Manager ||
     orgRole === UserRole.Hostly_Admin ||
     orgRole === UserRole.Hostly_Moderator;
+
+  if (!organization) {
+    return <FullLoading />;
+  }
+
+  if (organizationContextError) {
+    return <ErrorComponent message={organizationContextError} />;
+  }
 
   return (
     <div className="justify-center max-w-3xl rounded-lg mx-auto mt-1.5 ">

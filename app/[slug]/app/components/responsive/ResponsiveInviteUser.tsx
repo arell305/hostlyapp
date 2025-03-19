@@ -8,6 +8,7 @@ import useMediaQuery from "@/hooks/useMediaQuery";
 import InviteUserModal from "../modals/InviteUserModal";
 import InviteUserDrawer from "../drawer/InviteUserDrawer";
 import { PendingInvitationUser } from "@/types/types";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 interface ResponsiveInviteUserProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
   const createClerkInvitation = useAction(api.clerk.createClerkInvitation);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const handleSave = async () => {
     if (!isValidEmail(inviteEmail)) {

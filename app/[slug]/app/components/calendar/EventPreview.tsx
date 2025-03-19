@@ -17,9 +17,14 @@ interface EventPreviewProps {
 }
 
 const EventPreview: React.FC<EventPreviewProps> = ({ eventData, isApp }) => {
-  const displayEventPhoto = eventData.photo
-    ? useQuery(api.photo.getFileUrl, { storageId: eventData.photo })
-    : null;
+  const displayEventPhoto = useQuery(
+    api.photo.getFileUrl,
+    eventData.photo
+      ? {
+          storageId: eventData.photo,
+        }
+      : "skip"
+  );
   const pathname = usePathname();
 
   return (
