@@ -8,7 +8,6 @@ import {
   UserRole,
 } from "../../utils/enum";
 import { ErrorMessages, Gender } from "./enums";
-import { CustomerSchema } from "./schemas-types";
 
 export interface PricingOption {
   id: string;

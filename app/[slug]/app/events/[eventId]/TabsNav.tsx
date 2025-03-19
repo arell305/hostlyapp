@@ -8,7 +8,7 @@ interface TabProps {
   onClick: () => void;
 }
 
-const Tab: React.FC<TabProps> = ({ label, isActive, onClick }) => (
+const EventTab: React.FC<TabProps> = ({ label, isActive, onClick }) => (
   <button
     onClick={onClick}
     className={`pb-2 flex-1 text-center ${isActive ? "active" : ""} tab`}
@@ -31,7 +31,7 @@ const TabsNav: React.FC<TabsNavProps> = ({ activeTab, onTabChange, tabs }) => {
     <div className="relative w-full mt-4 border-b">
       <div className="flex justify-between w-full">
         {tabs.map((tab) => (
-          <Tab
+          <EventTab
             key={tab.value}
             label={tab.label}
             isActive={activeTab === tab.value}
