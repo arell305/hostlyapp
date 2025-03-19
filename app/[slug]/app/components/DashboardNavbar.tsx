@@ -38,12 +38,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
       setIsPromoCodeModalOpen((prev) => !prev);
     }, []);
 
-    // Show loading state until user data is loaded
     if (!loaded || !userFromDb) {
       return (
-        <nav className="w-full z-10 top-0 border-b border-gray-200 fixed h-14 bg-white">
-          {/* Loading indicator can be added here */}
-        </nav>
+        <nav className="w-full z-10 top-0 border-b border-gray-200 fixed h-14 bg-white"></nav>
       );
     }
     return (
@@ -111,7 +108,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
   }
 );
 
-// Set the displayName property for better debugging
 DashboardNavbar.displayName = "DashboardNavbar";
 
 export default DashboardNavbar;

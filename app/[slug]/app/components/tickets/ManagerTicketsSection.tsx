@@ -53,7 +53,7 @@ const ManagerTicketsSection: React.FC<ManagerTicketsSectionProps> = ({
       },
       { maleTickets: 0, femaleTickets: 0 }
     );
-  }, [responseTickets, tickets]);
+  }, [tickets]);
 
   const { maleTicketsWithPromoter, femaleTicketsWithPromoter } = useMemo(() => {
     if (!tickets) {
@@ -78,7 +78,7 @@ const ManagerTicketsSection: React.FC<ManagerTicketsSectionProps> = ({
       },
       { maleTicketsWithPromoter: 0, femaleTicketsWithPromoter: 0 }
     );
-  }, [responseTickets, selectedPromoterId, tickets]);
+  }, [selectedPromoterId, tickets]);
 
   const filteredTickets = useMemo(() => {
     if (!tickets) {
@@ -89,7 +89,7 @@ const ManagerTicketsSection: React.FC<ManagerTicketsSectionProps> = ({
         selectedPromoterId === "all" ||
         ticket.promoterUserId === selectedPromoterId
     );
-  }, [responseTickets, selectedPromoterId, tickets]);
+  }, [selectedPromoterId, tickets]);
 
   if (!promoters || !responseTickets) {
     return <EventInfoSkeleton />;

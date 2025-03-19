@@ -56,44 +56,47 @@ const Team = () => {
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
 
-  const fetchData = async () => {
-    if (!companyUsersData) {
-      return;
-    }
-    if (companyUsersData.status === ResponseStatus.ERROR) {
-      setError(companyUsersData.error);
-    } else {
-      const allUsers = companyUsersData.data?.users ?? [];
-      const activeUsers = allUsers
-        .filter((user) => user.isActive)
-        .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-      const deletedMembers = allUsers
-        .filter((user) => !user.isActive)
-        .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-
-      setCompanyMembers(activeUsers);
-      setDeletedMembers(deletedMembers);
-    }
-
-    try {
-      if (companyUsersData.data?.clerkOrganizationId) {
-        const membership = await getPendingInvitationList({
-          clerkOrgId: companyUsersData.data?.clerkOrganizationId,
-        });
-        if (membership.data?.pendingInvitationUsers) {
-          setPendingUsers(membership.data.pendingInvitationUsers);
-        }
-      }
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch organizational memberships or pending users.");
-    } finally {
-      setLoadingMembers(false);
-    }
-  };
   useEffect(() => {
+    const fetchData = async () => {
+      if (!companyUsersData) {
+        return;
+      }
+      if (companyUsersData.status === ResponseStatus.ERROR) {
+        setError(companyUsersData.error);
+      } else {
+        const allUsers = companyUsersData.data?.users ?? [];
+        const activeUsers = allUsers
+          .filter((user) => user.isActive)
+          .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+        const deletedMembers = allUsers
+          .filter((user) => !user.isActive)
+          .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+        setCompanyMembers(activeUsers);
+        setDeletedMembers(deletedMembers);
+      }
+
+      try {
+        if (companyUsersData.data?.clerkOrganizationId) {
+          const membership = await getPendingInvitationList({
+            clerkOrgId: companyUsersData.data?.clerkOrganizationId,
+          });
+          if (membership.data?.pendingInvitationUsers) {
+            setPendingUsers(membership.data.pendingInvitationUsers);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(
+          "Failed to fetch organizational memberships or pending users."
+        );
+      } finally {
+        setLoadingMembers(false);
+      }
+    };
+
     fetchData();
-  }, [getPendingInvitationList, companyUsersData, fetchData]);
+  }, [companyUsersData, getPendingInvitationList]);
 
   const revokeOrganizationInvitation = useAction(
     api.clerk.revokeOrganizationInvitation

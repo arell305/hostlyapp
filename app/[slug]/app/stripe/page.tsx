@@ -108,7 +108,7 @@ const Page = () => {
   };
 
   // Initialize Stripe Connect AFTER the account is created
-  const initializeStripeConnect = async () => {
+  const initializeStripeConnect = useCallback(async () => {
     if (!connectedAccountData?.data || stripeConnectInstance) return; // Prevent duplicate calls
 
     try {
@@ -143,7 +143,7 @@ const Page = () => {
       console.error("Error initializing Stripe Connect:", error);
       setErrorMessage("Failed to initialize Stripe Connect.");
     }
-  };
+  }, [connectedAccountData?.data, stripeConnectInstance, getOnboardingLink]);
 
   const handleOpenStripeDashboard = async () => {
     setGetStripeDashboardUrlLoading(true);

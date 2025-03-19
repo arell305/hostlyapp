@@ -10,6 +10,8 @@ import EventFormSkeleton from "../loading/EventFormSkeleton";
 import { formatDateMDY, formatTime } from "../../../../../utils/luxon";
 import { usePathname } from "next/navigation";
 import _ from "lodash";
+import Image from "next/image";
+
 import { EventSchema } from "@/types/schemas-types";
 interface EventPreviewProps {
   eventData: EventSchema;
@@ -34,14 +36,14 @@ const EventPreview: React.FC<EventPreviewProps> = ({ eventData, isApp }) => {
         className={`w-[190px] h-[${isApp ? "380" : "340"}px] shadow cursor-pointer hover:bg-gray-100 p-2 rounded-md transition duration-200 bg-white`}
       >
         {displayEventPhoto === undefined && <EventFormSkeleton />}
-        {displayEventPhoto === null ? (
-          <div className="w-full h-[217px] mb-2 bg-gray-200 rounded-lg animate-pulse"></div>
-        ) : (
-          <img
+        {displayEventPhoto ? (
+          <Image
             src={displayEventPhoto}
             alt={eventData.name}
             className="w-full h-[217px] mb-2 rounded-lg" // Adjust styles as needed
           />
+        ) : (
+          <div className="w-full h-[217px] mb-2 bg-gray-200 rounded-lg animate-pulse"></div>
         )}
 
         <h2 className=" font-playfair font-bold mb-1 text-center ">

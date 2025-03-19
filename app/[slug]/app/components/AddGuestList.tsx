@@ -17,6 +17,7 @@ import BaseDrawer from "./drawer/BaseDrawer";
 import _ from "lodash";
 import { FrontendErrorMessages } from "@/types/enums";
 import { ResponseStatus } from "../../../../utils/enum";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 interface AddGuestListModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
   const [error, setError] = useState<null | string>(null);
   const addGuestList = useMutation(api.guestLists.addGuestList);
   const { toast } = useToast();
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const handleSubmitGuestList = async () => {
     setError(null);
