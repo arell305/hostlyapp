@@ -10,7 +10,6 @@ import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { ResponseStatus } from "../../utils/enum";
 import _ from "lodash";
 import { ErrorMessages, FrontendErrorMessages } from "@/types/enums";
@@ -53,7 +52,6 @@ export default function CreateCompanyPage() {
     general: null,
     promoDiscount: null,
   });
-  const router = useRouter();
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
