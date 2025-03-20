@@ -362,3 +362,14 @@ export async function handleTicketUpdateData(
     stripeFemalePriceId: femalePrice.id,
   });
 }
+
+export function calculateDiscount(
+  originalAmount: number,
+  discountPercentage: number
+): number {
+  if (discountPercentage < 0 || discountPercentage > 100) {
+    throw new Error("Discount percentage must be between 0 and 100.");
+  }
+  const discountFactor = (100 - discountPercentage) / 100;
+  return originalAmount * discountFactor;
+}

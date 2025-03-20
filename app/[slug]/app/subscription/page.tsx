@@ -24,8 +24,6 @@ import { formatDateMDY } from "../../../../utils/luxon";
 import { CustomerSchema } from "@/types/schemas-types";
 
 const SubscriptionTab = () => {
-  const { user } = useClerk();
-
   const [resumeLoading, setResumeLoading] = useState<boolean>(false);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -330,9 +328,7 @@ const SubscriptionTab = () => {
         <UpdateTierModal
           isOpen={activeModal === "update_tier"}
           onClose={closeModal}
-          email={user?.emailAddresses?.[0]?.emailAddress || ""}
           currentTier={subscription.subscriptionTier}
-          discountPercentage={subscription.discount?.discountPercentage}
         />
       </div>
     </>

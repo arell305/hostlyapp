@@ -331,6 +331,7 @@ export const updateSubscriptionTier = action({
         subscription.stripeSubscriptionId,
         newPriceId
       );
+
       return {
         status: ResponseStatus.SUCCESS,
         data: {

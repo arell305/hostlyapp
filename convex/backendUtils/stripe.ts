@@ -2,6 +2,9 @@ import { STRIPE_API_VERSION, USD_CURRENCY } from "@/types/constants";
 import { ErrorMessages, Gender } from "@/types/enums";
 import Stripe from "stripe";
 import { Id } from "../_generated/dataModel";
+import { pricingOptions } from "../../constants/pricingOptions";
+import { calculateDiscount } from "./helper";
+import { ProratedPrice } from "@/types/types";
 
 if (!process.env.STRIPE_KEY) {
   throw new Error(ErrorMessages.ENV_NOT_SET_STRIPE_KEY);
@@ -254,94 +257,65 @@ export async function getPaymentMethodDetails(
   }
 }
 
-export interface ProratedPrice {
-  tier: string;
-  newAmount: string;
-  currency: string;
-  discountApplied: boolean;
-}
-
 export const getProratedPricesForAllTiers = async (
   stripeSubscriptionId: string,
   stripeCustomerId: string,
   promoCodeId?: string
 ): Promise<ProratedPrice[]> => {
-  try {
-    // Retrieve current subscription
-    const subscription =
-      await stripe.subscriptions.retrieve(stripeSubscriptionId);
+  const subscription = await retrieveSubscription(stripeSubscriptionId);
+  const currentPriceId = subscription.items.data[0].price.id;
 
-    if (!subscription || !subscription.items.data.length) {
-      throw new Error("Subscription not found or has no items.");
+  let discountPercentage = 0;
+  if (promoCodeId) {
+    const promo = await retrievePromotionCode(promoCodeId);
+    if (promo?.coupon?.percent_off) {
+      discountPercentage = promo.coupon.percent_off;
     }
-
-    const currentPriceId = subscription.items.data[0].price.id;
-
-    // Define available tiers
-    const tiers = [
-      { id: process.env.PRICE_ID_ELITE, name: "Elite" },
-      { id: process.env.PPRICE_ID_PLUS, name: "Plus" },
-      { id: process.env.PPRICE_ID_STANDARD, name: "Standard" },
-    ];
-
-    let discountPercentage = 0;
-    if (promoCodeId) {
-      const promo = await stripe.promotionCodes.retrieve(promoCodeId);
-      if (promo?.coupon?.percent_off) {
-        discountPercentage = promo.coupon.percent_off;
-      }
-    }
-
-    // Fetch upcoming invoices for each tier and get the prorated cost
-    const proratedPrices: ProratedPrice[] = [];
-
-    for (const { id, name } of tiers) {
-      // If the user is on the same tier, use the full amount
-      if (id === currentPriceId) {
-        const fullAmount =
-          subscription.items.data.find((item) => item.price.id === id)?.price
-            .unit_amount! / 100;
-        proratedPrices.push({
-          tier: name,
-          newAmount: fullAmount.toFixed(2),
-          currency: subscription.currency.toUpperCase(),
-          discountApplied: false,
-        });
-        continue;
-      }
-
-      // Get Stripe's prorated preview for switching to this tier
-      const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
-        customer: stripeCustomerId,
-        subscription: stripeSubscriptionId,
-        subscription_items: [
-          {
-            id: subscription.items.data[0].id,
-            price: id,
-          },
-        ],
-      });
-
-      const proratedAmount = upcomingInvoice.total / 100;
-
-      // Apply promo code discount if applicable
-      const discountedAmount = discountPercentage
-        ? proratedAmount * ((100 - discountPercentage) / 100)
-        : proratedAmount;
-
-      proratedPrices.push({
-        tier: name,
-        newAmount: discountedAmount.toFixed(2),
-        currency: subscription.currency.toUpperCase(),
-        discountApplied: discountPercentage > 0,
-      });
-    }
-
-    return proratedPrices;
-  } catch (error) {
-    console.error("Error fetching prorated prices:", error);
-    throw new Error("Failed to calculate prorated prices.");
   }
+
+  const proratedPrices: ProratedPrice[] = [];
+
+  for (const { priceId, tier } of pricingOptions) {
+    const price = await retrievePrice(priceId);
+    const fullMonthlyPrice = (price.unit_amount ?? 0) / 100;
+    const monthlyPrice = calculateDiscount(
+      fullMonthlyPrice,
+      discountPercentage
+    );
+
+    if (priceId === currentPriceId) {
+      proratedPrices.push({
+        tier,
+        proratedAmount: "0",
+        discountApplied: !!promoCodeId,
+        monthlyAmount: monthlyPrice.toFixed(2),
+      });
+      continue;
+    }
+
+    const upcomingInvoice = await retrieveUpcomingInvoice({
+      stripeCustomerId,
+      stripeSubscriptionId,
+      subscription,
+      priceId,
+    });
+
+    const proratedAmount = upcomingInvoice.total / 100;
+
+    const discountedAmount = calculateDiscount(
+      proratedAmount,
+      discountPercentage
+    );
+
+    proratedPrices.push({
+      tier,
+      proratedAmount: discountedAmount.toFixed(2),
+      discountApplied: discountPercentage > 0,
+      monthlyAmount: monthlyPrice.toFixed(2),
+    });
+  }
+
+  return proratedPrices;
 };
 
 export const deleteStripeProduct = async (
@@ -418,5 +392,77 @@ export async function createStripeProduct(
   } catch (error) {
     console.error("Error creating Stripe product:", error);
     throw new Error(ErrorMessages.STRIPE_CREATE_PRODUCT);
+  }
+}
+
+async function retrieveSubscription(
+  stripeSubscriptionId: string
+): Promise<Stripe.Response<Stripe.Subscription>> {
+  try {
+    const subscription =
+      await stripe.subscriptions.retrieve(stripeSubscriptionId);
+
+    if (!subscription || !subscription.items.data.length) {
+      throw new Error(ErrorMessages.STRIPE_SUBSCRIPTION_NOT_FOUND);
+    }
+
+    return subscription;
+  } catch (error) {
+    console.error("Error retrieving subscription:", error);
+    throw new Error(ErrorMessages.STRIPE_RETRIEVE);
+  }
+}
+
+interface RetrieveUpcomingInvoiceParams {
+  stripeCustomerId: string;
+  stripeSubscriptionId: string;
+  subscription: Stripe.Response<Stripe.Subscription>;
+  priceId?: string;
+}
+
+async function retrieveUpcomingInvoice({
+  stripeCustomerId,
+  stripeSubscriptionId,
+  subscription,
+  priceId,
+}: RetrieveUpcomingInvoiceParams): Promise<
+  Stripe.Response<Stripe.UpcomingInvoice>
+> {
+  try {
+    return await stripe.invoices.retrieveUpcoming({
+      customer: stripeCustomerId,
+      subscription: stripeSubscriptionId,
+      subscription_items: [
+        {
+          id: subscription.items.data[0].id,
+          price: priceId,
+        },
+      ],
+    });
+  } catch (error) {
+    console.error("Error retrieving upcoming invoice:", error);
+    throw new Error(ErrorMessages.STRIPE_RETRIEVE_INVOICE);
+  }
+}
+
+export async function retrievePromotionCode(
+  promoCodeId: string
+): Promise<Stripe.PromotionCode | null> {
+  try {
+    const promotionCode = await stripe.promotionCodes.retrieve(promoCodeId);
+    return promotionCode;
+  } catch (error) {
+    console.error(`Failed to retrieve promotion code ${promoCodeId}:`, error);
+    return null;
+  }
+}
+
+async function retrievePrice(priceId: string): Promise<Stripe.Price> {
+  try {
+    const price = await stripe.prices.retrieve(priceId);
+    return price;
+  } catch (error) {
+    console.error(`Failed to retrieve price with ID ${priceId}:`, error);
+    throw new Error(ErrorMessages.STRIPE_RETRIEVE_PRICE);
   }
 }

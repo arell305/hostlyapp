@@ -169,6 +169,10 @@ export enum ErrorMessages {
   PDF_MONKEY_DOCUMENT_SUCCESS = "PDF Monkey webhooker error handling documents.generation.success",
   SENDGRID_MISSING_API_KEY = "Missing SENDGRID_API_KEY",
   SENDGRID_EMAIL = "Sendgrid error sending email",
+  STRIPE_SUBSCRIPTION_NOT_FOUND = "Stripe Subscription not found or has no items.",
+  STRIPE_RETRIEVE = "Stripe error retrieving subscription",
+  STRIPE_RETRIEVE_INVOICE = "Stripe error retrieving invoice",
+  STRIPE_RETRIEVE_PRICE = "Stripe error retrieving price",
 }
 
 export enum ShowErrorMessages {

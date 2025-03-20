@@ -406,9 +406,9 @@ export type CompanyDataWithImage = {
 };
 
 export interface ProratedPrice {
-  tier: string;
-  newAmount: string;
-  currency: string;
+  tier: SubscriptionTier;
+  proratedAmount: string;
+  monthlyAmount: string;
   discountApplied: boolean;
 }
 
