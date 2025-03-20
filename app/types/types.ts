@@ -312,7 +312,7 @@ export interface UserSchema {
   role: UserRole | null;
   name?: string;
   isActive: boolean;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 export interface UserWithPromoCode extends UserSchema {

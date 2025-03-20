@@ -65,13 +65,16 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
           ))}
       </div>
       <div className="flex items-center flex-col mb-4">
-        <Image
-          src={userData.imageUrl}
-          alt="Profile Image"
-          width={100}
-          height={100}
-          className="rounded-full object-cover"
-        />
+        {userData.imageUrl && (
+          <Image
+            src={userData.imageUrl}
+            alt="Profile Image"
+            width={100}
+            height={100}
+            className="rounded-full object-cover"
+          />
+        )}
+
         <h2 className="mt-2 text-2xl font-semibold font-playfair">
           {userData.name}
         </h2>
