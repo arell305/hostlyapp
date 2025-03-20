@@ -1,6 +1,6 @@
 "use client";
 import { Protect, useAuth, useClerk } from "@clerk/nextjs";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { PendingInvitationUser } from "@/types/types";
@@ -56,45 +56,50 @@ const Team = () => {
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!companyUsersData) {
-        return;
-      }
-      if (companyUsersData.status === ResponseStatus.ERROR) {
-        setError(companyUsersData.error);
-      } else {
-        const allUsers = companyUsersData.data?.users ?? [];
-        const activeUsers = allUsers
-          .filter((user) => user.isActive)
-          .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-        const deletedMembers = allUsers
-          .filter((user) => !user.isActive)
-          .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  const fetchData = useCallback(async () => {
+    if (!companyUsersData) {
+      return;
+    }
+    if (companyUsersData.status === ResponseStatus.ERROR) {
+      setError(companyUsersData.error);
+    } else {
+      const allUsers = companyUsersData.data?.users ?? [];
+      const activeUsers = allUsers
+        .filter((user) => user.isActive)
+        .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+      const deletedMembers = allUsers
+        .filter((user) => !user.isActive)
+        .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
 
-        setCompanyMembers(activeUsers);
-        setDeletedMembers(deletedMembers);
-      }
+      setCompanyMembers(activeUsers);
+      setDeletedMembers(deletedMembers);
+    }
 
-      try {
-        if (companyUsersData.data?.clerkOrganizationId) {
-          const membership = await getPendingInvitationList({
-            clerkOrgId: companyUsersData.data?.clerkOrganizationId,
-          });
-          if (membership.data?.pendingInvitationUsers) {
-            setPendingUsers(membership.data.pendingInvitationUsers);
-          }
+    try {
+      if (companyUsersData.data?.clerkOrganizationId) {
+        const membership = await getPendingInvitationList({
+          clerkOrgId: companyUsersData.data?.clerkOrganizationId,
+        });
+        if (membership.data?.pendingInvitationUsers) {
+          setPendingUsers(membership.data.pendingInvitationUsers);
         }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(
-          "Failed to fetch organizational memberships or pending users."
-        );
-      } finally {
-        setLoadingMembers(false);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch organizational memberships or pending users.");
+    } finally {
+      setLoadingMembers(false);
+    }
+  }, [
+    companyUsersData,
+    setError,
+    setCompanyMembers,
+    setDeletedMembers,
+    setPendingUsers,
+    setLoadingMembers,
+  ]);
 
+  useEffect(() => {
     fetchData();
   }, [companyUsersData, getPendingInvitationList]);
 
