@@ -10,7 +10,6 @@ import Image from "next/image";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { validatePromoDiscount } from "../../../../utils/frontend-validation";
 import { compressAndUploadImage } from "../../../../utils/image";
-import { Input } from "@/components/ui/input";
 import Loading from "../components/loading/Loading";
 import { RiImageAddFill } from "react-icons/ri";
 import { OrganizationSchema } from "@/types/types";
