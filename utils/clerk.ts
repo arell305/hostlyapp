@@ -3,12 +3,10 @@ import {
   Invitation,
   OrganizationInvitation,
   OrganizationMembership,
-  WebhookEvent,
   createClerkClient,
 } from "@clerk/backend";
 import { getBaseUrl } from "./helpers";
 import { Organization } from "@clerk/nextjs/server";
-import { Webhook } from "svix";
 
 if (!process.env.CLERK_SECRET_KEY) {
   throw new Error(ErrorMessages.ENV_NOT_SET_CLERK_SECRET_KEY);

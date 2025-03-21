@@ -387,9 +387,6 @@ export const updateClerkOrganizationPhoto = action({
   },
   handler: async (ctx, args): Promise<UpdateClerkOrganizationPhotoResponse> => {
     const { clerkOrganizationId, photo } = args;
-    console.log("Starting updateClerkOrganizationPhoto...");
-    console.log("clerkOrganizationId:", clerkOrganizationId);
-    console.log("photo:", photo);
 
     try {
       const idenitity = await requireAuthenticatedUser(ctx, [
