@@ -27,6 +27,7 @@ import {
   handlePaymentIntentSucceeded,
   verifyStripeConnectedWebhook,
 } from "./backendUtils/stripeConnect";
+import { handleError } from "./backendUtils/helper";
 
 export const saveConnectedAccount = internalMutation({
   args: {
@@ -161,14 +162,7 @@ export const getConnectedAccountByClerkUserId = query({
         data: { connectedAccount },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -255,12 +249,7 @@ export const getConnectedAccountStatusBySlug = query({
         data: { hasVerifiedConnectedAccount },
       };
     } catch (error) {
-      console.error("Error fetching connected account status:", error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: "An error occurred while checking the connected account status.",
-      };
+      return handleError(error);
     }
   },
 });
