@@ -1,7 +1,6 @@
 import { pricingOptions } from "../constants/pricingOptions";
 import { PricingOption } from "@/types/types";
 import { OrganizationJSON } from "@clerk/backend";
-import { UserRole as ImportedUserRole, UserRoleEnum } from "./enum";
 import { WEBSITE } from "@/types/constants";
 import { DateTime } from "luxon";
 
@@ -79,27 +78,6 @@ export const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-export const getBillingCycle = (
-  eventStartDate: Date,
-  subscriptionStartDate: Date
-) => {
-  const diffInMonths = Math.floor(
-    (eventStartDate.getTime() - subscriptionStartDate.getTime()) /
-      (1000 * 60 * 60 * 24 * 30)
-  );
-
-  const cycleStartDate = new Date(subscriptionStartDate);
-  cycleStartDate.setMonth(subscriptionStartDate.getMonth() + diffInMonths);
-
-  const cycleEndDate = new Date(cycleStartDate);
-  cycleEndDate.setMonth(cycleStartDate.getMonth() + 1);
-
-  return {
-    startDate: cycleStartDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
-    endDate: cycleEndDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
-  };
-};
-
 export const isIOS = (): boolean => {
   return (
     /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
@@ -143,10 +121,6 @@ export const getStripeBillingCycle = (
   startDate = startDate.plus({ days: 1 });
 
   return { startDate, endDate };
-};
-
-export const generateQRCodeBase64 = (ticketId: string) => {
-  return `https://quickchart.io/qr?text=${encodeURIComponent(ticketId)}&size=200`;
 };
 
 export const getBaseUrl = (): string => {

@@ -232,7 +232,6 @@ export const findUserByClerkId = query({
         .query("users")
         .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
         .unique();
-      console.log("user in query", user);
       if (!user) {
         return {
           status: ResponseStatus.ERROR,
@@ -270,7 +269,6 @@ export const findUserByClerkId = query({
         ...user,
         promoCode: promoterPromoCode?.name,
       };
-      console.log("data returned", data);
       return {
         status: ResponseStatus.SUCCESS,
         data: { user: data },
