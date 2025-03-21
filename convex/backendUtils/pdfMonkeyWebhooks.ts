@@ -39,7 +39,7 @@ export const handleGenerateSuccess = async (event: any) => {
       return;
     }
 
-    await sendTicketEmail(recipientEmail, downloadUrl);
+    await sendTicketEmail(recipientEmail, downloadUrl, metadata);
   } catch (error) {
     console.error(" Error in handleGenerateSuccess:", error);
     throw new Error(ErrorMessages.PDF_MONKEY_DOCUMENT_SUCCESS);
