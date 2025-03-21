@@ -50,7 +50,6 @@ export enum ErrorMessages {
   COMPANY_DB_UPDATE_ERROR = "DB error updating company",
   COMPANY_INACTIVE = "Company is inactive",
   COMPANY_NOT_FOUND = "Company not found",
-  COMPANY_NAME_ALREADY_EXISTS = "Company name already exists.",
   CONNECTED_ACCOUNT_INACTIVE = "Stripe Connected Account is inactive",
   CONNECTED_ACCOUNT_VERIFIED = "Stripe Connected Account is not Verified",
   CONNECTED_ACCOUNT_DEACTIVATE_ERROR = "Stripe Connected Account deactivate error",
@@ -176,6 +175,8 @@ export enum ErrorMessages {
 }
 
 export enum ShowErrorMessages {
+  COMPANY_NAME_ALREADY_EXISTS = "Company name already exists.",
+
   FORBIDDEN_TIER = "Account does not have tier for this functionality",
   GUEST_LIST_LIMIT_REACHED = "Guest list limit reached for this subscription period.",
   SUBSCRIPTION_ACTIVE = "An active subscription for this user already exists",

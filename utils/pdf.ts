@@ -1,6 +1,5 @@
 import { ErrorMessages } from "@/types/enums";
 import { CustomerTicket } from "@/types/schemas-types";
-import fetch from "node-fetch";
 
 interface DocumentResponse {
   document: {

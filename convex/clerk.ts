@@ -12,7 +12,7 @@ import {
   SubscriptionTierConvex,
 } from "./schema";
 import { internal } from "./_generated/api";
-import { ErrorMessages } from "@/types/enums";
+import { ErrorMessages, ShowErrorMessages } from "@/types/enums";
 import { ResponseStatus, UserRole } from "../utils/enum";
 import {
   RevokeOrganizationInvitationResponse,
@@ -35,7 +35,7 @@ import {
   updateOrganizationLogo,
   updateOrganizationMembershipHelper,
 } from "../utils/clerk";
-import { isUserInOrganization } from "./backendUtils/helper";
+import { handleError, isUserInOrganization } from "./backendUtils/helper";
 import {
   handleOrganizationInvitationAccepted,
   handleUserCreated,
@@ -98,14 +98,7 @@ export const getPendingInvitationList = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -150,14 +143,7 @@ export const updateOrganizationMemberships = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -205,14 +191,7 @@ export const createClerkInvitation = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -243,14 +222,7 @@ export const revokeOrganizationInvitation = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -309,11 +281,7 @@ export const createClerkOrganization = action({
       );
 
       if (existingOrganization) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.COMPANY_NAME_ALREADY_EXISTS,
-        };
+        throw new Error(ShowErrorMessages.COMPANY_NAME_ALREADY_EXISTS);
       }
 
       const slug: string = slugify(companyName, { lower: true, strict: true });
@@ -368,14 +336,7 @@ export const createClerkOrganization = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
