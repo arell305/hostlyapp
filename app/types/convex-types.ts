@@ -10,18 +10,19 @@ import {
   CustomerTicket,
   EventSchema,
   GuestListInfoSchema,
-  PromoterPromoCodeWithDiscount,
+  PromoterPromoCodeSchema,
   SubscriptionSchema,
   TicketInfoSchema,
   TicketSchemaWithPromoter,
   UserSchema,
+  EventWithTicketInfo,
+  PromoterPromoCodeWithDiscount,
 } from "./schemas-types";
 import {
   Guest,
   GuestListNameSchema,
   OrganizationDetails,
   OrganizationPublic,
-  OrganizationsSchema,
   Promoter,
   ProratedPrice,
   SubscriptionBillingCycle,
@@ -29,6 +30,7 @@ import {
 } from "./types";
 import { Id } from "../../convex/_generated/dataModel";
 import { PaginationResult } from "convex/server";
+import { OrganizationSchema } from "./types";
 
 export interface ErrorResponse {
   status: ResponseStatus.ERROR;
@@ -604,7 +606,7 @@ export interface GetEventsByOrganizationPublicSuccess {
 }
 
 export interface GetEventsByOrganizationPublicData {
-  events: PaginationResult<EventSchema>;
+  events: PaginationResult<EventWithTicketInfo>;
 }
 
 export type GetOrganizationImagePublicResponse =
@@ -645,7 +647,7 @@ export interface GetOrganizationContextSuccess {
 }
 
 export interface GetOrganizationContextData {
-  organization: OrganizationsSchema;
+  organization: OrganizationSchema;
   connectedAccountId: string | null;
   connectedAccountStatus: StripeAccountStatus | null;
   subscription: SubscriptionSchema;
@@ -715,7 +717,7 @@ export interface UpdateStripeSubscriptionSuccess {
 export interface UpdateStripeSubscriptionData {
   customerId: Id<"customers">;
   subscriptionId: Id<"subscriptions">;
-  organization: OrganizationsSchema;
+  organization: OrganizationSchema;
 }
 
 export type ValidatePromoCodeResponse = {
@@ -723,3 +725,11 @@ export type ValidatePromoCodeResponse = {
   promoCodeId: string | null;
   discount: number | null;
 };
+
+export interface GetOrganizationByIdData {
+  organization: OrganizationSchema;
+}
+
+export interface GetOrganizationBySlugData {
+  organization: OrganizationSchema;
+}

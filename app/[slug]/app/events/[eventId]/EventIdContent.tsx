@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   EventFormInput,
   GuestListFormInput,
-  OrganizationsSchema,
+  OrganizationSchema,
   Tab,
   TicketFormInput,
 } from "@/types/types";
@@ -12,7 +12,6 @@ import {
   ActiveStripeTab,
   ActiveTab,
   ResponseStatus,
-  UserRole,
 } from "../../../../../utils/enum";
 import EventForm from "@/[slug]/app/components/EventForm";
 import { useAction } from "convex/react";
@@ -27,10 +26,8 @@ import {
   GuestListInfoSchema,
   SubscriptionSchema,
   TicketInfoSchema,
-  UserSchema,
 } from "@/types/schemas-types";
 import { FrontendErrorMessages } from "@/types/enums";
-import { Id } from "../../../../../convex/_generated/dataModel";
 import TicketTab from "../../components/tickets/TicketTab";
 
 interface EventIdContentProps {
@@ -42,7 +39,7 @@ interface EventIdContentProps {
   isAppAdmin: boolean;
   has: any;
   isStripeEnabled: boolean;
-  organization: OrganizationsSchema;
+  organization: OrganizationSchema;
   subscription: SubscriptionSchema;
 }
 

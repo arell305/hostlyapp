@@ -135,6 +135,7 @@ export default defineSchema({
   })
     .index("by_clerkOrganizationId", ["clerkOrganizationId"])
     .index("by_customerId", ["customerId"])
+    .index("by_name", ["name"])
     .index("by_slug", ["slug"]),
   events: defineTable({
     organizationId: v.id("organizations"),

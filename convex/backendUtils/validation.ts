@@ -7,13 +7,13 @@ import {
   TicketInfoSchema,
   UserSchema,
 } from "@/types/schemas-types";
-import { GuestListSchema, OrganizationsSchema } from "@/types/types";
+import { GuestListSchema, OrganizationSchema } from "@/types/types";
 import { StripeAccountStatus } from "../../utils/enum";
 
 export function validateOrganization(
-  organization: OrganizationsSchema | null,
+  organization: OrganizationSchema | null,
   checkActive: boolean = true
-): OrganizationsSchema {
+): OrganizationSchema {
   if (!organization) {
     throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
   }

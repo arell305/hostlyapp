@@ -145,50 +145,6 @@ export const getStripeBillingCycle = (
   return { startDate, endDate };
 };
 
-// async function checkEventLimit(userId: string, eventStartDate: Date, subscriptionStartDate: Date) {
-//   const { startDate, endDate } = getBillingCycle(eventStartDate, subscriptionStartDate);
-
-//   // Query to count how many events fall within the billing cycle
-//   const eventCount = await db.query("events")
-//     .filter("user_id", "==", userId)
-//     .filter("event_start_date", ">=", startDate)
-//     .filter("event_start_date", "<", endDate)
-//     .count();
-
-//   if (eventCount >= 3) {
-//     throw new Error("You can only create 3 events in a billing cycle.");
-//   }
-
-//   return true;
-// }
-
-// import { db } from "convex";
-// import { checkEventLimit } from "./helpers"; // Import checkEventLimit function
-
-// async function createEvent(userId: string, eventName: string, eventStartDate: Date, eventEndDate: Date) {
-//   // Fetch the user's subscription start date
-//   const user = await db.query("users").filter("id", "==", userId).first();
-//   if (!user) {
-//     throw new Error("User not found.");
-//   }
-
-//   const { subscription_start } = user;
-
-//   // Check if the user has exceeded the 3 events limit in the billing cycle
-//   await checkEventLimit(userId, eventStartDate, subscription_start);
-
-//   // Create the event if the limit is not exceeded
-//   const event = await db.insert("events").values({
-//     user_id: userId,
-//     event_name: eventName,
-//     event_start_date: eventStartDate,
-//     event_end_date: eventEndDate,
-//     created_at: new Date(),
-//   });
-
-//   return event;
-// }
-
 export const generateQRCodeBase64 = (ticketId: string) => {
   return `https://quickchart.io/qr?text=${encodeURIComponent(ticketId)}&size=200`;
 };

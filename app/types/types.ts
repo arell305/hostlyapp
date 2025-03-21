@@ -211,7 +211,7 @@ export interface GuestCheckIn {
   femalesInGroup?: number;
 }
 
-export interface OrganizationsSchema {
+export interface OrganizationSchema {
   _id: Id<"organizations">;
   clerkOrganizationId: string;
   name: string;

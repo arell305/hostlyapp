@@ -5,11 +5,11 @@ import { api } from "../../convex/_generated/api";
 import { ResponseStatus, StripeAccountStatus } from "../../utils/enum";
 import { ErrorMessages } from "@/types/enums";
 import { useParams } from "next/navigation";
-import { OrganizationsSchema } from "@/types/types";
+import { OrganizationSchema } from "@/types/types";
 import { SubscriptionSchema } from "@/types/schemas-types";
 
 type OrganizationContextType = {
-  organization?: OrganizationsSchema;
+  organization?: OrganizationSchema;
   connectedAccountId?: string | null;
   connectedAccountEnabled?: boolean;
   subscription?: SubscriptionSchema;

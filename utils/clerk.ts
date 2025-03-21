@@ -169,26 +169,6 @@ export async function clerkInviteUserToOrganization(
   }
 }
 
-// export async function revokeOrganizationInvitationHelper(
-//   clerkOrgId: string,
-//   clerkInvitationId: string,
-//   requestingUserId: string
-// ): Promise<OrganizationInvitation> {
-//   try {
-//     const response =
-//       await clerkClient.organizations.revokeOrganizationInvitation({
-//         organizationId: clerkOrgId,
-//         invitationId: clerkInvitationId,
-//         requestingUserId,
-//       });
-
-//     return response;
-//   } catch (error) {
-//     console.error(ErrorMessages.CLERK_REVOKE_ERROR, error);
-//     throw new Error(ErrorMessages.CLERK_REVOKE_ERROR);
-//   }
-// }
-
 export async function revokeOrganizationInvitationHelper(
   invitationId: string
 ): Promise<OrganizationInvitation> {

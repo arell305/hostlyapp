@@ -6,7 +6,7 @@ import {
   UserRole,
 } from "../../utils/enum";
 import { ErrorMessages, ShowErrorMessages } from "@/types/enums";
-import { GuestListSchema, OrganizationsSchema } from "@/types/types";
+import { GuestListSchema, OrganizationSchema } from "@/types/types";
 import { EventSchema, UserSchema } from "@/types/schemas-types";
 import { Id } from "../_generated/dataModel";
 import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
@@ -76,7 +76,7 @@ export const shouldExposeError = (errorMessage: string): boolean => {
 
 export async function handleGuestListData(
   ctx: GenericActionCtx<any>,
-  organization: OrganizationsSchema,
+  organization: OrganizationSchema,
   eventId: Id<"events">,
   guestListData: {
     guestListCloseTime: number;
@@ -127,7 +127,7 @@ export async function handleTicketData(
   ctx: GenericActionCtx<any>,
   eventId: Id<"events">,
   ticketData: TicketData,
-  organization: OrganizationsSchema
+  organization: OrganizationSchema
 ): Promise<Id<"ticketInfo">> {
   const {
     maleTicketPrice,
@@ -224,7 +224,7 @@ export function handleError(error: unknown): {
 
 export async function handleGuestListUpdateData(
   ctx: GenericActionCtx<any>,
-  organization: OrganizationsSchema,
+  organization: OrganizationSchema,
   eventId: Id<"events">,
   guestListData: {
     guestListCloseTime: number;
@@ -288,7 +288,7 @@ export async function handleTicketUpdateData(
   ctx: GenericActionCtx<any>,
   eventId: Id<"events">,
   ticketData: TicketData | null,
-  organization: OrganizationsSchema
+  organization: OrganizationSchema
 ): Promise<Id<"ticketInfo"> | null> {
   const existingTicketInfo = await ctx.runQuery(
     internal.ticketInfo.getTicketInfoByEventId,

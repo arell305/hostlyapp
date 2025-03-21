@@ -2,8 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, query } from "./_generated/server";
 import { ResponseStatus, SubscriptionStatus } from "../utils/enum";
 import { ErrorMessages } from "@/types/enums";
-import { OrganizationsSchema, SubscriptionBillingCycle } from "@/types/types";
-import { convertToPST } from "../utils/luxon";
+import { SubscriptionBillingCycle } from "@/types/types";
 import { EventSchema, SubscriptionSchema } from "@/types/schemas-types";
 import { requireAuthenticatedUser } from "../utils/auth";
 import {

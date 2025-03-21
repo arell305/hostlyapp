@@ -506,6 +506,8 @@ const EventForm: React.FC<EventFormProps> = ({
                   alt="Event Photo"
                   className="w-full h-full object-cover rounded-lg"
                   loading="lazy"
+                  width={200}
+                  height={200}
                 />
               ) : (
                 // <span className="text-gray-500">Upload Photo</span>

@@ -8,7 +8,7 @@ import {
 import { RoleConvex } from "./schema";
 import {
   FindUserByClerkIdResponse,
-  OrganizationsSchema,
+  OrganizationSchema,
   UserSchema,
   UserWithPromoCode,
 } from "@/types/types";
@@ -165,7 +165,7 @@ export const updateUserByClerkId = mutation({
         };
       }
 
-      const organization: OrganizationsSchema | null = await ctx.db.get(
+      const organization: OrganizationSchema | null = await ctx.db.get(
         user.organizationId
       );
 

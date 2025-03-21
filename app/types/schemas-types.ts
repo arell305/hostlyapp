@@ -94,6 +94,10 @@ export interface GuestListInfoSchema {
   checkInCloseTime: number;
 }
 
+export type EventWithTicketInfo = EventSchema & {
+  ticketInfo?: TicketInfoSchema | null;
+};
+
 export interface ConnectedAccountsSchema {
   _id: Id<"connectedAccounts">;
   _creationTime: number;

@@ -6,19 +6,27 @@ import { LuClipboardList } from "react-icons/lu";
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import EventFormSkeleton from "../loading/EventFormSkeleton";
 import { formatDateMDY, formatTime } from "../../../../../utils/luxon";
 import { usePathname } from "next/navigation";
 import _ from "lodash";
 import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { getTextBeforeComma } from "../../../../../utils/string";
+import { EventSchema, TicketInfoSchema } from "@/types/schemas-types";
+import { isTicketSalesOpen } from "@/lib/frontendHelper";
+import IconTextRow from "../../components/ui/IconTextRow";
 
-import { EventSchema } from "@/types/schemas-types";
 interface EventPreviewProps {
   eventData: EventSchema;
   isApp: boolean;
+  ticketInfo?: TicketInfoSchema | null;
 }
 
-const EventPreview: React.FC<EventPreviewProps> = ({ eventData, isApp }) => {
+const EventPreview: React.FC<EventPreviewProps> = ({
+  eventData,
+  isApp,
+  ticketInfo,
+}) => {
   const displayEventPhoto = useQuery(
     api.photo.getFileUrl,
     eventData.photo
@@ -29,42 +37,52 @@ const EventPreview: React.FC<EventPreviewProps> = ({ eventData, isApp }) => {
   );
   const pathname = usePathname();
 
+  const isSalesOpen = isTicketSalesOpen(ticketInfo);
+
   return (
     <Link href={`${pathname}/events/${eventData._id}`} className="">
-      {/* <div className="w-[190px] h-[400px] shadow cursor-pointer hover:bg-gray-100 p-2 rounded-md transition duration-200 bg-white"> */}
       <div
-        className={`w-[190px] h-[${isApp ? "380" : "340"}px] shadow cursor-pointer hover:bg-gray-100 p-2 rounded-md transition duration-200 bg-white`}
+        className={`w-full md:w-[190px] md:h-[${isApp ? "380" : "340"}px] shadow-md cursor-pointer hover:shadow-xl rounded-md transition duration-200 bg-white pb-1`}
       >
-        {displayEventPhoto === undefined && <EventFormSkeleton />}
-        {displayEventPhoto ? (
+        <div
+          className={`flex items-center justify-between pl-4 py-2 ${!displayEventPhoto ? "mb-2" : ""}`}
+        >
+          <h2 className={`font-playfair font-bold text-2xl md:text-base `}>
+            {_.capitalize(eventData.name)}
+          </h2>
+          {isSalesOpen && (
+            <Badge
+              variant="secondary"
+              className="bg-blue-100 text-blue-800 hover:bg-blue-100 mr-4"
+            >
+              Tickets On Sale
+            </Badge>
+          )}
+        </div>
+        {displayEventPhoto && (
           <Image
             src={displayEventPhoto}
             alt={eventData.name}
-            className="w-full h-[217px] mb-2 rounded-lg" // Adjust styles as needed
+            className="w-full h-[180px] md:h-[217px] mb-1.5 md:mb-2 rounded-lg object-cover"
+            width={400}
+            height={400}
           />
-        ) : (
-          <div className="w-full h-[217px] mb-2 bg-gray-200 rounded-lg animate-pulse"></div>
         )}
 
-        <h2 className=" font-playfair font-bold mb-1 text-center ">
-          {_.capitalize(eventData.name)}
-        </h2>
-        <div className={`text-xs space-y-2 ${isApp ? "border-b" : ""} `}>
-          {/* <div className="text-xs space-y-2 border-b-2 border-customLightGray"> */}
-          <div className="flex space-x-2 items-center">
-            <MdOutlineCalendarToday />
-            <p>{formatDateMDY(eventData.startTime)}</p>
-          </div>
-          <div className="flex space-x-2 items-center">
-            <FiClock />
-            <p>{formatTime(eventData.startTime)}</p>
-          </div>
-          {eventData.address && (
-            <div className="flex space-x-2 items-center">
-              <LuMapPin />
-              <p className="truncate w-full">{eventData.address}</p>
-            </div>
-          )}
+        <div className={`text-md px-1 md:text-xs ${isApp ? "border-b" : ""}`}>
+          <IconTextRow
+            icon={<MdOutlineCalendarToday />}
+            text={formatDateMDY(eventData.startTime)}
+          />
+          <IconTextRow
+            icon={<FiClock />}
+            text={formatTime(eventData.startTime)}
+          />
+          <IconTextRow
+            icon={<LuMapPin />}
+            text={getTextBeforeComma(eventData.address)}
+            isLastItem={true}
+          />
           <div className="pb-1"></div>
         </div>
         {isApp && (

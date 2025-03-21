@@ -10,6 +10,7 @@ import FullLoading from "./app/components/loading/FullLoading";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ErrorComponent from "./app/components/errors/ErrorComponent";
 import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
+import MessageCard from "./app/components/ui/MessageCard";
 
 const CompanyEvents = () => {
   const { name, photo, publicOrganizationContextError, organizationId } =
@@ -17,13 +18,11 @@ const CompanyEvents = () => {
 
   const router = useRouter();
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-
   const response = usePaginatedQuery(
     api.events.getEventsByOrganizationPublic,
     organizationId ? { organizationId } : "skip",
     { initialNumItems: 5 }
   );
-
   const displayCompanyPhoto = useQuery(
     api.photo.getFileUrl,
     photo ? { storageId: photo } : "skip"
@@ -67,26 +66,28 @@ const CompanyEvents = () => {
   if (publicOrganizationContextError) {
     return <ErrorComponent message={publicOrganizationContextError} />;
   }
-
   return (
-    <main className="bg-gray-100 min-h-screen flex justify-center">
-      <div className="flex flex-col  pt-10">
+    <main className="bg-gray-100 min-h-screen flex justify-center overflow-hidden">
+      <div className="flex flex-col pt-10 pb-20 w-full max-w-4xl">
         {displayCompanyPhoto && (
-          <Image
-            src={displayCompanyPhoto}
-            alt={`Company image`}
-            width={150}
-            height={150}
-            className="object-cover"
-          />
+          <div className="flex justify-center w-full mb-2">
+            <Image
+              src={displayCompanyPhoto}
+              alt={`Company image`}
+              width={150}
+              height={150}
+              className="object-cover rounded-md"
+              sizes="150px"
+            />
+          </div>
         )}
 
         <h1 className="text-4xl text-center pb-8"> {_.capitalize(name)}</h1>
         <div className="px-4 sm:px-6 lg:px-8">
           {response.results.length === 0 ? (
-            <p className="text-center text-gray-500">No events found.</p>
+            <MessageCard message="No events found." />
           ) : (
-            <div className="flex flex-wrap justify-center gap-4 pb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-8 md:gap-y-12 mx-.5">
               {response.results.map((event: EventSchema) => (
                 <EventPreview key={event._id} eventData={event} isApp={false} />
               ))}

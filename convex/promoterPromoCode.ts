@@ -11,7 +11,7 @@ import {
   UpdatePromoterPromoCodeResponse,
   ValidatePromoterPromoCodeResponse,
 } from "@/types/convex-types";
-import { OrganizationsSchema, UserSchema } from "@/types/types";
+import { OrganizationSchema, UserSchema } from "@/types/types";
 import { Id } from "./_generated/dataModel";
 import {
   validateEvent,
@@ -146,7 +146,7 @@ export const validatePromoterPromoCode = query({
 
       const validatedUser = validateUser(user, true, false, true);
 
-      const organization: OrganizationsSchema | null = await ctx.db.get(
+      const organization: OrganizationSchema | null = await ctx.db.get(
         validatedUser.organizationId!
       );
       const validatedOrganization = validateOrganization(organization);

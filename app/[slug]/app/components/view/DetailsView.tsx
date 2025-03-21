@@ -6,15 +6,23 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import EventFormSkeleton from "../loading/EventFormSkeleton";
 import { formatTime, formatDateMDY } from "../../../../../utils/luxon";
-import { EventSchema } from "@/types/schemas-types";
+import { EventSchema, TicketInfoSchema } from "@/types/schemas-types";
 import _ from "lodash";
 import Image from "next/image";
+import IconTextRow from "../../components/ui/IconTextRow";
+import AddressTextRow from "../../components/ui/AddressTextRow";
+import { Badge } from "@/components/ui/badge";
+import { isTicketSalesOpen } from "@/lib/frontendHelper";
 
 interface DetailsViewProps {
   eventData: EventSchema;
+  ticketInfoData?: TicketInfoSchema | null;
 }
 
-const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
+const DetailsView: React.FC<DetailsViewProps> = ({
+  eventData,
+  ticketInfoData,
+}) => {
   const displayEventPhoto = useQuery(
     api.photo.getFileUrl,
     eventData.photo ? { storageId: eventData.photo } : "skip"
@@ -25,40 +33,52 @@ const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
     window.open(googleMapsUrl, "_blank");
   };
 
+  const isSalesOpen = isTicketSalesOpen(ticketInfoData);
+
   return (
     <div className="flex flex-col rounded border border-altGray w-[400px] p-3 shadow bg-white">
       {displayEventPhoto === undefined && <EventFormSkeleton />}
-      {displayEventPhoto ? (
-        // Placeholder skeleton
+      <div
+        className={`flex items-center justify-between pl-4 py-2 ${!displayEventPhoto ? "mb-2" : ""}`}
+      >
+        <h2 className={`font-playfair font-bold text-2xl md:text-base `}>
+          {_.capitalize(eventData.name)}
+        </h2>
+        {isSalesOpen && (
+          <Badge
+            variant="secondary"
+            className="bg-blue-100 text-blue-800 hover:bg-blue-100 mr-4"
+          >
+            Tickets On Sale
+          </Badge>
+        )}
+      </div>
+      {displayEventPhoto && (
         <Image
           src={displayEventPhoto}
           alt={eventData.name || "Event photo"}
-          className="w-full h-auto mb-2 rounded-lg"
+          className="w-full h-[180px] md:h-[217px] mb-1.5 md:mb-2 rounded-lg object-cover"
+          width={400}
+          height={400}
         />
-      ) : (
-        <div className="w-full h-[200px] mb-2 bg-gray-200 rounded-lg animate-pulse"></div>
       )}
-      <h2 className="text-2xl font-playfair font-bold mb-1 text-center md:text-start">
-        {_.capitalize(eventData.name) || "Event Name"}
-      </h2>
-      <div className="space-y-2">
-        <div className="flex space-x-2 items-center">
-          <MdOutlineCalendarToday className="text-xl" />
-          <p>
-            {eventData.startTime ? formatDateMDY(eventData.startTime) : "TBD"}
-          </p>
-        </div>
-        <div className="flex space-x-2 items-center">
-          <FiClock className="text-xl" />
-          <p>{`${formatTime(eventData.startTime)} - ${formatTime(eventData.endTime)}`}</p>
-        </div>
-        <div
-          className="flex items-start space-x-2 cursor-pointer underline hover:text-blue-700 hover:underline"
+      <div>
+        <IconTextRow
+          icon={<MdOutlineCalendarToday />}
+          text={
+            eventData.startTime ? formatDateMDY(eventData.startTime) : "TBD"
+          }
+        />
+        <IconTextRow
+          icon={<FiClock />}
+          text={`${formatTime(eventData.startTime)} - ${formatTime(eventData.endTime)}`}
+        />
+        <AddressTextRow
+          icon={<LuMapPin />}
+          text={eventData.address}
+          isLastItem={true}
           onClick={handleAddressClick}
-        >
-          <LuMapPin className="text-xl flex-shrink-0" />
-          <p className="">{eventData.address}</p>
-        </div>
+        />
       </div>
     </div>
   );

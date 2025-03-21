@@ -93,7 +93,7 @@ export enum ErrorMessages {
   NOT_BELONG = "User does not belong to the organization of the event.",
   NOT_FOUND = "Not found.",
   ORGANIZATION_DB_CREATE_ERROR = "DB error creating organization",
-  ORGANIZATION_DB_QUERY_SLUG_ERROR = "DB error fetching organization by slug",
+  ORGANIZATION_DB_QUERY_NAME_ERROR = "DB error fetching organization by name",
   ORGANIZATION_NOT_LOADED = "Organization not loaded",
   PAYMENT_FAILED = "Payment failed",
   PAYMENT_INTENT_FAILED = "Failed to create payment intent",

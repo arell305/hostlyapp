@@ -15,7 +15,7 @@ import {
 import { StripeAccountStatusConvex } from "./schema";
 import { DeleteConnectedAccountResponse } from "@/types/convex/internal-types";
 import { Id } from "./_generated/dataModel";
-import { OrganizationsSchema } from "@/types/types";
+import { OrganizationSchema } from "@/types/types";
 import {
   validateConnectedAccount,
   validateOrganization,
@@ -232,7 +232,7 @@ export const getConnectedAccountStatusBySlug = query({
   ): Promise<GetConnectedAccountStatusBySlugResponse> => {
     const { slug } = args;
     try {
-      const organization: OrganizationsSchema | null = await ctx.db
+      const organization: OrganizationSchema | null = await ctx.db
         .query("organizations")
         .withIndex("by_slug", (q) => q.eq("slug", slug))
         .first();

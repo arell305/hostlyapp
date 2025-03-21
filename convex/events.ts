@@ -11,8 +11,8 @@ import {
   CancelEventResponse,
   GuestListNameSchema,
   GuestListSchema,
-  OrganizationsSchema,
   Promoter,
+  OrganizationSchema,
 } from "@/types/types";
 import { ResponseStatus, SubscriptionTier, UserRole } from "../utils/enum";
 import { ErrorMessages, Gender, ShowErrorMessages } from "@/types/enums";
@@ -33,6 +33,7 @@ import {
   PromoterPromoCodeSchema,
   TicketInfoSchema,
   UserSchema,
+  EventWithTicketInfo,
 } from "@/types/schemas-types";
 import { getCurrentTime } from "../utils/luxon";
 import { api, internal } from "./_generated/api";
@@ -54,7 +55,6 @@ import {
   isUserInCompanyOfEvent,
   isUserInOrganization,
   performAddEventCleanup,
-  shouldExposeError,
 } from "./backendUtils/helper";
 import { DateTime } from "luxon";
 
@@ -110,10 +110,10 @@ export const addEvent = action({
         UserRole.Hostly_Moderator,
         UserRole.Hostly_Admin,
       ]);
-
-      const organization = await ctx.runQuery(
-        internal.organizations.getOrganizationById,
-        { organizationId }
+      const organization = validateOrganization(
+        await ctx.runQuery(internal.organizations.getOrganizationById, {
+          organizationId,
+        })
       );
       isUserInOrganization(identity, organization.clerkOrganizationId);
 
@@ -472,7 +472,7 @@ export const updateEvent = action({
       const guestListInfoId: Id<"guestListInfo"> | null =
         await handleGuestListUpdateData(
           ctx,
-          organization,
+          validatedOrganization,
           eventId,
           guestListData
         );
@@ -519,7 +519,7 @@ export const cancelEvent = mutation({
       const event: EventSchema | null = await ctx.db.get(eventId);
       const validatedEvent = validateEvent(event, false);
 
-      const organization: OrganizationsSchema | null = await ctx.db.get(
+      const organization: OrganizationSchema | null = await ctx.db.get(
         validatedEvent.organizationId
       );
       const validatedOrganization = validateOrganization(organization);
@@ -551,35 +551,47 @@ export const getEventsByOrganizationPublic = query({
     organizationId: v.id("organizations"),
     paginationOpts: paginationOptsValidator,
   },
-  handler: async (ctx, args): Promise<PaginationResult<EventSchema>> => {
-    const { organizationId, paginationOpts } = args;
-
-    const currenTime = getCurrentTime();
-    const organization = await ctx.db.get(organizationId);
+  handler: async (
+    ctx,
+    args
+  ): Promise<PaginationResult<EventWithTicketInfo>> => {
+    const organization = await ctx.db.get(args.organizationId);
 
     if (!organization) {
       return {
         page: [],
         isDone: true,
-        continueCursor: null,
-      } as unknown as PaginationResult<EventSchema>;
+        continueCursor: "",
+      };
     }
 
-    const events: PaginationResult<EventSchema> = await ctx.db
+    const currenTime = getCurrentTime();
+
+    const { page, continueCursor, isDone } = await ctx.db
       .query("events")
       .withIndex("by_organizationId_and_startTime", (q) =>
-        q.eq("organizationId", organization._id)
+        q.eq("organizationId", args.organizationId)
       )
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("isActive"), true),
-          q.gt(q.field("endTime"), currenTime)
-        )
-      )
+      .filter((q) => q.gt(q.field("endTime"), currenTime))
       .order("asc")
-      .paginate(paginationOpts);
+      .paginate(args.paginationOpts);
 
-    return events;
+    const eventsWithTicketInfo = await Promise.all(
+      page.map(async (event) => {
+        if (!event.ticketInfoId) {
+          return { ...event, ticketInfo: null };
+        }
+
+        const ticketInfo = await ctx.db.get(event.ticketInfoId);
+        return { ...event, ticketInfo };
+      })
+    );
+
+    return {
+      page: eventsWithTicketInfo,
+      continueCursor,
+      isDone,
+    };
   },
 });
 

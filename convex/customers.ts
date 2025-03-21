@@ -6,7 +6,7 @@ import {
   query,
 } from "./_generated/server";
 import { ResponseStatus, SubscriptionStatus, UserRole } from "../utils/enum";
-import { OrganizationsSchema } from "../app/types/types";
+import { OrganizationSchema } from "../app/types/types";
 import { internal } from "./_generated/api";
 import { ErrorMessages } from "@/types/enums";
 import {
@@ -92,7 +92,7 @@ export const findCustomerByClerkId = internalQuery({
       throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
     }
 
-    const organization: OrganizationsSchema | null = await ctx.db.get(
+    const organization: OrganizationSchema | null = await ctx.db.get(
       user.organizationId
     );
 
@@ -129,7 +129,7 @@ export const findCustomerWithCompanyNameByClerkId = internalQuery({
 
       const validatedCustomer = validateCustomer(customer);
 
-      const organization: OrganizationsSchema | null = await ctx.db.get(
+      const organization: OrganizationSchema | null = await ctx.db.get(
         validatedUser.organizationId as Id<"organizations">
       );
 
@@ -316,7 +316,7 @@ export const GetCustomerTierBySlug = query({
     const { slug } = args;
     try {
       const identity = await requireAuthenticatedUser(ctx);
-      const organization: OrganizationsSchema | null = await ctx.db
+      const organization: OrganizationSchema | null = await ctx.db
         .query("organizations")
         .withIndex("by_slug", (q) => q.eq("slug", slug))
         .first();

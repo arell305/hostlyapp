@@ -42,6 +42,7 @@ import {
   handleUserUpdated,
   verifyClerkWebhook,
 } from "./backendUtils/clerkWebhooks";
+import { validateOrganization } from "./backendUtils/validation";
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -124,11 +125,10 @@ export const updateOrganizationMemberships = action({
         UserRole.Hostly_Admin,
       ]);
 
-      const organization = await ctx.runQuery(
-        internal.organizations.getOrganizationById,
-        {
+      const organization = validateOrganization(
+        await ctx.runQuery(internal.organizations.getOrganizationById, {
           organizationId,
-        }
+        })
       );
 
       const clerkOrgId = organization?.clerkOrganizationId;
@@ -303,11 +303,9 @@ export const createClerkOrganization = action({
         };
       }
 
-      const slug: string = slugify(companyName, { lower: true, strict: true });
-
       const existingOrganization = await ctx.runQuery(
-        internal.organizations.getOrganizationBySlug,
-        { slug }
+        internal.organizations.getOrganizationByName,
+        { name: companyName }
       );
 
       if (existingOrganization) {
@@ -317,6 +315,8 @@ export const createClerkOrganization = action({
           error: ErrorMessages.COMPANY_NAME_ALREADY_EXISTS,
         };
       }
+
+      const slug: string = slugify(companyName, { lower: true, strict: true });
 
       const clerkOrganization = await createClerkOrg({
         companyName,
@@ -387,6 +387,9 @@ export const updateClerkOrganizationPhoto = action({
   },
   handler: async (ctx, args): Promise<UpdateClerkOrganizationPhotoResponse> => {
     const { clerkOrganizationId, photo } = args;
+    console.log("Starting updateClerkOrganizationPhoto...");
+    console.log("clerkOrganizationId:", clerkOrganizationId);
+    console.log("photo:", photo);
 
     try {
       const idenitity = await requireAuthenticatedUser(ctx, [
@@ -396,29 +399,38 @@ export const updateClerkOrganizationPhoto = action({
         UserRole.Hostly_Admin,
       ]);
       const clerkUserId = idenitity.id as string;
+      console.log("Authenticated user:", clerkUserId);
 
       let blob: Blob | null = null;
       if (photo) {
+        console.log("Getting photo from storage...");
         blob = await ctx.storage.get(photo);
         if (!blob) {
-          console.log(ErrorMessages.FILE_CREATION_ERROR);
+          console.error("Failed to get photo from storage");
           return {
             status: ResponseStatus.ERROR,
             data: null,
             error: ErrorMessages.FILE_CREATION_ERROR,
           };
         } else {
+          console.log("Updating organization logo in Clerk...");
           await updateOrganizationLogo({
             organizationId: clerkOrganizationId,
             file: blob,
             uploaderUserId: clerkUserId,
           });
+          console.log("Successfully updated Clerk organization logo");
         }
+      } else {
+        console.log("No photo provided, skipping Clerk logo update");
       }
+
+      console.log("Updating organization in Convex...");
       await ctx.runMutation(internal.organizations.updateOrganization, {
         clerkOrganizationId,
         photo,
       });
+      console.log("Successfully updated organization in Convex");
 
       return {
         status: ResponseStatus.SUCCESS,
@@ -427,7 +439,7 @@ export const updateClerkOrganizationPhoto = action({
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
+      console.error("Error in updateClerkOrganizationPhoto:", error);
       return {
         status: ResponseStatus.ERROR,
         data: null,

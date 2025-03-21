@@ -4,9 +4,9 @@ import { query } from "./_generated/server";
 import { ResponseStatus, StripeAccountStatus, UserRole } from "../utils/enum";
 import {
   OrganizationDetails,
-  OrganizationsSchema,
   Promoter,
   UserSchema,
+  OrganizationSchema,
 } from "@/types/types";
 import { ErrorMessages } from "@/types/enums";
 import {
@@ -135,7 +135,7 @@ export const getAllOrganizations = query({
         UserRole.Hostly_Admin,
       ]);
 
-      const organizations: OrganizationsSchema[] = await ctx.db
+      const organizations: OrganizationSchema[] = await ctx.db
         .query("organizations")
         .withIndex("by_slug")
         .order("asc")
@@ -190,7 +190,7 @@ export const getOrganizationByClerkId = query({
   args: {
     clerkOrganizationId: v.string(),
   },
-  handler: async (ctx, args): Promise<OrganizationsSchema | null> => {
+  handler: async (ctx, args): Promise<OrganizationSchema | null> => {
     try {
       return await ctx.db
         .query("organizations")
@@ -209,9 +209,9 @@ export const internalGetOrganizationByClerkId = internalQuery({
   args: {
     clerkOrganizationId: v.string(),
   },
-  handler: async (ctx, args): Promise<OrganizationsSchema> => {
+  handler: async (ctx, args): Promise<OrganizationSchema> => {
     try {
-      const organization: OrganizationsSchema | null = await ctx.db
+      const organization: OrganizationSchema | null = await ctx.db
         .query("organizations")
         .filter((q) =>
           q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
@@ -274,7 +274,7 @@ export const getPromotersByOrg = query({
         UserRole.Moderator,
       ]);
 
-      const organization: OrganizationsSchema | null =
+      const organization: OrganizationSchema | null =
         await ctx.db.get(organizationId);
 
       const validatedOrganization = validateOrganization(organization);
@@ -344,20 +344,18 @@ export const getOrganizationImagePublic = query({
   },
 });
 
-export const getOrganizationBySlug = internalQuery({
-  args: {
-    slug: v.string(),
-  },
-  handler: async (ctx, { slug }): Promise<OrganizationsSchema | null> => {
+export const getOrganizationByName = internalQuery({
+  args: { name: v.string() },
+  handler: async (ctx, args): Promise<OrganizationSchema | null> => {
     try {
       const organization = await ctx.db
         .query("organizations")
-        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .withIndex("by_name", (q) => q.eq("name", args.name))
         .first();
       return organization;
     } catch (error) {
-      console.error(ErrorMessages.ORGANIZATION_DB_QUERY_SLUG_ERROR, error);
-      throw new Error(ErrorMessages.ORGANIZATION_DB_QUERY_SLUG_ERROR);
+      console.error(ErrorMessages.ORGANIZATION_DB_QUERY_NAME_ERROR, error);
+      throw new Error(ErrorMessages.ORGANIZATION_DB_QUERY_NAME_ERROR);
     }
   },
 });
@@ -403,13 +401,12 @@ export const getUsersByOrganization = query({
 });
 
 export const getOrganizationById = internalQuery({
-  args: {
-    organizationId: v.id("organizations"),
-  },
-  handler: async (ctx, { organizationId }): Promise<OrganizationsSchema> => {
+  args: { organizationId: v.id("organizations") },
+  handler: async (ctx, args): Promise<OrganizationSchema | null> => {
     try {
-      const organization: OrganizationsSchema | null =
-        await ctx.db.get(organizationId);
+      const organization: OrganizationSchema | null = await ctx.db.get(
+        args.organizationId
+      );
 
       if (!organization) {
         throw new Error(ErrorMessages.COMPANY_NOT_FOUND);

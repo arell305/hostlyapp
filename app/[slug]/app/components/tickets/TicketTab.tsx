@@ -1,5 +1,5 @@
 import { TicketInfoSchema } from "@/types/schemas-types";
-import { OrganizationsSchema } from "@/types/types";
+import { OrganizationSchema } from "@/types/types";
 import React from "react";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { ClerkPermissions } from "../../../../../utils/enum";
@@ -14,7 +14,7 @@ interface TicketInfoTabProps {
   canViewAllTickets?: boolean;
   eventId: Id<"events">;
   has: any;
-  organization: OrganizationsSchema;
+  organization: OrganizationSchema;
 }
 
 const TicketTab: React.FC<TicketInfoTabProps> = ({

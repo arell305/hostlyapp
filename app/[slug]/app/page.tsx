@@ -226,7 +226,7 @@ const WeekViewCalendar: React.FC = () => {
   }
 
   return (
-    <div className="mt-2 px-1 max-w-[600px] min-w-[420px] mx-auto">
+    <div className="mt-2 px-1 max-w-2xl min-w-[420px] mx-auto">
       {!connectedAccountEnabled && isCompanyAdmin && (
         <div className="p-1">
           <Notification
@@ -299,14 +299,12 @@ const WeekViewCalendar: React.FC = () => {
             {formatLongDate(date)}
           </h3>
           {selectedEvents.length > 0 ? (
-            <div className="py-4  flex flex-wrap justify-center  gap-x-4 gap-y-3 bg-gray-200 md:rounded">
+            <div className="py-4 flex flex-wrap justify-center gap-x-4 gap-y-3 bg-gray-200 md:rounded">
               {selectedEvents.map((event: EventSchema) => {
                 return (
-                  <EventPreview
-                    key={event._id}
-                    eventData={event}
-                    isApp={true}
-                  />
+                  <div key={event._id} className="w-full">
+                    <EventPreview eventData={event} isApp={true} />
+                  </div>
                 );
               })}
             </div>

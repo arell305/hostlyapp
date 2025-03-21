@@ -332,7 +332,6 @@ const PaymentForm = () => {
               onClick={handleApplyPromoCode}
               variant="secondary"
               className="ml-4"
-              // className="ml-2 border border-customPrimaryBlue text-customPrimaryBlue bg-transparent hover:bg-customPrimaryBlue hover:text-white transition-all duration-300"
             >
               {isPromoLoading ? (
                 <>
