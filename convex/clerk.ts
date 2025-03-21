@@ -42,7 +42,10 @@ import {
   handleUserUpdated,
   verifyClerkWebhook,
 } from "./backendUtils/clerkWebhooks";
-import { validateOrganization } from "./backendUtils/validation";
+import {
+  validateCustomer,
+  validateOrganization,
+} from "./backendUtils/validation";
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -263,17 +266,11 @@ export const createClerkOrganization = action({
         };
       }
 
-      const customer = await ctx.runQuery(internal.customers.findCustomerById, {
-        customerId: user.customerId,
-      });
-
-      if (!customer) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.CUSTOMER_NOT_FOUND,
-        };
-      }
+      const customer = validateCustomer(
+        await ctx.runQuery(internal.customers.findCustomerById, {
+          customerId: user.customerId,
+        })
+      );
 
       const existingOrganization = await ctx.runQuery(
         internal.organizations.getOrganizationByName,
@@ -357,7 +354,6 @@ export const updateClerkOrganizationPhoto = action({
         UserRole.Hostly_Admin,
       ]);
       const clerkUserId = idenitity.id as string;
-      console.log("Authenticated user:", clerkUserId);
 
       let blob: Blob | null = null;
       if (photo) {
@@ -390,14 +386,7 @@ export const updateClerkOrganizationPhoto = action({
         data: { clerkOrganizationId },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error("Error in updateClerkOrganizationPhoto:", error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -425,11 +414,7 @@ export const updateOrganizationName = action({
       );
 
       if (existingOrganization) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.COMPANY_NAME_ALREADY_EXISTS,
-        };
+        throw new Error(ShowErrorMessages.COMPANY_NAME_ALREADY_EXISTS);
       }
 
       await Promise.all([
@@ -448,14 +433,7 @@ export const updateOrganizationName = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -497,14 +475,7 @@ export const updateOrganizationMetadata = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });

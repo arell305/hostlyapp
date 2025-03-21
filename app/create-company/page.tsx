@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { ResponseStatus } from "../../utils/enum";
 import _ from "lodash";
-import { ErrorMessages, FrontendErrorMessages } from "@/types/enums";
+import { FrontendErrorMessages } from "@/types/enums";
 import { RiImageAddFill } from "react-icons/ri";
 import { validatePromoDiscount } from "../../utils/frontend-validation";
 import { Id } from "../../convex/_generated/dataModel";
@@ -131,17 +131,11 @@ export default function CreateCompanyPage() {
         promoDiscount: promoDiscountValue,
       });
 
-      if (
-        response.status === ResponseStatus.ERROR &&
-        response.error === ErrorMessages.COMPANY_NAME_ALREADY_EXISTS
-      ) {
+      if (response.status === ResponseStatus.ERROR) {
         setErrors((prev) => ({
           ...prev,
-          general: ErrorMessages.COMPANY_NAME_ALREADY_EXISTS,
+          general: response.error,
         }));
-      } else if (response.status === ResponseStatus.ERROR) {
-        console.log("error creating company", response.error);
-        setErrors((prev) => ({ ...prev, general: "Error creating company" }));
       } else {
         const newOrganizationId = response.data.clerkOrganizationId;
         await setActive({
