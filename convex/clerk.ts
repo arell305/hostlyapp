@@ -400,7 +400,6 @@ export const updateClerkOrganizationPhoto = action({
 
       let blob: Blob | null = null;
       if (photo) {
-        console.log("Getting photo from storage...");
         blob = await ctx.storage.get(photo);
         if (!blob) {
           console.error("Failed to get photo from storage");
@@ -410,24 +409,20 @@ export const updateClerkOrganizationPhoto = action({
             error: ErrorMessages.FILE_CREATION_ERROR,
           };
         } else {
-          console.log("Updating organization logo in Clerk...");
           await updateOrganizationLogo({
             organizationId: clerkOrganizationId,
             file: blob,
             uploaderUserId: clerkUserId,
           });
-          console.log("Successfully updated Clerk organization logo");
         }
       } else {
         console.log("No photo provided, skipping Clerk logo update");
       }
 
-      console.log("Updating organization in Convex...");
       await ctx.runMutation(internal.organizations.updateOrganization, {
         clerkOrganizationId,
         photo,
       });
-      console.log("Successfully updated organization in Convex");
 
       return {
         status: ResponseStatus.SUCCESS,

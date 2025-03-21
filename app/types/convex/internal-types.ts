@@ -1,11 +1,6 @@
 import { Id } from "../../../convex/_generated/dataModel";
 import { ResponseStatus } from "../../../utils/enum";
-import {
-  CustomerSchema,
-  CustomerWithCompanyName,
-  EventSchema,
-  TicketInfoSchema,
-} from "../schemas-types";
+import { CustomerWithCompanyName, EventSchema } from "../schemas-types";
 import { ErrorResponse } from "../types";
 
 export type DeleteConnectedAccountResponse =

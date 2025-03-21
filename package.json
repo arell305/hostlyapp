@@ -37,6 +37,7 @@
     "luxon": "^3.5.0",
     "nanoid": "^5.0.9",
     "next": "^15.1.7",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.14",
     "pdfkit": "^0.16.0",
     "qrcode.react": "^4.2.0",
