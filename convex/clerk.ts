@@ -464,8 +464,8 @@ export const updateOrganizationName = action({
       const slug: string = slugify(name, { lower: true, strict: true });
 
       const existingOrganization = await ctx.runQuery(
-        internal.organizations.getOrganizationBySlug,
-        { slug }
+        internal.organizations.getOrganizationByName,
+        { name }
       );
 
       if (existingOrganization) {
