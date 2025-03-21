@@ -17,6 +17,10 @@
     "@clerk/nextjs": "^6.12.0",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-slot": "^1.1.2",
     "@stripe/connect-js": "^3.3.20",
     "@stripe/react-connect-js": "^3.3.20",
     "@stripe/react-stripe-js": "^2.8.0",
@@ -47,7 +51,8 @@
     "svix": "^1.36.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "uuid": "^11.0.5"
+    "uuid": "^11.0.5",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
