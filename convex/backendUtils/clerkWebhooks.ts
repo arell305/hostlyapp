@@ -71,7 +71,6 @@ export const handleOrganizationInvitationAccepted = async (
   data: OrganizationInvitationJSON
 ) => {
   try {
-    console.log("in update", data);
     const organization = await ctx.runQuery(
       internal.organizations.internalGetOrganizationByClerkId,
       { clerkOrganizationId: data.organization_id }

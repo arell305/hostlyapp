@@ -41,7 +41,12 @@ export const generatePDF = async (
       throw new Error(`Failed to create document: ${response.statusText}`);
     }
 
-    const data: DocumentResponse = await response.json();
+    const rawData = await response.json();
+    const data = rawData as DocumentResponse;
+
+    if (!data.document || typeof data.document.id !== "string") {
+      throw new Error(ErrorMessages.PDF_MONKEY_GENERATE);
+    }
 
     return data.document.id;
   } catch (error) {
