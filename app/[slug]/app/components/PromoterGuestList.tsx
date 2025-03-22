@@ -15,9 +15,8 @@ import ResponsiveConfirm from "./responsive/ResponsiveConfirm";
 import _ from "lodash";
 import { formatToTimeAndShortDate, isPast } from "../../../../utils/luxon";
 import FullLoading from "./loading/FullLoading";
-import { ResponseStatus } from "../../../../utils/enum";
 import ErrorComponent from "./errors/ErrorComponent";
-import { FrontendErrorMessages } from "@/types/enums";
+import { ResponseStatus, FrontendErrorMessages } from "@/types/enums";
 
 type GuestListManagerProps = {
   eventId: Id<"events">;

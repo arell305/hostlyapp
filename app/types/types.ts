@@ -1,13 +1,14 @@
 import { Id } from "../../convex/_generated/dataModel";
 import {
   ActiveStripeTab,
-  ActiveTab,
+  ErrorMessages,
+  Gender,
   ResponseStatus,
+  ActiveTab,
   SubscriptionStatus,
   SubscriptionTier,
   UserRole,
-} from "../../utils/enum";
-import { ErrorMessages, Gender } from "./enums";
+} from "./enums";
 
 export interface PricingOption {
   id: string;

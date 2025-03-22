@@ -7,12 +7,10 @@ import {
   query,
 } from "./_generated/server";
 import { TicketCounts, TicketInput } from "@/types/types";
-import { ErrorMessages, Gender } from "@/types/enums";
-import { ResponseStatus, UserRole } from "../utils/enum";
+import { ErrorMessages, Gender, UserRole, ResponseStatus } from "@/types/enums";
 import { Id } from "./_generated/dataModel";
 import {
   CustomerTicket,
-  EventSchema,
   TicketSchema,
   TicketSchemaWithPromoter,
 } from "@/types/schemas-types";
@@ -26,10 +24,14 @@ import { nanoid } from "nanoid";
 import { internal } from "./_generated/api";
 import { generatePDF } from "../utils/pdf";
 import { requireAuthenticatedUser } from "../utils/auth";
-import { validateEvent, validateUser } from "./backendUtils/validation";
-import { isUserInCompanyOfEvent } from "./backendUtils/helper";
+import {
+  validateEvent,
+  validateUser,
+  validateTicket,
+  validateTicketCheckIn,
+} from "./backendUtils/validation";
+import { handleError, isUserInCompanyOfEvent } from "./backendUtils/helper";
 import { DateTime } from "luxon";
-import { formatToTimeAndShortDate } from "../utils/luxon";
 
 export const insertTicketsSold = action({
   args: {
@@ -185,12 +187,7 @@ export const getTicketsByEventId = query({
         data: { tickets: ticketsWithPromoterName },
       };
     } catch (error) {
-      console.error("Error fetching tickets:", error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: ErrorMessages.GENERIC_ERROR,
-      };
+      return handleError(error);
     }
   },
 });
@@ -207,61 +204,33 @@ export const checkInTicket = mutation({
 
       const clerkUserId = identity.id as string;
 
-      const user = await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .first();
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+          .first()
+      );
 
-      const validatedUser = validateUser(user);
+      const ticket = validateTicket(
+        await ctx.db
+          .query("tickets")
+          .filter((q) => q.eq(q.field("ticketUniqueId"), args.ticketUniqueId))
+          .first()
+      );
 
-      const ticket: TicketSchema | null = await ctx.db
-        .query("tickets")
-        .filter((q) => q.eq(q.field("ticketUniqueId"), args.ticketUniqueId))
-        .first();
+      const event = validateEvent(
+        await ctx.db
+          .query("events")
+          .filter((q) => q.eq(q.field("_id"), ticket.eventId))
+          .first()
+      );
 
-      if (!ticket) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.TICKET_NOT_FOUND,
-        };
-      }
+      isUserInCompanyOfEvent(user, event);
 
-      const event: EventSchema | null = await ctx.db
-        .query("events")
-        .filter((q) => q.eq(q.field("_id"), ticket.eventId))
-        .first();
-
-      const validatedEvent = validateEvent(event);
-
-      isUserInCompanyOfEvent(validatedUser, validatedEvent);
-
-      if (ticket.checkInTime) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: `Ticket already checked in on ${formatToTimeAndShortDate(ticket.checkInTime)}`,
-        };
-      }
-
-      const now = DateTime.now().toMillis();
-      const eventStartTime = DateTime.fromMillis(
-        validatedEvent.startTime
-      ).toMillis();
-      const eventEndTime = DateTime.fromMillis(
-        validatedEvent.endTime
-      ).toMillis();
-
-      if (now < eventStartTime || now > eventEndTime) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: `Invalid check-in. Ticket is for ${validatedEvent.name} on ${formatToTimeAndShortDate(validatedEvent.startTime)}`,
-        };
-      }
+      validateTicketCheckIn(ticket, event);
 
       await ctx.db.patch(ticket._id, {
-        checkInTime: now,
+        checkInTime: DateTime.now().toMillis(),
       });
 
       return {
@@ -269,12 +238,7 @@ export const checkInTicket = mutation({
         data: { ticketId: ticket._id },
       };
     } catch (error) {
-      console.error("Error checking in ticket:", error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: ErrorMessages.GENERIC_ERROR,
-      };
+      return handleError(error);
     }
   },
 });
@@ -297,15 +261,16 @@ export const insertTicket = internalMutation({
 
 export const getTicketById = internalQuery({
   handler: async (ctx, { ticketId }: { ticketId: Id<"tickets"> }) => {
-    // Retrieve the ticket from the database
-    const ticket = await ctx.db.get(ticketId);
-
-    // Check if ticket exists
-    if (!ticket) {
-      throw new Error("Ticket not found");
+    try {
+      const ticket = await ctx.db.get(ticketId);
+      if (!ticket) {
+        throw new Error(ErrorMessages.TICKET_NOT_FOUND);
+      }
+      return ticket;
+    } catch (error) {
+      console.error("Error fetching ticket:", error);
+      throw new Error(ErrorMessages.TICKET_DB_QUERY);
     }
-
-    return ticket; // Return the ticket data
   },
 });
 
@@ -352,14 +317,7 @@ export const getTicketsByClerkUser = query({
         data: { ticketCounts },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });

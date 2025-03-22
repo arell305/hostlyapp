@@ -12,8 +12,12 @@ import {
   SubscriptionTierConvex,
 } from "./schema";
 import { internal } from "./_generated/api";
-import { ErrorMessages, ShowErrorMessages } from "@/types/enums";
-import { ResponseStatus, UserRole } from "../utils/enum";
+import {
+  ErrorMessages,
+  ShowErrorMessages,
+  ResponseStatus,
+  UserRole,
+} from "@/types/enums";
 import {
   RevokeOrganizationInvitationResponse,
   CreateOrganizationResponse,
@@ -22,6 +26,7 @@ import {
   UpdateOrganizationNameResponse,
   CreateClerkInvitationResponse,
   UpdateOrganizationMetadataResponse,
+  WebhookResponse,
 } from "@/types/convex-types";
 import { requireAuthenticatedUser } from "../utils/auth";
 import slugify from "slugify";
@@ -49,7 +54,7 @@ import {
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<WebhookResponse> => {
     try {
       const payload = await verifyClerkWebhook(args.payload, args.headers);
       console.log("payload", payload);
@@ -174,11 +179,7 @@ export const createClerkInvitation = action({
       });
 
       if (user) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.USER_ALREADY_EXISTS,
-        };
+        throw new Error(ShowErrorMessages.USER_ALREADY_EXISTS);
       }
 
       const response = await clerkInviteUserToOrganization(
@@ -251,19 +252,11 @@ export const createClerkOrganization = action({
       );
 
       if (user.organizationId) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.USER_ALREADY_HAS_COMPANY,
-        };
+        throw new Error(ShowErrorMessages.USER_ALREADY_HAS_COMPANY);
       }
 
       if (!user.customerId) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.USER_NOT_CUSTOMER,
-        };
+        throw new Error(ShowErrorMessages.USER_NOT_CUSTOMER);
       }
 
       const customer = validateCustomer(
@@ -307,7 +300,7 @@ export const createClerkOrganization = action({
       if (photo) {
         const blob = await ctx.storage.get(photo);
         if (!blob) {
-          console.log(ErrorMessages.FILE_CREATION_ERROR);
+          console.error(ErrorMessages.FILE_CREATION_ERROR);
           return {
             status: ResponseStatus.SUCCESS,
             data: {
@@ -360,11 +353,7 @@ export const updateClerkOrganizationPhoto = action({
         blob = await ctx.storage.get(photo);
         if (!blob) {
           console.error("Failed to get photo from storage");
-          return {
-            status: ResponseStatus.ERROR,
-            data: null,
-            error: ErrorMessages.FILE_CREATION_ERROR,
-          };
+          throw new Error(ErrorMessages.FILE_CREATION_ERROR);
         } else {
           await updateOrganizationLogo({
             organizationId: clerkOrganizationId,

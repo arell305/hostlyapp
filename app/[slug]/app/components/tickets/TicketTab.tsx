@@ -1,13 +1,12 @@
 import { TicketInfoSchema } from "@/types/schemas-types";
 import { OrganizationSchema } from "@/types/types";
-import React from "react";
 import { Id } from "../../../../../convex/_generated/dataModel";
-import { ClerkPermissions } from "../../../../../utils/enum";
 import { PiNewspaper } from "react-icons/pi";
 import PromoterTicketsSection from "./PromoterTicketsSection";
 import ModeratorTicketsSection from "./ModeratorTicketsSection";
 import ManagerTicketsSection from "./ManagerTicketsSection";
 import { isPast } from "../../../../../utils/luxon";
+import { ClerkPermissions } from "@/types/enums";
 
 interface TicketInfoTabProps {
   ticketData?: TicketInfoSchema | null;

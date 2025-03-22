@@ -4,12 +4,6 @@ import { useAction, useQuery } from "convex/react";
 import React, { useState, useEffect, useCallback } from "react";
 import { api } from "../../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import {
-  ActiveStripeTab,
-  ActiveTab,
-  ResponseStatus,
-  StripeAccountStatus,
-} from "../../../../utils/enum";
 import { loadConnectAndInitialize } from "@stripe/connect-js";
 import {
   ConnectAccountOnboarding,
@@ -21,10 +15,16 @@ import {
 import { Tab } from "@/types/types";
 import TabsNav from "../events/[eventId]/TabsNav";
 import { useToast } from "@/hooks/use-toast";
-import { ErrorMessages, FrontendErrorMessages } from "@/types/enums";
+import {
+  ActiveStripeTab,
+  ErrorMessages,
+  FrontendErrorMessages,
+  StripeAccountStatus,
+} from "@/types/enums";
 import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
 import FullLoading from "../components/loading/FullLoading";
 import ErrorComponent from "../components/errors/ErrorComponent";
+import { ActiveTab, ResponseStatus } from "@/types/enums";
 
 const Page = () => {
   const { user } = useClerk();

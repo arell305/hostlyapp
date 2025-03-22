@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -46,8 +47,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
       <DialogContent className="w-[90vw] md:min-w-0 rounded-xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{message}</DialogDescription>
         </DialogHeader>
-        <p className="mb-4">{message}</p>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="flex justify-center space-x-10">
           <Button

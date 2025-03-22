@@ -2,7 +2,6 @@
 import { useAction, useQuery } from "convex/react";
 import React, { useEffect, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
-import { ResponseStatus } from "../../../../utils/enum";
 import DetailsView from "../../app/components/view/DetailsView";
 import About from "../../app/components/view/About";
 import _ from "lodash";
@@ -11,7 +10,6 @@ import {
   PromoterPromoCodeWithDiscount,
   TicketInfoSchema,
 } from "@/types/schemas-types";
-import { Button } from "@/components/ui/button";
 import { FrontendErrorMessages } from "@/types/enums";
 import OrderReceipt from "@/[slug]/app/components/view/OrderReceipt";
 import { Elements } from "@stripe/react-stripe-js";
@@ -27,6 +25,7 @@ import {
   isTicketSalesOpen,
 } from "@/lib/frontendHelper";
 import MessageCard from "@/[slug]/app/components/ui/MessageCard";
+import { ResponseStatus } from "@/types/enums";
 
 interface EventContentProps {
   isStripeEnabled: boolean;
@@ -168,84 +167,73 @@ const EventContent: React.FC<EventContentProps> = ({
     clientSecret && !paymentSuccess && isTicketsSalesOpen;
 
   return (
-    <div className="bg-gray-100">
-      <div className="max-w-4xl flex flex-col">
-        <Button
-          variant="navGhost"
-          className="pt-4 justify-start"
-          onClick={onBrowseMoreEvents}
-        >
-          Back to Events
-        </Button>
-        <div className=" flex flex-col items-center space-y-4  pb-4 pt-4 min-h-[100vh]">
-          <DetailsView eventData={eventData} ticketInfoData={ticketInfoData} />
-          <About description={eventData.description} />
-          {paymentSuccess && (
-            <OrderReceipt onBrowseMoreEvents={onBrowseMoreEvents} />
-          )}
-          {isTicketsSalesOpen === false && (
-            <MessageCard message="Ticket sales are closed" />
-          )}
-          {shouldShowTicketPurchase && (
-            <div className="flex flex-col bg-white rounded border border-altGray w-[400px] p-3 shadow">
-              <h2 className="text-2xl font-bold mb-2 text-center md:text-start">
-                Tickets
-              </h2>
-              <TicketSelector
-                label="Male"
-                count={maleCount}
-                setCount={setMaleCount}
-                price={discountedMalePrice}
+    <div className="max-w-4xl  flex flex-col  space-y-4  pb-14 pt-4">
+      <DetailsView eventData={eventData} ticketInfoData={ticketInfoData} />
+      <About description={eventData.description} />
+      {paymentSuccess && (
+        <OrderReceipt onBrowseMoreEvents={onBrowseMoreEvents} />
+      )}
+      {isTicketsSalesOpen === false && (
+        <MessageCard message="Ticket sales are closed" />
+      )}
+      {shouldShowTicketPurchase && (
+        <div className="flex flex-col bg-white rounded border border-altGray w-[400px] p-3 shadow">
+          <h2 className="text-2xl font-bold mb-2 text-center md:text-start">
+            Tickets
+          </h2>
+          <TicketSelector
+            label="Male"
+            count={maleCount}
+            setCount={setMaleCount}
+            price={discountedMalePrice}
+          />
+          <TicketSelector
+            label="Female"
+            count={femaleCount}
+            setCount={setFemaleCount}
+            price={discountedFemalePrice}
+          />
+          {shouldShowPurchaseForm && (
+            <>
+              <OrderSummary
+                maleCount={maleCount}
+                femaleCount={femaleCount}
+                totalMalePrice={totalMalePrice}
+                totalFemalePrice={totalFemalePrice}
+                totalDiscount={totalDiscount}
+                discountAmount={discountAmount}
+                totalPrice={totalPrice}
+                validationResult={validationResult}
               />
-              <TicketSelector
-                label="Female"
-                count={femaleCount}
-                setCount={setFemaleCount}
-                price={discountedFemalePrice}
+              <EmailInput
+                email={email}
+                setEmail={setEmail}
+                emailError={emailError}
+                setEmailError={setEmailError}
               />
-              {shouldShowPurchaseForm && (
-                <>
-                  <OrderSummary
-                    maleCount={maleCount}
-                    femaleCount={femaleCount}
-                    totalMalePrice={totalMalePrice}
-                    totalFemalePrice={totalFemalePrice}
-                    totalDiscount={totalDiscount}
-                    discountAmount={discountAmount}
-                    totalPrice={totalPrice}
-                    validationResult={validationResult}
-                  />
-                  <EmailInput
-                    email={email}
-                    setEmail={setEmail}
-                    emailError={emailError}
-                    setEmailError={setEmailError}
-                  />
-                  <PromoCodeInput
-                    setPromoCode={setPromoCode}
-                    setPromoCodeError={setPromoCodeError}
-                    promoCodeError={promoCodeError}
-                    onApplyPromo={handleApplyPromoCode}
-                    isApplyPromoCodeLoading={isApplyPromoCodeLoading}
-                    promoCode={promoCode}
-                    isPromoApplied={isPromoApplied}
-                  />
-                  <CheckoutButton
-                    onCheckout={handleCheckout}
-                    checkoutError={checkoutError}
-                    isCheckoutLoading={isCheckoutLoading}
-                  />
-                </>
-              )}
-              {shouldShowStripeForm && (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <TicketPaymentForm setPaymentSuccess={setPaymentSuccess} />
-                </Elements>
-              )}
-            </div>
+              <PromoCodeInput
+                setPromoCode={setPromoCode}
+                setPromoCodeError={setPromoCodeError}
+                promoCodeError={promoCodeError}
+                onApplyPromo={handleApplyPromoCode}
+                isApplyPromoCodeLoading={isApplyPromoCodeLoading}
+                promoCode={promoCode}
+                isPromoApplied={isPromoApplied}
+              />
+              <CheckoutButton
+                onCheckout={handleCheckout}
+                checkoutError={checkoutError}
+                isCheckoutLoading={isCheckoutLoading}
+              />
+            </>
+          )}
+          {shouldShowStripeForm && (
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <TicketPaymentForm setPaymentSuccess={setPaymentSuccess} />
+            </Elements>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

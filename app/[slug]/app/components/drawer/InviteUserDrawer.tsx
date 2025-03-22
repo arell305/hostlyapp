@@ -1,6 +1,4 @@
-import React from "react";
-import { UserRole, roleMap } from "../../../../../utils/enum";
-import { changeableRoles } from "@/types/enums";
+import { changeableRoles, UserRole, roleMap } from "@/types/enums";
 import {
   Select,
   SelectTrigger,

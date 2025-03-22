@@ -20,9 +20,8 @@ import { Loader2 } from "lucide-react";
 import BaseDrawer from "../drawer/BaseDrawer";
 import { useAction } from "convex/react";
 import { toast } from "@/hooks/use-toast";
-import { FrontendErrorMessages } from "@/types/enums";
+import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus } from "../../../../../utils/enum";
 import { DESKTOP_WIDTH } from "@/types/constants";
 
 type ResponsivePaymentProps = {

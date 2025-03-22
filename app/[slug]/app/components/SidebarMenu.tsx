@@ -10,11 +10,11 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { PiNewspaper } from "react-icons/pi";
 import { IoHomeOutline } from "react-icons/io5";
-import { ClerkPermissions, UserRole } from "../../../../utils/enum";
 import { BiLogoStripe } from "react-icons/bi";
 import { useAuth } from "@clerk/nextjs";
 import { FaCirclePlus } from "react-icons/fa6";
 import Link from "next/link";
+import { ClerkPermissions, UserRole } from "@/types/enums";
 
 interface SidebarMenuProps {
   toggleSidebar?: () => void;

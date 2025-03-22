@@ -6,7 +6,7 @@ import FullLoading from "../components/loading/FullLoading";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import CompanySettingsContent from "./CompanySettingsContent";
 import { useAuth } from "@clerk/nextjs";
-import { UserRole } from "../../../../utils/enum";
+import { UserRole } from "@/types/enums";
 
 const CompanySettings = () => {
   const { organization, organizationContextError } = useContextOrganization();

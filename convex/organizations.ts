@@ -1,14 +1,18 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { query } from "./_generated/server";
-import { ResponseStatus, StripeAccountStatus, UserRole } from "../utils/enum";
 import {
   OrganizationDetails,
   Promoter,
   UserSchema,
   OrganizationSchema,
 } from "@/types/types";
-import { ErrorMessages } from "@/types/enums";
+import {
+  ErrorMessages,
+  StripeAccountStatus,
+  ResponseStatus,
+  UserRole,
+} from "@/types/enums";
 import {
   GetAllOrganizationsResponse,
   GetOrganizationContextResponse,
@@ -19,7 +23,7 @@ import {
 } from "@/types/convex-types";
 import { Id } from "./_generated/dataModel";
 import { requireAuthenticatedUser } from "../utils/auth";
-import { isUserInOrganization } from "./backendUtils/helper";
+import { handleError, isUserInOrganization } from "./backendUtils/helper";
 import {
   validateOrganization,
   validateSubscription,
@@ -174,14 +178,7 @@ export const getAllOrganizations = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -211,53 +208,20 @@ export const internalGetOrganizationByClerkId = internalQuery({
   },
   handler: async (ctx, args): Promise<OrganizationSchema> => {
     try {
-      const organization: OrganizationSchema | null = await ctx.db
-        .query("organizations")
-        .filter((q) =>
-          q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
-        )
-        .first();
-
-      if (!organization) {
-        throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
-      }
-
-      if (!organization.isActive) {
-        throw new Error(ErrorMessages.COMPANY_INACTIVE);
-      }
+      const organization: OrganizationSchema | null = validateOrganization(
+        await ctx.db
+          .query("organizations")
+          .filter((q) =>
+            q.eq(q.field("clerkOrganizationId"), args.clerkOrganizationId)
+          )
+          .first()
+      );
 
       return organization;
     } catch (error) {
       console.error(ErrorMessages.COMPANY_DB_QUERY_ERROR, error);
       throw new Error(ErrorMessages.COMPANY_DB_QUERY_ERROR);
     }
-  },
-});
-
-export const updateOrganizationPromoDiscount = internalMutation({
-  args: {
-    clerkOrganizationId: v.string(),
-    promoDiscount: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const { clerkOrganizationId, promoDiscount } = args;
-
-    const organization = await ctx.db
-      .query("organizations")
-      .withIndex("by_clerkOrganizationId", (q) =>
-        q.eq("clerkOrganizationId", clerkOrganizationId)
-      )
-      .first();
-
-    if (!organization) {
-      throw new Error("Organization not found");
-    }
-
-    const updatedOrganization = await ctx.db.patch(organization._id, {
-      promoDiscount: promoDiscount,
-    });
-
-    return updatedOrganization;
   },
 });
 
@@ -274,18 +238,15 @@ export const getPromotersByOrg = query({
         UserRole.Moderator,
       ]);
 
-      const organization: OrganizationSchema | null =
-        await ctx.db.get(organizationId);
+      const organization = validateOrganization(
+        await ctx.db.get(organizationId)
+      );
 
-      const validatedOrganization = validateOrganization(organization);
-
-      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
+      isUserInOrganization(identity, organization.clerkOrganizationId);
 
       const promoters: UserSchema[] = await ctx.db
         .query("users")
-        .filter((q) =>
-          q.eq(q.field("organizationId"), validatedOrganization._id)
-        )
+        .filter((q) => q.eq(q.field("organizationId"), organization._id))
         .filter((q) => q.eq(q.field("role"), UserRole.Promoter))
         .collect();
 
@@ -299,14 +260,7 @@ export const getPromotersByOrg = query({
         data: { promoters: formattedPromoters },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -318,28 +272,22 @@ export const getOrganizationImagePublic = query({
   handler: async (ctx, args): Promise<GetOrganizationImagePublicResponse> => {
     const { slug } = args;
     try {
-      const organization = await ctx.db
-        .query("organizations")
-        .withIndex("by_slug", (q) => q.eq("slug", slug))
-        .first();
+      const organization = validateOrganization(
+        await ctx.db
+          .query("organizations")
+          .withIndex("by_slug", (q) => q.eq("slug", slug))
+          .first()
+      );
 
-      const validatedOrganization = validateOrganization(organization);
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          photo: validatedOrganization.photo,
-          name: validatedOrganization.name,
+          photo: organization.photo,
+          name: organization.name,
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -388,14 +336,7 @@ export const getUsersByOrganization = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -404,17 +345,9 @@ export const getOrganizationById = internalQuery({
   args: { organizationId: v.id("organizations") },
   handler: async (ctx, args): Promise<OrganizationSchema | null> => {
     try {
-      const organization: OrganizationSchema | null = await ctx.db.get(
-        args.organizationId
+      const organization = validateOrganization(
+        await ctx.db.get(args.organizationId)
       );
-
-      if (!organization) {
-        throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
-      }
-
-      if (!organization.isActive) {
-        throw new Error(ErrorMessages.COMPANY_INACTIVE);
-      }
 
       return organization;
     } catch (error) {
@@ -470,14 +403,7 @@ export const getOrganizationContext = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -517,14 +443,7 @@ export const getPublicOrganizationContext = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });

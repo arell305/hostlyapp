@@ -1,13 +1,13 @@
 import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
 import {
+  Gender,
+  UserRoleEnum,
   StripeAccountStatus,
   SubscriptionStatus,
   UserRole,
-  UserRoleEnum,
-} from "../utils/enum";
-import { v } from "convex/values";
-import { SubscriptionTier } from "../utils/enum";
-import { Gender } from "@/types/enums";
+  SubscriptionTier,
+} from "@/types/enums";
 
 export const UserRoleEnumConvex = v.union(
   v.literal(UserRoleEnum.APP_ADMIN),

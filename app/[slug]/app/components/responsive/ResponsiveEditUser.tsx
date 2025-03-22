@@ -1,10 +1,8 @@
-import React from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
-
-import { UserRole } from "../../../../../utils/enum";
 import EditingUserModal from "../modals/EditingUserModal";
 import EditUserDrawer from "../drawer/EditUserDrawer";
 import { DESKTOP_WIDTH } from "@/types/constants";
+import { UserRole } from "@/types/enums";
 
 type CommonProps = {
   isOpen: boolean;

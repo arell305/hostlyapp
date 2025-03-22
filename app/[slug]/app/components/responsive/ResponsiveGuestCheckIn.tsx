@@ -5,6 +5,7 @@ import { GuestCheckIn } from "@/types/types";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -50,7 +51,9 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex flex-col">
-              <p>Check In Guest:</p>
+              <DialogDescription>
+                Check in the guest you want to add to the event.
+              </DialogDescription>
             </DialogTitle>
           </DialogHeader>
           <div className="my-4 flex items-center justify-between mx-10">

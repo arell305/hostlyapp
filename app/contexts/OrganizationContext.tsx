@@ -2,8 +2,11 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { ResponseStatus, StripeAccountStatus } from "../../utils/enum";
-import { ErrorMessages } from "@/types/enums";
+import {
+  ErrorMessages,
+  StripeAccountStatus,
+  ResponseStatus,
+} from "@/types/enums";
 import { useParams } from "next/navigation";
 import { OrganizationSchema } from "@/types/types";
 import { SubscriptionSchema } from "@/types/schemas-types";

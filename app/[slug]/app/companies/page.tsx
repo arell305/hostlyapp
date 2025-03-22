@@ -2,14 +2,14 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
+import CompanyCard from "../components/cards/CompanyCard";
+import FullLoading from "../components/loading/FullLoading";
+import ErrorComponent from "../components/errors/ErrorComponent";
 import {
   ResponseStatus,
   SubscriptionStatus,
   SubscriptionTier,
-} from "../../../../utils/enum";
-import CompanyCard from "../components/cards/CompanyCard";
-import FullLoading from "../components/loading/FullLoading";
-import ErrorComponent from "../components/errors/ErrorComponent";
+} from "@/types/enums";
 
 const PromotionalCompaniesList = () => {
   const router = useRouter();

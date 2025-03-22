@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { EventSchema } from "@/types/schemas-types";
 import { Protect } from "@clerk/nextjs";
-import { ClerkPermissions } from "../../../../../utils/enum";
-
+import { ClerkPermissions } from "@/types/enums";
 interface TopRowNavProps {
   eventData: EventSchema;
   isAdminOrg: boolean;
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   onCancelEdit: () => void;
+  handleNavigateHome: () => void;
 }
 
 const TopRowNav: React.FC<TopRowNavProps> = ({
@@ -16,6 +16,7 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
   isEditing,
   setIsEditing,
   onCancelEdit,
+  handleNavigateHome,
 }) => {
   return (
     <>
@@ -35,7 +36,7 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
           <Button
             className="w-[60px] md:w-[30px]"
             variant="navGhost"
-            onClick={() => setIsEditing(true)}
+            onClick={handleNavigateHome}
           >
             Back
           </Button>

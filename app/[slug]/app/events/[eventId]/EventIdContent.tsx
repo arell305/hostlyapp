@@ -8,11 +8,6 @@ import {
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
 import TabsNav from "./TabsNav";
-import {
-  ActiveStripeTab,
-  ActiveTab,
-  ResponseStatus,
-} from "../../../../../utils/enum";
 import EventForm from "@/[slug]/app/components/EventForm";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
@@ -27,7 +22,12 @@ import {
   SubscriptionSchema,
   TicketInfoSchema,
 } from "@/types/schemas-types";
-import { FrontendErrorMessages } from "@/types/enums";
+import {
+  ActiveStripeTab,
+  ActiveTab,
+  FrontendErrorMessages,
+  ResponseStatus,
+} from "@/types/enums";
 import TicketTab from "../../components/tickets/TicketTab";
 
 interface EventIdContentProps {
@@ -41,6 +41,7 @@ interface EventIdContentProps {
   isStripeEnabled: boolean;
   organization: OrganizationSchema;
   subscription: SubscriptionSchema;
+  handleNavigateHome: () => void;
 }
 
 const EventIdContent: React.FC<EventIdContentProps> = ({
@@ -50,6 +51,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   isStripeEnabled,
   organization,
   subscription,
+  handleNavigateHome,
 }) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showConfirmCancelEdit, setShowConfirmCancelEdit] =
@@ -119,6 +121,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
         setIsEditing={setIsEditing}
         isEditing={isEditing}
         onCancelEdit={handleCancelEdit}
+        handleNavigateHome={handleNavigateHome}
       />
       {isEditing ? (
         <EventForm
@@ -175,12 +178,14 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           onConfirm: () => {
             setShowConfirmCancelEdit(false);
             setIsEditing(false);
+            handleNavigateHome();
           },
         }}
         drawerProps={{
           onSubmit: () => {
             setShowConfirmCancelEdit(false);
             setIsEditing(false);
+            handleNavigateHome();
           },
           onOpenChange: (open) => setShowConfirmCancelEdit(open),
         }}

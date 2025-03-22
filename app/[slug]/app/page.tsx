@@ -14,7 +14,6 @@ import {
 } from "../../../utils/luxon";
 import { EventSchema } from "@/types/schemas-types";
 import EventPreview from "./components/calendar/EventPreview";
-import { ResponseStatus, UserRole } from "../../../utils/enum";
 import { TIME_ZONE } from "@/types/constants";
 import { Protect, useAuth } from "@clerk/nextjs";
 import { Notification } from "./components/ui/Notification";
@@ -24,6 +23,7 @@ import { ClerkPermissionsEnum } from "@/types/enums";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { DateTime } from "luxon";
 import PlusTierData from "./components/PlusTierData";
+import { ResponseStatus, UserRole } from "@/types/enums";
 
 type Value = Date | null | [Date | null, Date | null];
 

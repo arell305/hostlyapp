@@ -14,8 +14,12 @@ import {
   Promoter,
   OrganizationSchema,
 } from "@/types/types";
-import { ResponseStatus, SubscriptionTier, UserRole } from "../utils/enum";
-import { ErrorMessages, Gender, ShowErrorMessages } from "@/types/enums";
+import {
+  ErrorMessages,
+  ShowErrorMessages,
+  ResponseStatus,
+  UserRole,
+} from "@/types/enums";
 import { Id } from "./_generated/dataModel";
 import { PaginationResult, paginationOptsValidator } from "convex/server";
 import {
@@ -25,8 +29,9 @@ import {
   GetEventWithGuestListsResponse,
   UpdateGuestAttendanceResponse,
   GetEventsByMonthResponse,
+  GetEventWithTicketsData,
 } from "@/types/convex-types";
-import { PLUS_GUEST_LIST_LIMIT, TIME_ZONE } from "@/types/constants";
+import { TIME_ZONE } from "@/types/constants";
 import {
   EventSchema,
   GuestListInfoSchema,
@@ -36,14 +41,12 @@ import {
   EventWithTicketInfo,
 } from "@/types/schemas-types";
 import { getCurrentTime } from "../utils/luxon";
-import { api, internal } from "./_generated/api";
-import { GetEventWithTicketsData } from "@/types/convex/internal-types";
+import { internal } from "./_generated/api";
 import { requireAuthenticatedUser } from "../utils/auth";
 import {
   validateEvent,
   validateGuestList,
   validateOrganization,
-  validateSubscription,
   validateUser,
 } from "./backendUtils/validation";
 import {
@@ -160,22 +163,15 @@ export const addEvent = action({
 export const getEventById = query({
   args: { eventId: v.string() },
   handler: async (ctx, { eventId }): Promise<GetEventByIdResponse> => {
-    const normalizedId = ctx.db.normalizeId("events", eventId);
-    if (!normalizedId) {
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: ErrorMessages.EVENT_NOT_FOUND,
-      };
-    }
     try {
+      const normalizedId = ctx.db.normalizeId("events", eventId);
+      if (!normalizedId) {
+        throw new Error(ShowErrorMessages.EVENT_NOT_FOUND);
+      }
+
       const event: EventSchema | null = await ctx.db.get(normalizedId);
       if (!event) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.EVENT_NOT_FOUND,
-        };
+        throw new Error(ErrorMessages.EVENT_NOT_FOUND);
       }
       let ticketInfo: TicketInfoSchema | null = null;
       if (event.ticketInfoId) {
@@ -215,14 +211,7 @@ export const getEventById = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -303,14 +292,7 @@ export const getEventWithGuestLists = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -377,11 +359,7 @@ export const updateGuestAttendance = mutation({
       if (!updatedGuest) {
         // Handle the case where the guest was not found
         console.error(`Guest with ID ${guestId} not found.`);
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.GUEST_NOT_FOUND,
-        };
+        throw new Error(ErrorMessages.GUEST_NOT_FOUND);
       }
 
       return {
@@ -389,14 +367,7 @@ export const updateGuestAttendance = mutation({
         data: { guestListName: updatedGuest },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -534,14 +505,7 @@ export const cancelEvent = mutation({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -636,14 +600,7 @@ export const getEventsByMonth = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -695,14 +652,7 @@ export const internalUpdateEvent = internalMutation({
     const { eventId, ...updateFields } = args;
 
     try {
-      const event = await ctx.db.get(eventId);
-      if (!event) {
-        throw new Error(ErrorMessages.EVENT_NOT_FOUND);
-      }
-
-      if (!event.isActive) {
-        throw new Error(ErrorMessages.EVENT_INACTIVE);
-      }
+      validateEvent(await ctx.db.get(eventId));
 
       const fieldsToUpdate = Object.fromEntries(
         Object.entries(updateFields).filter(([_, value]) => value !== undefined)
@@ -713,7 +663,7 @@ export const internalUpdateEvent = internalMutation({
       return eventId;
     } catch (error) {
       console.error("Error updating event:", error);
-      throw new Error("Failed to update event");
+      throw new Error(ErrorMessages.EVENT_DB_UPDATE);
     }
   },
 });
@@ -723,16 +673,7 @@ export const getEventsWithTickets = internalQuery({
   handler: async (ctx, args): Promise<GetEventWithTicketsData> => {
     const { eventId, promoCode } = args;
     try {
-      const event = await ctx.db.get(eventId);
-      if (!event) {
-        throw new Error(ErrorMessages.EVENT_NOT_FOUND);
-      }
-      if (!event.isActive) {
-        throw new Error(ErrorMessages.EVENT_INACTIVE);
-      }
-      if (!event.ticketInfoId) {
-        throw new Error(ErrorMessages.TICKET_INFO_NOT_FOUND);
-      }
+      const event = validateEvent(await ctx.db.get(eventId));
 
       let promoterUserId: Id<"users"> | null = null;
 
@@ -744,7 +685,7 @@ export const getEventsWithTickets = internalQuery({
           .unique();
 
         if (!promoterPromoCode) {
-          throw new Error(ErrorMessages.INVALID_PROMO_CODE);
+          throw new Error(ShowErrorMessages.INVALID_PROMO_CODE);
         }
 
         const user: UserSchema | null = await ctx.db
@@ -767,7 +708,7 @@ export const getEventsWithTickets = internalQuery({
           throw new Error(ErrorMessages.USER_INACTIVE);
         }
         if (event.organizationId !== user.organizationId) {
-          throw new Error(ErrorMessages.INVALID_PROMO_CODE);
+          throw new Error(ShowErrorMessages.INVALID_PROMO_CODE);
         }
         promoterUserId = user._id;
       }

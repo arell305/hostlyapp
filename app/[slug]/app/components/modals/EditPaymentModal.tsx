@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -34,6 +35,9 @@ const EditPaymentModal: React.FC<EditPaymentModaltModalProps> = ({
       <DialogContent className="w-[90vw] md:min-w-0 rounded-xl">
         <DialogHeader>
           <DialogTitle className="flex">Update Payment</DialogTitle>
+          <DialogDescription>
+            Update the payment information for your subscription.
+          </DialogDescription>
         </DialogHeader>
         <Elements stripe={stripePromise}>
           <div

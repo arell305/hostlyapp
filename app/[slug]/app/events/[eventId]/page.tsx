@@ -1,19 +1,19 @@
 "use client";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus } from "../../../../../utils/enum";
 import EventIdContent from "./EventIdContent";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import FullLoading from "../../components/loading/FullLoading";
 import ErrorComponent from "../../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { ResponseStatus } from "@/types/enums";
 
 export default function EventPageWrapper() {
   const { has } = useAuth();
   const params = useParams();
+  const router = useRouter();
   const eventId = params.eventId as string;
 
   const {
@@ -26,6 +26,12 @@ export default function EventPageWrapper() {
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
 
   const isAppAdmin = organization?.slug === "admin";
+
+  const handleNavigateHome = () => {
+    if (organization?.slug) {
+      router.push(`/${organization.slug}/app/`);
+    }
+  };
 
   if (
     !getEventByIdResponse ||
@@ -51,9 +57,9 @@ export default function EventPageWrapper() {
     return (
       <div className="mt-10 flex flex-col items-center md:items-start text-center md:ml-10">
         <p>This event has been deleted.</p>
-        <Link href={`/${organization.slug}/app/`}>
-          <Button className="w-[100px] mt-2">Home</Button>
-        </Link>
+        <Button className="w-[100px] mt-2" onClick={handleNavigateHome}>
+          Home
+        </Button>
       </div>
     );
   }
@@ -66,6 +72,7 @@ export default function EventPageWrapper() {
       isStripeEnabled={connectedAccountEnabled}
       organization={organization}
       subscription={subscription}
+      handleNavigateHome={handleNavigateHome}
     />
   );
 }

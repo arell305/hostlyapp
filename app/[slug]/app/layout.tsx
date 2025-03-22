@@ -5,10 +5,9 @@ import DashboardDesktopSidebar from "./components/DashboardDesktopSidebar";
 import FullLoading from "./components/loading/FullLoading";
 import DashboardNavbar from "./components/DashboardNavbar";
 import { Protect, useAuth } from "@clerk/nextjs";
-import { ClerkPermissions } from "../../../utils/enum";
 import TicketScannerFAB from "./components/ui/TicketScannerFAB";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
-
+import { ClerkPermissions } from "@/types/enums";
 const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);

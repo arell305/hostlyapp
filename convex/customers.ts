@@ -5,10 +5,14 @@ import {
   internalQuery,
   query,
 } from "./_generated/server";
-import { ResponseStatus, SubscriptionStatus, UserRole } from "../utils/enum";
 import { OrganizationSchema } from "../app/types/types";
 import { internal } from "./_generated/api";
-import { ErrorMessages } from "@/types/enums";
+import {
+  ErrorMessages,
+  ResponseStatus,
+  SubscriptionStatus,
+  UserRole,
+} from "@/types/enums";
 import {
   GetCustomerTierByOrganizationNameResponse,
   CancelSubscriptionResponse,
@@ -31,7 +35,7 @@ import {
   cancelStripeSubscriptionAtPeriodEnd,
   resumeStripeSubscription,
 } from "./backendUtils/stripe";
-import { isUserInOrganization, shouldExposeError } from "./backendUtils/helper";
+import { handleError, isUserInOrganization } from "./backendUtils/helper";
 import { Id } from "./_generated/dataModel";
 
 export const findCustomerByEmail = internalQuery({
@@ -207,14 +211,7 @@ export const getCustomerDetails = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -251,14 +248,7 @@ export const cancelSubscription = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -293,14 +283,7 @@ export const resumeSubscription = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -358,17 +341,7 @@ export const GetCustomerTierBySlug = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(ErrorMessages.INTERNAL_ERROR, errorMessage, error);
-
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: shouldExposeError(errorMessage)
-          ? errorMessage
-          : ErrorMessages.GENERIC_ERROR,
-      };
+      return handleError(error);
     }
   },
 });

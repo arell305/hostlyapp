@@ -1,7 +1,7 @@
-import React from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -15,8 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserRole, roleMap } from "../../../../../utils/enum";
-import { changeableRoles } from "@/types/enums";
+import { changeableRoles, UserRole, roleMap } from "@/types/enums";
 
 interface EditingUserModalProps {
   isOpen: boolean;
@@ -44,6 +43,9 @@ const EditingUserModal: React.FC<EditingUserModalProps> = ({
       <DialogContent className="w-[90vw] md:min-w-0 rounded">
         <DialogHeader>
           <DialogTitle className="flex">Edit User</DialogTitle>
+          <DialogDescription>
+            Edit the role of the user you want to edit.
+          </DialogDescription>
         </DialogHeader>
         <p className="mb-2">{fullName}</p>
         <Select

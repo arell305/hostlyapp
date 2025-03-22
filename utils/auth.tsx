@@ -1,14 +1,12 @@
-import { ErrorMessages } from "@/types/enums";
+import { ErrorMessages, UserRole } from "@/types/enums";
 import { UserIdentity } from "convex/server";
 import { MutationCtx, ActionCtx, QueryCtx } from "../convex/_generated/server";
-import { UserRole } from "./enum";
 
 export async function requireAuthenticatedUser(
   ctx: MutationCtx | ActionCtx | QueryCtx,
   requiredRoles?: UserRole[]
 ): Promise<UserIdentity> {
   const identity = await ctx.auth.getUserIdentity();
-  console.log("identity", identity);
   if (!identity) {
     throw new Error(ErrorMessages.UNAUTHENTICATED);
   }

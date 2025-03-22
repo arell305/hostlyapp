@@ -17,9 +17,8 @@ import { api } from "../../convex/_generated/api";
 import { useAction } from "convex/react";
 import { useRouter } from "next/navigation";
 import { PricingOption } from "@/types/types";
-import { FrontendErrorMessages } from "@/types/enums";
+import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
 import { FaCreditCard } from "react-icons/fa";
-import { ResponseStatus } from "../../utils/enum";
 
 const PaymentForm = () => {
   const stripe = useStripe();

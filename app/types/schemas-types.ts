@@ -1,11 +1,11 @@
 import { Id } from "../../convex/_generated/dataModel";
 import {
+  Gender,
   StripeAccountStatus,
-  SubscriptionStatus,
   SubscriptionTier,
+  SubscriptionStatus,
   UserRole,
-} from "../../utils/enum";
-import { Gender } from "./enums";
+} from "./enums";
 
 export interface UserSchema {
   _id: Id<"users">;

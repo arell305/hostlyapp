@@ -6,16 +6,13 @@ interface ErrorComponentProps {
 }
 
 const ErrorComponent: React.FC<ErrorComponentProps> = ({
-  message = "An unexpected error occurred. Please try again later.",
+  message = "Something went wrong.",
 }) => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen text-center px-6">
-      <h1 className="text-3xl font-bold text-red-500 mb-4">
-        Something went wrong
-      </h1>
-      <p className="text-lg text-gray-600 mb-6">{message}</p>
+    <div className="flex flex-col justify-center items-center h-dvh text-center px-6 overflow-hidden">
+      <h1 className="text-3xl font-bold  mb-8">{message}</h1>
       <Button onClick={() => router.push("/")} className="px-6 py-2">
         Home
       </Button>

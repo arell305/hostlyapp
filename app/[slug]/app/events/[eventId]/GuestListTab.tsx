@@ -5,8 +5,7 @@ import ModeratorGuestList from "@/[slug]/app/components/ModeratorGuestList";
 import { LuClipboardList } from "react-icons/lu";
 import { EventSchema, GuestListInfoSchema } from "@/types/schemas-types";
 import { isPast } from "../../../../../utils/luxon";
-import { ClerkPermissions } from "../../../../../utils/enum";
-
+import { ClerkPermissions } from "@/types/enums";
 interface GuestListTabProps {
   eventData: EventSchema;
   guestListInfo?: GuestListInfoSchema | null;

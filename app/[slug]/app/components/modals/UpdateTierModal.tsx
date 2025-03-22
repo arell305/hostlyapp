@@ -8,12 +8,15 @@ import {
 } from "@/components/ui/dialog";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus, SubscriptionTier } from "../../../../../utils/enum";
 import { PricingOption, ProratedPrice } from "@/types/types";
 import { pricingOptions } from "../../../../../constants/pricingOptions";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import BaseDrawer from "../drawer/BaseDrawer";
-import { FrontendErrorMessages } from "@/types/enums";
+import {
+  FrontendErrorMessages,
+  ResponseStatus,
+  SubscriptionTier,
+} from "@/types/enums";
 import { toast } from "@/hooks/use-toast";
 import FullLoading from "../loading/FullLoading";
 import ErrorComponent from "../errors/ErrorComponent";

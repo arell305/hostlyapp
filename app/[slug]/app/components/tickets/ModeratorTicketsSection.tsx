@@ -3,7 +3,6 @@ import React, { useMemo, useRef, useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import EventInfoSkeleton from "../loading/EventInfoSkeleton";
-import { ResponseStatus } from "../../../../../utils/enum";
 import SubErrorComponent from "../errors/SubErrorComponent";
 import { useToast } from "@/hooks/use-toast";
 import useRedeemTicket from "../../hooks/useRedeemTicket";
@@ -14,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { MdOutlineCancel } from "react-icons/md";
 import ResponsiveConfirm from "../responsive/ResponsiveConfirm";
 import TicketList from "./TicketList";
+import { ResponseStatus } from "@/types/enums";
 
 interface ModeratorTicketsSectionProps {
   eventId: Id<"events">;

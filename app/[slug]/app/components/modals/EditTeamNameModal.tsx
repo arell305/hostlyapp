@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -33,9 +34,10 @@ const TeamNameModal: React.FC<TeamNameModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] md:min-w-0 rounded">
+      <DialogContent className="rounded">
         <DialogHeader>
           <DialogTitle className="flex">Team Name</DialogTitle>
+          <DialogDescription>Enter your team name below</DialogDescription>
         </DialogHeader>
         <Input
           type="text"
@@ -45,28 +47,27 @@ const TeamNameModal: React.FC<TeamNameModalProps> = ({
             setTeamName(e.target.value);
             setTeamNameError(null);
           }}
-          className={error ? "border-red-500" : ""}
+          className={`${error ? "border-red-500" : ""}`}
         />
         <p
           className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
         >
           {error || "Placeholder to maintain height"}
-        </p>{" "}
+        </p>
         <div className="flex justify-center space-x-10 mt-4">
           <Button
             disabled={isLoading}
             variant="ghost"
             onClick={onClose}
-            className="font-semibold  w-[140px]"
+            className="font-semibold "
           >
             Cancel
           </Button>
           <Button
-            className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
+            className="bg-customDarkBlue rounded-[20px]  font-semibold"
             onClick={onUpdateTeamName}
             disabled={isLoading}
           >
-            {" "}
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

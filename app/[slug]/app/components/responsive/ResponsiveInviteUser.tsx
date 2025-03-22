@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus, UserRole } from "../../../../../utils/enum";
 import { isValidEmail } from "../../../../../utils/helpers";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import InviteUserModal from "../modals/InviteUserModal";
 import InviteUserDrawer from "../drawer/InviteUserDrawer";
 import { PendingInvitationUser } from "@/types/types";
 import { DESKTOP_WIDTH } from "@/types/constants";
+import { ResponseStatus, UserRole } from "@/types/enums";
 
 interface ResponsiveInviteUserProps {
   isOpen: boolean;

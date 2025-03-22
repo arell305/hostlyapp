@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -15,8 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import BaseDrawer from "./drawer/BaseDrawer";
 import _ from "lodash";
-import { FrontendErrorMessages } from "@/types/enums";
-import { ResponseStatus } from "../../../../utils/enum";
+import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
 import { DESKTOP_WIDTH } from "@/types/constants";
 
 interface AddGuestListModalProps {
@@ -85,6 +85,9 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
         <DialogContent className="">
           <DialogHeader>
             <DialogTitle>Upload Guest List</DialogTitle>
+            <DialogDescription>
+              Please enter each guest name on a separate line.
+            </DialogDescription>
           </DialogHeader>
           <Textarea
             value={guestNames}

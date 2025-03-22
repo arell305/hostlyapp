@@ -39,7 +39,7 @@ export const createTicketInfo = internalMutation({
       return ticketInfoId;
     } catch (error) {
       console.error("Error creating ticket info:", error);
-      throw new Error("Failed to create ticket info");
+      throw new Error(ErrorMessages.TICKET_INFO_DB_CREATE);
     }
   },
 });
@@ -104,7 +104,7 @@ export const internalUpdateTicketInfo = internalMutation({
       return ticketInfoId;
     } catch (error) {
       console.error("Error updating ticket info:", error);
-      throw new Error("Failed to update ticket info");
+      throw new Error(ErrorMessages.TICKET_INFO_DB_UPDATE);
     }
   },
 });

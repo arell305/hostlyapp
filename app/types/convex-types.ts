@@ -1,16 +1,15 @@
-import { ErrorMessages } from "@/types/enums";
 import {
-  ResponseStatus,
+  ErrorMessages,
   StripeAccountStatus,
+  ResponseStatus,
   SubscriptionTier,
-} from "../../utils/enum";
+} from "@/types/enums";
 import {
   ConnectedAccountsSchema,
   CustomerSchema,
   CustomerTicket,
   EventSchema,
   GuestListInfoSchema,
-  PromoterPromoCodeSchema,
   SubscriptionSchema,
   TicketInfoSchema,
   TicketSchemaWithPromoter,
@@ -732,4 +731,45 @@ export interface GetOrganizationByIdData {
 
 export interface GetOrganizationBySlugData {
   organization: OrganizationSchema;
+}
+
+export type DisconnectStripeActionResponse =
+  | DisconnectStripeActionSuccess
+  | ErrorResponse;
+
+export interface DisconnectStripeActionSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: DisconnectStripeActionData;
+}
+
+export interface DisconnectStripeActionData {
+  connectedAccountId: Id<"connectedAccounts">;
+}
+
+export type CreatePaymentIntentResponse =
+  | CreatePaymentIntentSuccess
+  | ErrorResponse;
+
+export interface CreatePaymentIntentSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CreatePaymentIntentData;
+}
+
+export interface CreatePaymentIntentData {
+  clientSecret: string;
+}
+
+export interface GetEventWithTicketsData {
+  event: EventSchema;
+  promoterUserId: Id<"users"> | null;
+}
+
+export interface WebhookResponse {
+  success: boolean;
+  error?: string;
+}
+
+export interface WebhookHandlerResponse {
+  success: boolean;
+  error?: string;
 }

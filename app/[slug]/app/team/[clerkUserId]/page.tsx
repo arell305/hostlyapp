@@ -2,8 +2,7 @@
 import { useParams } from "next/navigation";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus, UserRole } from "../../../../../utils/enum";
-import { FrontendErrorMessages } from "@/types/enums";
+import { FrontendErrorMessages, ResponseStatus, UserRole } from "@/types/enums";
 import UserIdContent from "./UserIdContent";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -182,6 +181,8 @@ const UserWrapper = () => {
         onReactivateUser={handleReactivateUser}
         errorResumeUser={errorResumeUser}
         loadingReactivate={loadingReactivate}
+        errorDeleteUser={errorDeleteUser}
+        loadingDeleteUser={loadingDeleteUser}
       />
       {role !== null && (
         <ResponsiveEditUser

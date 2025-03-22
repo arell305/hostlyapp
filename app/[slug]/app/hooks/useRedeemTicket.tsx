@@ -1,8 +1,7 @@
 import { useMutation } from "convex/react";
 import { useState } from "react";
 import { api } from "../../../../convex/_generated/api";
-import { ResponseStatus } from "../../../../utils/enum";
-
+import { ResponseStatus } from "@/types/enums";
 const useRedeemTicket = () => {
   const [redeemTicketError, setRedeemTicketError] = useState<string | null>(
     null

@@ -14,8 +14,8 @@ import ResponsiveGuestCheckIn from "./responsive/ResponsiveGuestCheckIn";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { formatToTimeAndShortDate } from "../../../../utils/luxon";
 import FullLoading from "./loading/FullLoading";
-import { ResponseStatus } from "../../../../utils/enum";
 import ErrorComponent from "./errors/ErrorComponent";
+import { ResponseStatus } from "@/types/enums";
 
 interface EventGuestListProps {
   eventId: Id<"events">;

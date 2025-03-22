@@ -1,9 +1,12 @@
 import { v } from "convex/values";
-import { internalQuery, mutation, query } from "./_generated/server";
-import { ResponseStatus, UserRole } from "../utils/enum";
-import { ErrorMessages } from "@/types/enums";
+import { mutation, query } from "./_generated/server";
 import {
-  EventSchema,
+  ResponseStatus,
+  ErrorMessages,
+  ShowErrorMessages,
+  UserRole,
+} from "@/types/enums";
+import {
   PromoterPromoCodeSchema,
   PromoterPromoCodeWithDiscount,
 } from "@/types/schemas-types";
@@ -11,14 +14,12 @@ import {
   UpdatePromoterPromoCodeResponse,
   ValidatePromoterPromoCodeResponse,
 } from "@/types/convex-types";
-import { OrganizationSchema, UserSchema } from "@/types/types";
-import { Id } from "./_generated/dataModel";
 import {
   validateEvent,
   validateOrganization,
   validateUser,
 } from "./backendUtils/validation";
-import { isUserInCompanyOfEvent } from "./backendUtils/helper";
+import { handleError, isUserInCompanyOfEvent } from "./backendUtils/helper";
 import { requireAuthenticatedUser } from "../utils/auth";
 
 export const addOrUpdatePromoterPromoCode = mutation({
@@ -32,12 +33,12 @@ export const addOrUpdatePromoterPromoCode = mutation({
       const identity = await requireAuthenticatedUser(ctx, [UserRole.Promoter]);
       const clerkUserId = identity.id as string;
 
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
-        .first();
-
-      const validatedUser = validateUser(user);
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+          .first()
+      );
 
       const normalizedInputName = name.toLowerCase();
 
@@ -47,18 +48,14 @@ export const addOrUpdatePromoterPromoCode = mutation({
         .unique();
 
       if (existingPromoCodeWithName) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.PROMOTER_PROMO_CODE_NAME_EXISTS,
-        };
+        throw new Error(ShowErrorMessages.PROMOTER_PROMO_CODE_NAME_EXISTS);
       }
 
       const existingPromoCodeForUser: PromoterPromoCodeSchema | null =
         await ctx.db
           .query("promoterPromoCode")
           .withIndex("by_promoterUserId", (q) =>
-            q.eq("promoterUserId", validatedUser._id)
+            q.eq("promoterUserId", user._id)
           )
           .unique();
 
@@ -72,7 +69,7 @@ export const addOrUpdatePromoterPromoCode = mutation({
 
       const promoCodeId = await ctx.db.insert("promoterPromoCode", {
         name,
-        promoterUserId: validatedUser._id,
+        promoterUserId: user._id,
       });
 
       return {
@@ -80,32 +77,7 @@ export const addOrUpdatePromoterPromoCode = mutation({
         data: { promoCodeId },
       };
     } catch (error) {
-      console.error("Error fetching tickets:", error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: ErrorMessages.GENERIC_ERROR,
-      };
-    }
-  },
-});
-
-export const getPromoterPromoCodeById = internalQuery({
-  handler: async (
-    ctx,
-    { promoterPromoCodeId }: { promoterPromoCodeId: Id<"promoterPromoCode"> }
-  ): Promise<PromoterPromoCodeSchema | null> => {
-    try {
-      const promoCode = await ctx.db.get(promoterPromoCodeId);
-
-      if (!promoCode) {
-        throw new Error(ErrorMessages.PROMOTER_PROMO_CODE_NOT_FOUND);
-      }
-
-      return promoCode as PromoterPromoCodeSchema;
-    } catch (error) {
-      console.error("Error fetching promoter promo code:", error);
-      throw new Error("Failed to fetch promoter promo code.");
+      return handleError(error);
     }
   },
 });
@@ -118,11 +90,7 @@ export const validatePromoterPromoCode = query({
   handler: async (ctx, args): Promise<ValidatePromoterPromoCodeResponse> => {
     const normalizedId = ctx.db.normalizeId("events", args.eventId);
     if (!normalizedId) {
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: ErrorMessages.EVENT_NOT_FOUND,
-      };
+      throw new Error(ErrorMessages.EVENT_NOT_FOUND);
     }
     try {
       const normalizedInputName = args.name.toLowerCase();
@@ -133,46 +101,34 @@ export const validatePromoterPromoCode = query({
         .unique();
 
       if (!promoterPromoCode) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.INVALID_PROMO_CODE,
-        };
+        throw new Error(ShowErrorMessages.INVALID_PROMO_CODE);
       }
 
-      const user: UserSchema | null = await ctx.db.get(
-        promoterPromoCode.promoterUserId
+      const user = validateUser(
+        await ctx.db.get(promoterPromoCode.promoterUserId),
+        true,
+        false,
+        true
       );
 
-      const validatedUser = validateUser(user, true, false, true);
-
-      const organization: OrganizationSchema | null = await ctx.db.get(
-        validatedUser.organizationId!
+      const organization = validateOrganization(
+        await ctx.db.get(user.organizationId!)
       );
-      const validatedOrganization = validateOrganization(organization);
 
-      const event: EventSchema | null = await ctx.db.get(normalizedId);
-      const validatedEvent = validateEvent(event);
+      const event = validateEvent(await ctx.db.get(normalizedId));
 
-      isUserInCompanyOfEvent(validatedUser, validatedEvent);
+      isUserInCompanyOfEvent(user, event);
 
       const PromoterPromoCodeWithDiscount: PromoterPromoCodeWithDiscount = {
         ...promoterPromoCode,
-        promoDiscount: validatedOrganization.promoDiscount,
+        promoDiscount: organization.promoDiscount,
       };
       return {
         status: ResponseStatus.SUCCESS,
         data: { promoterPromoCode: PromoterPromoCodeWithDiscount },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });

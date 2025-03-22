@@ -1,11 +1,12 @@
 import { GenericActionCtx, UserIdentity } from "convex/server";
 import {
-  ResponseStatus,
+  ErrorMessages,
+  ShowErrorMessages,
   StripeAccountStatus,
-  SubscriptionTier,
+  ResponseStatus,
   UserRole,
-} from "../../utils/enum";
-import { ErrorMessages, ShowErrorMessages } from "@/types/enums";
+  SubscriptionTier,
+} from "@/types/enums";
 import { GuestListSchema, OrganizationSchema } from "@/types/types";
 import { EventSchema, UserSchema } from "@/types/schemas-types";
 import { Id } from "../_generated/dataModel";
@@ -62,17 +63,11 @@ export function isUserInCompanyOfEvent(
   return true;
 }
 
-export const shouldExposeError = (errorMessage: string): boolean => {
-  const allowedErrors: string[] = [
-    ErrorMessages.CUSTOMER_EXISTING_USER,
-    ErrorMessages.DATE_BEFORE_SUBSCRIPTION,
-    ShowErrorMessages.FORBIDDEN_TIER,
-    ShowErrorMessages.GUEST_LIST_LIMIT_REACHED,
-    ShowErrorMessages.SUBSCRIPTION_ACTIVE,
-  ];
-
-  return allowedErrors.includes(errorMessage);
-};
+export function shouldExposeError(errorMessage: string): boolean {
+  return Object.values(ShowErrorMessages).includes(
+    errorMessage as ShowErrorMessages
+  );
+}
 
 export async function handleGuestListData(
   ctx: GenericActionCtx<any>,
@@ -213,12 +208,18 @@ export function handleError(error: unknown): {
     error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
   console.error(ErrorMessages.INTERNAL_ERROR, errorMessage, error);
 
+  // Check if the error message contains dynamic ticket check-in information
+  const isTicketCheckInError =
+    errorMessage.includes("Ticket already checked in") ||
+    errorMessage.includes("Invalid check-in");
+
   return {
     status: ResponseStatus.ERROR,
     data: null,
-    error: shouldExposeError(errorMessage)
-      ? errorMessage
-      : ErrorMessages.GENERIC_ERROR,
+    error:
+      isTicketCheckInError || shouldExposeError(errorMessage)
+        ? errorMessage
+        : ErrorMessages.GENERIC_ERROR,
   };
 }
 

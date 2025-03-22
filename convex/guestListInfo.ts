@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { GuestListInfoSchema } from "@/types/schemas-types";
+import { ErrorMessages } from "@/types/enums";
 
 export const createGuestListInfo = internalMutation({
   args: {
@@ -27,7 +28,7 @@ export const createGuestListInfo = internalMutation({
       return guestListInfoId;
     } catch (error) {
       console.error("Error creating guest list info:", error);
-      throw new Error("Failed to create guest list info");
+      throw new Error(ErrorMessages.GUEST_LIST_INFO_DB_CREATE);
     }
   },
 });
@@ -44,7 +45,7 @@ export const getGuestListInfoByEventId = internalQuery({
         .first();
     } catch (error) {
       console.error("Error fetching guest list info by event ID:", error);
-      throw new Error("Failed to fetch guest list info");
+      throw new Error(ErrorMessages.GUEST_LIST_INFO_DB_QUERY);
     }
   },
 });
@@ -67,7 +68,7 @@ export const updateGuestListInfo = internalMutation({
       return guestListInfoId;
     } catch (error) {
       console.error("Error updating guest list info:", error);
-      throw new Error("Failed to update guest list info");
+      throw new Error(ErrorMessages.GUEST_LIST_INFO_DB_UPDATE);
     }
   },
 });

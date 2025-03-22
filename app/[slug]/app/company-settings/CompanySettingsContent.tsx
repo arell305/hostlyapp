@@ -4,7 +4,6 @@ import ResponsiveTeamName from "../components/responsive/ResponsiveTeamName";
 import { useAction, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
-import { ResponseStatus } from "../../../../utils/enum";
 import ResponsivePromoDiscount from "../components/responsive/ResponsivePromoDiscount";
 import Image from "next/image";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -13,6 +12,9 @@ import { compressAndUploadImage } from "../../../../utils/image";
 import Loading from "../components/loading/Loading";
 import { RiImageAddFill } from "react-icons/ri";
 import { OrganizationSchema } from "@/types/types";
+import { ResponseStatus } from "@/types/enums";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface CompanySettingsContentProps {
   organization: OrganizationSchema;
@@ -47,18 +49,8 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
     null
   );
 
-  // company image
-  const [showCompanyImageModal, setShowCompanyImageModal] =
-    useState<boolean>(false);
-  const [isCompanyImageLoading, setIsCompanyImageLoading] =
-    useState<boolean>(false);
-  const [companyImageError, setCompanyImageError] = useState<string | null>(
-    null
-  );
   const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
-  const [photoStorageId, setPhotoStorageId] = useState<Id<"_storage"> | null>(
-    organization?.photo || null
-  );
+
   const [isPhotoLoading, setIsPhotoLoading] = useState<boolean>(false);
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
 
@@ -102,16 +94,6 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
     }
   };
 
-  const handleCompanyImageModalOpenChange = (open: boolean) => {
-    if (open) {
-      setShowCompanyImageModal(true);
-    } else {
-      setPhotoStorageId(organization?.photo || null);
-      setPhotoUploadError(null);
-      setShowCompanyImageModal(false);
-    }
-  };
-
   const updateOrganizationMetadata = useAction(
     api.clerk.updateOrganizationMetadata
   );
@@ -119,7 +101,6 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
   useEffect(() => {
     setCompanyName(organization?.name);
     setPromoDiscount(organization?.promoDiscount.toString() || "");
-    setPhotoStorageId(organization?.photo || null);
   }, [organization]);
 
   const handleUpdateTeamName = async () => {
@@ -239,34 +220,39 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
       <div className="flex flex-col items-center gap-2 mb-6 mt-4">
         <div className="relative inline-block">
           {displayCompanyPhoto ? (
-            <div className="relative group">
+            <div className="relative group w-[100px] h-[100px]">
               <Image
                 src={displayCompanyPhoto}
                 alt="Company Avatar"
-                width={100}
-                height={100}
+                fill
+                sizes="100px"
                 className="rounded-md object-cover"
               />
               {canEditSettings && (
-                <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-md">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoChange}
-                    className="hidden"
-                  />
-                  {isPhotoLoading ? (
-                    <Loading />
-                  ) : (
-                    <RiImageAddFill className="text-4xl text-white" />
-                  )}
-                </label>
+                <>
+                  <div className="absolute -top-3 -right-2 bg-white rounded-full p-1 shadow-md border border-gray-100">
+                    <GoPencil className="text-gray-600" />
+                  </div>
+                  <Label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-md">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                    {isPhotoLoading ? (
+                      <Loading />
+                    ) : (
+                      <RiImageAddFill className="text-4xl text-white" />
+                    )}
+                  </Label>
+                </>
               )}
             </div>
           ) : (
             <div className="relative w-[100px] h-[100px] group">
-              <label className="block w-full h-full cursor-pointer">
-                <input
+              <Label className="block w-full h-full cursor-pointer">
+                <Input
                   type="file"
                   accept="image/*"
                   onChange={handlePhotoChange}
@@ -279,7 +265,7 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
                     <RiImageAddFill className="text-4xl text-gray-500" />
                   )}
                 </div>
-              </label>
+              </Label>
             </div>
           )}
         </div>

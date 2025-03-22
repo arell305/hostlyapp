@@ -2,8 +2,7 @@
 import React, { createContext, useContext } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { ResponseStatus } from "../../utils/enum";
-import { ErrorMessages } from "@/types/enums";
+import { ErrorMessages, ResponseStatus } from "@/types/enums";
 import { useParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import type { UserResource } from "@clerk/types";

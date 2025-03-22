@@ -1,7 +1,6 @@
 import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
 import { PricingOption } from "../app/types/types";
-import { SubscriptionTier } from "../utils/enum";
-
+import { SubscriptionTier } from "@/types/enums";
 export const pricingOptions: PricingOption[] = [
   {
     id: "prod_QpJqLkwhLCLZfN",

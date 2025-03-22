@@ -1,8 +1,11 @@
 import { useAction } from "convex/react";
 import { useState } from "react";
 import { api } from "../../../../convex/_generated/api";
-import { FrontendErrorMessages } from "@/types/enums";
-import { ResponseStatus, SubscriptionTier } from "../../../../utils/enum";
+import {
+  FrontendErrorMessages,
+  ResponseStatus,
+  SubscriptionTier,
+} from "@/types/enums";
 
 export const useReactivateSubscription = () => {
   const [loading, setLoading] = useState<boolean>(false);

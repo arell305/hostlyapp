@@ -14,8 +14,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserWithPromoCode } from "@/types/types";
-import { ResponseStatus } from "../../../../utils/enum";
-
+import { ResponseStatus } from "@/types/enums";
 // Need to add drawer and add on userId page
 
 interface EditPromoCodeDialogProps {

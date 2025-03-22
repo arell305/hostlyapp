@@ -1,4 +1,4 @@
-import { ErrorMessages } from "@/types/enums";
+import { ErrorMessages, UserRole } from "@/types/enums";
 import {
   OrganizationInvitationJSON,
   UserJSON,
@@ -7,7 +7,6 @@ import {
 import { GenericActionCtx } from "convex/server";
 import { Webhook } from "svix";
 import { internal } from "../_generated/api";
-import { UserRole } from "../../utils/enum";
 
 export async function verifyClerkWebhook(
   payload: string,

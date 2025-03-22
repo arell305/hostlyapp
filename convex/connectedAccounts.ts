@@ -5,15 +5,19 @@ import {
   internalQuery,
   query,
 } from "./_generated/server";
-import { ResponseStatus, StripeAccountStatus, UserRole } from "../utils/enum";
-import { ErrorMessages } from "@/types/enums";
+import {
+  ErrorMessages,
+  ResponseStatus,
+  UserRole,
+  StripeAccountStatus,
+} from "@/types/enums";
 import { ConnectedAccountsSchema, UserSchema } from "@/types/schemas-types";
 import {
   GetConnectedAccountByClerkUserIdResponse,
   GetConnectedAccountStatusBySlugResponse,
+  WebhookResponse,
 } from "@/types/convex-types";
 import { StripeAccountStatusConvex } from "./schema";
-import { DeleteConnectedAccountResponse } from "@/types/convex/internal-types";
 import { Id } from "./_generated/dataModel";
 import { OrganizationSchema } from "@/types/types";
 import {
@@ -85,7 +89,7 @@ export const getConnectedAccountByCustomerId = internalQuery({
       return account;
     } catch (error) {
       console.error("Error in getConnectedAccountByCustomerId:", error);
-      throw new Error("Failed to fetch connected account");
+      throw new Error(ErrorMessages.CONNECTED_ACCOUNT_DB_QUERY);
     }
   },
 });
@@ -94,28 +98,17 @@ export const deleteConnectedAccount = internalMutation({
   args: {
     connectedAccountId: v.id("connectedAccounts"),
   },
-  handler: async (ctx, args): Promise<DeleteConnectedAccountResponse> => {
+  handler: async (ctx, args): Promise<Id<"connectedAccounts">> => {
     const { connectedAccountId } = args;
     try {
       await ctx.db.patch(connectedAccountId, {
         status: StripeAccountStatus.DISABLED,
       });
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          connectedAccountId,
-        },
-      };
+      return connectedAccountId;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      console.error(error);
+      throw new Error(ErrorMessages.CONNECTED_ACCOUNT_DB_DELETE);
     }
   },
 });
@@ -127,26 +120,25 @@ export const getConnectedAccountByClerkUserId = query({
       const idenitity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
       const clerkUserId = idenitity.id as string;
 
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
-        .first();
+      const user: UserSchema | null = validateUser(
+        await ctx.db
+          .query("users")
+          .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+          .first(),
+        true,
+        true
+      );
 
-      const validatedUser = validateUser(user, true, true);
-
-      const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
-        .query("connectedAccounts")
-        .withIndex("by_customerId", (q) =>
-          q.eq("customerId", validatedUser.customerId!)
-        )
-        .first();
-
-      if (!connectedAccount) {
-        return {
-          status: ResponseStatus.SUCCESS,
-          data: null,
-        };
-      }
+      const connectedAccount: ConnectedAccountsSchema | null =
+        validateConnectedAccount(
+          await ctx.db
+            .query("connectedAccounts")
+            .withIndex("by_customerId", (q) =>
+              q.eq("customerId", user.customerId!)
+            )
+            .first(),
+          false
+        );
 
       if (
         connectedAccount.status !== StripeAccountStatus.NOT_ONBOARDED &&
@@ -173,28 +165,29 @@ export const internalGetConnectedAccountByClerkUserId = internalQuery({
   },
   handler: async (ctx, args): Promise<ConnectedAccountsSchema> => {
     try {
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) =>
-          q.eq("clerkUserId", args.clerkUserId)
-        )
-        .first();
-
-      const validatedUser = validateUser(user, true, true);
-
-      const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
-        .query("connectedAccounts")
-        .withIndex("by_customerId", (q) =>
-          q.eq("customerId", validatedUser.customerId!)
-        )
-        .first();
-
-      const validatedConnectedAccount = validateConnectedAccount(
-        connectedAccount,
-        false
+      const user: UserSchema | null = validateUser(
+        await ctx.db
+          .query("users")
+          .withIndex("by_clerkUserId", (q) =>
+            q.eq("clerkUserId", args.clerkUserId)
+          )
+          .first(),
+        true,
+        true
       );
 
-      return validatedConnectedAccount;
+      const connectedAccount: ConnectedAccountsSchema | null =
+        validateConnectedAccount(
+          await ctx.db
+            .query("connectedAccounts")
+            .withIndex("by_customerId", (q) =>
+              q.eq("customerId", user.customerId!)
+            )
+            .first(),
+          false
+        );
+
+      return connectedAccount;
     } catch (error) {
       console.error(error);
       throw new Error(ErrorMessages.CONNECTED_ACCOUNT_DB_QUERY_BY_CLERK);
@@ -278,14 +271,14 @@ export const updateConnectedAccountByStripeId = internalMutation({
 
 export const fulfill = internalAction({
   args: { signature: v.string(), payload: v.string() },
-  handler: async (ctx, { signature, payload }) => {
+  handler: async (ctx, { signature, payload }): Promise<WebhookResponse> => {
     try {
       const event = await verifyStripeConnectedWebhook(payload, signature);
       switch (event.type) {
         case "payment_intent.succeeded":
           await handlePaymentIntentSucceeded(ctx, event.data.object);
           const paymentIntent = event.data.object;
-          console.log("✅ Payment successful:", paymentIntent);
+          console.log("Payment successful:", paymentIntent);
           break;
 
         default:

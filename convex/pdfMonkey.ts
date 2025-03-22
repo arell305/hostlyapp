@@ -4,6 +4,7 @@ import {
   handleGenerateSuccess,
   verifypdfMonkeyWebhook,
 } from "./backendUtils/pdfMonkeyWebhooks";
+import { WebhookResponse } from "@/types/convex-types";
 
 // example event for success
 // {
@@ -32,7 +33,7 @@ export const fulfill = internalAction({
     }),
     payload: v.string(),
   },
-  handler: async (ctx, { headers, payload }) => {
+  handler: async (ctx, { headers, payload }): Promise<WebhookResponse> => {
     try {
       const originalHeaders = {
         "svix-id": headers.svix_id,

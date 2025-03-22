@@ -1,16 +1,9 @@
 "use client";
-import { useAuth, useClerk } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { useAction, useQuery } from "convex/react";
 import React, { useEffect, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import {
-  subscriptionStatusMap,
-  SubscriptionStatus,
-  ResponseStatus,
-  UserRole,
-  subscriptionBenefits,
-} from "../../../../utils/enum";
 import { useToast } from "@/hooks/use-toast";
 import UpdateTierModal from "../components/modals/UpdateTierModal";
 import { GoPencil } from "react-icons/go";
@@ -22,6 +15,14 @@ import { FrontendErrorMessages } from "@/types/enums";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { formatDateMDY } from "../../../../utils/luxon";
 import { CustomerSchema } from "@/types/schemas-types";
+import {
+  ResponseStatus,
+  SubscriptionStatus,
+  UserRole,
+  subscriptionBenefits,
+  subscriptionStatusMap,
+} from "@/types/enums";
+import InfoRow from "../components/UserInfoRow";
 
 const SubscriptionTab = () => {
   const [resumeLoading, setResumeLoading] = useState<boolean>(false);
@@ -178,33 +179,24 @@ const SubscriptionTab = () => {
 
   return (
     <>
-      <div className="justify-center  max-w-3xl  mx-auto mt-1.5  ">
+      <div className="justify-center max-w-3xl mt-1.5">
         <h1 className="text-3xl md:text-4xl font-bold mb-3 pt-6 md:pt-0 pl-4">
           Subscription
         </h1>
 
-        <div className="border-b py-3 px-4 flex justify-between items-center">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Status</h3>
-            <p className="text-lg font-semibold">{subscriptionStatusText}</p>
-          </div>
-        </div>
+        <InfoRow label="Status" value={subscriptionStatusText} />
 
-        <div className="border-b py-3 px-4">
-          <h3 className="text-sm font-medium text-gray-500">
-            {nextPaymentText}
-          </h3>
-          <p className="text-lg font-semibold">
-            {subscription.currentPeriodEnd
+        <InfoRow
+          label={nextPaymentText}
+          value={
+            subscription.currentPeriodEnd
               ? formatDateMDY(subscription.currentPeriodEnd)
-              : "N/A"}
-          </p>
-        </div>
+              : "N/A"
+          }
+        />
 
-        {/* Display Current Subscription Amount */}
         <div className="border-b py-3 px-4">
           <h3 className="text-sm font-medium text-gray-500">Amount</h3>
-
           {subscription.discount ? (
             <>
               <p className="text-lg font-semibold">
@@ -216,10 +208,11 @@ const SubscriptionTab = () => {
             </>
           ) : (
             <p className="text-lg font-semibold">
-              ${subscription.amount.toFixed(2)}/month`
+              ${subscription.amount.toFixed(2)}/month
             </p>
           )}
         </div>
+
         <div
           onClick={() => canEditSettings && setActiveModal("update_tier")}
           className={`px-4 flex items-center justify-between border-b py-3 ${
@@ -267,14 +260,14 @@ const SubscriptionTab = () => {
 
         {/* Cancel or Resume Subscription Button */}
         {canEditSettings && (
-          <div className="mt-6 flex space-x-4 mb-8">
+          <div className="mt-6 flex mb-8">
             {subscription.subscriptionStatus ===
             SubscriptionStatus.PENDING_CANCELLATION ? (
               <>
                 <Button
                   disabled={resumeLoading}
                   onClick={handleResume}
-                  className="bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  className="pl-4 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                 >
                   {resumeLoading ? "Loading..." : " Resume"}
                 </Button>
@@ -282,13 +275,14 @@ const SubscriptionTab = () => {
                   className={`pl-4 text-sm mt-1 ${resumeError ? "text-red-500" : "text-transparent"}`}
                 >
                   {resumeError || "Placeholder to maintain height"}
-                </p>{" "}
+                </p>
               </>
             ) : (
               <>
                 <Button
                   onClick={() => setShowConfirmModal(true)}
-                  className=" text-red-600 bg-white hover:bg-red-50"
+                  className="text-red-600 pl-4 w-auto"
+                  variant="navGhost"
                 >
                   Cancel Subscription
                 </Button>

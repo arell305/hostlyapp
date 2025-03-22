@@ -5,11 +5,10 @@ import EditPromoCodeDialog from "./EditPromoCodeDialog";
 import AdminUserButton from "./AdminUserButton";
 import { HiOutlineMenuAlt4 } from "react-icons/hi";
 import { RiCloseLargeLine } from "react-icons/ri";
-import { UserRole } from "../../../../utils/enum";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import PromoterUserButton from "./PromoterUserbutton";
-
+import { UserRole } from "@/types/enums";
 interface DashboardNavbarProps {
   toggleNavbar: () => void;
   isOpen: boolean;

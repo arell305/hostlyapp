@@ -4,10 +4,9 @@ import { api } from "../../../../../convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import EventInfoSkeleton from "../loading/EventInfoSkeleton";
-import { ResponseStatus } from "../../../../../utils/enum";
 import SubErrorComponent from "../errors/SubErrorComponent";
 import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";
-
+import { ResponseStatus } from "@/types/enums";
 interface PromoterTicketsSectionProps {
   eventId: Id<"events">;
 }

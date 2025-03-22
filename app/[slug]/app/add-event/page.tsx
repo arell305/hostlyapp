@@ -3,7 +3,6 @@
 import { FC, useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { ResponseStatus } from "../../../../utils/enum";
 import EventForm from "../components/EventForm";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -15,7 +14,11 @@ import {
 import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
 import FullLoading from "../components/loading/FullLoading";
 import ErrorComponent from "../components/errors/ErrorComponent";
-import { ErrorMessages, FrontendErrorMessages } from "@/types/enums";
+import {
+  ErrorMessages,
+  FrontendErrorMessages,
+  ResponseStatus,
+} from "@/types/enums";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { Notification } from "../components/ui/Notification";
 

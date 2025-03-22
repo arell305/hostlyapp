@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -36,6 +37,9 @@ const EditPromoDiscountModal: React.FC<EditPromoDiscountModalProps> = ({
       <DialogContent className="w-[90vw] md:min-w-0 rounded">
         <DialogHeader>
           <DialogTitle className="flex">Promo Code Discount Amount</DialogTitle>
+          <DialogDescription>
+            Enter the amount of the promo code discount.
+          </DialogDescription>
         </DialogHeader>
         <Input
           type="text"

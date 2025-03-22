@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ResponseStatus, SubscriptionTier } from "../../../../utils/enum";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { DateTime } from "luxon";
 import { useMutation, useQuery } from "convex/react";
@@ -36,7 +35,11 @@ import {
   SubscriptionSchema,
   TicketInfoSchema,
 } from "@/types/schemas-types";
-import { FrontendErrorMessages } from "@/types/enums";
+import {
+  FrontendErrorMessages,
+  ResponseStatus,
+  SubscriptionTier,
+} from "@/types/enums";
 import { compressAndUploadImage } from "../../../../utils/image";
 import Image from "next/image";
 import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";

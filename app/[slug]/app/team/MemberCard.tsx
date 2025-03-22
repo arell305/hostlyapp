@@ -1,9 +1,9 @@
 "use client";
-import { UserRole, roleMap } from "../../../../utils/enum";
 import { RiArrowRightSLine } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { UserRole, roleMap } from "@/types/enums";
 
 interface MemberCardProps {
   name?: string;

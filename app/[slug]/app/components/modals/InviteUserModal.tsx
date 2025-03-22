@@ -1,15 +1,14 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
-import { UserRole, roleMap } from "../../../../../utils/enum";
-import { changeableRoles } from "@/types/enums";
+import { changeableRoles, UserRole, roleMap } from "@/types/enums";
 import {
   Select,
   SelectTrigger,
@@ -18,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -62,18 +62,25 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
       <DialogContent className="w-[90vw] md:min-w-0 rounded ">
         <DialogHeader>
           <DialogTitle className="flex">Invite User</DialogTitle>
+          <DialogDescription>
+            Enter the email address and select a role for the user you want to
+            invite.
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <Input
-            type="email"
-            placeholder="Enter email"
-            value={inviteEmail}
-            onChange={(e) => {
-              setInviteEmail(e.target.value);
-              setInviteError(null);
-            }}
-            className={inviteError ? "border-red-500" : ""}
-          />
+        <div className="">
+          <div className="mb-4">
+            <Label className="text-base font-medium">Email</Label>
+            <Input
+              type="email"
+              placeholder="Enter email"
+              value={inviteEmail}
+              onChange={(e) => {
+                setInviteEmail(e.target.value);
+                setInviteError(null);
+              }}
+              className={`py-0 ${inviteError ? "border-red-500" : ""}`}
+            />
+          </div>
           <Select
             onValueChange={(value) => setInviteRole(value as UserRole)}
             value={inviteRole}

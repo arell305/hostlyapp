@@ -1,12 +1,10 @@
 "use client";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus } from "../../../../../utils/enum";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
-
+import { ResponseStatus } from "@/types/enums";
 const TicketScannerModal = ({
   open,
   onClose,

@@ -12,17 +12,16 @@ import {
   UserSchema,
   UserWithPromoCode,
 } from "@/types/types";
-import { ResponseStatus, UserRole } from "../utils/enum";
-import { ErrorMessages } from "@/types/enums";
 import { PromoterPromoCodeSchema } from "@/types/schemas-types";
 import { Id } from "./_generated/dataModel";
 import { requireAuthenticatedUser } from "../utils/auth";
-import { isUserInOrganization } from "./backendUtils/helper";
+import { handleError, isUserInOrganization } from "./backendUtils/helper";
 import {
   GetUserByClerkIdResponse,
   UpdateUserByClerkIdResponse,
 } from "@/types/convex-types";
 import { validateUser } from "./backendUtils/validation";
+import { ResponseStatus, ErrorMessages, UserRole } from "@/types/enums";
 
 export const createUser = internalMutation({
   args: {
@@ -274,14 +273,7 @@ export const findUserByClerkId = query({
         data: { user: data },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -335,28 +327,21 @@ export const getUserByClerkId = query({
       const identity = await requireAuthenticatedUser(ctx);
       const clerkUserId = identity.id as string;
 
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique();
-
-      const validatedUser = validateUser(user);
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+          .unique()
+      );
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          user: validatedUser,
+          user,
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });

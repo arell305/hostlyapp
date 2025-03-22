@@ -3,7 +3,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import type { NextFetchEvent } from "next/server";
 import { api } from "./convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
-import { ResponseStatus, UserRole } from "./utils/enum";
+import { UserRole } from "@/types/enums";
 
 const isProtectedRoute = createRouteMatcher(["/create-company"]);
 const isHostlyAdminProtected = createRouteMatcher(["/admin/app/companies"]);

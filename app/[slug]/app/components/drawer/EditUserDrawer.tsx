@@ -5,8 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserRole, roleMap } from "../../../../../utils/enum";
-import { changeableRoles } from "@/types/enums";
+import { changeableRoles, UserRole, roleMap } from "@/types/enums";
 import BaseDrawer from "./BaseDrawer";
 
 interface EditUserDrawerProps {

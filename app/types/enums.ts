@@ -1,17 +1,87 @@
-import { UserRole } from "../../utils/enum";
+export enum StripeAccountStatus {
+  NOT_ONBOARDED = "Not Onboarded Yet", // User hasn't completed Stripe onboarding
+  PENDING = "Pending", // Account created but not yet verified
+  VERIFIED = "Verified", // Fully approved, can process payments
+  RESTRICTED = "Restricted", // Needs more verification (e.g., missing ID)
+  REJECTED = "Rejected", // Permanently rejected by Stripe
+  DISABLED = "Disabled", // Manually disabled (optional for admin actions)
+}
+
+export enum SubscriptionStatus {
+  ACTIVE = "active",
+  TRIALING = "trialing",
+  PENDING_CANCELLATION = "pending_cancellation",
+  CANCELED = "canceled",
+  INCOMPLETE = "incomplete",
+  INCOMPLETE_EXPIRED = "incomplete_expired",
+  PAST_DUE = "past_due",
+  UNPAID = "unpaid",
+  PAUSED = "paused",
+}
+
+export enum SubscriptionTier {
+  STANDARD = "Standard",
+  PLUS = "Plus",
+  ELITE = "Elite",
+}
+
+export const subscriptionBenefits = {
+  [SubscriptionTier.STANDARD]: "Unlimited tickets",
+  [SubscriptionTier.PLUS]: "Unlimited tickets & 3 guest list events",
+  [SubscriptionTier.ELITE]: "Unlimited tickets & Unlimited guest list events",
+};
+
+export enum ResponseStatus {
+  SUCCESS = "success",
+  ERROR = "error",
+  PARTIAL_SUCESSS = "partial success",
+}
+
+export enum ClerkPermissions {
+  MODERATES_APP = "org:app:moderate",
+  CHECK_GUESTS = "org:events:check_guests",
+  CREATE_EVENT = "org:events:create",
+  UPLOAD_GUESTLIST = "org:events:upload_guest_list",
+  VIEW_ALL_GUESTLISTS = "org:events:view_all_guestlists",
+  VIEW_SUBSCRIPTION = "org:view:subscription",
+}
+
+export enum UserRole {
+  Promoter = "org:promoter",
+  Moderator = "org:moderator",
+  Manager = "org:manager",
+  Admin = "org:admin",
+  Hostly_Admin = "org:hostly_admin",
+  Hostly_Moderator = "org:hostly_moderator",
+}
+
+export const roleMap: Record<UserRole, string> = {
+  [UserRole.Promoter]: "Promoter",
+  [UserRole.Moderator]: "Moderator",
+  [UserRole.Manager]: "Manager",
+  [UserRole.Admin]: "Admin",
+  [UserRole.Hostly_Admin]: "Hostly Admin",
+  [UserRole.Hostly_Moderator]: "Hostly Moderator",
+};
+
+export enum ActiveTab {
+  VIEW = "view",
+  GUEST_LIST = "guestList",
+  TICKET_INFO = "ticketInfo",
+}
+
+export enum ActiveStripeTab {
+  DOCUMENTS = "document",
+  PAYOUTS = "payouts",
+  PAYMENTS = "payments",
+}
 
 export const UserRoleEnum = {
   APP_ADMIN: "admin",
   PROMOTER: "promoter",
   PROMOTER_ADMIN: "promoter_admin",
   MODERATOR: "moderator",
-};
-
-export const ClerkRoleEnum = {
-  ORG_ADMIN: "org:admin",
-  ORG_MANAGER: "org:manager",
-  ORG_MODERATOR: "org:moderator",
-  ORG_PROMOTER: "org:promoter",
+  PROMOTER_MANAGER: "promoter_manager",
 };
 
 export const ClerkPermissionsEnum = {
@@ -25,6 +95,18 @@ export const changeableRoles = Object.values(UserRole).filter(
     role !== UserRole.Hostly_Admin &&
     role !== UserRole.Hostly_Moderator
 );
+
+export const subscriptionStatusMap = {
+  [SubscriptionStatus.ACTIVE]: "Active",
+  [SubscriptionStatus.TRIALING]: "Trial",
+  [SubscriptionStatus.PENDING_CANCELLATION]: "Pending Cancellation",
+  [SubscriptionStatus.CANCELED]: "Canceled",
+  [SubscriptionStatus.INCOMPLETE]: "Incomplete",
+  [SubscriptionStatus.INCOMPLETE_EXPIRED]: "Incomplete Expired",
+  [SubscriptionStatus.PAST_DUE]: "Past Due",
+  [SubscriptionStatus.UNPAID]: "Unpaid",
+  [SubscriptionStatus.PAUSED]: "Paused",
+};
 
 export enum TeamSettingsModalType {
   TeamName = "teamName",
@@ -88,7 +170,6 @@ export enum ErrorMessages {
   GENERIC_ERROR = "An unexpected error occurred.",
   GUEST_LIST_NOT_FOUND = "Guest list not found",
   GUEST_NOT_FOUND = "Guest not found",
-  INVALID_PROMO_CODE = "Invalid promoter code",
   NOT_BELONG = "User does not belong to the organization of the event.",
   NOT_FOUND = "Not found.",
   ORGANIZATION_DB_CREATE_ERROR = "DB error creating organization",
@@ -97,7 +178,6 @@ export enum ErrorMessages {
   PAYMENT_FAILED = "Payment failed",
   PAYMENT_INTENT_FAILED = "Failed to create payment intent",
   PDF_MONKEY_WEBHOOK = "PDF Monkey error verifying webhook",
-  PROMOTER_PROMO_CODE_NAME_EXISTS = "Promoter promo code already exits.",
   PROMOTER_PROMO_CODE_NOT_FOUND = "Promoter Promo Code not found",
   PROMOTER_NOT_BELONG_TO_COMPANY_OF_EVENT = "Promoter does not belong to company of event",
   PROMOTER_NOT_BELONG_TO_GUEST_LIST = "Promoter does not belong to guest list.",
@@ -172,16 +252,37 @@ export enum ErrorMessages {
   STRIPE_RETRIEVE = "Stripe error retrieving subscription",
   STRIPE_RETRIEVE_INVOICE = "Stripe error retrieving invoice",
   STRIPE_RETRIEVE_PRICE = "Stripe error retrieving price",
+  EVENT_DB_UPDATE = "DB error updating event",
+  GUEST_LIST_INFO_DB_CREATE = "DB error creating guest list info",
+  GUEST_LIST_INFO_DB_UPDATE = "DB error updating guest list info",
+  GUEST_LIST_INFO_DB_QUERY = "DB error querying guest list info",
+  STRIPE_CONNECTED_CUSTOMER_DB_QUERY = "DB error querying stripe connected customer",
+  STRIPE_CONNECTED_CUSTOMER_DB_INSERT = "DB error inserting stripe connected customer",
+  TICKET_DB_QUERY = "DB error querying ticket",
+  TICKET_INFO_DB_CREATE = "DB error creating ticket info",
+  TICKET_INFO_DB_UPDATE = "DB error updating ticket info",
+  CONNECTED_ACCOUNT_DB_DELETE = "DB error deleting connected account",
+  CONNECTED_ACCOUNT_DB_QUERY = "DB error querying connected account",
 }
 
 export enum ShowErrorMessages {
   COMPANY_NAME_ALREADY_EXISTS = "Company name already exists.",
-
+  FORBIDDEN_PRIVILEGES = "User does not have permission",
   FORBIDDEN_TIER = "Account does not have tier for this functionality",
   GUEST_LIST_LIMIT_REACHED = "Guest list limit reached for this subscription period.",
   SUBSCRIPTION_ACTIVE = "An active subscription for this user already exists",
   CUSTOMER_EXISTS = "Customer already exists. Please sign in",
   ACTIVE_SUBSCRIPTION_EXISTS = " An active subscription with this email already exists.",
+  GUEST_NOT_FOUND = "Guest not found in the list",
+  PROMOTER_PROMO_CODE_NAME_EXISTS = "Promoter promo code already exits.",
+  PROMOTER_PROMO_CODE_NOT_FOUND = "Promoter promo code not found",
+  INVALID_PROMO_CODE = "Invalid promoter code",
+  TICKET_NOT_FOUND = "Ticket not found",
+  USER_ALREADY_EXISTS = "User already exists",
+  USER_ALREADY_HAS_COMPANY = "User already has a company",
+  USER_NOT_CUSTOMER = "User is not customer",
+  COMPANY_NOT_FOUND = "Company not found",
+  EVENT_NOT_FOUND = "Event not found",
 }
 
 export enum FrontendErrorMessages {

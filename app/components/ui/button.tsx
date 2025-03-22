@@ -19,22 +19,32 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
         link: "text-primary underline-offset-4 hover:underline",
         navGhost:
-          "text-customDarkBlue font-semibold hover:underline font-raleway text-base",
+          "text-customDarkBlue font-semibold hover:underline font-raleway text-base p-0 h-auto",
+        navDestructive:
+          "text-red-600 hover:underline font-raleway text-base p-0 h-auto font-semibold",
       },
       size: {
         default:
-          "h-12 md:h-10 text-lg font-semibold px-4 py-2 rounded-[20px] w-full md:w-[250px]",
+          "h-12 md:h-10 text-lg md:text-base font-semibold px-4 py-2 rounded-[20px] w-full md:w-[200px] md:font-medium",
         sm: "h-9 px-3",
         lg: "h-11 d px-8",
         icon: "h-10 w-10",
         tripleButtons: "w-[300px] h-10 px-4 py-2 rounded-[20px]",
         doubelButtons: "h-10 px-4 py-2 rounded-[20px] w-[200px]",
+        nav: "w-auto",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
     },
+    compoundVariants: [
+      {
+        variant: "navGhost",
+        size: "nav",
+        className: "w-auto",
+      },
+    ],
   }
 );
 

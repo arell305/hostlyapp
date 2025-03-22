@@ -1,13 +1,13 @@
 import { useQuery } from "convex/react";
 import { Id } from "../../../../../convex/_generated/dataModel";
-import {
-  SubscriptionStatus,
-  SubscriptionTier,
-  subscriptionStatusMap,
-} from "../../../../../utils/enum";
 import Image from "next/image";
 import { api } from "../../../../../convex/_generated/api";
 import SkeletonMemberCard from "../loading/MemberCardSkeleton";
+import {
+  SubscriptionStatus,
+  subscriptionStatusMap,
+  SubscriptionTier,
+} from "@/types/enums";
 
 interface CompanyCardProps {
   photoStorageId: Id<"_storage"> | null;

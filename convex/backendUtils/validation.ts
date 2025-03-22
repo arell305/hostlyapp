@@ -1,4 +1,4 @@
-import { ErrorMessages } from "@/types/enums";
+import { ErrorMessages, ShowErrorMessages } from "@/types/enums";
 import {
   ConnectedAccountsSchema,
   CustomerSchema,
@@ -6,16 +6,18 @@ import {
   SubscriptionSchema,
   TicketInfoSchema,
   UserSchema,
+  TicketSchema,
 } from "@/types/schemas-types";
 import { GuestListSchema, OrganizationSchema } from "@/types/types";
-import { StripeAccountStatus } from "../../utils/enum";
-
+import { DateTime } from "luxon";
+import { formatToTimeAndShortDate } from "../../utils/luxon";
+import { StripeAccountStatus } from "@/types/enums";
 export function validateOrganization(
   organization: OrganizationSchema | null,
   checkActive: boolean = true
 ): OrganizationSchema {
   if (!organization) {
-    throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
+    throw new Error(ShowErrorMessages.COMPANY_NOT_FOUND);
   }
 
   if (checkActive && !organization.isActive) {
@@ -121,3 +123,33 @@ export function validateTicketInfo(
   }
   return ticketInfo;
 }
+
+export const validateTicket = (ticket: TicketSchema | null): TicketSchema => {
+  if (!ticket) {
+    throw new Error(ShowErrorMessages.TICKET_NOT_FOUND);
+  }
+  return ticket;
+};
+
+export const validateTicketCheckIn = (
+  ticket: TicketSchema,
+  event: EventSchema
+): void => {
+  if (ticket.checkInTime) {
+    throw new Error(
+      `Ticket already checked in on ${formatToTimeAndShortDate(ticket.checkInTime)}`
+    );
+  }
+
+  const now = DateTime.now().toMillis();
+  const eventStartTime = DateTime.fromMillis(event.startTime).toMillis();
+  const eventEndTime = DateTime.fromMillis(event.endTime).toMillis();
+
+  if (now < eventStartTime || now > eventEndTime) {
+    throw new Error(
+      `Invalid check-in. Ticket is for ${event.name} on ${formatToTimeAndShortDate(
+        event.startTime
+      )}`
+    );
+  }
+};

@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { UserRole, roleMap } from "../../../../../utils/enum";
-import { GoPencil } from "react-icons/go";
 import { UserWithPromoCode } from "@/types/types";
+import { UserRole, roleMap } from "@/types/enums";
+import InfoRow from "../../components/UserInfoRow";
 
 interface UserIdContentProps {
   userData: UserWithPromoCode;
@@ -14,7 +14,10 @@ interface UserIdContentProps {
   onReactivateUser: () => void;
   errorResumeUser: string | null;
   loadingReactivate: boolean;
+  errorDeleteUser: string | null;
+  loadingDeleteUser: boolean;
 }
+
 const UserIdContent: React.FC<UserIdContentProps> = ({
   userData,
   onBack,
@@ -25,6 +28,8 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
   onReactivateUser,
   errorResumeUser,
   loadingReactivate,
+  errorDeleteUser,
+  loadingDeleteUser,
 }) => {
   const isHostlyPage = userData.role === UserRole.Hostly_Moderator;
   const isAdmin = has({ role: UserRole.Admin });
@@ -32,37 +37,16 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
     has({ role: UserRole.Hostly_Admin }) ||
     has({ role: UserRole.Hostly_Moderator });
   const canEditUsers =
-    has({ role: UserRole.Manager }) || (isAdmin && !isCurrentUser);
+    has({ role: UserRole.Admin }) ||
+    has({ role: UserRole.Manager }) ||
+    (isAdmin && !isCurrentUser);
   const canDeleteAdminMods = isHostlyPage && isHostlyAdmin;
   return (
     <section className="container mx-auto  max-w-3xl ">
-      <div className="flex justify-between mt-4">
-        <Button variant="navGhost" onClick={onBack}>
+      <div className="">
+        <Button variant="navGhost" size="nav" className="pl-4" onClick={onBack}>
           Back
         </Button>
-        {canEditUsers ||
-          (canDeleteAdminMods && userData.isActive && (
-            <Button variant="navGhost" onClick={onDelete}>
-              Delete
-            </Button>
-          ))}
-        {canEditUsers ||
-          (canDeleteAdminMods && !userData.isActive && (
-            <>
-              <Button
-                disabled={loadingReactivate}
-                variant="navGhost"
-                onClick={onReactivateUser}
-              >
-                {loadingReactivate ? "Reactivating..." : "Reactivate"}
-              </Button>
-              <p
-                className={`pl-4 text-sm mt-1 ${errorResumeUser ? "text-red-500" : "text-transparent"}`}
-              >
-                {errorResumeUser || "Placeholder to maintain height"}
-              </p>{" "}
-            </>
-          ))}
       </div>
       <div className="flex items-center flex-col mb-4">
         {userData.imageUrl && (
@@ -71,7 +55,7 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
             alt="Profile Image"
             width={100}
             height={100}
-            className="rounded-full object-cover"
+            className="rounded-full object-cover aspect-square w-[100px] h-[100px]"
           />
         )}
 
@@ -79,37 +63,46 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
           {userData.name}
         </h2>
       </div>
-      <div className="px-4  flex justify-between border-b  py-3">
-        <div>
-          <h3 className="text-sm font-medium text-gray-500">Email: </h3>
-          <p className="text-lg font-semibold">{userData.email}</p>
-        </div>
-      </div>
-      <div className="px-4  flex justify-between border-b  py-3">
-        <div>
-          <h3 className="text-sm font-medium text-gray-500">Role: </h3>
-          <p className="text-lg font-semibold">
-            {" "}
-            {userData.role ? roleMap[userData.role] : "Not Set"}
-          </p>
-        </div>
-        {canEditUsers && (
-          <div className="flex items-center cursor-pointer">
-            <GoPencil className="text-2xl" onClick={onEdit} />
-          </div>
-        )}
-      </div>
+      <InfoRow label="Email" value={userData.email} />
+      <InfoRow
+        label="Role"
+        value={userData.role ? roleMap[userData.role] : "Not Set"}
+        canEdit={canEditUsers}
+        onEdit={onEdit}
+        isClickable={canEditUsers}
+      />
       {userData.role === UserRole.Promoter && (
-        <div className="px-4  flex justify-between border-b  py-3">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Promo Code: </h3>
-            <p className="text-lg font-semibold">
-              {" "}
-              {userData.promoCode ?? "Not Set"}
+        <InfoRow label="Promo Code" value={userData.promoCode ?? "Not Set"} />
+      )}
+      {canEditUsers &&
+        (userData.isActive ? (
+          <div className="my-6 pl-4">
+            <Button variant="navDestructive" size="nav" onClick={onDelete}>
+              {loadingDeleteUser ? "Deleteing..." : "Delete User"}
+            </Button>
+            <p
+              className={`pl-4 text-sm mt-1 ${errorDeleteUser ? "text-red-500" : "text-transparent"}`}
+            >
+              {errorDeleteUser || "Placeholder to maintain height"}
             </p>
           </div>
-        </div>
-      )}
+        ) : (
+          <div>
+            <Button
+              disabled={loadingReactivate}
+              variant="navGhost"
+              size="nav"
+              onClick={onReactivateUser}
+            >
+              {loadingReactivate ? "Reactivating..." : "Reactivate"}
+            </Button>
+            <p
+              className={`pl-4 text-sm mt-1 ${errorResumeUser ? "text-red-500" : "text-transparent"}`}
+            >
+              {errorResumeUser || "Placeholder to maintain height"}
+            </p>
+          </div>
+        ))}
     </section>
   );
 };

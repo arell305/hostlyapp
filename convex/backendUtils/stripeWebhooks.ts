@@ -1,8 +1,11 @@
 import { GenericActionCtx } from "convex/server";
 import Stripe from "stripe";
 import { internal } from "../_generated/api";
-import { StripeAccountStatus, SubscriptionStatus } from "../../utils/enum";
-import { ErrorMessages } from "@/types/enums";
+import {
+  ErrorMessages,
+  StripeAccountStatus,
+  SubscriptionStatus,
+} from "@/types/enums";
 import { getPaymentMethodDetails } from "./stripe";
 import { getSubscriptionTierFromPrice } from "../stripe";
 

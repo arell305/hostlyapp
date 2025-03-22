@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import {
@@ -70,7 +70,7 @@ const BaseDrawer: React.FC<BaseDrawerProps> = ({
   }, []);
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
-      <DrawerContent ref={formContainerRef} className="max-h-[70vh]">
+      <DrawerContent ref={formContainerRef} className="">
         <DrawerTrigger asChild>
           <Button style={{ display: "none" }} />
         </DrawerTrigger>
@@ -85,12 +85,18 @@ const BaseDrawer: React.FC<BaseDrawerProps> = ({
           {error || "Placeholder to maintain height"}
         </p>{" "}
         <DrawerFooter className="flex flex-row gap-2 mb-6 mt-2">
-          <DrawerClose className="flex-1">
-            <Button variant="ghost" className="w-full" disabled={isLoading}>
+          <DrawerClose asChild className="flex-1">
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              disabled={isLoading}
+            >
               {cancelText}
             </Button>
           </DrawerClose>
           <Button
+            type="button"
             variant={confirmVariant}
             onClick={onSubmit}
             className="flex-1"

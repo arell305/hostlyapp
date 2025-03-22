@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { StripeConnectedCustomersSchema } from "@/types/schemas-types";
+import { ErrorMessages } from "@/types/enums";
 
 export const getStripeConnectedCustomerByEmail = internalQuery({
   args: { email: v.string() },
@@ -17,7 +18,7 @@ export const getStripeConnectedCustomerByEmail = internalQuery({
       return customer || null;
     } catch (error) {
       console.error("Error fetching Stripe customer by email:", error);
-      throw new Error("Failed to retrieve customer information.");
+      throw new Error(ErrorMessages.STRIPE_CONNECTED_CUSTOMER_DB_QUERY);
     }
   },
 });
@@ -50,7 +51,7 @@ export const insertStripeConnectedCustomer = internalMutation({
       return newCustomer;
     } catch (error) {
       console.error("Error inserting Stripe connected customer:", error);
-      throw new Error("Failed to insert Stripe customer.");
+      throw new Error(ErrorMessages.STRIPE_CONNECTED_CUSTOMER_DB_INSERT);
     }
   },
 });

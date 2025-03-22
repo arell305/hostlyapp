@@ -3,16 +3,16 @@
 import { action, internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-
+import { StripeAccountStatus } from "@/types/enums";
+import { SubscriptionTierConvex } from "./schema";
 import {
+  ErrorMessages,
+  ShowErrorMessages,
   ResponseStatus,
-  StripeAccountStatus,
   SubscriptionStatus,
   SubscriptionTier,
   UserRole,
-} from "../utils/enum";
-import { SubscriptionTierConvex } from "./schema";
-import { ErrorMessages, ShowErrorMessages } from "@/types/enums";
+} from "@/types/enums";
 import {
   CreateConnectedAccountResponse,
   CreateStripeSubscriptionResponse,
@@ -23,11 +23,10 @@ import {
   UpdateSubscriptionPaymentMethodResponse,
   UpdateSubscriptionTierResponse,
   ValidatePromoCodeResponse,
-} from "@/types/convex-types";
-import {
-  CreatePaymentIntentResponse,
   DisconnectStripeActionResponse,
-} from "@/types/convex/actions-types";
+  CreatePaymentIntentResponse,
+  WebhookResponse,
+} from "@/types/convex-types";
 import { USD_CURRENCY } from "@/types/constants";
 import { sendClerkInvitation } from "../utils/clerk";
 import {
@@ -57,7 +56,7 @@ import {
   createStripeOnboardingSession,
 } from "./backendUtils/stripeConnect";
 import { deactivateStripeConnectedAccount } from "./connectedAccounts";
-import { shouldExposeError } from "./backendUtils/helper";
+import { handleError } from "./backendUtils/helper";
 import {
   handleAccountUpdated,
   handleCustomerUpdated,
@@ -218,17 +217,7 @@ export const createStripeSubscription = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(ErrorMessages.INTERNAL_ERROR, errorMessage, error);
-
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: shouldExposeError(errorMessage)
-          ? errorMessage
-          : ErrorMessages.GENERIC_ERROR,
-      };
+      return handleError(error);
     }
   },
 });
@@ -283,14 +272,7 @@ export const updateSubscriptionPaymentMethod = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -339,14 +321,7 @@ export const updateSubscriptionTier = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -521,14 +496,7 @@ export const createConnectedAccount = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -582,14 +550,7 @@ export const getStripeDashboardUrl = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -622,14 +583,7 @@ export const disconnectStripeAccount = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -732,24 +686,16 @@ export const createPaymentIntent = action({
         data: { clientSecret: paymentIntent.client_secret },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
 
 export const fulfill = internalAction({
   args: { signature: v.string(), payload: v.string() },
-  handler: async (ctx, { signature, payload }) => {
+  handler: async (ctx, { signature, payload }): Promise<WebhookResponse> => {
     try {
       const event = await verifyStripeWebhook(payload, signature);
-      console.log("event", event);
       switch (event.type) {
         case "invoice.payment_succeeded":
           await handleInvoicePaymentSucceeded(ctx, event.data.object);
@@ -812,17 +758,7 @@ export const retryInvoicePayment = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(ErrorMessages.INTERNAL_ERROR, errorMessage, error);
-
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: shouldExposeError(errorMessage)
-          ? errorMessage
-          : ErrorMessages.GENERIC_ERROR,
-      };
+      return handleError(error);
     }
   },
 });
@@ -859,17 +795,7 @@ export const getProratedPrices = action({
         data: { proratedPrices },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(ErrorMessages.INTERNAL_ERROR, errorMessage, error);
-
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: shouldExposeError(errorMessage)
-          ? errorMessage
-          : ErrorMessages.GENERIC_ERROR,
-      };
+      return handleError(error);
     }
   },
 });
@@ -990,17 +916,7 @@ export const reactivateStripeSubscription = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(ErrorMessages.INTERNAL_ERROR, errorMessage, error);
-
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: shouldExposeError(errorMessage)
-          ? errorMessage
-          : ErrorMessages.GENERIC_ERROR,
-      };
+      return handleError(error);
     }
   },
 });

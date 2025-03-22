@@ -1,13 +1,11 @@
-import { ErrorMessages } from "@/types/enums";
+import { ShowErrorMessages, UserRole, ResponseStatus } from "@/types/enums";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { nanoid } from "nanoid";
-import { ResponseStatus, UserRole } from "../utils/enum";
 import {
   DeleteGuestNameResponse,
   GuestListNameSchema,
   GuestListSchema,
-  UserSchema,
 } from "@/types/types";
 import { Id } from "./_generated/dataModel";
 import { requireAuthenticatedUser } from "../utils/auth";
@@ -17,10 +15,10 @@ import {
   validateUser,
 } from "./backendUtils/validation";
 import {
+  handleError,
   isUserInCompanyOfEvent,
   isUserThePromoter,
 } from "./backendUtils/helper";
-import { EventSchema } from "@/types/schemas-types";
 import {
   GetGuestListByPromoterResponse,
   UpdateGuestNameResponse,
@@ -44,17 +42,16 @@ export const addGuestList = mutation({
 
       const clerkUserId = identity.user as string;
 
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique();
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+          .unique()
+      );
 
-      const validatedUser = validateUser(user);
+      const event = validateEvent(await ctx.db.get(args.eventId));
 
-      const event: EventSchema | null = await ctx.db.get(args.eventId);
-      const validatedEvent = validateEvent(event);
-
-      isUserInCompanyOfEvent(validatedUser, validatedEvent);
+      isUserInCompanyOfEvent(user, event);
 
       const newGuestObjects: NewGuest[] = newNames.map((name) => ({
         id: `guest_${nanoid()}`,
@@ -65,7 +62,7 @@ export const addGuestList = mutation({
         .query("guestLists")
         .filter((q) =>
           q.and(
-            q.eq(q.field("userPromoterId"), validatedUser._id),
+            q.eq(q.field("userPromoterId"), user._id),
             q.eq(q.field("eventId"), eventId)
           )
         )
@@ -92,7 +89,7 @@ export const addGuestList = mutation({
         "guestLists",
         {
           names: newGuestObjects,
-          userPromoterId: validatedUser._id,
+          userPromoterId: user._id,
           eventId,
         }
       );
@@ -105,14 +102,7 @@ export const addGuestList = mutation({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -132,41 +122,34 @@ export const getGuestListByPromoter = query({
 
       const clerkUserId = identity.user as string;
 
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique();
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+          .unique()
+      );
 
-      const validatedUser = validateUser(user);
-
-      const guestList: GuestListSchema | null = await ctx.db
-        .query("guestLists")
-        .filter((q) =>
-          q.and(
-            q.eq(q.field("userPromoterId"), validatedUser._id),
-            q.eq(q.field("eventId"), eventId)
+      const guestList = validateGuestList(
+        await ctx.db
+          .query("guestLists")
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("userPromoterId"), user._id),
+              q.eq(q.field("eventId"), eventId)
+            )
           )
-        )
-        .first();
-
-      const validatedGuestList = validateGuestList(guestList);
+          .first()
+      );
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          guestListId: validatedGuestList._id,
-          names: validatedGuestList.names,
+          guestListId: guestList._id,
+          names: guestList.names,
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -189,20 +172,18 @@ export const updateGuestName = mutation({
 
       const clerkUserId = identity.user as string;
 
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique();
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+          .unique()
+      );
 
-      const validatedUser = validateUser(user);
+      const guestList = validateGuestList(await ctx.db.get(guestListId));
 
-      const guestList: GuestListSchema | null = await ctx.db.get(guestListId);
+      isUserThePromoter(guestList, user);
 
-      const validatedGuestList = validateGuestList(guestList);
-
-      isUserThePromoter(validatedGuestList, validatedUser);
-
-      const updatedNames: GuestListNameSchema[] = validatedGuestList.names.map(
+      const updatedNames: GuestListNameSchema[] = guestList.names.map(
         (guest) => {
           if (guest.id === guestId) {
             return { ...guest, name: newName };
@@ -227,14 +208,7 @@ export const updateGuestName = mutation({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });
@@ -255,36 +229,27 @@ export const deleteGuestName = mutation({
       ]);
 
       if (identity.role !== UserRole.Promoter) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.FORBIDDEN,
-        };
+        throw new Error(ShowErrorMessages.FORBIDDEN_PRIVILEGES);
       }
 
       const clerkUserId = identity.user as string;
 
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique();
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+          .unique()
+      );
 
-      const validatedUser = validateUser(user);
+      const guestList = validateGuestList(await ctx.db.get(guestListId));
 
-      const guestList: GuestListSchema | null = await ctx.db.get(guestListId);
+      isUserThePromoter(guestList, user);
 
-      const validatedGuestList = validateGuestList(guestList);
-
-      isUserThePromoter(validatedGuestList, validatedUser);
-
-      const updatedNames: GuestListNameSchema[] =
-        validatedGuestList.names.filter((guest) => guest.id !== guestId);
-      if (updatedNames.length === validatedGuestList.names.length) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: "Guest not found in the list",
-        };
+      const updatedNames: GuestListNameSchema[] = guestList.names.filter(
+        (guest) => guest.id !== guestId
+      );
+      if (updatedNames.length === guestList.names.length) {
+        throw new Error(ShowErrorMessages.GUEST_NOT_FOUND);
       }
       await ctx.db.patch(guestListId, {
         names: updatedNames,
@@ -299,14 +264,7 @@ export const deleteGuestName = mutation({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });

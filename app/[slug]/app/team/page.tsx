@@ -5,11 +5,6 @@ import { useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { PendingInvitationUser } from "@/types/types";
 import MemberCard from "./MemberCard";
-import {
-  ClerkPermissions,
-  ResponseStatus,
-  UserRole,
-} from "../../../../utils/enum";
 import { useToast } from "@/hooks/use-toast";
 import PendingUserCard from "./PendingUserCard";
 import ResponsiveConfirm from "@/[slug]/app/components/responsive/ResponsiveConfirm";
@@ -18,6 +13,7 @@ import { UserSchema } from "@/types/schemas-types";
 import FullLoading from "../components/loading/FullLoading";
 import ErrorComponent from "../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { ResponseStatus, UserRole, ClerkPermissions } from "@/types/enums";
 
 const Team = () => {
   const { user } = useClerk();
@@ -161,7 +157,7 @@ const Team = () => {
     return <ErrorComponent message={error} />;
   }
   return (
-    <div className="justify-center  max-w-3xl  mx-auto mt-1.5 md:min-h-[300px]">
+    <div className="justify-center  max-w-3xl  mx-auto mt-1.5 md:min-h-[300px] min-h-[100dvh] overflow-hidden">
       <div className="flex justify-between items-center w-full px-4 pt-4 md:pt-0 mb-4">
         <h1 className=" text-3xl md:text-4xl font-bold ">Team Members</h1>
         <Protect

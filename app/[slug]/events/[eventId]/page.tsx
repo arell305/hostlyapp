@@ -7,9 +7,10 @@ import { api } from "../../../../convex/_generated/api";
 import { Stripe, loadStripe } from "@stripe/stripe-js";
 import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
-import { FrontendErrorMessages } from "@/types/enums";
-import { ResponseStatus } from "../../../../utils/enum";
+import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
 import EventContent from "./EventContent";
+import { useUser } from "@clerk/nextjs";
+import HomeNav from "@/[slug]/app/components/nav/HomeNav";
 
 const EventPage = () => {
   const { isStripeEnabled, connectedAccountStripeId } =
@@ -20,6 +21,7 @@ const EventPage = () => {
   const params = useParams();
   const eventId = params.eventId as string;
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
+  const { user } = useUser();
 
   let stripePromise: Promise<Stripe | null> = Promise.resolve(null);
 
@@ -38,26 +40,31 @@ const EventPage = () => {
     );
   }
 
-  const eventData = getEventByIdResponse?.data?.event;
-  const ticketInfoData = getEventByIdResponse?.data?.ticketInfo;
-
-  if (!getEventByIdResponse || !eventData) {
+  if (getEventByIdResponse === undefined || user === undefined) {
     return <FullLoading />;
   }
 
   if (getEventByIdResponse.status === ResponseStatus.ERROR) {
-    return <ErrorComponent message={FrontendErrorMessages.GENERIC_ERROR} />;
+    return <ErrorComponent message={getEventByIdResponse.error} />;
   }
-
+  const eventData = getEventByIdResponse?.data?.event;
+  const ticketInfoData = getEventByIdResponse?.data?.ticketInfo;
   return (
-    <EventContent
-      isStripeEnabled={isStripeEnabled}
-      connectedAccountStripeId={connectedAccountStripeId}
-      stripePromise={stripePromise}
-      eventData={eventData}
-      ticketInfoData={ticketInfoData}
-      onBrowseMoreEvents={handleBrowseMoreEvents}
-    />
+    <main className="bg-gray-100 min-h-screen flex  overflow-hidden flex-col items-center">
+      <HomeNav
+        user={user}
+        handleNavigateHome={handleBrowseMoreEvents}
+        buttonText="Back to Events"
+      />
+      <EventContent
+        isStripeEnabled={isStripeEnabled}
+        connectedAccountStripeId={connectedAccountStripeId}
+        stripePromise={stripePromise}
+        eventData={eventData}
+        ticketInfoData={ticketInfoData}
+        onBrowseMoreEvents={handleBrowseMoreEvents}
+      />
+    </main>
   );
 };
 

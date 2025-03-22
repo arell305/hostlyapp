@@ -1,6 +1,6 @@
-import { ClerkPermissions, UserRole, roleMap } from "../../../../utils/enum";
 import { PiTrashSimple } from "react-icons/pi";
 import { Protect } from "@clerk/nextjs";
+import { UserRole, ClerkPermissions, roleMap } from "@/types/enums";
 
 interface PendingUserCardProps {
   clerkInvitationId: string;

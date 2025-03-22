@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -36,6 +37,9 @@ const EditGuestNameModal: React.FC<EditGuestNameModalProps> = ({
       <DialogContent className="w-[90vw] md:min-w-0 rounded">
         <DialogHeader>
           <DialogTitle className="flex">Guest Name</DialogTitle>
+          <DialogDescription>
+            Enter the name of the guest you want to edit.
+          </DialogDescription>
         </DialogHeader>
         <Input
           type="text"
