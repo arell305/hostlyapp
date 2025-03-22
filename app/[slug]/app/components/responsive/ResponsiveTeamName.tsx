@@ -27,7 +27,12 @@ const ResponsiveTeamName: React.FC<CommonProps> = (commonProps) => {
     );
   }
 
-  return <EditTeamNameDrawer {...commonProps} />;
+  return (
+    <EditTeamNameDrawer
+      {...commonProps}
+      onClose={() => commonProps.onOpenChange(false)}
+    />
+  );
 };
 
 export default ResponsiveTeamName;
