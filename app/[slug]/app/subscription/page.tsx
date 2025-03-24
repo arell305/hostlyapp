@@ -179,7 +179,7 @@ const SubscriptionTab = () => {
 
   return (
     <>
-      <div className="justify-center max-w-3xl mt-1.5">
+      <div className="justify-center mx-auto max-w-2xl mt-1.5 md:mt-0 overflow-hidden">
         <h1 className="text-3xl md:text-4xl font-bold mb-3 pt-6 md:pt-0 pl-4">
           Subscription
         </h1>

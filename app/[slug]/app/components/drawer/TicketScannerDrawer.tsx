@@ -41,42 +41,6 @@ const TicketScannerModal = ({
     }
   };
 
-  // return (
-  //   <Dialog
-  //     open={open}
-  //     onOpenChange={() => {
-  //       setCheckInStatus(null);
-  //       onClose();
-  //     }}
-  //   >
-  //     <DialogContent className="max-w-screen h-screen ">
-  //       {" "}
-  //       <DialogTitle className="text-center text-2xl font-bold">
-  //         Scan Ticket
-  //       </DialogTitle>
-  //       <div className="flex-grow flex items-center justify-center">
-  //         <Scanner
-  //           onScan={handleScan}
-  //           constraints={{ facingMode: "environment" }}
-  //           paused={false}
-  //         />
-  //       </div>
-  //       {checkInStatus && (
-  //         <p className="text-center text-lg font-semibold mt-4 text-gray-700">
-  //           {checkInStatus}
-  //         </p>
-  //       )}
-  //       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-3/4">
-  //         <button
-  //           onClick={onClose}
-  //           className="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition"
-  //         >
-  //           Close
-  //         </button>
-  //       </div>
-  //     </DialogContent>
-  //   </Dialog>
-  // );
   return (
     <Drawer
       open={open}

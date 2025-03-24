@@ -213,14 +213,14 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
   };
 
   return (
-    <div className="justify-center max-w-3xl rounded-lg mx-auto mt-1.5">
+    <main className="justify-center max-w-2xl rounded-lg mx-auto mt-1.5 md:mt-0">
       <h1 className="pt-4 md:pt-0 pl-4 text-3xl md:text-4xl font-bold">
         Company Settings
       </h1>
       <div className="flex flex-col items-center gap-2 mb-6 mt-4">
         <div className="relative inline-block">
           {displayCompanyPhoto ? (
-            <div className="relative group w-[100px] h-[100px]">
+            <div className="relative group w-[100px] h-[100px] mt-1">
               <Image
                 src={displayCompanyPhoto}
                 alt="Company Avatar"
@@ -334,7 +334,7 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
         setPromoDiscount={setPromoDiscount}
         setPromoDiscountError={setPromoDiscountError}
       />
-    </div>
+    </main>
   );
 };
 

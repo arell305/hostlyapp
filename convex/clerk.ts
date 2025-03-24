@@ -50,6 +50,7 @@ import {
 import {
   validateCustomer,
   validateOrganization,
+  validateUser,
 } from "./backendUtils/validation";
 
 export const fulfill = internalAction({
@@ -112,12 +113,15 @@ export const getPendingInvitationList = action({
 });
 
 export const updateOrganizationMemberships = action({
-  args: { organizationId: v.id("organizations"), role: RoleConvex },
+  args: {
+    role: RoleConvex,
+    clerkUserId: v.string(),
+  },
   handler: async (
     ctx,
     args
   ): Promise<UpdateOrganizationMembershipsResponse> => {
-    const { organizationId, role } = args;
+    const { role, clerkUserId } = args;
     try {
       const idenitity = await requireAuthenticatedUser(ctx, [
         UserRole.Admin,
@@ -126,15 +130,20 @@ export const updateOrganizationMemberships = action({
         UserRole.Hostly_Admin,
       ]);
 
-      const organization = validateOrganization(
-        await ctx.runQuery(internal.organizations.getOrganizationById, {
-          organizationId,
+      const user = validateUser(
+        await ctx.runQuery(internal.users.internalFindUserByClerkId, {
+          clerkUserId,
         })
       );
 
-      const clerkOrgId = organization?.clerkOrganizationId;
+      const organization = validateOrganization(
+        await ctx.runQuery(internal.organizations.getOrganizationById, {
+          organizationId: user.organizationId!,
+        })
+      );
+
+      const clerkOrgId = organization.clerkOrganizationId;
       isUserInOrganization(idenitity, clerkOrgId);
-      const clerkUserId = idenitity.id as string;
 
       await Promise.all([
         updateOrganizationMembershipHelper(clerkOrgId, clerkUserId, role),

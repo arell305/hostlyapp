@@ -298,6 +298,7 @@ const EventForm: React.FC<EventFormProps> = ({
     guestListCloseTime?: string;
     checkInCloseTime?: string;
     address?: string;
+    photo?: string;
   }>({});
   const [isLoading, setIsLoading] = useState(false);
   const priceRegex = /^\d*\.?\d{0,2}$/;
@@ -312,6 +313,12 @@ const EventForm: React.FC<EventFormProps> = ({
       setErrors((prev) => ({ ...prev, eventName: "Name must be filled." }));
       hasErrors = true;
     }
+
+    if (!photoStorageId) {
+      setErrors((prev) => ({ ...prev, photo: "Event photo is required." }));
+      hasErrors = true;
+    }
+
     if (!startTime || isNaN(startTime)) {
       setErrors((prev) => ({
         ...prev,
@@ -409,7 +416,7 @@ const EventForm: React.FC<EventFormProps> = ({
       }
     }
 
-    if (hasErrors || !startTime || !endTime) {
+    if (hasErrors || !startTime || !endTime || !photoStorageId) {
       return;
     }
     setIsLoading(true);
@@ -419,7 +426,7 @@ const EventForm: React.FC<EventFormProps> = ({
         description: description.trim() !== "" ? description : null,
         startTime: startTime,
         endTime: endTime,
-        photo: photoStorageId || null,
+        photo: photoStorageId,
         address: address.trim(),
       };
 
@@ -470,10 +477,10 @@ const EventForm: React.FC<EventFormProps> = ({
           onClick={() => setIsCalendarOpen(false)} // Close on clicking outside
         ></div>
       )}
-      <form onSubmit={handleSubmit} className=" py-4">
+      <form onSubmit={handleSubmit} className=" py-4 max-w-2xl">
         <div className="mb-6 relative px-4">
           <Label htmlFor="photo" className="font-bold">
-            Event Photo
+            Event Photo*
           </Label>
 
           {/* Hidden file input */}
@@ -513,11 +520,8 @@ const EventForm: React.FC<EventFormProps> = ({
                   height={200}
                 />
               ) : (
-                // <span className="text-gray-500">Upload Photo</span>
                 <RiImageAddFill className="text-4xl text-gray-500" />
               )}
-
-              {/* Remove button */}
             </Label>
             {displayEventPhoto && (
               <BsFillXCircleFill
@@ -529,6 +533,7 @@ const EventForm: React.FC<EventFormProps> = ({
               />
             )}
           </div>
+          {errors.photo && <p className="text-red-500 mt-1">{errors.photo}</p>}
         </div>
         <div className="flex flex-col mb-6 px-4">
           <Label
@@ -688,7 +693,7 @@ const EventForm: React.FC<EventFormProps> = ({
         </div>
         {canAddGuestListOption && (
           <div
-            className="mt-12 border-b pb-2 mb-6 pt-2 cursor-pointer md:rounded hover:bg-gray-100"
+            className="max-w-[505px] mt-12 border-b pb-2 mb-6 pt-2 cursor-pointer  hover:bg-gray-100 mx-4"
             onClick={() => {
               if (isGuestListSelected) {
                 handleRemoveGuestList();
@@ -697,7 +702,7 @@ const EventForm: React.FC<EventFormProps> = ({
               }
             }}
           >
-            <div className="flex justify-between px-4">
+            <div className="flex justify-between  ">
               <h2 className=" text-lg">
                 GUEST LIST OPTION{" "}
                 <span className="text-sm pl-1">{` (${subscription.guestListEventsCount}/${PLUS_GUEST_LIST_LIMIT} guest list events this)`}</span>
@@ -773,7 +778,7 @@ const EventForm: React.FC<EventFormProps> = ({
           ))}
         {isStripeEnabled ? (
           <div
-            className="mb-6 mt-12 border-b pb-2 pt-2 cursor-pointer md:rounded hover:bg-gray-100"
+            className="max-w-[505px] mt-12 border-b pb-2 mb-6 pt-2 cursor-pointer  hover:bg-gray-100 mx-4"
             onClick={() => {
               if (isTicketsSelected) {
                 handleRemoveTickets();
@@ -782,7 +787,7 @@ const EventForm: React.FC<EventFormProps> = ({
               }
             }}
           >
-            <div className="flex justify-between px-4">
+            <div className="flex justify-between ">
               <h2 className="text-lg">TICKET OPTION</h2>
               {isTicketsSelected ? (
                 <PiMinus className="text-2xl" />
@@ -906,15 +911,15 @@ const EventForm: React.FC<EventFormProps> = ({
           <p className="text-red-500 pl-4">{saveEventError}</p>
         )}{" "}
         <div
-          className={`px-4  mt-12 flex ${isEdit ? "flex-col gap-y-3 mb-12 md:flex-row md:gap-x-10" : "flex-row gap-x-2 mb-6"} items-center justify-center`}
+          className={`px-4  mt-12 flex ${isEdit ? "flex-col gap-y-3 mb-12 md:flex-row md:gap-x-10" : "flex-row gap-x-6 mb-6"} `}
         >
           <Button
-            variant={isEdit ? "secondary" : "ghost"}
+            variant={"secondary"}
             type="button"
             onClick={onCancelEdit}
             disabled={isLoading}
             size={isEdit ? "tripleButtons" : "doubelButtons"}
-            className="w-full"
+            className="w-full md:w-[140px]"
           >
             {isEdit ? "Cancel Editing" : "Cancel"}
           </Button>
@@ -924,7 +929,7 @@ const EventForm: React.FC<EventFormProps> = ({
             disabled={isLoading || isUpdateEventLoading}
             size={isEdit ? "tripleButtons" : "doubelButtons"}
             variant="default"
-            className="w-full"
+            className="w-full  md:w-[140px]"
           >
             {isLoading || isUpdateEventLoading ? (
               <>
@@ -943,7 +948,7 @@ const EventForm: React.FC<EventFormProps> = ({
                 type="button"
                 onClick={handleDeleteEvent}
                 size="tripleButtons"
-                className="w-full border-red-700 text-red-700 "
+                className="w-full border-red-700 text-red-700  md:w-[140px]"
                 variant="secondary"
                 disabled={isDeleteLoading}
               >

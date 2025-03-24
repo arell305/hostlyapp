@@ -7,7 +7,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Stripe, loadStripe } from "@stripe/stripe-js";
 import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
-import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
+import { ResponseStatus } from "@/types/enums";
 import EventContent from "./EventContent";
 import { useUser } from "@clerk/nextjs";
 import HomeNav from "@/[slug]/app/components/nav/HomeNav";

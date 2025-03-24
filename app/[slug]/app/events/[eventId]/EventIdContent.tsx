@@ -114,7 +114,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
 
   return (
     // <section className="container mx-auto max-w-3xl md:p-6 rounded-lg">
-    <section>
+
+    <section className="container mx-auto max-w-2xl  rounded-lg">
       <TopRowNav
         eventData={data.event}
         isAdminOrg={isAppAdmin}

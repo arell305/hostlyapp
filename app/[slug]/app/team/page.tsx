@@ -14,6 +14,7 @@ import FullLoading from "../components/loading/FullLoading";
 import ErrorComponent from "../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { ResponseStatus, UserRole, ClerkPermissions } from "@/types/enums";
+import { Button } from "@/components/ui/button";
 
 const Team = () => {
   const { user } = useClerk();
@@ -157,7 +158,7 @@ const Team = () => {
     return <ErrorComponent message={error} />;
   }
   return (
-    <div className="justify-center  max-w-3xl  mx-auto mt-1.5 md:min-h-[300px] min-h-[100dvh] overflow-hidden">
+    <main className="justify-center  max-w-2xl  mx-auto mt-1.5 md:mt-0 md:min-h-[300px] min-h-[100dvh] overflow-hidden">
       <div className="flex justify-between items-center w-full px-4 pt-4 md:pt-0 mb-4">
         <h1 className=" text-3xl md:text-4xl font-bold ">Team Members</h1>
         <Protect
@@ -167,12 +168,14 @@ const Team = () => {
               isHostlyPage)
           }
         >
-          <p
+          <Button
             onClick={() => setIsInviteModalOpen(true)}
-            className="font-semibold  hover:cursor-pointer hover:underline text-customDarkBlue"
+            variant="navGhost"
+            size="nav"
+            className=""
           >
             Invite
-          </p>
+          </Button>
         </Protect>
       </div>
       <Protect
@@ -181,7 +184,7 @@ const Team = () => {
           has({ permission: ClerkPermissions.MODERATES_APP })
         }
       >
-        <div className="relative w-full mb-1.5">
+        <div className="relative w-full ">
           {/* Tab container */}
           <div className="flex justify-between w-full relative">
             {/* Light gray line */}
@@ -309,7 +312,7 @@ const Team = () => {
         error={errorRevoke}
         isLoading={isRevokeLoading}
       />
-    </div>
+    </main>
   );
 };
 

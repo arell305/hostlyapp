@@ -39,7 +39,7 @@ const DetailsView: React.FC<DetailsViewProps> = ({
     <div className="flex flex-col rounded border border-altGray w-[400px] p-3 shadow bg-white">
       {displayEventPhoto === undefined && <EventFormSkeleton />}
       <div
-        className={`flex items-center justify-between pl-4 py-2 ${!displayEventPhoto ? "mb-2" : ""}`}
+        className={`flex items-center justify-between pl-4 py-2 ${displayEventPhoto ? "mb-2" : ""}`}
       >
         <h2 className={`font-playfair font-bold text-2xl md:text-base `}>
           {_.capitalize(eventData.name)}

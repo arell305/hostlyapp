@@ -21,6 +21,7 @@ import {
 } from "@/types/enums";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { Notification } from "../components/ui/Notification";
+import { Button } from "@/components/ui/button";
 
 const AddEventPage: FC = () => {
   const router = useRouter();
@@ -93,15 +94,17 @@ const AddEventPage: FC = () => {
   }
 
   return (
-    <div className="justify-center max-w-3xl mx-auto mt-1.5 mb-20">
+    <main className="justify-center max-w-2xl mx-auto mt-1.5 mb-20 md:mt-0">
       <div className="flex justify-between items-baseline pt-4 md:pt-0 px-4">
         <h1 className="font-bold text-3xl">Add Event</h1>
-        <p
-          className="font-semibold hover:underline hover:cursor-pointer text-customDarkBlue"
+        <Button
+          variant="navGhost"
+          size="nav"
+          className=""
           onClick={handleCancel}
         >
           Cancel
-        </p>
+        </Button>
       </div>
       {!connectedAccountEnabled && (
         <div className="p-1">
@@ -140,7 +143,7 @@ const AddEventPage: FC = () => {
           onOpenChange: (open) => setShowCancelConfirmModal(open),
         }}
       />
-    </div>
+    </main>
   );
 };
 

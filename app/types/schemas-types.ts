@@ -59,7 +59,7 @@ export interface EventSchema {
   description: string | null;
   startTime: number;
   endTime: number;
-  photo: Id<"_storage"> | null;
+  photo: Id<"_storage">;
   address: string;
   isActive: boolean;
   ticketInfoId?: Id<"ticketInfo"> | null;

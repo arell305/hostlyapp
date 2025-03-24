@@ -196,11 +196,15 @@ const Page = () => {
   }
 
   return (
-    <div className="justify-center  max-w-3xl  mx-auto mt-1.5 md:min-h-[300px]">
+    <main className="justify-center  max-w-2xl  mx-auto mt-1.5 md:mt-0 min-h-[100dvh] md:min-h-[300px] pb-20">
       <div className="flex justify-between items-center w-full px-4 pt-2 md:pt-0 mb-2 ">
         <h1 className=" text-3xl md:text-4xl font-bold ">Stripe</h1>
-        <div>
-          <Button variant="navGhost" onClick={handleOpenStripeDashboard}>
+        <div className="">
+          <Button
+            variant="navGhost"
+            size="nav"
+            onClick={handleOpenStripeDashboard}
+          >
             {getStripeDashboardUrlLoading ? "Loading..." : "Open Stripe"}
           </Button>
         </div>
@@ -269,8 +273,9 @@ const Page = () => {
                 )}
 
                 <Button
-                  className="mt-6 text-red-600 bg-white hover:bg-red-50"
-                  variant="destructive"
+                  className="mt-6"
+                  variant="navDestructive"
+                  size="nav"
                   onClick={openDisconnectConfirmModal}
                 >
                   Disconnect Stripe
@@ -297,7 +302,7 @@ const Page = () => {
             </div>
           )}
       </div>
-    </div>
+    </main>
   );
 };
 

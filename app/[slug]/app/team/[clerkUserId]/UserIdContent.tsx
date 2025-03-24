@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { UserWithPromoCode } from "@/types/types";
-import { UserRole, roleMap } from "@/types/enums";
+import { ClerkPermissions, UserRole, roleMap } from "@/types/enums";
 import InfoRow from "../../components/UserInfoRow";
+import { Protect } from "@clerk/nextjs";
 
 interface UserIdContentProps {
   userData: UserWithPromoCode;
@@ -37,12 +38,11 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
     has({ role: UserRole.Hostly_Admin }) ||
     has({ role: UserRole.Hostly_Moderator });
   const canEditUsers =
-    has({ role: UserRole.Admin }) ||
-    has({ role: UserRole.Manager }) ||
-    (isAdmin && !isCurrentUser);
+    has({ permission: ClerkPermissions.EDIT_USER }) && !isCurrentUser;
+
   const canDeleteAdminMods = isHostlyPage && isHostlyAdmin;
   return (
-    <section className="container mx-auto  max-w-3xl ">
+    <main className="container mx-auto  max-w-2xl ">
       <div className="">
         <Button variant="navGhost" size="nav" className="pl-4" onClick={onBack}>
           Back
@@ -74,8 +74,8 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
       {userData.role === UserRole.Promoter && (
         <InfoRow label="Promo Code" value={userData.promoCode ?? "Not Set"} />
       )}
-      {canEditUsers &&
-        (userData.isActive ? (
+      <Protect role={ClerkPermissions.EDIT_USER}>
+        {userData.isActive ? (
           <div className="my-6 pl-4">
             <Button variant="navDestructive" size="nav" onClick={onDelete}>
               {loadingDeleteUser ? "Deleteing..." : "Delete User"}
@@ -102,8 +102,9 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
               {errorResumeUser || "Placeholder to maintain height"}
             </p>
           </div>
-        ))}
-    </section>
+        )}
+      </Protect>
+    </main>
   );
 };
 

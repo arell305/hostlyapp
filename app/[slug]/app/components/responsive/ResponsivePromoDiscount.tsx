@@ -1,4 +1,3 @@
-import React from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import EditPromoDiscountModal from "../modals/EditPromoDiscountModal";
 import EditPromoDiscountDrawer from "../drawer/EditPromoDiscountDrawer";

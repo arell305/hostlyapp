@@ -21,11 +21,11 @@ const buttonVariants = cva(
         navGhost:
           "text-customDarkBlue font-semibold hover:underline font-raleway text-base p-0 h-auto",
         navDestructive:
-          "text-red-600 hover:underline font-raleway text-base p-0 h-auto font-semibold",
+          "text-red-600 hover:underline font-raleway text-base p-0 h-auto font-medium",
       },
       size: {
         default:
-          "h-12 md:h-10 text-lg md:text-base font-semibold px-4 py-2 rounded-[20px] w-full md:w-[200px] md:font-medium",
+          "h-12 md:h-9 text-lg md:text-base font-semibold px-4 py-2  rounded-[20px] w-full md:w-[200px] md:font-medium",
         sm: "h-9 px-3",
         lg: "h-11 d px-8",
         icon: "h-10 w-10",

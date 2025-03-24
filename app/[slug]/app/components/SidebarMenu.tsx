@@ -67,7 +67,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
           onClick={() => {
             isAppAdmin
               ? handleItemClick("/admin/app/companies")
-              : handleItemClick(`/${slug}/app/dashboard`);
+              : handleItemClick(`/${slug}/app`);
           }}
         >
           {orgName}

@@ -19,49 +19,45 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
   handleNavigateHome,
 }) => {
   return (
-    <>
-      {isEditing ? (
-        <div className="flex items-center justify-between  pt-4">
-          <div className="flex items-center">
-            <Button variant="navGhost" onClick={onCancelEdit}>
-              Cancel
-            </Button>
-          </div>
-          <p className="text-lg font-bold flex-grow text-center mr-[80px]">
-            {eventData.name}
-          </p>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between pt-4 px-2 md:px-10">
-          <Button
-            className="w-[60px] md:w-[30px]"
-            variant="navGhost"
-            onClick={handleNavigateHome}
-          >
-            Back
+    <div className="relative flex items-center justify-between pt-4 px-2 md:pt-0">
+      {/* Left side button: Cancel or Home */}
+      <div className="]">
+        {isEditing ? (
+          <Button variant="navGhost" size="nav" onClick={onCancelEdit}>
+            Cancel
           </Button>
+        ) : (
+          <Button variant="navGhost" size="nav" onClick={handleNavigateHome}>
+            Home
+          </Button>
+        )}
+      </div>
 
-          <p className="text-lg font-bold flex-1 text-center">
-            {eventData.name}
-          </p>
+      {/* Centered event name */}
+      <p className="absolute left-1/2 transform -translate-x-1/2 text-lg font-bold text-center">
+        {eventData.name}
+      </p>
 
+      {/* Right side: Edit button or empty space to keep layout consistent */}
+      <div className=" flex justify-end">
+        {!isEditing && (
           <Protect
             condition={(has) =>
               has({ permission: ClerkPermissions.CREATE_EVENT })
             }
-            fallback={<div className="w-[60px] md:w-[30px]"></div>}
+            fallback={<div />}
           >
             <Button
-              className="w-[60px] md:w-[30px]"
               variant="navGhost"
+              size="nav"
               onClick={() => setIsEditing(true)}
             >
               Edit
             </Button>
           </Protect>
-        </div>
-      )}
-    </>
+        )}
+      </div>
+    </div>
   );
 };
 

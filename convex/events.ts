@@ -68,7 +68,7 @@ export const addEvent = action({
     description: v.union(v.string(), v.null()),
     startTime: v.number(),
     endTime: v.number(),
-    photo: v.union(v.id("_storage"), v.null()),
+    photo: v.id("_storage"),
     address: v.string(),
     ticketData: v.union(
       v.object({
@@ -380,7 +380,7 @@ export const updateEvent = action({
     description: v.optional(v.union(v.string(), v.null())),
     startTime: v.optional(v.number()),
     endTime: v.optional(v.number()),
-    photo: v.optional(v.union(v.id("_storage"), v.null())),
+    photo: v.optional(v.id("_storage")),
     address: v.optional(v.string()),
     ticketData: v.union(
       v.object({
@@ -612,7 +612,7 @@ export const createEvent = internalMutation({
     description: v.union(v.string(), v.null()),
     startTime: v.number(),
     endTime: v.number(),
-    photo: v.union(v.id("_storage"), v.null()),
+    photo: v.id("_storage"),
     address: v.string(),
   },
   handler: async (ctx, args): Promise<Id<"events">> => {
@@ -643,7 +643,7 @@ export const internalUpdateEvent = internalMutation({
     description: v.optional(v.union(v.string(), v.null())),
     startTime: v.optional(v.number()),
     endTime: v.optional(v.number()),
-    photo: v.optional(v.union(v.id("_storage"), v.null())),
+    photo: v.optional(v.id("_storage")),
     address: v.optional(v.string()),
     ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
     guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),

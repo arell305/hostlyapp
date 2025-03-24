@@ -44,6 +44,7 @@ export enum ClerkPermissions {
   UPLOAD_GUESTLIST = "org:events:upload_guest_list",
   VIEW_ALL_GUESTLISTS = "org:events:view_all_guestlists",
   VIEW_SUBSCRIPTION = "org:view:subscription",
+  EDIT_USER = "org:user:edit",
 }
 
 export enum UserRole {

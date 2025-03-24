@@ -56,6 +56,7 @@ const UserWrapper = () => {
   }, [userFromDb?.data?.user?.role]);
 
   const handleShowEditUser = () => {
+    console.log("show edit user");
     setShowResponsiveEditUser(true);
   };
 
@@ -78,7 +79,7 @@ const UserWrapper = () => {
     setLoadingEditRole(true);
     try {
       const response = await updateOrganizationMemberships({
-        organizationId: userFromDb?.data?.user.organizationId,
+        clerkUserId: currentClerkUserId,
         role,
       });
       if (response.status === ResponseStatus.SUCCESS) {

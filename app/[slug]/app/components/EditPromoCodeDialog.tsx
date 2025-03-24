@@ -15,7 +15,15 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserWithPromoCode } from "@/types/types";
 import { ResponseStatus } from "@/types/enums";
-// Need to add drawer and add on userId page
+import useMediaQuery from "@/hooks/useMediaQuery";
+import { DESKTOP_WIDTH } from "@/types/constants";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 interface EditPromoCodeDialogProps {
   isOpen: boolean;
@@ -34,6 +42,7 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
   const [promoCode, setPromoCode] = useState<string | null | undefined>(
     user?.promoCode
   );
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const addPromoCode = useMutation(
     api.promoterPromoCode.addOrUpdatePromoterPromoCode
@@ -92,61 +101,122 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
       setIsLoading(false);
     }
   };
+  if (isDesktop) {
+    return (
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="rounded-[10px]">
+          <DialogHeader>
+            <DialogTitle>
+              {user?.promoCodeId ? "Edit Promo Code" : "Add Promo Code"}
+            </DialogTitle>
+            <DialogDescription>
+              {user?.promoCodeId
+                ? "Edit your current promo code below."
+                : "Enter a new promo code below."}
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={promoCode || ""}
+            onChange={(e) => {
+              setPromoCode(e.target.value);
+              setError(null);
+            }}
+            placeholder="Enter promo code"
+            disabled={isLoading}
+            error={error || undefined}
+          />
+          <p
+            className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
+          >
+            {error || "Placeholder to maintain height"}
+          </p>{" "}
+          <div className="flex justify-center space-x-10 mt-4">
+            <Button
+              variant="ghost"
+              onClick={() => setIsOpen(false)}
+              disabled={isLoading}
+              className="font-semibold  w-[140px]"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
+              onClick={handleSave}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="rounded-[10px]">
-        <DialogHeader>
-          <DialogTitle>
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+      <DrawerContent className="rounded-t-[10px]">
+        <DrawerHeader>
+          <DrawerTitle>
             {user?.promoCodeId ? "Edit Promo Code" : "Add Promo Code"}
-          </DialogTitle>
-          <DialogDescription>
+          </DrawerTitle>
+          <DrawerDescription>
             {user?.promoCodeId
               ? "Edit your current promo code below."
               : "Enter a new promo code below."}
-          </DialogDescription>
-        </DialogHeader>
-        <Input
-          value={promoCode || ""}
-          onChange={(e) => {
-            setPromoCode(e.target.value);
-            setError(null);
-          }}
-          placeholder="Enter promo code"
-          disabled={isLoading}
-          error={error || undefined}
-        />
-        <p
-          className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
-        >
-          {error || "Placeholder to maintain height"}
-        </p>{" "}
-        <div className="flex justify-center space-x-10 mt-4">
-          <Button
-            variant="ghost"
-            onClick={() => setIsOpen(false)}
+          </DrawerDescription>
+        </DrawerHeader>
+        <div className="px-4">
+          <Input
+            value={promoCode || ""}
+            onChange={(e) => {
+              setPromoCode(e.target.value);
+              setError(null);
+            }}
+            placeholder="Enter promo code"
             disabled={isLoading}
-            className="font-semibold  w-[140px]"
+            error={error || undefined}
+          />
+          <p
+            className={`text-sm mt-1 ${
+              error ? "text-red-500" : "text-transparent"
+            }`}
           >
-            Cancel
-          </Button>
-          <Button
-            className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
-            onClick={handleSave}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save"
-            )}
-          </Button>
+            {error || "Placeholder to maintain height"}
+          </p>
+          <div className="flex justify-center space-x-10 mt-4 pb-4">
+            <Button
+              variant="ghost"
+              onClick={() => setIsOpen(false)}
+              disabled={isLoading}
+              className="font-semibold w-[140px]"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
+              onClick={handleSave}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 };
 

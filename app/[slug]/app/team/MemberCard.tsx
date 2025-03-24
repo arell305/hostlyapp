@@ -30,7 +30,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
 
   return (
     <div
-      className="h-[95px] border-b border-gray-300 p-4 w-full hover:bg-gray-100 cursor-pointer hover:rounded-md"
+      className="h-[95px] border-b border-gray-300 p-4 w-full hover:bg-gray-100 cursor-pointer "
       onClick={handleClick}
     >
       <div className="flex justify-between items-center">
@@ -38,9 +38,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
           <Image
             src={imageUrl || "https://avatar.iran.liara.run/public"}
             alt={`${name}`}
-            className="w-16 h-16 rounded-full mr-4"
-            width={16}
-            height={16}
+            className="rounded-full w-16 h-16 object-cover mr-4"
+            width={64}
+            height={64}
           />
           <div className="flex-grow">
             <h2 className="text-lg font-semibold">

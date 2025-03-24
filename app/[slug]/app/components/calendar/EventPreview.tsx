@@ -63,13 +63,13 @@ const EventPreview: React.FC<EventPreviewProps> = ({
           <Image
             src={displayEventPhoto}
             alt={eventData.name}
-            className="w-full h-[180px] md:h-[217px] mb-1.5 md:mb-2 rounded-lg object-cover"
+            className="w-full h-[180px] md:h-[217px] mb-1.5 md:mb-2  object-cover"
             width={400}
             height={400}
           />
         )}
 
-        <div className={`text-md px-1 md:text-xs ${isApp ? "border-b" : ""}`}>
+        <div className={` px-1 md:text-xs ${isApp ? "border-b" : ""}`}>
           <IconTextRow
             icon={<MdOutlineCalendarToday />}
             text={formatDateMDY(eventData.startTime)}
@@ -87,7 +87,7 @@ const EventPreview: React.FC<EventPreviewProps> = ({
         </div>
         {isApp && (
           <div
-            className={`flex text-xs ${
+            className={`flex text-base md:text-xs py-1 ${
               eventData.ticketInfoId && eventData.guestListInfoId
                 ? "justify-between"
                 : "justify-center"
@@ -95,24 +95,24 @@ const EventPreview: React.FC<EventPreviewProps> = ({
           >
             {eventData.ticketInfoId && (
               <div
-                className={`pt-1 w-1/2 flex flex-col justify-center items-center ${
+                className={`py-3 w-1/2 flex space-x-2 font-medium justify-center items-center ${
                   eventData.ticketInfoId && eventData.guestListInfoId
                     ? "border-r-2 border-customLightGray"
                     : ""
                 }`}
               >
-                <p>Ticket</p>
-                <IoTicketOutline />
+                <IoTicketOutline className="text-2xl md:text-base" />
+                <p>Tickets</p>
               </div>
             )}
             {eventData.guestListInfoId && (
-              <div className="pt-1 w-1/2 flex flex-col justify-center items-center">
+              <div className="py-3 w-1/2 flex space-x-2 font-medium justify-center items-center ">
+                <LuClipboardList className="text-2xl md:text-base" />
                 <p>Guest List</p>
-                <LuClipboardList />
               </div>
             )}
             {!eventData.guestListInfoId && !eventData.ticketInfoId && (
-              <div className="mt-1.5 pt-1 w-1/2 flex flex-col justify-center items-center">
+              <div className="mt-1.5 pt-1 w-1/2 flex flex-col font-medium justify-center items-center md:text-base">
                 <p>Event Only</p>
               </div>
             )}

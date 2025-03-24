@@ -228,7 +228,7 @@ export interface EventFormInput {
   description: string | null;
   startTime: number;
   endTime: number;
-  photo: Id<"_storage"> | null;
+  photo: Id<"_storage">;
   address: string;
 }
 

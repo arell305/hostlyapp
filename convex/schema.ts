@@ -143,7 +143,7 @@ export default defineSchema({
     description: v.union(v.string(), v.null()),
     startTime: v.number(),
     endTime: v.number(),
-    photo: v.union(v.id("_storage"), v.null()),
+    photo: v.id("_storage"),
     address: v.string(),
     isActive: v.boolean(),
     ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),

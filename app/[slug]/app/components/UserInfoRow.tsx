@@ -17,6 +17,7 @@ const InfoRow: React.FC<InfoRowProps> = ({
 }) => {
   return (
     <div
+      onClick={isClickable ? onEdit : undefined}
       className={`px-4 flex justify-between border-b py-3 ${
         isClickable ? "hover:bg-gray-100 cursor-pointer" : ""
       }`}
@@ -27,7 +28,7 @@ const InfoRow: React.FC<InfoRowProps> = ({
       </div>
       {canEdit && (
         <div className="flex items-center">
-          <GoPencil className="text-2xl" onClick={onEdit} />
+          <GoPencil className="text-2xl" />
         </div>
       )}
     </div>

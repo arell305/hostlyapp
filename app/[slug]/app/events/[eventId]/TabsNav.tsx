@@ -11,7 +11,7 @@ interface TabProps {
 const EventTab: React.FC<TabProps> = ({ label, isActive, onClick }) => (
   <button
     onClick={onClick}
-    className={`pb-2 flex-1 text-center ${isActive ? "active" : ""} tab`}
+    className={`pb-2 flex-1 text-center hover:font-semibold ${isActive ? "active" : ""} tab`}
   >
     {label}
   </button>

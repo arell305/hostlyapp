@@ -6,14 +6,8 @@ import { RiArrowDropLeftLine, RiArrowDropRightLine } from "react-icons/ri";
 import { RiArrowDownWideLine, RiArrowUpWideLine } from "react-icons/ri";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import {
-  formatLongDate,
-  formatNarrowWeekday,
-  formatShortDate,
-  getCurrentDate,
-} from "../../../utils/luxon";
+import { formatNarrowWeekday, getCurrentDate } from "../../../utils/luxon";
 import { EventSchema } from "@/types/schemas-types";
-import EventPreview from "./components/calendar/EventPreview";
 import { TIME_ZONE } from "@/types/constants";
 import { Protect, useAuth } from "@clerk/nextjs";
 import { Notification } from "./components/ui/Notification";
@@ -24,7 +18,8 @@ import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { DateTime } from "luxon";
 import PlusTierData from "./components/PlusTierData";
 import { ResponseStatus, UserRole } from "@/types/enums";
-
+import WeekView from "./components/calendar/WeekView";
+import SelectedDateEvents from "./components/calendar/SelectedDateEvents";
 type Value = Date | null | [Date | null, Date | null];
 
 const WeekViewCalendar: React.FC = () => {
@@ -105,16 +100,6 @@ const WeekViewCalendar: React.FC = () => {
     });
   };
 
-  const getWeekDates = (currentDate: Date) => {
-    const startOfWeek = DateTime.fromJSDate(currentDate)
-      .setZone(TIME_ZONE)
-      .startOf("week");
-
-    return Array.from({ length: 7 }, (_, i) =>
-      startOfWeek.plus({ days: i }).toJSDate()
-    );
-  };
-
   const handleNavigation = (direction: "prev" | "next") => {
     const newDate = DateTime.fromJSDate(date)
       .setZone(TIME_ZONE)
@@ -144,79 +129,6 @@ const WeekViewCalendar: React.FC = () => {
     return <ErrorComponent message={organizationContextError} />;
   }
 
-  const renderWeekView = () => {
-    const weekDates = getWeekDates(date);
-    return (
-      <div className="flex flex-col items-center border-b pb-2 px-2 pt-3">
-        {/* Week Navigation */}
-        <div className="flex items-center justify-between w-full max-w-[600px] mb-4 h-[44px]">
-          {" "}
-          <button
-            onClick={() => handleNavigation("prev")}
-            className="px-3 py-2 hover:bg-gray-100 rounded"
-          >
-            <RiArrowDropLeftLine className="text-xl" />
-          </button>
-          <h3
-            className="text-xl leading-[18px]
- font-sans"
-          >
-            {formatShortDate(weekDates[0])} - {formatShortDate(weekDates[6])}
-          </h3>
-          <button
-            onClick={() => handleNavigation("next")}
-            className="px-3 py-2 hover:bg-gray-100 rounded"
-          >
-            <RiArrowDropRightLine className="text-xl" />
-          </button>
-        </div>
-
-        <div className="flex justify-between w-full mb-2 pt-1.5">
-          {weekDates.map((day) => (
-            <div
-              key={`${day.toISOString()}-label`}
-              className="w-[14.2857%] text-center text-xs font-semibold text-gray-600"
-            >
-              {formatNarrowWeekday(undefined, day)}
-            </div>
-          ))}
-        </div>
-        {/* Week Days */}
-        <div className="flex justify-between w-full ">
-          {weekDates.map((day) => {
-            const isToday = day.toDateString() === today.toDateString();
-            const isSelected = day.toDateString() === date.toDateString();
-            const hasEvent = hasEventOnDate(day);
-            return (
-              <button
-                key={day.toISOString()}
-                type="button"
-                className={`react-calendar__tile w-[14.2857%] aspect-square flex items-center justify-center 
-                  text-lg font-medium transition-all overflow-hidden
-                  md:hover:bg-gray-100
-                  ${isSelected ? "md:hover:bg-gray-100 react-calendar__tile--active" : ""}`}
-                onClick={() => handleDateClick(day)}
-              >
-                <abbr
-                  aria-label={day.toDateString()}
-                  className="relative font-medium flex flex-col justify-center items-center leading-none translate-y-[1px]"
-                >
-                  {isToday && (
-                    <div className="absolute w-6 h-6 bg-gray-300 mt-1 rounded-full"></div>
-                  )}
-                  <span className="relative">{day.getDate()}</span>
-                  {hasEvent && (
-                    <div className="absolute -bottom-[16px] left-[50%] transform -translate-x-[50%] bg-customDarkBlue rounded-full w-[6px] h-[6px]" />
-                  )}
-                </abbr>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
   if (!monthlyEventsData) {
     return <FullLoading />;
   }
@@ -226,9 +138,9 @@ const WeekViewCalendar: React.FC = () => {
   }
 
   return (
-    <div className="mt-2 px-1 max-w-2xl min-w-[420px] mx-auto">
+    <div className="mt-2 md:mt-0 px-1 md:px-0 max-w-2xl min-w-[420px] mx-auto">
       {!connectedAccountEnabled && isCompanyAdmin && (
-        <div className="p-1">
+        <div className="p-1 md:pb-2">
           <Notification
             title="Stripe Required"
             description="Please integrate Stripe to accept payments."
@@ -239,7 +151,13 @@ const WeekViewCalendar: React.FC = () => {
       )}
       {/* Show Week or Month View */}
       {isWeekView ? (
-        renderWeekView()
+        <WeekView
+          date={date}
+          today={today}
+          onDateClick={handleDateClick}
+          onNavigate={handleNavigation}
+          hasEventOnDate={hasEventOnDate}
+        />
       ) : (
         <Calendar
           onChange={handleDateClick}
@@ -293,28 +211,8 @@ const WeekViewCalendar: React.FC = () => {
         </button>
       </div>
 
-      <div className="mt-1 mb-5 ">
-        <div className="events-list mt-4">
-          <h3 className="font-bold text-2xl md:text-3xl mb-4 font-playfair pl-4">
-            {formatLongDate(date)}
-          </h3>
-          {selectedEvents.length > 0 ? (
-            <div className="py-4 flex flex-wrap justify-center gap-x-4 gap-y-3 bg-gray-200 md:rounded">
-              {selectedEvents.map((event: EventSchema) => {
-                return (
-                  <div key={event._id} className="w-full">
-                    <EventPreview eventData={event} isApp={true} />
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="pl-4 border-b pb-4">
-              No events for the selected date.
-            </p>
-          )}
-        </div>
-      </div>
+      <SelectedDateEvents date={date} events={selectedEvents} />
+
       <Protect
         condition={(has) =>
           has({ permission: ClerkPermissionsEnum.ORG_EVENTS_CREATE })
