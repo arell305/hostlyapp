@@ -19,11 +19,9 @@ const SelectedDateEvents: React.FC<SelectedDateEventsProps> = ({
           Selected Date: {formatLongDate(date)}
         </h3>
         {events.length > 0 ? (
-          <div className="py-8 flex flex-wrap justify-center gap-x-4 gap-y-3 bg-gray-200 px-2">
+          <div className="py-8 flex flex-wrap justify-center  gap-x-4 gap-y-3 bg-gray-200 px-4">
             {events.map((event: EventSchema) => (
-              <div key={event._id} className="w-full">
-                <EventPreview eventData={event} isApp={true} />
-              </div>
+              <EventPreview key={event._id} eventData={event} isApp={true} />
             ))}
           </div>
         ) : (

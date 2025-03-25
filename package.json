@@ -61,6 +61,7 @@
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-typescript": "^7.24.7",
     "@edge-runtime/vm": "^4.0.3",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",

@@ -19,7 +19,7 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
   handleNavigateHome,
 }) => {
   return (
-    <div className="relative flex items-center justify-between pt-4 px-2 md:pt-0">
+    <div className="relative flex items-center justify-between pt-4 px-3 md:pt-0">
       {/* Left side button: Cancel or Home */}
       <div className="]">
         {isEditing ? (

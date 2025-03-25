@@ -26,7 +26,7 @@ const buttonVariants = cva(
       size: {
         default:
           "h-12 md:h-9 text-lg md:text-base font-semibold px-4 py-2  rounded-[20px] w-full md:w-[200px] md:font-medium",
-        sm: "h-9 px-3",
+        sm: "md:h-9 md:px-8  rounded-[20px] h-11 px-10 text-base md:text-sm font-medium",
         lg: "h-11 d px-8",
         icon: "h-10 w-10",
         tripleButtons: "w-[300px] h-10 px-4 py-2 rounded-[20px]",

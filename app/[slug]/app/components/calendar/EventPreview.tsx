@@ -42,7 +42,7 @@ const EventPreview: React.FC<EventPreviewProps> = ({
   return (
     <Link href={`${pathname}/events/${eventData._id}`} className="">
       <div
-        className={`w-full md:w-[190px] md:h-[${isApp ? "380" : "340"}px] shadow-md cursor-pointer hover:shadow-xl rounded-md transition duration-200 bg-white pb-1`}
+        className={`w-full md:w-[220px] md:h-[${isApp ? "380" : "340"}px] shadow-md cursor-pointer hover:shadow-xl rounded-md transition duration-200 bg-white pb-1`}
       >
         <div
           className={`flex items-center justify-between pl-4 py-2 ${!displayEventPhoto ? "mb-2" : ""}`}
@@ -60,13 +60,15 @@ const EventPreview: React.FC<EventPreviewProps> = ({
           )}
         </div>
         {displayEventPhoto && (
-          <Image
-            src={displayEventPhoto}
-            alt={eventData.name}
-            className="w-full h-[180px] md:h-[217px] mb-1.5 md:mb-2  object-cover"
-            width={400}
-            height={400}
-          />
+          <div className="relative w-full aspect-[4/5]">
+            <Image
+              src={displayEventPhoto}
+              alt="Company Avatar"
+              fill
+              className="object-cover "
+              sizes="160px"
+            />
+          </div>
         )}
 
         <div className={` px-1 md:text-xs ${isApp ? "border-b" : ""}`}>

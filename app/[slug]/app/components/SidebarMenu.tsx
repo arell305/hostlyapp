@@ -15,6 +15,7 @@ import { useAuth } from "@clerk/nextjs";
 import { FaCirclePlus } from "react-icons/fa6";
 import Link from "next/link";
 import { ClerkPermissions, UserRole } from "@/types/enums";
+import { Button } from "@/components/ui/button";
 
 interface SidebarMenuProps {
   toggleSidebar?: () => void;
@@ -119,14 +120,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
           condition={(has) =>
             has({ permission: ClerkPermissions.CREATE_EVENT })
           }
-        >
-          <MenuItem onClick={() => handleItemClick(`/${slug}/app/add-event`)}>
-            <div className="flex items-center gap-x-3">
-              <FaCirclePlus className="text-xl md:text-lg" />
-              <p className="sm:text-xs">Add Event</p>
-            </div>
-          </MenuItem>
-        </Protect>
+        ></Protect>
         <MenuItem onClick={() => handleItemClick(`/${slug}`)}>
           <div className="flex items-center gap-x-3">
             <IoCalendarClearOutline className="text-xl md:text-lg" />
@@ -168,6 +162,19 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
               <p className="sm:text-xs">Stripe</p>
             </div>
           </MenuItem>
+        </Protect>
+        <Protect
+          condition={(has) =>
+            has({ permission: ClerkPermissions.CREATE_EVENT })
+          }
+        >
+          <Button
+            onClick={() => handleItemClick(`/${slug}/app/add-event`)}
+            className="mt-4 md:ml-14 ml-[5rem] sm:ml-20"
+            size="sm"
+          >
+            Add Event
+          </Button>
         </Protect>
       </Menu>
     </Sidebar>

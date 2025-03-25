@@ -36,7 +36,7 @@ const CompanyEvents = () => {
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
-      if (target.isIntersecting && response.loadMore) {
+      if (target.isIntersecting && response.status !== "Exhausted") {
         setIsLoadingMore(true);
         response.loadMore(5);
       }
@@ -59,8 +59,10 @@ const CompanyEvents = () => {
   }, [handleObserver]);
 
   useEffect(() => {
-    setIsLoadingMore(false);
-  }, [response.results]);
+    if (!response.isLoading) {
+      setIsLoadingMore(false);
+    }
+  }, [response.isLoading]);
 
   if (publicOrganizationContextError) {
     return <ErrorComponent message={publicOrganizationContextError} />;
@@ -85,8 +87,8 @@ const CompanyEvents = () => {
       isLoadingEvents={response === undefined}
       events={response.results}
       isLoadingMore={isLoadingMore}
-      hasMore={!!response.loadMore}
       observerRef={observerRef}
+      status={response.status}
     />
   );
 };

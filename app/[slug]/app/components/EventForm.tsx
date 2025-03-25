@@ -717,7 +717,7 @@ const EventForm: React.FC<EventFormProps> = ({
         )}
         {isGuestListSelected &&
           (guestListLimitReached ? (
-            <p>Guest list limit reached</p>
+            <p className="text-red-500 px-4">Guest list limit reached</p>
           ) : (
             <>
               <div className="mb-6 flex flex-col px-4">

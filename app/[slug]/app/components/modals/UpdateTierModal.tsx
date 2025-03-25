@@ -150,7 +150,6 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
         {option.tier !== currentTier && prorationDetail && (
           <div className="mt-2 text-sm">
             <p>Prorated amount: ${prorationDetail.proratedAmount}</p>
-            <p>New monthly rate: ${prorationDetail.monthlyAmount}</p>
           </div>
         )}
       </div>
@@ -178,6 +177,7 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
             disabled={isUpdateTierLoading}
             onClick={onClose}
             className="font-semibold w-[140px]"
+            variant="ghost"
           >
             Cancel
           </Button>

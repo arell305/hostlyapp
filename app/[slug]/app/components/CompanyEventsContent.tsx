@@ -16,9 +16,9 @@ interface CompanyEventsContentProps {
   name: string;
   events: EventSchema[];
   isLoadingMore: boolean;
-  hasMore: boolean;
   observerRef: React.RefObject<HTMLDivElement>;
   isLoadingEvents: boolean;
+  status: string;
 }
 
 const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
@@ -28,15 +28,15 @@ const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
   name,
   events,
   isLoadingMore,
-  hasMore,
   observerRef,
   isLoadingEvents,
+  status,
 }) => {
   return (
     <main className="bg-gray-100 min-h-screen flex justify-center overflow-hidden">
       <div className="max-w-4xl w-full flex flex-col">
         <HomeNav user={user} handleNavigateHome={handleNavigateHome} />
-        <div className="flex flex-col pt-4 pb-20 items-center w-full max-w-4xl">
+        <div className="flex flex-col pt-10 pb-20 items-center w-full max-w-4xl">
           {displayCompanyPhoto && (
             <div className="mb-3 relative group w-[150px] h-[150px] flex justify-center items-center">
               <Image
@@ -55,7 +55,7 @@ const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
             {events.length === 0 ? (
               <MessageCard message="No events found." />
             ) : (
-              <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-8 md:gap-y-12">
+              <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-8 md:gap-y-12 justify-items-center">
                 {events.map((event: EventSchema) => (
                   <EventPreview
                     key={event._id}
@@ -74,7 +74,7 @@ const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
               </div>
             )}
 
-            {!hasMore && events.length > 0 && (
+            {status === "Exhausted" && (
               <div className="flex justify-center pb-10">
                 <p className="text-gray-500">All events loaded.</p>
               </div>

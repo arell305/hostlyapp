@@ -10,7 +10,7 @@ import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import { ResponseStatus } from "@/types/enums";
 import EventContent from "./EventContent";
 import { useUser } from "@clerk/nextjs";
-import HomeNav from "@/[slug]/app/components/nav/HomeNav";
+import EventsPageNav from "@/[slug]/app/components/nav/EventsPageNav";
 
 const EventPage = () => {
   const { isStripeEnabled, connectedAccountStripeId } =
@@ -51,8 +51,7 @@ const EventPage = () => {
   const ticketInfoData = getEventByIdResponse?.data?.ticketInfo;
   return (
     <main className="bg-gray-100 min-h-screen flex  overflow-hidden flex-col items-center">
-      <HomeNav
-        user={user}
+      <EventsPageNav
         handleNavigateHome={handleBrowseMoreEvents}
         buttonText="Back to Events"
       />

@@ -26,6 +26,7 @@ import {
 } from "@/lib/frontendHelper";
 import MessageCard from "@/[slug]/app/components/ui/MessageCard";
 import { ResponseStatus } from "@/types/enums";
+import EventsPageNav from "@/[slug]/app/components/nav/EventsPageNav";
 
 interface EventContentProps {
   isStripeEnabled: boolean;
@@ -167,7 +168,7 @@ const EventContent: React.FC<EventContentProps> = ({
     clientSecret && !paymentSuccess && isTicketsSalesOpen;
 
   return (
-    <div className="max-w-4xl  flex flex-col  space-y-4  pb-14 pt-4">
+    <div className="max-w-4xl  flex flex-col  space-y-6  pb-20 pt-2">
       <DetailsView eventData={eventData} ticketInfoData={ticketInfoData} />
       <About description={eventData.description} />
       {paymentSuccess && (
@@ -177,10 +178,8 @@ const EventContent: React.FC<EventContentProps> = ({
         <MessageCard message="Ticket sales are closed" />
       )}
       {shouldShowTicketPurchase && (
-        <div className="flex flex-col bg-white rounded border border-altGray w-[400px] p-3 shadow">
-          <h2 className="text-2xl font-bold mb-2 text-center md:text-start">
-            Tickets
-          </h2>
+        <div className="flex flex-col bg-white rounded border border-altGray w-[400px] py-3 px-7 shadow">
+          <h2 className="text-2xl font-bold mb-2 text-start">Tickets</h2>
           <TicketSelector
             label="Male"
             count={maleCount}
