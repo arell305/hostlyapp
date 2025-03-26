@@ -19,6 +19,7 @@ const EmailInput: React.FC<EmailInputProps> = ({
     <div className="mt-4">
       <Label>Email Address</Label>
       <Input
+        error={emailError || undefined}
         type="email"
         placeholder="Enter your email"
         value={email}
@@ -29,7 +30,7 @@ const EmailInput: React.FC<EmailInputProps> = ({
         required
       />
       <p
-        className={`text-sm mt-1 ${emailError ? "text-red-500" : "text-transparent"}`}
+        className={`text-xs my-1 ${emailError ? "text-red-500" : "text-transparent"}`}
       >
         {emailError || "Placeholder to maintain height"}
       </p>

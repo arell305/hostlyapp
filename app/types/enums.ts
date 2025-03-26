@@ -284,6 +284,8 @@ export enum ShowErrorMessages {
   USER_NOT_CUSTOMER = "User is not customer",
   COMPANY_NOT_FOUND = "Company not found",
   EVENT_NOT_FOUND = "Event not found",
+  NOT_ENOUGH_MALE_TICKETS = "Not enough male tickets available.",
+  NOT_ENOUGH_FEMALE_TICKETS = "Not enough female tickets available.",
 }
 
 export enum FrontendErrorMessages {

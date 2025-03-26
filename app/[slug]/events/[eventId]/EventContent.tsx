@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
 import DetailsView from "../../app/components/view/DetailsView";
 import About from "../../app/components/view/About";
-import _ from "lodash";
 import {
   EventSchema,
   PromoterPromoCodeWithDiscount,
@@ -26,7 +25,9 @@ import {
 } from "@/lib/frontendHelper";
 import MessageCard from "@/[slug]/app/components/ui/MessageCard";
 import { ResponseStatus } from "@/types/enums";
-import EventsPageNav from "@/[slug]/app/components/nav/EventsPageNav";
+import { isValidEmail } from "../../../../utils/helpers";
+import { Button } from "@/components/ui/button";
+import { TicketSoldCounts } from "@/types/types";
 
 interface EventContentProps {
   isStripeEnabled: boolean;
@@ -35,6 +36,7 @@ interface EventContentProps {
   eventData: EventSchema;
   ticketInfoData?: TicketInfoSchema | null;
   onBrowseMoreEvents: () => void;
+  ticketSoldCounts?: TicketSoldCounts | null;
 }
 
 const EventContent: React.FC<EventContentProps> = ({
@@ -44,17 +46,16 @@ const EventContent: React.FC<EventContentProps> = ({
   eventData,
   ticketInfoData,
   onBrowseMoreEvents,
+  ticketSoldCounts,
 }) => {
-  // ticket purchase
   const [maleCount, setMaleCount] = useState<number>(0);
   const [femaleCount, setFemaleCount] = useState<number>(0);
   const [email, setEmail] = useState<string>("");
   const [emailError, setEmailError] = useState<string | null>(null);
 
-  // promo code
   const [shouldValidate, setShouldValidate] = useState<boolean>(false);
   const [promoCode, setPromoCode] = useState<string>("");
-  const [promoCodeError, setPromoCodeError] = useState<string>("");
+  const [promoCodeError, setPromoCodeError] = useState<string | null>(null);
   const [validationResult, setValidationResult] =
     useState<PromoterPromoCodeWithDiscount | null>(null);
   const [isApplyPromoCodeLoading, setIsApplyPromoCodeLoading] =
@@ -65,7 +66,6 @@ const EventContent: React.FC<EventContentProps> = ({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-
   const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
 
   const validatePromoterPromoCodeQuery = useQuery(
@@ -74,7 +74,6 @@ const EventContent: React.FC<EventContentProps> = ({
   );
   const createPaymentIntent = useAction(api.stripe.createPaymentIntent);
 
-  // isTicketsSalesOpen is null if there is not ticket info
   const isTicketsSalesOpen = isTicketSalesOpen(ticketInfoData);
 
   const {
@@ -118,11 +117,15 @@ const EventContent: React.FC<EventContentProps> = ({
       setPromoCodeError(FrontendErrorMessages.PROMO_CODE_REQUIRED);
       return;
     }
-
     setShouldValidate(true);
   };
 
   const handleCheckout = async () => {
+    if (!email || !isValidEmail(email)) {
+      setEmailError(FrontendErrorMessages.EMAIL_REQUIRED);
+      return;
+    }
+
     if (!connectedAccountStripeId) {
       console.error("connectedAccountStripeId not found");
       setCheckoutError(FrontendErrorMessages.GENERIC_ERROR);
@@ -137,7 +140,7 @@ const EventContent: React.FC<EventContentProps> = ({
         metadata: {
           eventId: eventData._id as string,
           promoCode,
-          email,
+          email: email.trim(),
           maleCount,
           femaleCount,
         },
@@ -156,42 +159,48 @@ const EventContent: React.FC<EventContentProps> = ({
   };
 
   const shouldShowTicketPurchase =
-    ticketInfoData &&
-    isStripeEnabled &&
-    !paymentSuccess &&
-    !clientSecret &&
-    isTicketsSalesOpen;
+    ticketInfoData && isStripeEnabled && !paymentSuccess && isTicketsSalesOpen;
 
   const shouldShowPurchaseForm =
     (maleCount > 0 || femaleCount > 0) && !paymentSuccess && isTicketsSalesOpen;
+
   const shouldShowStripeForm =
     clientSecret && !paymentSuccess && isTicketsSalesOpen;
 
   return (
-    <div className="max-w-4xl  flex flex-col  space-y-6  pb-20 pt-2">
+    <div className="max-w-4xl mx-auto flex flex-col space-y-6 pb-20 pt-2">
       <DetailsView eventData={eventData} ticketInfoData={ticketInfoData} />
       <About description={eventData.description} />
       {paymentSuccess && (
         <OrderReceipt onBrowseMoreEvents={onBrowseMoreEvents} />
       )}
-      {isTicketsSalesOpen === false && (
-        <MessageCard message="Ticket sales are closed" />
-      )}
+      {!isTicketsSalesOpen && <MessageCard message="Ticket sales are closed" />}
+
       {shouldShowTicketPurchase && (
-        <div className="flex flex-col bg-white rounded border border-altGray w-[400px] py-3 px-7 shadow">
-          <h2 className="text-2xl font-bold mb-2 text-start">Tickets</h2>
-          <TicketSelector
-            label="Male"
-            count={maleCount}
-            setCount={setMaleCount}
-            price={discountedMalePrice}
-          />
-          <TicketSelector
-            label="Female"
-            count={femaleCount}
-            setCount={setFemaleCount}
-            price={discountedFemalePrice}
-          />
+        <div className="flex flex-col bg-white rounded border border-altGray shadow mx-auto w-[95%]">
+          {!shouldShowStripeForm && (
+            <div className="py-3 px-7 pb-10">
+              <h2 className="text-2xl font-bold mb-2 text-start">Tickets</h2>
+
+              <TicketSelector
+                label="Male"
+                count={maleCount}
+                setCount={setMaleCount}
+                price={discountedMalePrice}
+                soldCount={ticketSoldCounts?.male || 0}
+                capacity={ticketInfoData?.ticketTypes.male.capacity || 0}
+              />
+              <TicketSelector
+                label="Female"
+                count={femaleCount}
+                setCount={setFemaleCount}
+                price={discountedFemalePrice}
+                soldCount={ticketSoldCounts?.female || 0}
+                capacity={ticketInfoData?.ticketTypes.female.capacity || 0}
+              />
+            </div>
+          )}
+
           {shouldShowPurchaseForm && (
             <>
               <OrderSummary
@@ -204,32 +213,45 @@ const EventContent: React.FC<EventContentProps> = ({
                 totalPrice={totalPrice}
                 validationResult={validationResult}
               />
-              <EmailInput
-                email={email}
-                setEmail={setEmail}
-                emailError={emailError}
-                setEmailError={setEmailError}
-              />
-              <PromoCodeInput
-                setPromoCode={setPromoCode}
-                setPromoCodeError={setPromoCodeError}
-                promoCodeError={promoCodeError}
-                onApplyPromo={handleApplyPromoCode}
-                isApplyPromoCodeLoading={isApplyPromoCodeLoading}
-                promoCode={promoCode}
-                isPromoApplied={isPromoApplied}
-              />
-              <CheckoutButton
-                onCheckout={handleCheckout}
-                checkoutError={checkoutError}
-                isCheckoutLoading={isCheckoutLoading}
-              />
+              {shouldShowStripeForm ? (
+                <div className="py-5 px-7 space-y-4">
+                  <Button
+                    onClick={() => setClientSecret(null)}
+                    variant="navGhost"
+                    size="nav"
+                  >
+                    ← Back to ticket selection
+                  </Button>
+
+                  <Elements stripe={stripePromise} options={{ clientSecret }}>
+                    <TicketPaymentForm setPaymentSuccess={setPaymentSuccess} />
+                  </Elements>
+                </div>
+              ) : (
+                <div className="py-3 px-7">
+                  <EmailInput
+                    email={email}
+                    setEmail={setEmail}
+                    emailError={emailError}
+                    setEmailError={setEmailError}
+                  />
+                  <PromoCodeInput
+                    setPromoCode={setPromoCode}
+                    setPromoCodeError={setPromoCodeError}
+                    promoCodeError={promoCodeError}
+                    onApplyPromo={handleApplyPromoCode}
+                    isApplyPromoCodeLoading={isApplyPromoCodeLoading}
+                    promoCode={promoCode}
+                    isPromoApplied={isPromoApplied}
+                  />
+                  <CheckoutButton
+                    onCheckout={handleCheckout}
+                    checkoutError={checkoutError}
+                    isCheckoutLoading={isCheckoutLoading}
+                  />
+                </div>
+              )}
             </>
-          )}
-          {shouldShowStripeForm && (
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <TicketPaymentForm setPaymentSuccess={setPaymentSuccess} />
-            </Elements>
           )}
         </div>
       )}

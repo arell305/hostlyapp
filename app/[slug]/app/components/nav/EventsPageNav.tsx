@@ -11,8 +11,9 @@ const EventsPageNav: React.FC<EventsPageNavProps> = ({
   buttonText = "Back to Events",
 }) => {
   return (
-    <nav className="flex justify-between items-center w-full px-2 py-2">
+    <nav className="flex justify-between items-center w-full px-3 py-2">
       <Button
+        size="nav"
         variant="navGhost"
         className="justify-start"
         onClick={handleNavigateHome}

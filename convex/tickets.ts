@@ -321,3 +321,18 @@ export const getTicketsByClerkUser = query({
     }
   },
 });
+
+export const getTicketsByEvent = internalQuery({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, { eventId }): Promise<TicketSchema[]> => {
+    try {
+      return await ctx.db
+        .query("tickets")
+        .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+        .collect();
+    } catch (error) {
+      console.error("Error in getTicketsByEvent:", error);
+      return [];
+    }
+  },
+});

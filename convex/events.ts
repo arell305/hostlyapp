@@ -13,6 +13,7 @@ import {
   GuestListSchema,
   Promoter,
   OrganizationSchema,
+  TicketSoldCounts,
 } from "@/types/types";
 import {
   ErrorMessages,
@@ -50,6 +51,7 @@ import {
   validateUser,
 } from "./backendUtils/validation";
 import {
+  getTicketSoldCounts,
   handleError,
   handleGuestListData,
   handleGuestListUpdateData,
@@ -174,11 +176,15 @@ export const getEventById = query({
         throw new Error(ErrorMessages.EVENT_NOT_FOUND);
       }
       let ticketInfo: TicketInfoSchema | null = null;
+      let ticketSoldCounts: TicketSoldCounts | null = null;
+
       if (event.ticketInfoId) {
         ticketInfo = await ctx.db
           .query("ticketInfo")
           .filter((q) => q.eq(q.field("eventId"), event._id))
           .first();
+
+        ticketSoldCounts = await getTicketSoldCounts(ctx, event._id);
       }
 
       let guestListInfo: GuestListInfoSchema | null = null;
@@ -188,7 +194,6 @@ export const getEventById = query({
           .filter((q) => q.eq(q.field("eventId"), event._id))
           .first();
       }
-
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
@@ -196,6 +201,7 @@ export const getEventById = query({
           data: {
             event,
             ticketInfo,
+            ticketSoldCounts,
           },
         };
       }
@@ -208,6 +214,7 @@ export const getEventById = query({
           event,
           ticketInfo,
           guestListInfo,
+          ticketSoldCounts,
         },
       };
     } catch (error) {

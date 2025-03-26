@@ -26,6 +26,7 @@ import {
   ProratedPrice,
   SubscriptionBillingCycle,
   TicketCounts,
+  TicketSoldCounts,
 } from "./types";
 import { Id } from "../../convex/_generated/dataModel";
 import { PaginationResult } from "convex/server";
@@ -203,6 +204,7 @@ export interface GetEventByIdData {
   event: EventSchema;
   ticketInfo: TicketInfoSchema | null;
   guestListInfo?: GuestListInfoSchema | null;
+  ticketSoldCounts?: TicketSoldCounts | null;
 }
 
 export type InsertTicketSoldResponse = InsertTicketSoldSuccess | ErrorResponse;

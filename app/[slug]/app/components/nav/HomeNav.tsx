@@ -16,11 +16,12 @@ const HomeNav: React.FC<HomeNavProps> = ({
   if (!user) return null;
 
   return (
-    <nav className="flex justify-between items-center w-full px-2 py-2">
+    <nav className="flex justify-between items-center w-full px-3 py-2">
       <Button
         variant="navGhost"
         className="justify-start"
         onClick={handleNavigateHome}
+        size="nav"
       >
         {buttonText}
       </Button>

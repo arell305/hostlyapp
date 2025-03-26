@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { TITLE } from "../../types/constants";
-import { SignedIn, SignedOut, SignOutButton, useClerk } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs";
 import Link from "next/link";
 
 const Navbar: React.FC = () => {

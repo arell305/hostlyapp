@@ -425,3 +425,8 @@ export interface OrganizationPublic {
   isStripeEnabled: boolean;
   id: Id<"organizations">;
 }
+
+export type TicketSoldCounts = {
+  male: number;
+  female: number;
+};

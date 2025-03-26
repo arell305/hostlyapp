@@ -1,4 +1,4 @@
-import { GenericActionCtx, UserIdentity } from "convex/server";
+import { GenericActionCtx, GenericQueryCtx, UserIdentity } from "convex/server";
 import {
   ErrorMessages,
   ShowErrorMessages,
@@ -6,9 +6,14 @@ import {
   ResponseStatus,
   UserRole,
   SubscriptionTier,
+  Gender,
 } from "@/types/enums";
-import { GuestListSchema, OrganizationSchema } from "@/types/types";
-import { EventSchema, UserSchema } from "@/types/schemas-types";
+import {
+  GuestListSchema,
+  OrganizationSchema,
+  TicketSoldCounts,
+} from "@/types/types";
+import { EventSchema, TicketSchema, UserSchema } from "@/types/schemas-types";
 import { Id } from "../_generated/dataModel";
 import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
 import { internal } from "../_generated/api";
@@ -250,6 +255,12 @@ export async function handleGuestListUpdateData(
 
   // If guestListData is provided, handle creation or update
   if (guestListData) {
+    if (existingGuestListInfo) {
+      return await ctx.runMutation(internal.guestListInfo.updateGuestListInfo, {
+        guestListInfoId: existingGuestListInfo._id,
+        ...guestListData,
+      });
+    }
     if (subscription.subscriptionTier === SubscriptionTier.STANDARD) {
       throw new Error(ShowErrorMessages.FORBIDDEN_TIER);
     }
@@ -257,29 +268,21 @@ export async function handleGuestListUpdateData(
     if (subscription.guestListEventsCount >= PLUS_GUEST_LIST_LIMIT) {
       throw new Error(ShowErrorMessages.FORBIDDEN_TIER);
     }
-
-    if (existingGuestListInfo) {
-      return await ctx.runMutation(internal.guestListInfo.updateGuestListInfo, {
-        guestListInfoId: existingGuestListInfo._id,
-        ...guestListData,
-      });
-    } else {
-      // Create a new guest list and update the subscription count
-      const [newGuestListInfoId] = await Promise.all([
-        ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
-          eventId,
-          guestListCloseTime: guestListData.guestListCloseTime,
-          checkInCloseTime: guestListData.checkInCloseTime,
-        }),
-        ctx.runMutation(internal.subscription.updateSubscriptionById, {
-          subscriptionId: subscription._id,
-          updates: {
-            guestListEventsCount: subscription.guestListEventsCount + 1,
-          },
-        }),
-      ]);
-      return newGuestListInfoId;
-    }
+    // Create a new guest list and update the subscription count
+    const [newGuestListInfoId] = await Promise.all([
+      ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
+        eventId,
+        guestListCloseTime: guestListData.guestListCloseTime,
+        checkInCloseTime: guestListData.checkInCloseTime,
+      }),
+      ctx.runMutation(internal.subscription.updateSubscriptionById, {
+        subscriptionId: subscription._id,
+        updates: {
+          guestListEventsCount: subscription.guestListEventsCount + 1,
+        },
+      }),
+    ]);
+    return newGuestListInfoId;
   }
 
   return null;
@@ -373,4 +376,81 @@ export function calculateDiscount(
   }
   const discountFactor = (100 - discountPercentage) / 100;
   return originalAmount * discountFactor;
+}
+
+export async function getTicketSoldCounts(
+  ctx: GenericQueryCtx<any>,
+  eventId: string
+): Promise<TicketSoldCounts> {
+  const tickets: TicketSchema[] = await ctx.db
+    .query("tickets")
+    .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+    .collect();
+
+  return tickets.reduce(
+    (acc, ticket) => {
+      if (ticket.gender === Gender.Male) acc.male += 1;
+      if (ticket.gender === Gender.Female) acc.female += 1;
+      return acc;
+    },
+    { male: 0, female: 0 }
+  );
+}
+
+export async function internalGetTicketSoldCounts(
+  ctx: GenericActionCtx<any>,
+  eventId: Id<"events">
+): Promise<TicketSoldCounts> {
+  const tickets: TicketSchema[] = await ctx.runQuery(
+    internal.tickets.getTicketsByEvent,
+    { eventId }
+  );
+
+  return tickets.reduce(
+    (acc, ticket) => {
+      if (ticket.gender === Gender.Male) acc.male += 1;
+      if (ticket.gender === Gender.Female) acc.female += 1;
+      return acc;
+    },
+    { male: 0, female: 0 }
+  );
+}
+
+import { TicketInfoSchema } from "@/types/schemas-types";
+
+interface ValidateTicketAvailabilityArgs {
+  ctx: GenericActionCtx<any>;
+  eventId: Id<"events">;
+  requestedMaleCount: number;
+  requestedFemaleCount: number;
+}
+
+export async function validateTicketAvailability({
+  ctx,
+  eventId,
+  requestedMaleCount,
+  requestedFemaleCount,
+}: ValidateTicketAvailabilityArgs): Promise<void> {
+  const ticketInfo: TicketInfoSchema | null = await ctx.runQuery(
+    internal.ticketInfo.getTicketInfoByEventId,
+    { eventId }
+  );
+
+  if (!ticketInfo) {
+    throw new Error(ErrorMessages.TICKET_INFO_NOT_FOUND);
+  }
+
+  const soldCounts = await internalGetTicketSoldCounts(ctx, eventId);
+
+  const maleRemaining = ticketInfo.ticketTypes.male.capacity - soldCounts.male;
+  const femaleRemaining =
+    ticketInfo.ticketTypes.female.capacity - soldCounts.female;
+
+  if (requestedMaleCount > maleRemaining) {
+    throw new Error(ShowErrorMessages.NOT_ENOUGH_MALE_TICKETS);
+  }
+
+  if (requestedFemaleCount > femaleRemaining) {
+    throw new Error(ShowErrorMessages.NOT_ENOUGH_FEMALE_TICKETS);
+  }
 }

@@ -56,7 +56,11 @@ import {
   createStripeOnboardingSession,
 } from "./backendUtils/stripeConnect";
 import { deactivateStripeConnectedAccount } from "./connectedAccounts";
-import { handleError } from "./backendUtils/helper";
+import {
+  getTicketSoldCounts,
+  handleError,
+  validateTicketAvailability,
+} from "./backendUtils/helper";
 import {
   handleAccountUpdated,
   handleCustomerUpdated,
@@ -64,6 +68,7 @@ import {
   handleSubscriptionDeleted,
   handleSubscriptionUpdated,
 } from "./backendUtils/stripeWebhooks";
+import { Id } from "./_generated/dataModel";
 
 export const validatePromoCode = action({
   args: { promoCode: v.string() },
@@ -662,7 +667,15 @@ export const createPaymentIntent = action({
   },
   handler: async (ctx, args): Promise<CreatePaymentIntentResponse> => {
     const { totalAmount, stripeAccountId, metadata } = args;
+
     try {
+      validateTicketAvailability({
+        ctx,
+        eventId: metadata?.eventId as Id<"events">,
+        requestedMaleCount: metadata?.maleCount as number,
+        requestedFemaleCount: metadata?.femaleCount as number,
+      });
+
       const paymentIntent = await stripe.paymentIntents.create(
         {
           amount: Math.round(totalAmount * 100),
@@ -674,11 +687,7 @@ export const createPaymentIntent = action({
       );
 
       if (!paymentIntent.client_secret) {
-        return {
-          status: ResponseStatus.ERROR,
-          data: null,
-          error: ErrorMessages.PAYMENT_INTENT_FAILED,
-        };
+        throw new Error(ErrorMessages.PAYMENT_INTENT_FAILED);
       }
 
       return {

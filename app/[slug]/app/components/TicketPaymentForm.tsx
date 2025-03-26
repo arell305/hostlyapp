@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   useStripe,
   useElements,
@@ -57,13 +58,16 @@ const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({
   if (!stripe || !elements) {
     return <div>Loading payment form...</div>;
   }
-
   return (
-    <form onSubmit={handlePayment}>
+    <form onSubmit={handlePayment} className="mx-auto bg-white">
       <PaymentElement />
-      <button type="submit" disabled={isProcessing || !stripe}>
+      <Button
+        type="submit"
+        disabled={isProcessing || !stripe}
+        className="mt-8 mb-4"
+      >
         {isProcessing ? "Processing..." : "Pay Now"}
-      </button>
+      </Button>
       {errorMessage && <div className="text-red-500">{errorMessage}</div>}
     </form>
   );

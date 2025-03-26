@@ -34,9 +34,9 @@ const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
 }) => {
   return (
     <main className="bg-gray-100 min-h-screen flex justify-center overflow-hidden">
-      <div className="max-w-4xl w-full flex flex-col">
+      <div className="max-w-4xl w-full mx-auto  flex justify-center flex-col">
         <HomeNav user={user} handleNavigateHome={handleNavigateHome} />
-        <div className="flex flex-col pt-10 pb-20 items-center w-full max-w-4xl">
+        <div className="flex flex-col pt-10 pb-20 items-center w-full ">
           {displayCompanyPhoto && (
             <div className="mb-3 relative group w-[150px] h-[150px] flex justify-center items-center">
               <Image

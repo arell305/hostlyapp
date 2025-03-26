@@ -24,8 +24,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   validationResult,
 }) => {
   return (
-    <div className="mt-4 space-y-2">
-      <h3 className="font-semibold">Order Summary</h3>
+    <div className="space-y-2 py-3 px-7">
+      <h2 className="text-2xl font-bold">Order Summary</h2>
       {maleCount > 0 && (
         <p>
           Male Tickets: {maleCount} x {formatCurrency(totalMalePrice)}

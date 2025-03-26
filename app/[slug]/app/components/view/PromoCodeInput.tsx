@@ -1,4 +1,3 @@
-import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -6,8 +5,8 @@ import { Label } from "@/components/ui/label";
 interface PromoCodeInputProps {
   promoCode: string;
   setPromoCode: (code: string) => void;
-  promoCodeError: string;
-  setPromoCodeError: (error: string) => void;
+  promoCodeError: string | null;
+  setPromoCodeError: (error: string | null) => void;
   isApplyPromoCodeLoading: boolean;
   isPromoApplied: boolean;
   onApplyPromo: () => void;
@@ -23,23 +22,31 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
   onApplyPromo,
 }) => {
   return (
-    <div className="mt-4">
-      <Label>Promo Code</Label>
-      <div className="flex">
+    <div className="w-full">
+      <Label htmlFor="promo-code" className="mb-1 block">
+        Promo Code
+      </Label>
+
+      <div className="flex gap-4 w-full">
         <Input
+          id="promo-code"
           type="text"
           placeholder="Enter any promo code"
           value={promoCode}
           onChange={(e) => {
             setPromoCode(e.target.value);
-            setPromoCodeError("");
+            setPromoCodeError(null);
           }}
           readOnly={isPromoApplied}
+          className="w-3/4"
+          error={promoCodeError}
         />
         <Button
           disabled={isApplyPromoCodeLoading || isPromoApplied}
           variant="secondary"
-          className={`rounded-lg ml-6 ${isPromoApplied ? "border-b border-customDarkBlue" : ""}`}
+          className={`w-1/4 rounded-lg h-9 text-base ${
+            isPromoApplied ? "border-b border-customDarkBlue" : ""
+          }`}
           onClick={onApplyPromo}
         >
           {isPromoApplied
@@ -49,8 +56,11 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
               : "Apply"}
         </Button>
       </div>
+
       <p
-        className={`text-sm mt-1 ${promoCodeError ? "text-red-500" : "text-transparent"}`}
+        className={`text-xs mt-1 ${
+          promoCodeError ? "text-red-500" : "text-transparent"
+        }`}
       >
         {promoCodeError || "Placeholder to maintain height"}
       </p>
