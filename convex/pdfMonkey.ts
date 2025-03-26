@@ -1,10 +1,11 @@
 import { v } from "convex/values";
-import { internalAction } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
 import {
   handleGenerateSuccess,
   verifypdfMonkeyWebhook,
 } from "./backendUtils/pdfMonkeyWebhooks";
 import { WebhookResponse } from "@/types/convex-types";
+import { ErrorMessages } from "@/types/enums";
 
 // example event for success
 // {
@@ -44,7 +45,7 @@ export const fulfill = internalAction({
       const event = await verifypdfMonkeyWebhook(payload, originalHeaders);
       switch (event.document.status) {
         case "success":
-          await handleGenerateSuccess(event);
+          await handleGenerateSuccess(ctx, event);
           break;
 
         default:
@@ -55,6 +56,81 @@ export const fulfill = internalAction({
     } catch (err) {
       console.error("Error processing webhook:", err);
       return { success: false, error: (err as { message: string }).message };
+    }
+  },
+});
+
+interface DocumentResponse {
+  document: {
+    id: string;
+    status: "pending" | "generating" | "success" | "failure";
+  };
+}
+
+export const customerTicketValidator = v.object({
+  _id: v.id("tickets"),
+  eventId: v.id("events"),
+  promoterUserId: v.union(v.id("users"), v.null()),
+  email: v.string(),
+  gender: v.string(),
+  checkInTime: v.optional(v.number()),
+  ticketUniqueId: v.string(),
+  _creationTime: v.number(),
+  name: v.string(),
+  startTime: v.number(),
+  endTime: v.number(),
+  address: v.string(),
+});
+
+export const generatePDF = action({
+  args: {
+    tickets: v.array(customerTicketValidator),
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { tickets, email } = args;
+
+    const apiKey = process.env.PDFMONKEY_API_KEY;
+    if (!apiKey) {
+      throw new Error(ErrorMessages.PDF_MONKEY_MISSING_API_KEY);
+    }
+
+    const url = "https://api.pdfmonkey.io/api/v1/documents";
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          document: {
+            document_template_id: "4577D5A9-27B1-416C-82C9-3EC1D4BBE634",
+            payload: { tickets },
+            meta: JSON.stringify({ email }),
+            status: "pending",
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("PDF Monkey error response:", errorText);
+        throw new Error(`Failed to create document: ${response.statusText}`);
+      }
+
+      const rawData = await response.json();
+      const data = rawData as DocumentResponse;
+
+      if (!data.document || typeof data.document.id !== "string") {
+        throw new Error(ErrorMessages.PDF_MONKEY_GENERATE);
+      }
+
+      return data.document.id;
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      throw new Error(ErrorMessages.PDF_MONKEY_GENERATE);
     }
   },
 });

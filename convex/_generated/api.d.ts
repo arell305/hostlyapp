@@ -33,6 +33,7 @@ import type * as pdfMonkey from "../pdfMonkey.js";
 import type * as photo from "../photo.js";
 import type * as promoCode from "../promoCode.js";
 import type * as promoterPromoCode from "../promoterPromoCode.js";
+import type * as sendgrid from "../sendgrid.js";
 import type * as stripe from "../stripe.js";
 import type * as stripeConnectedCustomers from "../stripeConnectedCustomers.js";
 import type * as subscription from "../subscription.js";
@@ -69,6 +70,7 @@ declare const fullApi: ApiFromModules<{
   photo: typeof photo;
   promoCode: typeof promoCode;
   promoterPromoCode: typeof promoterPromoCode;
+  sendgrid: typeof sendgrid;
   stripe: typeof stripe;
   stripeConnectedCustomers: typeof stripeConnectedCustomers;
   subscription: typeof subscription;

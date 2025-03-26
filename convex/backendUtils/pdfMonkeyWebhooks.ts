@@ -1,8 +1,10 @@
 import { ErrorMessages } from "@/types/enums";
 import { Webhook } from "svix";
-import { sendTicketEmail } from "../../utils/sendgrid";
 import axios from "axios";
 import { Buffer } from "buffer";
+import { GenericActionCtx } from "convex/server";
+import { api } from "../_generated/api";
+import { encode } from "base64-arraybuffer";
 
 export async function verifypdfMonkeyWebhook(
   payload: string,
@@ -26,7 +28,10 @@ export async function verifypdfMonkeyWebhook(
   }
 }
 
-export const handleGenerateSuccess = async (event: any) => {
+export const handleGenerateSuccess = async (
+  ctx: GenericActionCtx<any>,
+  event: any
+) => {
   try {
     const downloadUrl = event.document.download_url;
     if (!downloadUrl) {
@@ -44,8 +49,12 @@ export const handleGenerateSuccess = async (event: any) => {
       responseType: "arraybuffer",
     });
 
-    const pdfBuffer = Buffer.from(pdfResponse.data);
-    await sendTicketEmail(recipientEmail, pdfBuffer);
+    const base64Pdf = encode(pdfResponse.data);
+
+    await ctx.runAction(api.sendgrid.sendTicketEmail, {
+      to: recipientEmail,
+      pdfBase64: base64Pdf,
+    });
   } catch (error) {
     console.error(" Error in handleGenerateSuccess:", error);
     throw new Error(ErrorMessages.PDF_MONKEY_DOCUMENT_SUCCESS);

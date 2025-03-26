@@ -21,7 +21,7 @@ import {
   InsertTicketSoldResponse,
 } from "@/types/convex-types";
 import { nanoid } from "nanoid";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { generatePDF } from "../utils/pdf";
 import { requireAuthenticatedUser } from "../utils/auth";
 import {
@@ -102,7 +102,10 @@ export const insertTicketsSold = action({
         if (ticket) tickets.push(createCustomerTicket(ticket));
       }
 
-      await generatePDF(tickets, email);
+      await ctx.runAction(api.pdfMonkey.generatePDF, {
+        tickets,
+        email,
+      });
 
       return {
         status: ResponseStatus.SUCCESS,
