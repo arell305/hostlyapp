@@ -88,7 +88,7 @@ export const insertTicketsSold = action({
           eventId,
           promoterUserId,
           email,
-          gender: Gender.Male,
+          gender: Gender.Female,
           ticketUniqueId,
         };
 
@@ -111,14 +111,7 @@ export const insertTicketsSold = action({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(errorMessage, error);
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: errorMessage,
-      };
+      return handleError(error);
     }
   },
 });

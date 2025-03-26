@@ -1,6 +1,8 @@
 import { ErrorMessages } from "@/types/enums";
 import { Webhook } from "svix";
 import { sendTicketEmail } from "../../utils/sendgrid";
+import axios from "axios";
+import { Buffer } from "buffer";
 
 export async function verifypdfMonkeyWebhook(
   payload: string,
@@ -38,8 +40,12 @@ export const handleGenerateSuccess = async (event: any) => {
       console.warn("⚠️ No email found in metadata, skipping email.");
       return;
     }
+    const pdfResponse = await axios.get(downloadUrl, {
+      responseType: "arraybuffer",
+    });
 
-    await sendTicketEmail(recipientEmail, downloadUrl, metadata);
+    const pdfBuffer = Buffer.from(pdfResponse.data);
+    await sendTicketEmail(recipientEmail, pdfBuffer);
   } catch (error) {
     console.error(" Error in handleGenerateSuccess:", error);
     throw new Error(ErrorMessages.PDF_MONKEY_DOCUMENT_SUCCESS);

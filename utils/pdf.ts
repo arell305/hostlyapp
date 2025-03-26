@@ -35,7 +35,7 @@ export const generatePDF = async (
         },
       }),
     });
-
+    console.log("response", response);
     if (!response.ok) {
       throw new Error(`Failed to create document: ${response.statusText}`);
     }

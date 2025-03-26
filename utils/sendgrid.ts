@@ -1,9 +1,10 @@
 import { ErrorMessages } from "@/types/enums";
+import { Buffer } from "buffer";
 
 export const sendTicketEmail = async (
   to: string,
-  templateId: string,
-  dynamicTemplateData: Record<string, any>
+  pdfBuffer: Buffer,
+  filename = "tickets.pdf"
 ): Promise<void> => {
   const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey) {
@@ -23,14 +24,27 @@ export const sendTicketEmail = async (
         personalizations: [
           {
             to: [{ email: to }],
-            dynamic_template_data: dynamicTemplateData,
           },
         ],
         from: {
-          email: process.env.SENDGRID_FROM_EMAIL || "no-reply@hostly.app",
+          email: "david.anuson@gmail.com",
           name: "Hostly",
         },
-        template_id: templateId,
+        subject: "Your Tickets",
+        content: [
+          {
+            type: "text/plain",
+            value: "Attached are your tickets.",
+          },
+        ],
+        attachments: [
+          {
+            content: Buffer.from(pdfBuffer).toString("base64"),
+            filename,
+            type: "application/pdf",
+            disposition: "attachment",
+          },
+        ],
       }),
     });
 
