@@ -70,7 +70,7 @@ const TermsModal: React.FC<ModalProps> = ({ handleClose }) => {
             <h4 className="font-semibold mt-4">1. Introduction</h4>
             <ul className="list-disc list-inside space-y-1">
               <li>
-                {COMPANY_NAME} ("we," "us," or "our") provides an online
+                &quot;COMPANY_NAME&quot; (&quot;$2&quot;) provides an online
                 marketplace for event organizers to sell tickets and for users
                 to purchase tickets to various events.
               </li>
@@ -242,7 +242,9 @@ const TermsModal: React.FC<ModalProps> = ({ handleClose }) => {
             </h4>
             <ul className="list-disc list-inside space-y-1">
               <li>Organizers may not engage in false advertising.</li>
-              <li>Paid promotions must follow {COMPANY_NAME}'s guidelines.</li>
+              <li>
+                Paid promotions must follow {COMPANY_NAME}&apos;s guidelines.
+              </li>
             </ul>
 
             <h4 className="font-semibold mt-4">
