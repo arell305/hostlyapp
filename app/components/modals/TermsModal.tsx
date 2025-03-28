@@ -84,7 +84,185 @@ const TermsModal: React.FC<ModalProps> = ({ handleClose }) => {
               </li>
             </ul>
 
-            {/* Add all other sections similarly formatted using <h4> for section headers and <ul><li> for bullet lists */}
+            <h4 className="font-semibold mt-4">2. Account Registration</h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                To use certain features, you may be required to create an
+                account.
+              </li>
+              <li>
+                You agree to provide accurate, current, and complete information
+                during registration and to keep your account information
+                updated.
+              </li>
+              <li>
+                You are responsible for maintaining the security of your account
+                and for any activity that occurs under your login credentials.
+              </li>
+              <li>
+                {COMPANY_NAME} reserves the right to suspend or terminate
+                accounts for violations of these Terms.
+              </li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">
+              3. Ticket Purchase and Refund Policy
+            </h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                All ticket sales are final unless the event organizer specifies
+                otherwise.
+              </li>
+              <li>
+                If an event is canceled, you may be eligible for a refund as
+                determined by the event organizer.
+              </li>
+              <li>
+                We do not guarantee refunds for postponed or rescheduled events.
+                Refund requests must be directed to the event organizer.
+              </li>
+              <li>
+                Any disputes regarding ticket purchases must be resolved with
+                the event organizer.
+              </li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">4. Event Organizer Agreement</h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                Event organizers are responsible for accurately listing event
+                details, including dates, times, locations, and refund policies.
+              </li>
+              <li>
+                Organizers must comply with all applicable laws, regulations,
+                and venue requirements.
+              </li>
+              <li>
+                {COMPANY_NAME} is not responsible for event quality, safety, or
+                adherence to laws.
+              </li>
+              <li>
+                We reserve the right to remove any event listing that violates
+                our policies or laws.
+              </li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">
+              5. Copyrighted Content and Intellectual Property
+            </h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                Event organizers and users are solely responsible for ensuring
+                that they have the legal rights, licenses, or permissions to use
+                any copyrighted material.
+              </li>
+              <li>
+                {COMPANY_NAME} is not liable for any unauthorized use of
+                copyrighted materials.
+              </li>
+              <li>
+                We comply with the DMCA and will respond to valid takedown
+                notices.
+              </li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">
+              6. Payment, Fees, and Chargebacks
+            </h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Service fees may apply and will be disclosed at checkout.</li>
+              <li>Organizers are responsible for taxes on ticket sales.</li>
+              <li>
+                If a chargeback is issued, the organizer assumes financial
+                responsibility.
+              </li>
+              <li>
+                All payments are processed securely through third-party
+                providers. {COMPANY_NAME} does not store credit card details.
+              </li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">
+              7. Liability & Indemnification
+            </h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                {COMPANY_NAME} is not responsible for event cancellations,
+                refunds, or changes.
+              </li>
+              <li>
+                We are not liable for delays or losses due to unforeseen events
+                (e.g., natural disasters, pandemics).
+              </li>
+              <li>
+                Users and organizers agree to indemnify and hold {COMPANY_NAME}{" "}
+                harmless from any claims or disputes.
+              </li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">
+              8. Privacy Policy & Data Protection
+            </h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Personal data is handled according to our Privacy Policy.</li>
+              <li>
+                We comply with GDPR, CCPA, and other data protection laws as
+                applicable.
+              </li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">
+              9. Event Restrictions & Prohibited Content
+            </h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                We do not allow ticket sales for events that promote illegal
+                activity, hate speech, or are high-risk (e.g., gambling, crypto
+                schemes).
+              </li>
+              <li>Organizers must comply with health and safety guidelines.</li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">
+              10. Dispute Resolution & Governing Law
+            </h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                Disputes should first be resolved amicably. If unresolved, they
+                may proceed to legal arbitration.
+              </li>
+              <li>
+                Users agree not to participate in class action lawsuits against{" "}
+                {COMPANY_NAME}.
+              </li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">
+              11. Advertising & Promotions Policy
+            </h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Organizers may not engage in false advertising.</li>
+              <li>Paid promotions must follow {COMPANY_NAME}'s guidelines.</li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">
+              12. Accessibility & Age Restrictions
+            </h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Events must comply with ADA laws where applicable.</li>
+              <li>
+                Users must be at least 18 years old or have guardian consent.
+              </li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">13. Changes to These Terms</h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>We may modify these Terms at any time.</li>
+              <li>
+                Continued use of the platform constitutes acceptance of the
+                updated Terms.
+              </li>
+            </ul>
 
             <h4 className="font-semibold mt-4">Contact Information</h4>
             <p>
