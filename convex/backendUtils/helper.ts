@@ -142,6 +142,10 @@ export async function handleTicketData(
     { customerId: organization.customerId }
   );
 
+  if (!connectedAccount) {
+    throw new Error(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND);
+  }
+
   if (connectedAccount.status !== StripeAccountStatus.VERIFIED) {
     throw new Error(ErrorMessages.CONNECTED_ACCOUNT_VERIFIED);
   }
