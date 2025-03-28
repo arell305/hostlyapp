@@ -40,7 +40,7 @@ export const addGuestList = mutation({
         UserRole.Hostly_Admin,
       ]);
 
-      const clerkUserId = identity.user as string;
+      const clerkUserId = identity.id as string;
 
       const user = validateUser(
         await ctx.db
@@ -113,6 +113,7 @@ export const getGuestListByPromoter = query({
   },
   handler: async (ctx, args): Promise<GetGuestListByPromoterResponse> => {
     const { eventId } = args;
+    console.log("eventId", eventId);
     try {
       const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Promoter,
@@ -120,8 +121,11 @@ export const getGuestListByPromoter = query({
         UserRole.Hostly_Admin,
       ]);
 
-      const clerkUserId = identity.user as string;
+      console.log("identity", identity);
 
+      const clerkUserId = identity.id as string;
+      console.log("clerkUserId", clerkUserId);
+      console.log("test");
       const user = validateUser(
         await ctx.db
           .query("users")
@@ -129,18 +133,21 @@ export const getGuestListByPromoter = query({
           .unique()
       );
 
-      const guestList = validateGuestList(
-        await ctx.db
-          .query("guestLists")
-          .filter((q) =>
-            q.and(
-              q.eq(q.field("userPromoterId"), user._id),
-              q.eq(q.field("eventId"), eventId)
-            )
+      const guestList = await ctx.db
+        .query("guestLists")
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("userPromoterId"), user._id),
+            q.eq(q.field("eventId"), eventId)
           )
-          .first()
-      );
-
+        )
+        .first();
+      if (!guestList) {
+        return {
+          status: ResponseStatus.SUCCESS,
+          data: null,
+        };
+      }
       return {
         status: ResponseStatus.SUCCESS,
         data: {

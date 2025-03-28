@@ -85,6 +85,7 @@ const ModeratorGuestList = ({
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedGuest(null);
+    setIsCheckInGuestError(null);
   };
 
   const handleSaveGuestUpdate = async (
@@ -126,6 +127,7 @@ const ModeratorGuestList = ({
   if (!getEventWithGuestListsResponse) {
     return <FullLoading />;
   }
+  console.log("getEventWithGuestListsResponse", getEventWithGuestListsResponse);
 
   if (getEventWithGuestListsResponse.status === ResponseStatus.ERROR) {
     return <ErrorComponent message={getEventWithGuestListsResponse.error} />;

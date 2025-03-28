@@ -233,6 +233,8 @@ export const getEventWithGuestLists = query({
         UserRole.Moderator,
         UserRole.Hostly_Moderator,
         UserRole.Hostly_Admin,
+        UserRole.Admin,
+        UserRole.Manager,
       ]);
 
       const clerkUserId = identity.id as string;
@@ -246,7 +248,7 @@ export const getEventWithGuestLists = query({
 
       const event: EventSchema | null = await ctx.db.get(args.eventId);
       const validatedEvent = validateEvent(event);
-
+      console.log("validatedEvent", validatedEvent);
       isUserInCompanyOfEvent(validatedUser, validatedEvent);
 
       const guestLists: GuestListSchema[] = await ctx.db
@@ -288,6 +290,7 @@ export const getEventWithGuestLists = query({
       const sortedGuests: AllGuestSchema[] = allGuests.sort((a, b) =>
         a.name.localeCompare(b.name)
       );
+      console.log("sortedGuests", sortedGuests);
 
       return {
         status: ResponseStatus.SUCCESS,
@@ -323,7 +326,7 @@ export const updateGuestAttendance = mutation({
         UserRole.Hostly_Admin,
       ]);
 
-      const clerkUserId = identity.user as string;
+      const clerkUserId = identity.id as string;
 
       const user: UserSchema | null = await ctx.db
         .query("users")

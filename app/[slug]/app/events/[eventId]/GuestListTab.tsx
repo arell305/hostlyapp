@@ -45,7 +45,7 @@ const GuestListTab: React.FC<GuestListTabProps> = ({
   let isGuestListOpen: boolean = !isPast(guestListInfo.guestListCloseTime);
 
   let isCheckInOpen: boolean = !isPast(guestListInfo.checkInCloseTime);
-
+  console.log("isCheckInOpen", isCheckInOpen);
   return (
     <>
       {canUploadGuest && (

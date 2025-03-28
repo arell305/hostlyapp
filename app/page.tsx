@@ -12,12 +12,14 @@ export default function Home() {
   return (
     <main className="relative">
       <Navbar />
-      <Hero />
-      <Problem />
-      <Benefits />
-      <Features />
-      <Pricing />
-      <Demo />
+      <section className="max-w-4xl mx-auto">
+        <Hero />
+        {/* <Problem /> */}
+        {/* <Benefits /> */}
+        <Features />
+        <Pricing />
+        <Demo />
+      </section>
       <Footer />
     </main>
   );

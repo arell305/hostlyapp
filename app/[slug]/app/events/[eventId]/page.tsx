@@ -1,5 +1,5 @@
 "use client";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "../../../../../convex/_generated/api";
@@ -15,7 +15,7 @@ export default function EventPageWrapper() {
   const params = useParams();
   const router = useRouter();
   const eventId = params.eventId as string;
-
+  const { user } = useUser();
   const {
     organization,
     organizationContextError,
@@ -52,6 +52,7 @@ export default function EventPageWrapper() {
   }
 
   const data = getEventByIdResponse.data;
+  console.log(user);
 
   if (!data.event.isActive) {
     return (

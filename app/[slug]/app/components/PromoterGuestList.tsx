@@ -167,6 +167,7 @@ const PromoterGuestListPage = ({
     }
   };
 
+  console.log("getGuestListByPromoterResponse", getGuestListByPromoterResponse);
   if (!getGuestListByPromoterResponse) {
     return <FullLoading />;
   }

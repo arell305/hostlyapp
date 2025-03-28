@@ -15,7 +15,7 @@ const buttonVariants = cva(
         outline:
           "border border-customDarkBlue bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-white border border-customDarkBlue hover:bg-secondary/80",
+          "text-customDarkBlue bg-white border border-customDarkBlue hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
         link: "text-primary underline-offset-4 hover:underline",
         navGhost:
@@ -32,6 +32,7 @@ const buttonVariants = cva(
         tripleButtons: "w-[300px] h-10 px-4 py-2 rounded-[20px]",
         doubelButtons: "h-10 px-4 py-2 rounded-[20px] w-[200px]",
         nav: "w-auto",
+        navButton: "w-[90px] h-[42px] rounded-[12px] text-base font-medium",
       },
     },
     defaultVariants: {

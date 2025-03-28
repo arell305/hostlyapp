@@ -75,16 +75,16 @@ export const getConnectedAccountByCustomerId = internalQuery({
   args: {
     customerId: v.id("customers"),
   },
-  handler: async (ctx, args): Promise<ConnectedAccountsSchema> => {
+  handler: async (ctx, args): Promise<ConnectedAccountsSchema | null> => {
     try {
       const account: ConnectedAccountsSchema | null = await ctx.db
         .query("connectedAccounts")
         .withIndex("by_customerId", (q) => q.eq("customerId", args.customerId))
         .first();
 
-      if (!account) {
-        throw new Error(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND);
-      }
+      // if (!account) {
+      //   throw new Error(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND);
+      // }
 
       return account;
     } catch (error) {
@@ -129,16 +129,18 @@ export const getConnectedAccountByClerkUserId = query({
         true
       );
 
-      const connectedAccount: ConnectedAccountsSchema | null =
-        validateConnectedAccount(
-          await ctx.db
-            .query("connectedAccounts")
-            .withIndex("by_customerId", (q) =>
-              q.eq("customerId", user.customerId!)
-            )
-            .first(),
-          false
-        );
+      const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
+        .query("connectedAccounts")
+        .withIndex("by_customerId", (q) => q.eq("customerId", user.customerId!))
+        .first();
+      false;
+
+      if (!connectedAccount) {
+        return {
+          status: ResponseStatus.SUCCESS,
+          data: null,
+        };
+      }
 
       if (
         connectedAccount.status !== StripeAccountStatus.NOT_ONBOARDED &&

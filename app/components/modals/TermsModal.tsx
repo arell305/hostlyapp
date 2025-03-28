@@ -1,4 +1,12 @@
-import { TITLE, UPDATED_DATE } from "../../types/constants";
+import {
+  TITLE,
+  UPDATED_DATE,
+  EFFECTIVE_DATE,
+  CONTACT_EMAIL,
+  CONTACT_PHONE,
+  COMPANY_NAME,
+} from "../../types/constants";
+import { Button } from "../ui/button";
 
 interface ModalProps {
   handleClose: () => void;
@@ -17,7 +25,7 @@ const TermsModal: React.FC<ModalProps> = ({ handleClose }) => {
           {/* Modal header */}
           <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Terms of Service
+              {TITLE}
             </h3>
             <button
               type="button"
@@ -42,36 +50,65 @@ const TermsModal: React.FC<ModalProps> = ({ handleClose }) => {
               <span className="sr-only">Close modal</span>
             </button>
           </div>
+
           {/* Modal body */}
-          <div className="p-4 md:p-5 space-y-4">
-            <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              Effective Date: {UPDATED_DATE}
+          <div className="p-4 md:p-5 space-y-4 overflow-y-auto max-h-[60vh] text-sm text-gray-700 dark:text-gray-300">
+            <p>
+              <strong>Effective Date:</strong> {EFFECTIVE_DATE}
             </p>
-            <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              Welcome to {TITLE}! By accessing and using this website, you agree
-              to comply with these Terms of Service. This website and its
-              content are provided for informational purposes only. We strive to
-              ensure accuracy but make no warranties or representations
-              regarding the completeness, accuracy, or reliability of any
-              information. Use the information at your own risk. We reserve the
-              right to modify these terms at any time without notice. Your
-              continued use of the website constitutes acceptance of any
-              changes. We may link to third-party websites; these links are
-              provided for convenience and do not imply endorsement. Your use of
-              linked websites is subject to their terms and policies. We respect
-              your privacy; please review our Privacy Policy for details on how
-              we handle your personal information
+            <p>
+              <strong>Last Updated:</strong> {UPDATED_DATE}
+            </p>
+            <p>
+              Welcome to {COMPANY_NAME}! These Terms and Conditions govern your
+              use of our ticketing platform, including purchasing, selling, and
+              attending events through our services. By using our platform, you
+              agree to comply with these terms. If you do not agree, please do
+              not use our services.
+            </p>
+
+            <h4 className="font-semibold mt-4">1. Introduction</h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                {COMPANY_NAME} ("we," "us," or "our") provides an online
+                marketplace for event organizers to sell tickets and for users
+                to purchase tickets to various events.
+              </li>
+              <li>
+                By using our platform, you acknowledge that you are at least 18
+                years old or have parental consent to use the service.
+              </li>
+              <li>
+                We do not organize or host events; we solely provide a platform
+                for ticket transactions.
+              </li>
+            </ul>
+
+            {/* Add all other sections similarly formatted using <h4> for section headers and <ul><li> for bullet lists */}
+
+            <h4 className="font-semibold mt-4">Contact Information</h4>
+            <p>
+              If you have any questions about these Terms, please contact us at:
+            </p>
+            <p>
+              {COMPANY_NAME}
+              <br />
+              Email: {CONTACT_EMAIL}
+              <br />
+              Phone: {CONTACT_PHONE}
             </p>
           </div>
+
           {/* Modal footer */}
-          <div className="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-            <button
+          <div className="flex justify-center items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+            <Button
+              size="sm"
+              variant="secondary"
               onClick={handleClose}
               type="button"
-              className="text-white bg-custom5 hover:bg-custom3 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             >
               Dismiss
-            </button>
+            </Button>
           </div>
         </div>
       </div>

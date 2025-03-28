@@ -91,6 +91,7 @@ const EventGuestList = ({
     return <DetailsSkeleton />;
   }
 
+  console.log("getEventWithGuestListsResponse", getEventWithGuestListsResponse);
   return (
     <div className="mb-4 flex flex-col gap-4 bg-gray-100 min-h-[100vh]">
       <div className=" bg-white w-[95%] mx-auto px-4 pt-4 mt-4 rounded-md mb-4 shadow-md">

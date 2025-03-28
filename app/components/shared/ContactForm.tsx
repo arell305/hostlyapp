@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 interface FormData {
   name: string;
@@ -89,61 +92,57 @@ const ContactForm: React.FC = () => {
       className="bg-gray-50 p-6 rounded-lg shadow-lg  border-2 border-gray-300 w-[700px]"
     >
       <div className="mb-4">
-        <label htmlFor="name" className="block ">
+        <Label htmlFor="name" className="block ">
           Name
-        </label>
-        <input
+        </Label>
+        <Input
           type="text"
           id="name"
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className=" text-sm w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2  focus:border-none "
           placeholder="Enter your full name"
+          error={errors.name}
         />
         {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
       </div>
 
       <div className="mb-4">
-        <label htmlFor="email" className="block ">
+        <Label htmlFor="email" className="block ">
           Email
-        </label>
-        <input
+        </Label>
+        <Input
           type="email"
           id="email"
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className=" text-sm w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2  focus:border-none "
           placeholder="Enter your best email"
+          error={errors.email}
         />
         {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
       </div>
 
       <div className="mb-4">
-        <label htmlFor="company" className="blocke">
+        <Label htmlFor="company" className="blocke">
           Company
-        </label>
-        <input
+        </Label>
+        <Input
           id="company"
           name="company"
           value={formData.company}
           onChange={handleChange}
-          className=" text-sm w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2  focus:border-none "
           placeholder="Enter your company"
-        ></input>
+          error={errors.company}
+        ></Input>
         {errors.company && (
           <p className="text-red-500 text-sm">{errors.company}</p>
         )}
       </div>
 
-      <button
-        type="submit"
-        className="px-6 py-1 rounded font-medium border border-black bg-customLightBlue  transition duration-200 hover:bg-customDarkBlue hover:text-white "
-        disabled={loading}
-      >
+      <Button type="submit" disabled={loading} className="mt-6">
         {loading ? "Submitting..." : "Submit"}
-      </button>
+      </Button>
 
       {message && (
         <p

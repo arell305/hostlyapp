@@ -11,6 +11,7 @@ export async function requireAuthenticatedUser(
     throw new Error(ErrorMessages.UNAUTHENTICATED);
   }
 
+  console.log("identity", identity);
   const userRole = identity.role as UserRole;
 
   if (requiredRoles && !requiredRoles.includes(userRole)) {
