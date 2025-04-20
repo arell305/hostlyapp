@@ -2,21 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 /* In your global CSS file (e.g., styles/globals.css) */
-@import url("https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 html,
 body {
-  font-family: var(--font-raleway);
   scroll-behavior: smooth;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-play-fair-display);
 }
 
 @layer base {
@@ -39,7 +29,7 @@ h6 {
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --ring: 225 10% 11%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -76,12 +66,36 @@ h6 {
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  html,
   body {
-    @apply bg-background text-foreground;
+    @apply font-sans bg-backgroundBlack text-whiteText;
   }
+
+  main {
+    @apply max-w-3xl mx-auto pt-4 pb-8 px-4 md:pb-4;
+  }
+
+  h1 {
+    @apply text-3xl font-bold;
+  }
+
+  h2 {
+    @apply text-lg font-semibold;
+  }
+  * {
+    @apply border-borderGray;
+  }
+}
+
+.rdp-caption_start > * {
+  @apply flex-row-reverse; /* or any other utility you want */
+}
+
+/* This targets the first month's caption only */
+.rdp-months > .rdp-month:first-child .rdp-caption {
+  flex-direction: row-reverse !important;
+  justify-content: space-between !important;
+  width: 100%; /* ensures full width so arrow aligns to left edge */
 }
 
 .radio-circle {
@@ -93,6 +107,13 @@ h6 {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.rdp-day_range_start,
+.rdp-day_range_end,
+.rdp-day_range_middle {
+  background-color: #e5e7eb; /* gray-200 */
+  color: black;
 }
 
 /* Hide the number input arrows in all browsers */
@@ -163,13 +184,14 @@ input::-webkit-date-and-time-value {
   }
 }
 .react-calendar {
-  font-family: "Raleway", sans-serif !important; /* Apply Playfair Display font */
+  font-family: "Inter", sans-serif !important; /* Apply Playfair Display font */
 }
 
 .react-calendar__month-view__days__day,
 .react-calendar__month-view__days__day--weekend,
 .react-calendar__tile {
-  color: black !important;
+  background-color: "#0C0C0F" !important;
+  color: white !important;
 }
 
 .react-calendar__month-view__days__day {
@@ -208,14 +230,14 @@ input::-webkit-date-and-time-value {
   transition: border-color 0.2s; /* Smooth transition for border color */
 }
 
-.react-calendar__tile--active {
-  background: transparent !important; /* Remove background */
-  border: 2px solid #255ec7 !important; /* Blue border */
+/* .react-calendar__tile--active {
+  background: transparent !important; 
+  border: 2px solid #255ec7 !important; 
 }
 
 .react-calendar__tile--active:hover {
   background-color: #f3f4f6 !important;
-}
+} */
 .react-calendar__tile-active {
   background: transparent !important; /* Remove background */
   border: 2px solid #255ec7 !important; /* Blue border */
@@ -260,12 +282,12 @@ input::-webkit-date-and-time-value {
   text-align: center; /* Center text */
 }
 
-.react-calendar {
+/* .react-calendar {
   width: 900px !important;
   border: none !important;
-  border-bottom: 2px solid #e5e7eb !important; /* Add bottom border */
-  padding-bottom: 6px; /* Optional: Adds spacing at the bottom */
-}
+  border-bottom: 2px solid #e5e7eb !important; 
+  padding-bottom: 6px; 
+} */
 
 .react-calendar__tile {
   display: flex !important;
@@ -375,4 +397,99 @@ input::-webkit-date-and-time-value {
   :root {
     --menu-item-height: 40px;
   }
+}
+
+.react-calendar {
+  background-color: #0f0f13 !important; /* Tailwind's bg-backgroundBlack */
+  color: #f3f4f6 !important; /* Tailwind's text-whiteText */
+  border-radius: 0.5rem;
+  padding: 1rem;
+  width: 100%;
+  border: 1px solid #1b1c20 !important;
+}
+
+.react-calendar-container-sm {
+  width: 260px;
+}
+.react-calendar-container-md {
+  width: 320px;
+}
+.react-calendar-container-lg {
+  width: 400px;
+}
+
+.react-calendar__navigation {
+  background: transparent !important;
+  color: #f3f4f6 !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.react-calendar__navigation button {
+  color: #f3f4f6 !important;
+  background: none !important;
+  border: none !important;
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.react-calendar__navigation__label {
+  font-weight: 600;
+}
+
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: #a1a1aa !important; /* Tailwind's text-gray-400 */
+}
+
+.react-calendar__tile {
+  background: transparent !important;
+  color: #f3f4f6 !important;
+  padding: 0.75rem 0;
+  text-align: center;
+  border-radius: 0.375rem;
+  transition: background 0.2s ease;
+}
+
+.react-calendar__tile:hover {
+  background-color: #1f2937 !important; /* Tailwind's bg-gray-800 */
+}
+
+.react-calendar__tile--active {
+  background-color: #1b1c20 !important;
+  color: #f3f4f6 !important; /* your whiteText */
+  border: 2px solid #f9fafa !important; /* clean white border */
+  font-weight: 600 !important;
+}
+
+.react-calendar__tile--active:enabled:focus,
+.react-calendar__tile--active:enabled:hover {
+  background-color: #1f2937 !important;
+  color: #f3f4f6 !important; /* your whiteText */
+  border: 2px solid #f9fafa !important; /* clean white border */
+  font-weight: 600 !important;
+}
+
+/* .react-calendar__tile--now {
+  border: 1px solid #f3f4f6 !important;
+  border-radius: 0.375rem;
+} */
+
+/* .react-calendar__tile--rangeStart,
+.react-calendar__tile--rangeEnd {
+  background-color: #f3f4f6 !important;
+  color: #0a0a0a !important;
+}
+
+.react-calendar__tile--range {
+  background-color: #374151 !important; /* Tailwind's bg-gray-700 */
+/* } */
+.recharts-active-bar {
+  display: none !important;
 }

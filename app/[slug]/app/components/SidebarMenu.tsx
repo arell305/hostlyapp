@@ -46,7 +46,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
   if (isLoading) {
     return (
       <Sidebar
-        className="h-screen bg-blue-200 hidden md:block"
+        className="h-screen bg-cardBackground hidden md:block"
         style={{
           width: "320px",
           overflow: "hidden",
@@ -56,7 +56,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleSidebar }) => {
   }
   return (
     <Sidebar
-      className="h-screen bg-blue-200 text-base md:text-sm"
+      className="h-screen bg-cardBackground text-base md:text-sm"
       style={{
         width: "320px",
         overflow: "hidden",

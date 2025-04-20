@@ -156,7 +156,7 @@ export default defineSchema({
     names: v.array(GuestListNames),
     eventId: v.id("events"),
     userPromoterId: v.id("users"),
-  }),
+  }).index("by_eventId", ["eventId"]),
   promoterPromoCode: defineTable({
     name: v.string(),
     promoterUserId: v.id("users"),
@@ -214,6 +214,7 @@ export default defineSchema({
     .index("by_eventId", ["eventId"])
     .index("by_ticketUniqueId", ["ticketUniqueId"]),
   connectedPayments: defineTable({
+    organizationId: v.id("organizations"),
     eventId: v.id("events"),
     stripePaymentIntentId: v.string(),
     email: v.string(),
@@ -223,6 +224,7 @@ export default defineSchema({
     femaleCount: v.number(),
     status: v.string(),
   })
+    .index("by_organizationId", ["organizationId"])
     .index("by_eventId", ["eventId"])
     .index("by_email", ["email"])
     .index("by_stripePaymentIntentId", ["stripePaymentIntentId"]),

@@ -1,5 +1,6 @@
-import { TIME_ZONE } from "@/types/constants";
+import { PresetOption, TIME_ZONE } from "@/types/constants";
 import { DateTime, Zone } from "luxon";
+import { DateRange } from "react-day-picker";
 
 export const formatTime = (timestamp: number): string => {
   const pstDateTime = DateTime.fromMillis(timestamp, {
@@ -110,4 +111,38 @@ export const isAfterNowInPacificTime = (timestamp: number): boolean => {
   const now = DateTime.now().setZone("America/Los_Angeles");
 
   return targetTime > now;
+};
+
+export const getDateRangeFromPreset = (preset: PresetOption): DateRange => {
+  const now = DateTime.now().setZone("America/Los_Angeles");
+
+  switch (preset) {
+    case "Last 7 Days":
+      return {
+        from: now.minus({ days: 6 }).startOf("day").toJSDate(),
+        to: now.endOf("day").toJSDate(),
+      };
+    case "Last 30 Days":
+      return {
+        from: now.minus({ days: 29 }).startOf("day").toJSDate(),
+        to: now.endOf("day").toJSDate(),
+      };
+    case "This Month":
+      return {
+        from: now.startOf("month").startOf("day").toJSDate(),
+        to: now.endOf("day").toJSDate(),
+      };
+    case "Last Month": {
+      const lastMonth = now.minus({ months: 1 });
+      return {
+        from: lastMonth.startOf("month").startOf("day").toJSDate(),
+        to: lastMonth.endOf("month").endOf("day").toJSDate(),
+      };
+    }
+    default:
+      return {
+        from: undefined,
+        to: undefined,
+      };
+  }
 };

@@ -775,3 +775,33 @@ export interface WebhookHandlerResponse {
   success: boolean;
   error?: string;
 }
+
+export type GetTotalRevenueByOrganizationResponse =
+  | GetTotalRevenueByOrganizationSuccess
+  | ErrorResponse;
+
+export interface GetTotalRevenueByOrganizationSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetTotalRevenueByOrganizationData;
+}
+
+export interface GetTotalRevenueByOrganizationData {
+  totalRevenue: number;
+  totalTicketsSold: number;
+  averageDailyRevenue: number;
+  averageDailyTicketsSold: number;
+}
+
+export type GetGuestListKpisResponse = GetGuestListKpisSuccess | ErrorResponse;
+
+export interface GetGuestListKpisSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetGuestListKpisData;
+}
+
+export interface GetGuestListKpisData {
+  avgRsvpPerEvent: number;
+  avgCheckinsPerEvent: number;
+  avgCheckinRate: number;
+  avgCheckinsPerPromoter: number;
+}

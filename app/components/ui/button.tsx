@@ -5,15 +5,14 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "font-semibold inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-customDarkBlue text-white hover:bg-primary/90",
+        default: "bg-primaryBlue text-white hover:bg-primaryBlue/80",
         destructive:
           "bg-altRed text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-customDarkBlue bg-background hover:bg-accent hover:text-accent-foreground",
+        outline: "border  bg-cardBackground hover:bg-cardBackgroundHover ",
         secondary:
           "text-customDarkBlue bg-white border border-customDarkBlue hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
@@ -27,12 +26,14 @@ const buttonVariants = cva(
         default:
           "h-12 md:h-9 text-lg md:text-base font-semibold px-4 py-2  rounded-[20px] w-full md:w-[200px] md:font-medium",
         sm: "md:h-9 md:px-8  rounded-[20px] h-11 px-10 text-base md:text-sm font-medium",
-        lg: "h-11 d px-8",
+        lg: "h-11  px-8",
         icon: "h-10 w-10",
         tripleButtons: "w-[300px] h-10 px-4 py-2 rounded-[20px]",
         doubelButtons: "h-10 px-4 py-2 rounded-[20px] w-[200px]",
         nav: "w-auto",
         navButton: "w-[90px] h-[42px] rounded-[12px] text-base font-medium",
+        xs: "md:text-xs px-3 py-2 h-9 font-medium",
+        datePreset: "h-12 px-4 py-4",
       },
     },
     defaultVariants: {

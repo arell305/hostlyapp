@@ -11,10 +11,19 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        playfair: ["Playfair Display", "serif"],
-        raleway: ["Raleway", "sans-serif"],
+        sans: ["Inter", "sans-serif"],
       },
       colors: {
+        dropdownBackground: "#18181b",
+        dropdownBorder: "#2a2a2d",
+        backgroundBlack: "#0C0C0F",
+        cardBackground: "#0F0F13",
+        cardBackgroundHover: "#1f2937",
+        borderGray: "#1B1C20",
+        focusRing: "#1B1C20",
+        whiteText: "#F9FAFA",
+        grayText: "#A2A5AD",
+        primaryBlue: "#315DDF",
         altBlack: "#343434",
         altGray: "#EFEFEF",
         altRed: "#C62828",

@@ -1,3 +1,13 @@
+import {
+  DollarSign,
+  CalendarDays,
+  Ticket,
+  Percent,
+  BadgeCheck,
+  UserCheck,
+  Users,
+} from "lucide-react";
+
 export const TITLE = "Hostly";
 export const DESC =
   "Streamline your event planning with our all-in-one management app for guest lists, ticket sales, and event promotion.";
@@ -17,3 +27,44 @@ export const EFFECTIVE_DATE = "March 13, 2025";
 export const CONTACT_EMAIL = "hostlycustomerservice@gmail.com";
 export const CONTACT_PHONE = "702-613-8800";
 export const COMPANY_NAME = "Hostly";
+
+// datePresets.ts
+export const PRESET_OPTIONS = [
+  "Last 7 Days",
+  "Last 30 Days",
+  "This Month",
+  "Last Month",
+  "Custom",
+] as const;
+
+export type PresetOption = (typeof PRESET_OPTIONS)[number];
+
+export const ticketKpis = [
+  { label: "Total Revenue", key: "totalRevenue", icon: DollarSign },
+  { label: "Revenue / Day", key: "avgDailyRevenue", icon: DollarSign },
+  { label: "Tickets Sold", key: "ticketsSold", icon: Ticket },
+  { label: "Tickets / Day", key: "avgDailyTicketsSold", icon: Ticket },
+];
+
+export const guestListKpis = [
+  {
+    label: "RSVP / Event",
+    key: "avgRsvpPerEvent",
+    icon: Users,
+  },
+  {
+    label: "Check-ins / Event",
+    key: "avgCheckinsPerEvent",
+    icon: UserCheck,
+  },
+  {
+    label: "Check-in Rate",
+    key: "avgCheckinRate",
+    icon: Percent,
+  },
+  {
+    label: "Check-ins / Promoter",
+    key: "avgCheckinsPerPromoter",
+    icon: BadgeCheck,
+  },
+];

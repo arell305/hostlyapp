@@ -316,3 +316,8 @@ export enum Gender {
 export enum StripePaymentType {
   CARD = "card",
 }
+export enum QueryState {
+  Loading = "loading",
+  Error = "error",
+  Success = "success",
+}

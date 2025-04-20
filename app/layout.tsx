@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Playfair_Display, Raleway } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { TITLE, DESC, META_DESC, WEBSITE } from "./types/constants";
 import { Providers } from "./providers";
@@ -9,16 +9,10 @@ import { Settings } from "luxon";
 
 Settings.defaultZone = "America/Los_Angeles";
 
-const playFairDisplay = Playfair_Display({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-play-fair-display",
-});
-
-const raleway = Raleway({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-raleway",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -53,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${raleway.variable} ${playFairDisplay.variable} `}>
+      <body className={`${inter.variable} font-sans`}>
         <Providers>{children}</Providers>
         <Toaster />
       </body>

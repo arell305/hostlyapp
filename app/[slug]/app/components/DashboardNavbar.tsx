@@ -43,15 +43,15 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
 
     if (!loaded || !userFromDb) {
       return (
-        <nav className="w-full z-10 top-0 border-b border-gray-200 fixed h-14 bg-white md:bg-transparent"></nav>
+        <nav className="w-full z-10 top-0 border-b  fixed h-14 bg-cardBackground md:bg-transparent"></nav>
       );
     }
     return (
       <nav
-        className={`w-full items-center shadow md:shadow-none md:border-none bg-white md:bg-transparent z-10 top-0 fixed h-12 transition-colors duration-300 ${
+        className={`w-full items-center shadow md:shadow-none md:border-none bg-cardBackground md:bg-transparent z-10 top-0 fixed h-12 transition-colors duration-300 ${
           isOpen
             ? "rounded-[1px] shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)]"
-            : " border-b border-gray-200"
+            : " border-b "
         }`}
       >
         <div className="flex h-full items-center justify-between mx-auto p-2.5">
@@ -68,15 +68,15 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = memo(
             <button
               onClick={toggleNavbar}
               type="button"
-              className={`hover:bg-gray-100 inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg focus:outline-none focus:ring-1 focus:ring-white transition-transform duration-300 ${
+              className={`hover:bg-cardBackgroundHover inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg focus:outline-none focus:ring-1 focus:ring-white transition-transform duration-300 ${
                 isOpen ? "rotate-90" : ""
               } md:hidden`}
               style={{ zIndex: 60 }}
             >
               {isOpen ? (
-                <RiCloseLargeLine className="w-6 h-6 text-black" />
+                <RiCloseLargeLine className="w-6 h-6 text-whiteText" />
               ) : (
-                <HiOutlineMenuAlt4 className="w-6 h-6 text-black" />
+                <HiOutlineMenuAlt4 className="w-6 h-6 text-whiteText" />
               )}
             </button>
           </div>

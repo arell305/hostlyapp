@@ -12,11 +12,13 @@ import { requireAuthenticatedUser } from "../utils/auth";
 import {
   validateEvent,
   validateGuestList,
+  validateOrganization,
   validateUser,
 } from "./backendUtils/validation";
 import {
   handleError,
   isUserInCompanyOfEvent,
+  isUserInOrganization,
   isUserThePromoter,
 } from "./backendUtils/helper";
 import {
@@ -24,6 +26,7 @@ import {
   UpdateGuestNameResponse,
   AddGuestListResponse,
   NewGuest,
+  GetGuestListKpisResponse,
 } from "@/types/convex-types";
 
 export const addGuestList = mutation({
@@ -268,6 +271,88 @@ export const deleteGuestName = mutation({
           guestListId,
           deletedGuestId: guestId,
           remainingGuestsCount: updatedNames.length,
+        },
+      };
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+});
+
+export const getGuestListKpis = query({
+  args: {
+    organizationId: v.id("organizations"),
+    fromTimestamp: v.number(),
+    toTimestamp: v.number(),
+  },
+  handler: async (ctx, args): Promise<GetGuestListKpisResponse> => {
+    const { organizationId, fromTimestamp, toTimestamp } = args;
+
+    try {
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Hostly_Admin,
+      ]);
+
+      const organization = validateOrganization(
+        await ctx.db.get(organizationId)
+      );
+
+      isUserInOrganization(identity, organization.clerkOrganizationId);
+
+      const events = await ctx.db
+        .query("events")
+        .withIndex("by_organizationId", (q) =>
+          q.eq("organizationId", organizationId)
+        )
+        .collect();
+
+      const filteredEvents = events.filter(
+        (event) =>
+          event.startTime >= fromTimestamp && event.startTime <= toTimestamp
+      );
+
+      const eventIds = filteredEvents.map((e) => e._id);
+      const guestListsArrays = await Promise.all(
+        eventIds.map((eventId) =>
+          ctx.db
+            .query("guestLists")
+            .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+            .collect()
+        )
+      );
+
+      const guestLists = guestListsArrays.flat();
+
+      let totalRsvps = 0;
+      let totalCheckins = 0;
+      const promoterSet = new Set();
+
+      for (const gl of guestLists) {
+        totalRsvps += gl.names.length;
+        totalCheckins += gl.names.filter((n) => n.attended).length;
+        promoterSet.add(gl.userPromoterId.toString());
+      }
+
+      const avgRsvpPerEvent = filteredEvents.length
+        ? totalRsvps / filteredEvents.length
+        : 0;
+      const avgCheckinsPerEvent = filteredEvents.length
+        ? totalCheckins / filteredEvents.length
+        : 0;
+      const avgCheckinRate = totalRsvps ? totalCheckins / totalRsvps : 0;
+      const avgCheckinsPerPromoter = promoterSet.size
+        ? totalCheckins / promoterSet.size
+        : 0;
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          avgRsvpPerEvent,
+          avgCheckinsPerEvent,
+          avgCheckinRate,
+          avgCheckinsPerPromoter,
         },
       };
     } catch (error) {
