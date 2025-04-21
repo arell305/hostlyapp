@@ -73,7 +73,7 @@ const AnalyticsPage = ({
   };
 
   return (
-    <div className="p-4 md:p-0">
+    <div>
       <PageHeading
         title="Analytics"
         presetDropdown={

@@ -72,7 +72,7 @@ body {
   }
 
   main {
-    @apply max-w-3xl mx-auto pt-4 pb-8 px-4 md:pb-4;
+    @apply max-w-3xl mx-auto pt-[220px] pb-8 px-4 md:pb-4;
   }
 
   h1 {
@@ -492,4 +492,9 @@ input::-webkit-date-and-time-value {
 /* } */
 .recharts-active-bar {
   display: none !important;
+}
+
+.cl-avatarBox {
+  width: 2.1rem !important; /* Adjust as needed */
+  height: 2.1rem !important;
 }

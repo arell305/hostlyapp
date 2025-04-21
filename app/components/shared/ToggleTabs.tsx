@@ -32,7 +32,7 @@ const ToggleTabs = <T extends string>({
             className={`rounded-md px-4 py-1 text-sm font-medium transition ${
               value === option.value
                 ? "bg-primaryBlue text-whiteText"
-                : "text-grayText hover:bg-primaryBlue/50 hover:text-whiteText "
+                : "text-grayText hover:bg-cardBackgroundHover hover:text-whiteText "
             }`}
           >
             {option.label}

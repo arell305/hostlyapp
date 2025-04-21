@@ -8,8 +8,6 @@ const page = () => {
   const { organization, organizationContextError, subscription } =
     useContextOrganization();
 
-  console.log("subscription", subscription);
-
   if (organizationContextError) {
     return <ErrorComponent message={organizationContextError} />;
   }
@@ -23,12 +21,10 @@ const page = () => {
   }
 
   return (
-    <main>
-      <AnalyticsPage
-        subscription={subscription}
-        organizationId={organization._id}
-      />
-    </main>
+    <AnalyticsPage
+      subscription={subscription}
+      organizationId={organization._id}
+    />
   );
 };
 

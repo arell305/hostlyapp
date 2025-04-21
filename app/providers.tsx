@@ -22,9 +22,33 @@ if (!clerkPublishableKey) {
 
 const convex = new ConvexReactClient(convexUrl);
 
+const appearance = {
+  variables: {
+    colorBackground: "#0F0F13",
+    colorText: "#F9FAFA",
+    colorPrimary: "#315DDF",
+    colorTextSecondary: "#F9FAFA",
+    borderRadius: "8px",
+  },
+  elements: {
+    card: "bg-gray-900 text-white shadow-xl ring-1 ring-white/10",
+    headerTitle: "text-white",
+    formFieldInput: "bg-gray-800 text-white",
+    userButtonPopoverActionButton:
+      "text-white hover:text-white font-semibold hover:bg-cardBackgroundHover transition",
+    userButtonPopoverCard:
+      "bg-cardBackground text-white shadow-white-glow ring-1 ring-white/10",
+    userButtonPopoverActionButton__divider: "border-t border-white/10",
+    userButtonPopoverActions:
+      "divide-y divide-white/10 border-t border-white/10",
+    userButtonPopoverHeader: "border-b border-white/10 pb-3 mb-2",
+  },
+};
+
 export function Providers({ children }: PropsWithChildren) {
   return (
     <ClerkProvider
+      appearance={appearance}
       publishableKey={clerkPublishableKey}
       signInUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL}
       signUpUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL}

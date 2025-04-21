@@ -21,6 +21,9 @@ const buttonVariants = cva(
           "text-customDarkBlue font-semibold hover:underline font-raleway text-base p-0 h-auto",
         navDestructive:
           "text-red-600 hover:underline font-raleway text-base p-0 h-auto font-medium",
+        sidebar:
+          "bg-transparent justify-start gap-3 hover:bg-cardBackgroundHover",
+        nav: "bg-cardBackgroundHover rounded-[20px] hover:bg-primaryBlue",
       },
       size: {
         default:
@@ -30,10 +33,12 @@ const buttonVariants = cva(
         icon: "h-10 w-10",
         tripleButtons: "w-[300px] h-10 px-4 py-2 rounded-[20px]",
         doubelButtons: "h-10 px-4 py-2 rounded-[20px] w-[200px]",
-        nav: "w-auto",
+        nav: "text-base md:text-sm px-3 py-2 gap-1",
         navButton: "w-[90px] h-[42px] rounded-[12px] text-base font-medium",
         xs: "md:text-xs px-3 py-2 h-9 font-medium",
         datePreset: "h-12 px-4 py-4",
+        sidebar:
+          "h-12 w-full px-4 text-base md:text-sm font-medium rounded-[12px]",
       },
     },
     defaultVariants: {

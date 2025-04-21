@@ -13,6 +13,9 @@ const config: Config = {
       fontFamily: {
         sans: ["Inter", "sans-serif"],
       },
+      boxShadow: {
+        "white-glow": "0 0 20px rgba(255, 255, 255, 0.1)",
+      },
       colors: {
         dropdownBackground: "#18181b",
         dropdownBorder: "#2a2a2d",
