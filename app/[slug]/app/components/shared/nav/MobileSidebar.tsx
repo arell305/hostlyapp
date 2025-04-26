@@ -10,9 +10,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import IconButton from "../IconButton";
 import SidebarContent from "./SidebarContent";
-
+import IconButton from "@/components/shared/buttonContainers/IconButton";
 interface MobileSidebarProps {
   slug: string;
   orgRole: string;

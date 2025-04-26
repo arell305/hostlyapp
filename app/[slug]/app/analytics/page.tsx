@@ -1,10 +1,10 @@
 "use client";
 import React from "react";
-import AnalyticsPage from "./AnalyticsPage";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import ErrorComponent from "../components/errors/ErrorComponent";
+import AnalyticsContent from "./AnalyticsContent";
 
-const page = () => {
+const AnalyticsPage = () => {
   const { organization, organizationContextError, subscription } =
     useContextOrganization();
 
@@ -21,11 +21,11 @@ const page = () => {
   }
 
   return (
-    <AnalyticsPage
+    <AnalyticsContent
       subscription={subscription}
       organizationId={organization._id}
     />
   );
 };
 
-export default page;
+export default AnalyticsPage;

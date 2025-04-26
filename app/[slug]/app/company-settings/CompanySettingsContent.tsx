@@ -1,20 +1,19 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { GoPencil } from "react-icons/go";
-import ResponsiveTeamName from "../components/responsive/ResponsiveTeamName";
-import { useAction, useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { useToast } from "@/hooks/use-toast";
-import ResponsivePromoDiscount from "../components/responsive/ResponsivePromoDiscount";
-import Image from "next/image";
-import { Id } from "../../../../convex/_generated/dataModel";
 import { validatePromoDiscount } from "../../../../utils/frontend-validation";
-import { compressAndUploadImage } from "../../../../utils/image";
-import Loading from "../components/loading/Loading";
-import { RiImageAddFill } from "react-icons/ri";
 import { OrganizationSchema } from "@/types/types";
-import { ResponseStatus } from "@/types/enums";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { useUpdateOrganizationName } from "./hooks/useUpdateOrganizationName";
+import { useUpdateOrganizationMetadata } from "./hooks/useUpdateOrganizationMetadata";
+import { useUploadOrganizationPhoto } from "./hooks/useUploadOrganizationPhoto";
+import CustomCard from "@/components/shared/cards/CustomCard";
+import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
+import IconButton from "@/components/shared/buttonContainers/IconButton";
+import { Pencil, X } from "lucide-react";
+import EditableImage from "@/components/shared/editable/EditableImage";
+import EditableInputField from "@/components/shared/editable/EditableInputField";
+import EditableContainer from "@/components/shared/containers/EditableContainer";
+import EditableImageContainer from "@/components/shared/containers/EditableImageContainer";
 
 interface CompanySettingsContentProps {
   organization: OrganizationSchema;
@@ -27,314 +26,115 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
   displayCompanyPhoto,
   canEditSettings,
 }) => {
-  const { toast } = useToast();
-
   const [companyName, setCompanyName] = useState<string | null | undefined>(
     organization?.name
   );
-  const [showTeamNameModal, setShowTeamNameModal] = useState<boolean>(false);
-  const [isTeamNameLoading, setTeamNameLoading] = useState<boolean>(false);
-  const [teamNameError, setTeamNameError] = useState<string | null>(null);
-  const updateOrganizationName = useAction(api.clerk.updateOrganizationName);
-
-  // promo discount settings
   const [promoDiscount, setPromoDiscount] = useState<string>(
     organization?.promoDiscount.toString() || ""
   );
-  const [showPromoDiscountModal, setShowPromoDiscountModal] =
-    useState<boolean>(false);
-  const [isPromoDiscountLoading, setPromoDiscountLoading] =
-    useState<boolean>(false);
-  const [promoDiscountError, setPromoDiscountError] = useState<string | null>(
-    null
-  );
+  const [isEditing, setIsEditing] = useState<boolean>(false);
 
-  const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
-
-  const [isPhotoLoading, setIsPhotoLoading] = useState<boolean>(false);
-  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
-
-  const updateClerkOrganizationPhoto = useAction(
-    api.clerk.updateClerkOrganizationPhoto
-  );
-
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
-    if (!file) return;
-
-    setIsPhotoLoading(true);
-    setPhotoUploadError(null);
-
-    try {
-      const response = await compressAndUploadImage(file, generateUploadUrl);
-
-      if (response.ok) {
-        const { storageId } = await response.json();
-
-        const updateResponse = await updateClerkOrganizationPhoto({
-          clerkOrganizationId: organization?.clerkOrganizationId,
-          photo: storageId as Id<"_storage">,
-        });
-
-        if (updateResponse.status === ResponseStatus.SUCCESS) {
-          toast({
-            title: "Success",
-            description: "Company Photo Updated.",
-          });
-        } else {
-          setPhotoUploadError("Photo update failed");
-        }
-      } else {
-        setPhotoUploadError("Photo upload failed");
-      }
-    } catch (error) {
-      setPhotoUploadError("Photo upload failed");
-    } finally {
-      setIsPhotoLoading(false);
-    }
-  };
-
-  const updateOrganizationMetadata = useAction(
-    api.clerk.updateOrganizationMetadata
-  );
+  const {
+    updateOrgName,
+    isLoading: isNameSaving,
+    error: nameError,
+  } = useUpdateOrganizationName();
+  const {
+    updateOrg,
+    isLoading: isPromoSaving,
+    error: promoError,
+  } = useUpdateOrganizationMetadata();
+  const {
+    uploadOrganizationPhoto,
+    isLoading: isPhotoLoading,
+    error: photoError,
+  } = useUploadOrganizationPhoto();
 
   useEffect(() => {
     setCompanyName(organization?.name);
     setPromoDiscount(organization?.promoDiscount.toString() || "");
   }, [organization]);
 
-  const handleUpdateTeamName = async () => {
-    if (companyName === organization?.name) {
-      return setShowTeamNameModal(false);
-    }
-    if (!companyName || companyName.trim() === "") {
-      setTeamNameError("Name cannot be empty.");
-      return;
-    }
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setTeamNameLoading(true);
-    try {
-      const response = await updateOrganizationName({
-        clerkOrganizationId: organization.clerkOrganizationId,
-        name: companyName,
-      });
-      if (response.status === ResponseStatus.SUCCESS) {
-        toast({
-          title: "Success",
-          description: "Team name set.",
-        });
-        setShowTeamNameModal(false);
-        window.location.href = `/${response.data.slug}/app/company-settings`;
-      } else {
-        console.error("Failed to update team name", response.error);
-        setTeamNameError(response.error);
-      }
-    } catch (error) {
-      console.error("Failed to update team name", error);
-      setTeamNameError("Failed to update team name");
-    } finally {
-      setTeamNameLoading(false);
+    const success = await uploadOrganizationPhoto(file, organization._id);
+    if (success) {
+      setIsEditing(false);
+    }
+  };
+
+  const handleSaveCompanyName = async () => {
+    if (!companyName || companyName.trim() === "") return;
+    const response = await updateOrgName(organization._id, companyName);
+    if (response.success === true) {
+      setIsEditing(false);
+      window.location.href = `/${response.slug}/app/company-settings`;
     }
   };
 
   const handleSavePromoDiscount = async () => {
-    setPromoDiscountError(null);
+    const { promoDiscountValue } = validatePromoDiscount(promoDiscount, true);
+    if (!promoDiscountValue) return;
 
-    const { promoDiscountValue, promoDiscountValueError } =
-      validatePromoDiscount(promoDiscount, true);
-
-    if (promoDiscountValue === organization?.promoDiscount) {
-      return setShowPromoDiscountModal(false);
-    }
-
-    if (promoDiscountValueError) {
-      setPromoDiscountError(promoDiscountValueError);
-      return;
-    }
-
-    if (!promoDiscountValue) {
-      setPromoDiscountError(promoDiscountValueError);
-      return;
-    }
-
-    try {
-      setPromoDiscountLoading(true);
-
-      const response = await updateOrganizationMetadata({
-        clerkOrganizationId: organization.clerkOrganizationId,
-        params: {
-          promoDiscount: promoDiscountValue,
-        },
-      });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        toast({
-          title: "Success",
-          description: "Promo discount amount set.",
-        });
-        setShowPromoDiscountModal(false);
-      } else {
-        console.error(
-          "Failed to update promo discount amount.",
-          response.error
-        );
-        setPromoDiscountError(
-          "Error updating promo discount amount. Please try again"
-        );
-      }
-    } catch (error) {
-      console.error("Failed to update promo discount amount.", error);
-      setPromoDiscountError(
-        "Error updating promo discount amount. Please try again"
-      );
-    } finally {
-      setPromoDiscountLoading(false);
-    }
-  };
-
-  const handleTeamNameModalOpenChange = (open: boolean) => {
-    if (open) {
-      setShowTeamNameModal(true);
-    } else {
-      setCompanyName(organization?.name);
-      setTeamNameError(null);
-      setShowTeamNameModal(false);
-    }
-  };
-
-  const handlePromoDiscountModalOpenChange = (open: boolean) => {
-    if (open) {
-      setShowPromoDiscountModal(true);
-    } else {
-      setPromoDiscount(organization?.promoDiscount as unknown as string);
-      setPromoDiscountError(null);
-      setShowPromoDiscountModal(false);
+    const success = await updateOrg(organization._id, {
+      promoDiscount: promoDiscountValue,
+    });
+    if (success) {
+      setIsEditing(false);
     }
   };
 
   return (
-    <main className="justify-center max-w-2xl rounded-lg mx-auto mt-1.5 md:mt-0">
-      <h1 className="pt-4 md:pt-0 pl-4 text-3xl md:text-4xl font-bold">
-        Company Settings
-      </h1>
-      <div className="flex flex-col items-center gap-2 mb-6 mt-4">
-        <div className="relative inline-block">
-          {displayCompanyPhoto ? (
-            <div className="relative group w-[100px] h-[100px] mt-1">
-              <Image
-                src={displayCompanyPhoto}
-                alt="Company Avatar"
-                fill
-                sizes="100px"
-                className="rounded-md object-cover"
-              />
-              {canEditSettings && (
-                <>
-                  <div className="absolute -top-3 -right-2 bg-white rounded-full p-1 shadow-md border border-gray-100">
-                    <GoPencil className="text-gray-600" />
-                  </div>
-                  <Label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-md">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                      className="hidden"
-                    />
-                    {isPhotoLoading ? (
-                      <Loading />
-                    ) : (
-                      <RiImageAddFill className="text-4xl text-white" />
-                    )}
-                  </Label>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="relative w-[100px] h-[100px] group">
-              <Label className="block w-full h-full cursor-pointer">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  className="hidden"
-                />
-                <div className="w-full h-full border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center transition-colors duration-200 group-hover:bg-gray-100">
-                  {isPhotoLoading ? (
-                    <Loading />
-                  ) : (
-                    <RiImageAddFill className="text-4xl text-gray-500" />
-                  )}
-                </div>
-              </Label>
-            </div>
-          )}
-        </div>
-        {photoUploadError && (
-          <p className="text-red-500 text-sm">{photoUploadError}</p>
-        )}
-      </div>
-
-      <div
-        onClick={() => canEditSettings && setShowTeamNameModal(true)}
-        className={`px-4 flex justify-between border-b py-3 ${
-          canEditSettings
-            ? "cursor-pointer hover:bg-gray-100 hover:rounded-md"
-            : ""
-        }`}
-      >
-        <div className="">
-          <h3 className="text-sm font-medium text-gray-500">Company Name: </h3>
-          <p className="text-lg font-semibold">{companyName || "Not Set"}</p>
-        </div>
-        {canEditSettings && (
-          <div className="flex items-center">
-            <GoPencil className="text-2xl" />
-          </div>
-        )}
-      </div>
-      <ResponsiveTeamName
-        isOpen={showTeamNameModal}
-        onOpenChange={handleTeamNameModalOpenChange}
-        error={teamNameError}
-        isLoading={isTeamNameLoading}
-        onUpdateTeamName={handleUpdateTeamName}
-        setTeamNameError={setTeamNameError}
-        setTeamName={setCompanyName}
-        teamName={companyName || ""}
+    <section>
+      <SectionHeaderWithAction
+        title="Company Settings"
+        actions={
+          <IconButton
+            icon={isEditing ? <X size={20} /> : <Pencil size={20} />}
+            onClick={() => setIsEditing((prev) => !prev)}
+          />
+        }
       />
+      <CustomCard className="p-0">
+        <EditableImageContainer className="mt-6">
+          <EditableImage
+            displayImage={displayCompanyPhoto}
+            isEditing={isEditing}
+            canEdit={canEditSettings}
+            isLoading={isPhotoLoading}
+            onChange={handlePhotoChange}
+          />
+        </EditableImageContainer>
 
-      <div
-        onClick={() => canEditSettings && setShowPromoDiscountModal(true)}
-        className={`px-4 flex justify-between border-b py-3 ${
-          canEditSettings
-            ? "cursor-pointer hover:bg-gray-100 hover:rounded-md"
-            : ""
-        }`}
-      >
-        <div>
-          <h3 className="text-sm font-medium text-gray-500">
-            Promo Discount Amount:{" "}
-          </h3>
-          <p className="text-lg font-semibold">{promoDiscount || "Not Set"}</p>
-        </div>
-        {canEditSettings && (
-          <div className="flex items-center">
-            <GoPencil className="text-2xl" />
-          </div>
-        )}
-      </div>
+        <EditableContainer>
+          <EditableInputField
+            label="Company Name"
+            value={companyName || ""}
+            onChange={(e) => setCompanyName(e.target.value)}
+            onSave={handleSaveCompanyName}
+            isEditing={isEditing}
+            isSaving={isNameSaving}
+            name="companyName"
+            error={nameError}
+            type="text"
+          />
 
-      <ResponsivePromoDiscount
-        isOpen={showPromoDiscountModal}
-        onOpenChange={handlePromoDiscountModalOpenChange}
-        promoDiscount={promoDiscount}
-        onUpdatePromoDiscount={handleSavePromoDiscount}
-        error={promoDiscountError}
-        isLoading={isPromoDiscountLoading}
-        setPromoDiscount={setPromoDiscount}
-        setPromoDiscountError={setPromoDiscountError}
-      />
-    </main>
+          <EditableInputField
+            label="Promo Discount Amount"
+            value={promoDiscount}
+            onChange={(e) => setPromoDiscount(e.target.value)}
+            onSave={handleSavePromoDiscount}
+            isEditing={isEditing}
+            isSaving={isPromoSaving}
+            name="promoDiscount"
+            error={promoError}
+            type="number"
+          />
+        </EditableContainer>
+      </CustomCard>
+    </section>
   );
 };
 

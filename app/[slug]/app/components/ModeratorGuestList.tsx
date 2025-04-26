@@ -127,7 +127,6 @@ const ModeratorGuestList = ({
   if (!getEventWithGuestListsResponse) {
     return <FullLoading />;
   }
-  console.log("getEventWithGuestListsResponse", getEventWithGuestListsResponse);
 
   if (getEventWithGuestListsResponse.status === ResponseStatus.ERROR) {
     return <ErrorComponent message={getEventWithGuestListsResponse.error} />;
@@ -234,3 +233,5 @@ const ModeratorGuestList = ({
 };
 
 export default ModeratorGuestList;
+
+// TO BE DELETED

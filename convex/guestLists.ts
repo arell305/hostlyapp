@@ -25,17 +25,22 @@ import {
   GetGuestListByPromoterResponse,
   UpdateGuestNameResponse,
   AddGuestListResponse,
-  NewGuest,
   GetGuestListKpisResponse,
 } from "@/types/convex-types";
 
 export const addGuestList = mutation({
   args: {
-    newNames: v.array(v.string()),
+    guests: v.array(
+      v.object({
+        name: v.string(),
+        phoneNumber: v.optional(v.string()),
+      })
+    ),
     eventId: v.id("events"),
   },
   handler: async (ctx, args): Promise<AddGuestListResponse> => {
-    const { newNames, eventId } = args;
+    const { guests, eventId } = args;
+
     try {
       const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Promoter,
@@ -52,13 +57,13 @@ export const addGuestList = mutation({
           .unique()
       );
 
-      const event = validateEvent(await ctx.db.get(args.eventId));
-
+      const event = validateEvent(await ctx.db.get(eventId));
       isUserInCompanyOfEvent(user, event);
 
-      const newGuestObjects: NewGuest[] = newNames.map((name) => ({
+      const newGuestObjects = guests.map((guest) => ({
         id: `guest_${nanoid()}`,
-        name,
+        name: guest.name,
+        phoneNumber: guest.phoneNumber,
       }));
 
       const existingGuestList: GuestListSchema | null = await ctx.db
@@ -72,13 +77,11 @@ export const addGuestList = mutation({
         .first();
 
       if (existingGuestList) {
-        const updatedNames: NewGuest[] = [
-          ...existingGuestList.names,
-          ...newGuestObjects,
-        ];
+        const updatedNames = [...existingGuestList.names, ...newGuestObjects];
         await ctx.db.patch(existingGuestList._id, {
           names: updatedNames,
         });
+
         return {
           status: ResponseStatus.SUCCESS,
           data: {
@@ -88,14 +91,11 @@ export const addGuestList = mutation({
         };
       }
 
-      const newGuestListId: Id<"guestLists"> = await ctx.db.insert(
-        "guestLists",
-        {
-          names: newGuestObjects,
-          userPromoterId: user._id,
-          eventId,
-        }
-      );
+      const newGuestListId = await ctx.db.insert("guestLists", {
+        names: newGuestObjects,
+        userPromoterId: user._id,
+        eventId,
+      });
 
       return {
         status: ResponseStatus.SUCCESS,
@@ -116,7 +116,6 @@ export const getGuestListByPromoter = query({
   },
   handler: async (ctx, args): Promise<GetGuestListByPromoterResponse> => {
     const { eventId } = args;
-    console.log("eventId", eventId);
     try {
       const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Promoter,
@@ -124,11 +123,7 @@ export const getGuestListByPromoter = query({
         UserRole.Hostly_Admin,
       ]);
 
-      console.log("identity", identity);
-
       const clerkUserId = identity.id as string;
-      console.log("clerkUserId", clerkUserId);
-      console.log("test");
       const user = validateUser(
         await ctx.db
           .query("users")
@@ -148,7 +143,10 @@ export const getGuestListByPromoter = query({
       if (!guestList) {
         return {
           status: ResponseStatus.SUCCESS,
-          data: null,
+          data: {
+            guestListId: null,
+            names: [],
+          },
         };
       }
       return {

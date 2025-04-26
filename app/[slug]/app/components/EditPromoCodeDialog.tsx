@@ -9,12 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserWithPromoCode } from "@/types/types";
-import { ResponseStatus } from "@/types/enums";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { DESKTOP_WIDTH } from "@/types/constants";
 import {
@@ -24,6 +21,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { useAddOrUpdatePromoterPromoCode } from "@/hooks/useAddorUpdatePromoterPromoCode";
 
 interface EditPromoCodeDialogProps {
   isOpen: boolean;
@@ -37,16 +35,17 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
   user,
 }) => {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState<string | null | undefined>(
     user?.promoCode
   );
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
+  const { addPromoCode, isLoading, error, setError } =
+    useAddOrUpdatePromoterPromoCode();
 
-  const addPromoCode = useMutation(
-    api.promoterPromoCode.addOrUpdatePromoterPromoCode
-  );
+  const handleClose = () => {
+    setIsOpen(false);
+    setError(null);
+  };
 
   const handleSave = async () => {
     if (!promoCode || !promoCode.trim()) {
@@ -64,46 +63,14 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await addPromoCode({
-        name: promoCode,
-      });
-      if (response.status === ResponseStatus.SUCCESS) {
-        toast({
-          title: "Promo Code updated",
-          description: "Promo code has successfully been updated",
-        });
-        setIsOpen(false);
-      } else {
-        console.error(response.error);
-        setError(response.error);
-      }
-    } catch (error) {
-      console.error("Error updating promo code:", error);
-      if (error instanceof Error) {
-        let errorMessage = "An error occurred while adding the promo code";
-        if (error.message.includes("already exists")) {
-          errorMessage = "Promo Code already exists";
-        }
-        setError(errorMessage);
-      } else {
-        setError("An error has occurred. Please try again");
-        toast({
-          title: "Error",
-          description: "Failed to updated promo code. Please try again",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsLoading(false);
+    const success = await addPromoCode(promoCode);
+    if (success) {
+      handleClose();
     }
   };
   if (isDesktop) {
     return (
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="rounded-[10px]">
           <DialogHeader>
             <DialogTitle>
@@ -160,7 +127,7 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
   }
 
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+    <Drawer open={isOpen} onOpenChange={handleClose}>
       <DrawerContent className="rounded-t-[10px]">
         <DrawerHeader>
           <DrawerTitle>

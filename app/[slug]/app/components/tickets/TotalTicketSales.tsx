@@ -3,7 +3,6 @@ import React from "react";
 import { FiClock } from "react-icons/fi";
 import { TbCircleLetterM, TbCircleLetterF } from "react-icons/tb";
 import { formatToTimeAndShortDate } from "../../../../../utils/luxon";
-import { NumberUnitLength } from "luxon";
 
 interface TotalTicketSalesProps {
   isTicketsSalesOpen: boolean;

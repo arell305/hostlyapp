@@ -1,11 +1,12 @@
 import React from "react";
-import PromoterGuestList from "@/[slug]/app/components/PromoterGuestList";
 import EventGuestList from "@/[slug]/app/components/EventGuestList";
 import ModeratorGuestList from "@/[slug]/app/components/ModeratorGuestList";
 import { LuClipboardList } from "react-icons/lu";
 import { EventSchema, GuestListInfoSchema } from "@/types/schemas-types";
 import { isPast } from "../../../../../utils/luxon";
 import { ClerkPermissions } from "@/types/enums";
+import PromoterGuestListPage from "../guestList/PromoterGuestListPage";
+import ModeratorGuestListPage from "../guestList/ModeratorGuestListPage";
 interface GuestListTabProps {
   eventData: EventSchema;
   guestListInfo?: GuestListInfoSchema | null;
@@ -45,11 +46,10 @@ const GuestListTab: React.FC<GuestListTabProps> = ({
   let isGuestListOpen: boolean = !isPast(guestListInfo.guestListCloseTime);
 
   let isCheckInOpen: boolean = !isPast(guestListInfo.checkInCloseTime);
-  console.log("isCheckInOpen", isCheckInOpen);
   return (
     <>
       {canUploadGuest && (
-        <PromoterGuestList
+        <PromoterGuestListPage
           eventId={eventData._id}
           isGuestListOpen={isGuestListOpen}
           guestListCloseTime={guestListInfo.guestListCloseTime}
@@ -64,7 +64,7 @@ const GuestListTab: React.FC<GuestListTabProps> = ({
         />
       )}
       {canCheckInGuests && (
-        <ModeratorGuestList
+        <ModeratorGuestListPage
           eventId={eventData._id}
           isCheckInOpen={isCheckInOpen}
           checkInCloseTime={guestListInfo.checkInCloseTime}

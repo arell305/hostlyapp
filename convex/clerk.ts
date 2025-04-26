@@ -115,13 +115,13 @@ export const getPendingInvitationList = action({
 export const updateOrganizationMemberships = action({
   args: {
     role: RoleConvex,
-    clerkUserId: v.string(),
+    userId: v.id("users"),
   },
   handler: async (
     ctx,
     args
   ): Promise<UpdateOrganizationMembershipsResponse> => {
-    const { role, clerkUserId } = args;
+    const { role, userId } = args;
     try {
       const idenitity = await requireAuthenticatedUser(ctx, [
         UserRole.Admin,
@@ -131,14 +131,18 @@ export const updateOrganizationMemberships = action({
       ]);
 
       const user = validateUser(
-        await ctx.runQuery(internal.users.internalFindUserByClerkId, {
-          clerkUserId,
-        })
+        await ctx.runQuery(internal.users.getUserByIdInternal, {
+          userId,
+        }),
+        false,
+        false,
+        true,
+        true
       );
 
       const organization = validateOrganization(
         await ctx.runQuery(internal.organizations.getOrganizationById, {
-          organizationId: user.organizationId!,
+          organizationId: user.organizationId,
         })
       );
 
@@ -146,17 +150,17 @@ export const updateOrganizationMemberships = action({
       isUserInOrganization(idenitity, clerkOrgId);
 
       await Promise.all([
-        updateOrganizationMembershipHelper(clerkOrgId, clerkUserId, role),
+        updateOrganizationMembershipHelper(clerkOrgId, user.clerkUserId, role),
         ctx.runMutation(internal.users.internalUpdateUserById, {
-          clerkUserId,
-          role: args.role,
+          userId,
+          role,
         }),
       ]);
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          clerkUserId,
+          userId,
         },
       };
     } catch (error) {
@@ -342,11 +346,11 @@ export const createClerkOrganization = action({
 
 export const updateClerkOrganizationPhoto = action({
   args: {
-    clerkOrganizationId: v.string(),
+    organizationId: v.id("organizations"),
     photo: v.union(v.id("_storage"), v.null()),
   },
   handler: async (ctx, args): Promise<UpdateClerkOrganizationPhotoResponse> => {
-    const { clerkOrganizationId, photo } = args;
+    const { organizationId, photo } = args;
 
     try {
       const idenitity = await requireAuthenticatedUser(ctx, [
@@ -355,6 +359,15 @@ export const updateClerkOrganizationPhoto = action({
         UserRole.Hostly_Moderator,
         UserRole.Hostly_Admin,
       ]);
+
+      const organization = validateOrganization(
+        await ctx.runQuery(internal.organizations.getOrganizationById, {
+          organizationId,
+        })
+      );
+
+      isUserInOrganization(idenitity, organization.clerkOrganizationId);
+
       const clerkUserId = idenitity.id as string;
 
       let blob: Blob | null = null;
@@ -365,7 +378,7 @@ export const updateClerkOrganizationPhoto = action({
           throw new Error(ErrorMessages.FILE_CREATION_ERROR);
         } else {
           await updateOrganizationLogo({
-            organizationId: clerkOrganizationId,
+            organizationId: organization.clerkOrganizationId,
             file: blob,
             uploaderUserId: clerkUserId,
           });
@@ -374,14 +387,16 @@ export const updateClerkOrganizationPhoto = action({
         console.log("No photo provided, skipping Clerk logo update");
       }
 
-      await ctx.runMutation(internal.organizations.updateOrganization, {
-        clerkOrganizationId,
-        photo,
+      await ctx.runMutation(internal.organizations.updateOrganizationById, {
+        organizationId,
+        updates: {
+          photo,
+        },
       });
 
       return {
         status: ResponseStatus.SUCCESS,
-        data: { clerkOrganizationId },
+        data: { organizationId },
       };
     } catch (error) {
       return handleError(error);
@@ -392,10 +407,10 @@ export const updateClerkOrganizationPhoto = action({
 export const updateOrganizationName = action({
   args: {
     name: v.string(),
-    clerkOrganizationId: v.string(),
+    organizationId: v.id("organizations"),
   },
   handler: async (ctx, args): Promise<UpdateOrganizationNameResponse> => {
-    const { name, clerkOrganizationId } = args;
+    const { name, organizationId } = args;
     try {
       await requireAuthenticatedUser(ctx, [
         UserRole.Admin,
@@ -415,12 +430,20 @@ export const updateOrganizationName = action({
         throw new Error(ShowErrorMessages.COMPANY_NAME_ALREADY_EXISTS);
       }
 
+      const organization = validateOrganization(
+        await ctx.runQuery(internal.organizations.getOrganizationById, {
+          organizationId,
+        })
+      );
+
       await Promise.all([
-        updateClerkOrganization(clerkOrganizationId, name),
-        ctx.runMutation(internal.organizations.updateOrganization, {
-          clerkOrganizationId,
-          name,
-          slug,
+        updateClerkOrganization(organization.clerkOrganizationId, name),
+        ctx.runMutation(internal.organizations.updateOrganizationById, {
+          organizationId,
+          updates: {
+            name,
+            slug,
+          },
         }),
       ]);
 
@@ -438,7 +461,7 @@ export const updateOrganizationName = action({
 
 export const updateOrganizationMetadata = action({
   args: {
-    clerkOrganizationId: v.string(),
+    organizationId: v.id("organizations"),
     params: v.object({
       status: v.optional(SubscriptionStatusConvex),
       tier: v.optional(SubscriptionTierConvex),
@@ -446,7 +469,7 @@ export const updateOrganizationMetadata = action({
     }),
   },
   handler: async (ctx, args): Promise<UpdateOrganizationMetadataResponse> => {
-    const { params, clerkOrganizationId } = args;
+    const { params, organizationId } = args;
     try {
       const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Admin,
@@ -455,21 +478,32 @@ export const updateOrganizationMetadata = action({
         UserRole.Hostly_Admin,
       ]);
 
-      isUserInOrganization(identity, clerkOrganizationId);
+      const organization = validateOrganization(
+        await ctx.runQuery(internal.organizations.getOrganizationById, {
+          organizationId,
+        })
+      );
 
-      await updateClerkOrganizationMetadata(clerkOrganizationId, params);
+      isUserInOrganization(identity, organization.clerkOrganizationId);
+
+      await updateClerkOrganizationMetadata(
+        organization.clerkOrganizationId,
+        params
+      );
 
       if (params.promoDiscount !== undefined) {
-        await ctx.runMutation(internal.organizations.updateOrganization, {
-          clerkOrganizationId,
-          promoDiscount: params.promoDiscount,
+        await ctx.runMutation(internal.organizations.updateOrganizationById, {
+          organizationId,
+          updates: {
+            promoDiscount: params.promoDiscount,
+          },
         });
       }
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          clerkOrgId: clerkOrganizationId,
+          organizationId,
         },
       };
     } catch (error) {

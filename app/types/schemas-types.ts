@@ -18,6 +18,32 @@ export interface UserSchema {
   imageUrl?: string;
   isActive?: boolean;
 }
+export interface UserWithCustomerId extends UserSchema {
+  customerId: Id<"customers">;
+}
+
+export interface UserWithOrganizationId extends UserSchema {
+  organizationId: Id<"organizations">;
+}
+export interface UserWithClerkId extends UserSchema {
+  clerkUserId: string;
+}
+
+export interface UserWithOrgAndCustomer extends UserSchema {
+  organizationId: Id<"organizations">;
+  customerId: Id<"customers">;
+}
+
+export interface UserWithOrgAndCustomerAndClerkId extends UserSchema {
+  customerId: Id<"customers">;
+  organizationId: Id<"organizations">;
+  clerkUserId: string;
+}
+
+export interface UserWithOrgAndClerkId extends UserSchema {
+  organizationId: Id<"organizations">;
+  clerkUserId: string;
+}
 
 export interface TicketSchema {
   _id: Id<"tickets">;

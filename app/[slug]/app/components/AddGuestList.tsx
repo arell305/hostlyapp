@@ -18,6 +18,7 @@ import BaseDrawer from "./drawer/BaseDrawer";
 import _ from "lodash";
 import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
 import { DESKTOP_WIDTH } from "@/types/constants";
+import { useAddGuestList } from "../events/hooks/useAddGuestList";
 
 interface AddGuestListModalProps {
   isOpen: boolean;
@@ -31,10 +32,8 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
   eventId,
 }) => {
   const [guestNames, setGuestNames] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<null | string>(null);
-  const addGuestList = useMutation(api.guestLists.addGuestList);
-  const { toast } = useToast();
+
+  const { addGuestList, isLoading, error, setError } = useAddGuestList();
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const handleSubmitGuestList = async () => {
@@ -54,29 +53,9 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
           .map((word) => _.capitalize(word.toLowerCase()))
           .join(" ")
       );
-    setLoading(true);
-    try {
-      const response = await addGuestList({
-        newNames: names,
-        eventId,
-      });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        setGuestNames("");
-        toast({
-          title: "Guests Added",
-          description: "The guest lists has successfully been updated",
-        });
-        onClose();
-      } else {
-        setError(FrontendErrorMessages.GENERIC_ERROR);
-        console.error(response.error);
-      }
-    } catch (error) {
-      console.error("Error uploading guest list:", error);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
-    } finally {
-      setLoading(false);
+    const success = await addGuestList(eventId, names);
+    if (success) {
+      onClose();
     }
   };
   if (isDesktop) {
@@ -100,8 +79,8 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
             <Button onClick={onClose} variant="ghost">
               Cancel
             </Button>
-            <Button onClick={handleSubmitGuestList} disabled={loading}>
-              {loading ? "Adding..." : "Add Guests"}{" "}
+            <Button onClick={handleSubmitGuestList} disabled={isLoading}>
+              {isLoading ? "Adding..." : "Add Guests"}{" "}
             </Button>{" "}
           </DialogFooter>
           <p
@@ -121,11 +100,11 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
       onOpenChange={onClose}
       title="Upload Guest List"
       description={`Please enter each guest name on a separate line.`}
-      confirmText={loading ? "Saving..." : "Save"}
+      confirmText={isLoading ? "Saving..." : "Save"}
       cancelText="Cancel"
       onSubmit={handleSubmitGuestList}
       error={error}
-      isLoading={loading}
+      isLoading={isLoading}
     >
       <Textarea
         value={guestNames}
@@ -139,3 +118,5 @@ const AddGuestListModal: React.FC<AddGuestListModalProps> = ({
 };
 
 export default AddGuestListModal;
+
+// To Be Deleted

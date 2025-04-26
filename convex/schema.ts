@@ -61,6 +61,7 @@ export const GuestListNames = v.object({
   malesInGroup: v.optional(v.number()),
   femalesInGroup: v.optional(v.number()),
   checkInTime: v.optional(v.number()),
+  phoneNumber: v.optional(v.string()),
 });
 
 export default defineSchema({

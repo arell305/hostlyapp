@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { SubscriptionSchema } from "@/types/schemas-types";
 import { SubscriptionTier } from "@/types/enums";
-import ToggleTabs from "@/components/shared/ToggleTabs";
+import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
 import PageHeading from "@/components/shared/PageHeading";
 import PresetRangeDropdown from "@/components/shared/containers/date-filters/PresetRangeDropdown";
 import SingleDatePickerModal from "@/components/shared/containers/date-filters/DateRange";
@@ -15,7 +15,7 @@ import { getDateRangeFromPreset } from "../../../../utils/luxon";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { DateRange } from "react-day-picker";
 
-const AnalyticsPage = ({
+const AnalyticsContent = ({
   subscription,
   organizationId,
 }: {
@@ -73,7 +73,7 @@ const AnalyticsPage = ({
   };
 
   return (
-    <div>
+    <section>
       <PageHeading
         title="Analytics"
         presetDropdown={
@@ -130,8 +130,8 @@ const AnalyticsPage = ({
           dateRange={dateRange}
         />
       )}
-    </div>
+    </section>
   );
 };
 
-export default AnalyticsPage;
+export default AnalyticsContent;

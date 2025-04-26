@@ -31,8 +31,12 @@ const appearance = {
     borderRadius: "8px",
   },
   elements: {
-    card: "bg-gray-900 text-white shadow-xl ring-1 ring-white/10",
-    headerTitle: "text-white",
+    card: "bg-cardBackground text-whiteText shadow-xl shadow-[0_0_15px_rgba(255,255,255,0.25)] ring-1 ring-white/10",
+    headerTitle: "text-whiteText",
+    headerSubtitle: "text-grayText",
+    socialButtonsBlockButton:
+      "bg-cardBackgroundHover text-whiteText border border-primaryBlue hover:bg-borderGray",
+    socialButtonsBlockButtonText: "text-whiteText font-medium",
     formFieldInput: "bg-gray-800 text-white",
     userButtonPopoverActionButton:
       "text-white hover:text-white font-semibold hover:bg-cardBackgroundHover transition",
@@ -42,6 +46,9 @@ const appearance = {
     userButtonPopoverActions:
       "divide-y divide-white/10 border-t border-white/10",
     userButtonPopoverHeader: "border-b border-white/10 pb-3 mb-2",
+    primaryButton: "bg-primaryBlue ",
+    dividerText: "text-white",
+    dividerLine: "bg-white/20",
   },
 };
 

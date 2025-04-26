@@ -3,6 +3,7 @@ import { PricingOption } from "@/types/types";
 import { OrganizationJSON } from "@clerk/backend";
 import { WEBSITE } from "@/types/constants";
 import { DateTime } from "luxon";
+import { UserSchema } from "@/types/schemas-types";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -134,4 +135,26 @@ export const getBaseUrl = (): string => {
   }
 
   return WEBSITE;
+};
+
+export const sortUsersByName = (users: UserSchema[]): UserSchema[] => {
+  return [...users].sort((a, b) => {
+    const [aFirst, aLast] = splitName(a.name);
+    const [bFirst, bLast] = splitName(b.name);
+
+    const lastCompare = aLast.localeCompare(bLast);
+    if (lastCompare !== 0) return lastCompare;
+
+    return aFirst.localeCompare(bFirst);
+  });
+};
+
+const splitName = (fullName?: string): [string, string] => {
+  if (!fullName) return ["", ""];
+
+  const parts = fullName.trim().split(" ");
+  const firstName = parts[0] || "";
+  const lastName = parts.length > 1 ? parts[parts.length - 1] : "";
+
+  return [firstName, lastName];
 };

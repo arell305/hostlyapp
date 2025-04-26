@@ -203,6 +203,7 @@ export enum ErrorMessages {
   USER_ALREADY_EXISTS = "User with that email already exists",
   USER_DB_CREATE_ERROR = "DB error creating user",
   USER_DB_QUERY_BY_EMAIL_ERROR = "DB error query user by Email",
+  USER_DB_QUERY_BY_ID_ERROR = "DB error query user by id",
   USER_DB_UPDATE_BY_ID_ERROR = "DB error update user by id",
   USER_DB_UPDATE_BY_EMAIL = "DB error updating user by email ",
   USER_INACTIVE = "User is inactive",
@@ -264,6 +265,7 @@ export enum ErrorMessages {
   TICKET_INFO_DB_UPDATE = "DB error updating ticket info",
   CONNECTED_ACCOUNT_DB_DELETE = "DB error deleting connected account",
   CONNECTED_ACCOUNT_DB_QUERY = "DB error querying connected account",
+  STRIPE_CONNECTED_ONBOARDING_LINK = "Stripe error creating onboarding link",
 }
 
 export enum ShowErrorMessages {
@@ -286,6 +288,7 @@ export enum ShowErrorMessages {
   EVENT_NOT_FOUND = "Event not found",
   NOT_ENOUGH_MALE_TICKETS = "Not enough male tickets available.",
   NOT_ENOUGH_FEMALE_TICKETS = "Not enough female tickets available.",
+  USER_NOT_FOUND = "User not found",
 }
 
 export enum FrontendErrorMessages {
@@ -306,6 +309,8 @@ export enum FrontendErrorMessages {
   USE_ORGANIZATION_LIST_NOT_LOADED = "useOrganizationList unable to load.",
   PAYMENT_PROCESSING = "There was a problem processing your payment. Please try again.",
   ENTER_CARD = "Please enter your card details.",
+  ROLE_REQUIRED = "Role is required",
+  COMPANY_NAME_REQUIRED = "Company name is required",
 }
 
 export enum Gender {

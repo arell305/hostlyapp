@@ -10,7 +10,7 @@ const CustomCard: React.FC<CustomCardProps> = ({ children, className }) => {
   return (
     <div
       className={cn(
-        "rounded-md border p-4 bg-cardBackground flex flex-col ",
+        "rounded-md border  bg-cardBackground flex flex-col ",
         className
       )}
     >

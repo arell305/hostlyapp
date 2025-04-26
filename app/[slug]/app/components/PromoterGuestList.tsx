@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { api } from "../../../../convex/_generated/api";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { Button } from "@/components/ui/button";
 import AddGuestListModal from "./AddGuestList";
-import { useToast } from "@/hooks/use-toast";
 import GuestCard from "./GuestCard";
 import { GuestListNameSchema } from "@/types/types";
 import { FiClock } from "react-icons/fi";
@@ -17,6 +16,8 @@ import { formatToTimeAndShortDate, isPast } from "../../../../utils/luxon";
 import FullLoading from "./loading/FullLoading";
 import ErrorComponent from "./errors/ErrorComponent";
 import { ResponseStatus, FrontendErrorMessages } from "@/types/enums";
+import { useUpdateGuestName } from "../events/hooks/useUpdateGuestName";
+import { useDeleteGuestName } from "../events/hooks/useDeleteGuestName";
 
 type GuestListManagerProps = {
   eventId: Id<"events">;
@@ -32,20 +33,30 @@ const PromoterGuestListPage = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState<string>("");
   const [showEditNameModal, setShowEditNameModal] = useState<boolean>(false);
-  const [editNameLoading, setEditNameLoading] = useState<boolean>(false);
-  const [editNameError, setEditNameError] = useState<string | null>(null);
   const [initialName, setInitialName] = useState<string | null>(null);
 
   // delete guest states
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showConfirmDeleteGuest, setShowConfirmDeleteGuest] =
     useState<boolean>(false);
-  const [deleteNameLoading, setDeleteNameLoading] = useState<boolean>(false);
-  const [deleteNameError, setDeleteNameError] = useState<string | null>(null);
 
   const [isGuestListModalOpen, setIsGuestListModalOpen] = useState(false);
   const [showCheckedInGuests, setShowCheckedInGuests] =
     useState<boolean>(false);
+
+  const {
+    updateGuestName,
+    isLoading: editNameLoading,
+    error: editNameError,
+    setError: setEditNameError,
+  } = useUpdateGuestName();
+
+  const {
+    deleteGuestName,
+    isLoading: deleteNameLoading,
+    error: deleteNameError,
+    setError: setDeleteNameError,
+  } = useDeleteGuestName();
 
   const formattedGuestListCloseTime =
     formatToTimeAndShortDate(guestListCloseTime);
@@ -56,9 +67,6 @@ const PromoterGuestListPage = ({
       eventId,
     }
   );
-  const updateGuestName = useMutation(api.guestLists.updateGuestName);
-  const deleteGuestName = useMutation(api.guestLists.deleteGuestName);
-  const { toast } = useToast();
 
   const guestListClosed = isPast(guestListCloseTime);
 
@@ -103,30 +111,13 @@ const PromoterGuestListPage = ({
       return;
     }
 
-    setEditNameLoading(true);
-    try {
-      const response = await updateGuestName({
-        guestListId: getGuestListByPromoterResponse.data.guestListId,
-        guestId: editingId,
-        newName,
-      });
-      if (response.status === ResponseStatus.SUCCESS) {
-        setShowEditNameModal(false);
-        toast({
-          title: "Name updated",
-          description: "Name has been successfully updated",
-        });
-        setEditingId(null);
-      } else {
-        setEditNameError(FrontendErrorMessages.GENERIC_ERROR);
-        console.error(response.error);
-      }
-    } catch (error) {
-      console.error("Error updating guest name:", error);
-      setEditNameError("Failed to update name. Please try again");
-    } finally {
-      setEditNameLoading(false);
-      setInitialName(null);
+    const success = await updateGuestName(
+      getGuestListByPromoterResponse.data.guestListId,
+      editingId,
+      newName
+    );
+    if (success) {
+      handleCloseModal();
     }
   };
 
@@ -142,32 +133,23 @@ const PromoterGuestListPage = ({
       console.error("error loading guest list by promoter");
       return;
     }
-    setDeleteNameLoading(true);
-    try {
-      const response = await deleteGuestName({
-        guestListId: getGuestListByPromoterResponse.data.guestListId,
-        guestId: deletingId,
-      });
-      if (response.status === ResponseStatus.SUCCESS) {
-        setShowConfirmDeleteGuest(false);
-        toast({
-          title: "Guest Deleted",
-          description: "Guest has been successfully delted",
-        });
-        setDeletingId(null);
-      } else {
-        setDeleteNameError(FrontendErrorMessages.GENERIC_ERROR);
-        console.error(response.error);
-      }
-    } catch (error) {
-      console.error("Error deleting guest:", error);
-      setDeleteNameError("Error deleting guest");
-    } finally {
-      setDeleteNameLoading(false);
+
+    const success = await deleteGuestName(
+      getGuestListByPromoterResponse.data.guestListId,
+      deletingId
+    );
+    if (success) {
+      setDeletingId(null);
+      setShowConfirmDeleteGuest(false);
     }
   };
 
-  console.log("getGuestListByPromoterResponse", getGuestListByPromoterResponse);
+  const handleCloseModal = () => {
+    setShowConfirmDeleteGuest(false);
+    setDeletingId(null);
+    setDeleteNameError(null);
+  };
+
   if (!getGuestListByPromoterResponse) {
     return <FullLoading />;
   }
@@ -298,12 +280,12 @@ const PromoterGuestListPage = ({
         error={deleteNameError}
         isLoading={deleteNameLoading}
         modalProps={{
-          onClose: () => setShowConfirmDeleteGuest(false),
+          onClose: handleCloseModal,
           onConfirm: handleDelete,
         }}
         drawerProps={{
           onSubmit: handleDelete,
-          onOpenChange: (open) => setShowConfirmDeleteGuest(open),
+          onOpenChange: handleCloseModal,
         }}
       />
     </div>
@@ -311,3 +293,5 @@ const PromoterGuestListPage = ({
 };
 
 export default PromoterGuestListPage;
+
+// To Be Deleted

@@ -1,32 +1,28 @@
 import { PiTrashSimple } from "react-icons/pi";
 import { Protect } from "@clerk/nextjs";
 import { UserRole, ClerkPermissions, roleMap } from "@/types/enums";
-
+import { PendingInvitationUser } from "@/types/types";
 interface PendingUserCardProps {
-  clerkInvitationId: string;
-  email: string;
-  role: UserRole;
+  user: PendingInvitationUser;
   onRevoke: (clerkInvitationId: string) => void;
-  isHostlyPage: boolean;
+  isHostlyPage?: boolean;
 }
 
 const PendingUserCard: React.FC<PendingUserCardProps> = ({
-  clerkInvitationId,
-  email,
-  role,
+  user,
   onRevoke,
   isHostlyPage,
 }) => {
   const handleClick = (event: React.MouseEvent<SVGElement, MouseEvent>) => {
     event.preventDefault();
-    onRevoke(clerkInvitationId);
+    onRevoke(user.clerkInvitationId);
   };
 
   return (
     <div className="h-[95px] border-b border-gray-300 p-4 w-full flex items-center justify-between">
       <div>
-        <h3 className="font-bold">{email}</h3>
-        <p>{roleMap[role]}</p>
+        <h3 className="font-bold">{user.email}</h3>
+        <p>{roleMap[user.role as UserRole]}</p>
       </div>
       <Protect
         condition={(has) =>

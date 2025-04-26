@@ -31,8 +31,8 @@ const ToggleTabs = <T extends string>({
             onClick={() => onChange(option.value)}
             className={`rounded-md px-4 py-1 text-sm font-medium transition ${
               value === option.value
-                ? "bg-primaryBlue text-whiteText"
-                : "text-grayText hover:bg-cardBackgroundHover hover:text-whiteText "
+                ? "bg-cardBackgroundHover text-whiteText"
+                : "text-grayText hover:bg-cardBackgroundHover/70 hover:text-whiteText "
             }`}
           >
             {option.label}

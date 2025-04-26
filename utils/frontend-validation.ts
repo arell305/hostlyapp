@@ -43,3 +43,7 @@ export const validatePromoDiscount = (
 
   return { promoDiscountValue: parsedValue, promoDiscountValueError: null };
 };
+
+export function isValidPhoneNumber(phone: string): boolean {
+  return /^\d{10}$/.test(phone.trim());
+}

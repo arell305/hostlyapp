@@ -2,11 +2,11 @@ import { TicketInfoSchema } from "@/types/schemas-types";
 import { OrganizationSchema } from "@/types/types";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { PiNewspaper } from "react-icons/pi";
-import PromoterTicketsSection from "./PromoterTicketsSection";
-import ModeratorTicketsSection from "./ModeratorTicketsSection";
-import ManagerTicketsSection from "./ManagerTicketsSection";
 import { isPast } from "../../../../../utils/luxon";
 import { ClerkPermissions } from "@/types/enums";
+import ModeratorTicketsPage from "../../events/tickets/ModeratorTicketsPage";
+import PromoterTicketsPage from "../../events/tickets/PromoterTicketsPage";
+import ManagerTicketsPage from "../../events/tickets/ManagerTicketsPage";
 
 interface TicketInfoTabProps {
   ticketData?: TicketInfoSchema | null;
@@ -46,14 +46,14 @@ const TicketTab: React.FC<TicketInfoTabProps> = ({
   const isTicketsSalesOpen = !isPast(ticketData.ticketSalesEndTime);
 
   if (isPromoter) {
-    return <PromoterTicketsSection eventId={eventId} />;
+    return <PromoterTicketsPage eventId={eventId} />;
   }
   if (canCheckInGuests) {
-    return <ModeratorTicketsSection eventId={eventId} />;
+    return <ModeratorTicketsPage eventId={eventId} />;
   }
   if (canViewAllTickets) {
     return (
-      <ManagerTicketsSection
+      <ManagerTicketsPage
         eventId={eventId}
         organizationId={organization._id}
         isTicketsSalesOpen={isTicketsSalesOpen}

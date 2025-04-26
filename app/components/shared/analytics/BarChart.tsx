@@ -55,7 +55,7 @@ const BarChartContainer = <T extends Record<string, any>>({
   };
 
   return (
-    <CustomCard className="w-full">
+    <CustomCard className=" p-4">
       {title && <Heading2>{title}</Heading2>}
 
       <ResponsiveContainer width="100%" height={300}>

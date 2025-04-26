@@ -374,6 +374,7 @@ export type ModalConfig = {
   onConfirm: () => void;
   error: string | null;
   isLoading: boolean;
+  onClose: () => void;
 };
 
 export interface AddressValue {
@@ -430,3 +431,8 @@ export type TicketSoldCounts = {
   male: number;
   female: number;
 };
+
+export interface GuestEntry {
+  name: string;
+  phoneNumber?: string;
+}

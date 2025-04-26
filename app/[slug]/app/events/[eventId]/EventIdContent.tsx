@@ -9,26 +9,19 @@ import {
 import TopRowNav from "./TopRowNav";
 import TabsNav from "./TabsNav";
 import EventForm from "@/[slug]/app/components/EventForm";
-import { useAction } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { toast } from "@/hooks/use-toast";
 import GuestListTab from "./GuestListTab";
 import ViewTab from "../ViewTab";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
-import { UpdateEventResponse } from "@/types/convex-types";
 import {
   EventSchema,
   GuestListInfoSchema,
   SubscriptionSchema,
   TicketInfoSchema,
 } from "@/types/schemas-types";
-import {
-  ActiveStripeTab,
-  ActiveTab,
-  FrontendErrorMessages,
-  ResponseStatus,
-} from "@/types/enums";
+import { ActiveStripeTab, ActiveTab } from "@/types/enums";
 import TicketTab from "../../components/tickets/TicketTab";
+import { useUpdateEvent } from "../hooks/useUpdateEvent";
+import { Id } from "../../../../../convex/_generated/dataModel";
 
 interface EventIdContentProps {
   data: {
@@ -59,10 +52,11 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   const [activeTab, setActiveTab] = useState<ActiveTab | ActiveStripeTab>(
     ActiveTab.VIEW
   );
-  const updateEvent = useAction(api.events.updateEvent);
-  const [saveEventError, setSaveEventError] = useState<string | null>(null);
-  const [isUpdateEventLoading, setIsUpdateEventLoading] =
-    useState<boolean>(false);
+  const {
+    updateEvent,
+    isLoading: isUpdateEventLoading,
+    error: saveEventError,
+  } = useUpdateEvent();
 
   const tabs: Tab[] = [
     { label: "View", value: ActiveTab.VIEW },
@@ -78,37 +72,21 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     }
   };
   const handleUpdateEvent = async (
+    organizationId: Id<"organizations">,
     updatedEventData: EventFormInput,
     updatedTicketData: TicketFormInput | null,
     updatedGuestListData: GuestListFormInput | null
   ) => {
-    setSaveEventError(null);
-    setIsUpdateEventLoading(true);
+    const success = await updateEvent(
+      organizationId,
+      updatedEventData,
+      updatedTicketData,
+      updatedGuestListData,
+      data.event._id
+    );
 
-    try {
-      const response: UpdateEventResponse = await updateEvent({
-        organizationId: organization._id,
-        ...updatedEventData,
-        ticketData: updatedTicketData,
-        guestListData: updatedGuestListData,
-        eventId: data.event._id,
-      });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        toast({
-          title: "Event Updated",
-          description: "The event has been successfully updated",
-        });
-        setIsEditing(false);
-      } else {
-        console.error(response.error);
-        setSaveEventError(response.error);
-      }
-    } catch (error) {
-      console.error(error);
-      setSaveEventError(FrontendErrorMessages.GENERIC_ERROR);
-    } finally {
-      setIsUpdateEventLoading(false);
+    if (success) {
+      setIsEditing(false);
     }
   };
 

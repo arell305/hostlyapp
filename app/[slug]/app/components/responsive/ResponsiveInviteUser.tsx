@@ -1,14 +1,16 @@
-import React, { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { useAction } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { isValidEmail } from "../../../../../utils/helpers";
+import React, { useEffect, useState } from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
-import InviteUserModal from "../modals/InviteUserModal";
-import InviteUserDrawer from "../drawer/InviteUserDrawer";
 import { PendingInvitationUser } from "@/types/types";
 import { DESKTOP_WIDTH } from "@/types/constants";
-import { ResponseStatus, UserRole } from "@/types/enums";
+import { changeableRoles, roleMap, UserRole } from "@/types/enums";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { useInviteUser } from "../../team/hooks/useInviteUser";
+import FormContainer from "@/components/shared/containers/FormContainer";
+import LabeledInputField from "@/components/shared/fields/LabeledInputField";
+import LabeledSelectField from "@/components/shared/fields/LabeledSelectField";
+import FormActions from "@/components/shared/buttonContainers/FormActions";
+import { validateInviteForm } from "../../../../../utils/form-validation/validateInviteForm";
 
 interface ResponsiveInviteUserProps {
   isOpen: boolean;
@@ -29,72 +31,113 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
   const [inviteRole, setInviteRole] = useState<UserRole>(
     isHostlyAdmin ? UserRole.Hostly_Moderator : UserRole.Promoter
   );
-  const [inviteError, setInviteError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { toast } = useToast();
-  const createClerkInvitation = useAction(api.clerk.createClerkInvitation);
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
+  const [formErrors, setFormErrors] = useState<{
+    email?: string;
+    role?: string;
+  }>({});
+
+  const { inviteUser, isLoading, error } = useInviteUser();
+
+  useEffect(() => {
+    if (!isDesktop) {
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, isDesktop]);
+
+  const resetState = () => {
+    setInviteEmail("");
+    setInviteRole(
+      isHostlyAdmin ? UserRole.Hostly_Moderator : UserRole.Promoter
+    );
+  };
+
+  const handleClose = () => {
+    resetState();
+    onOpenChange(false);
+  };
 
   const handleSave = async () => {
-    if (!isValidEmail(inviteEmail)) {
-      setInviteError("Please enter a valid email address.");
+    const errors = validateInviteForm(inviteEmail, inviteRole);
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
-    setIsLoading(true);
 
-    try {
-      const result = await createClerkInvitation({
-        clerkOrgId: clerkOrganizationId,
-        role: inviteRole,
-        email: inviteEmail,
-      });
-      if (result.status === ResponseStatus.ERROR) {
-        setInviteError(result.error);
-      } else {
-        const newPendingUser: PendingInvitationUser = {
-          clerkInvitationId: result.data.clerkInvitationId,
-          email: inviteEmail,
-          role: inviteRole,
-        };
+    setFormErrors({});
 
-        toast({
-          title: "Invitation Sent",
-          description: "User has been invited",
-        });
-        onOpenChange(false);
-        onInviteSuccess(newPendingUser);
-        setInviteEmail("");
-      }
-    } catch (error) {
-      console.error("Failed to send invitation:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send invitation.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    const success = await inviteUser(
+      clerkOrganizationId,
+      inviteRole,
+      inviteEmail
+    );
+    if (success) {
+      handleClose();
     }
   };
 
-  const sharedProps = {
-    isOpen,
-    onOpenChange,
-    inviteEmail,
-    setInviteEmail,
-    inviteRole,
-    setInviteRole,
-    inviteError,
-    setInviteError,
-    isLoading,
-    onSubmit: handleSave,
-    isHostlyAdmin,
-  };
+  const formContent = (
+    <FormContainer>
+      <LabeledInputField
+        label="Email"
+        type="email"
+        placeholder="Enter email"
+        name="email"
+        value={inviteEmail}
+        onChange={(e) => {
+          setInviteEmail(e.target.value);
+          setFormErrors((prev) => ({ ...prev, email: undefined }));
+        }}
+        error={formErrors.email}
+      />
+
+      <LabeledSelectField
+        label="Role"
+        value={inviteRole}
+        onChange={(value) => {
+          setInviteRole(value as UserRole);
+          setFormErrors((prev) => ({ ...prev, role: undefined }));
+        }}
+        options={(isHostlyAdmin
+          ? [UserRole.Hostly_Moderator]
+          : changeableRoles
+        ).map((role) => ({
+          value: role,
+          label: roleMap[role],
+        }))}
+        placeholder="Select a role"
+        error={formErrors.role}
+      />
+
+      <FormActions
+        onCancel={handleClose}
+        onSubmit={handleSave}
+        isLoading={isLoading}
+        loadingText="Inviting"
+        submitText="Invite"
+        error={error}
+      />
+    </FormContainer>
+  );
 
   return isDesktop ? (
-    <InviteUserModal {...sharedProps} onClose={() => onOpenChange(false)} />
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent>
+        <DialogTitle>Invite User</DialogTitle>
+        {formContent}
+      </DialogContent>
+    </Dialog>
   ) : (
-    <InviteUserDrawer {...sharedProps} />
+    <Drawer open={isOpen} onOpenChange={handleClose}>
+      <DrawerContent className="h-[100svh] flex flex-col overscroll-contain">
+        <DrawerTitle>Invite User</DrawerTitle>
+        {formContent}
+      </DrawerContent>
+    </Drawer>
   );
 };
 

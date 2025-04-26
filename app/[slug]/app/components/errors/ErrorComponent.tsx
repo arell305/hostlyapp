@@ -11,8 +11,8 @@ const ErrorComponent: React.FC<ErrorComponentProps> = ({
   const router = useRouter();
 
   return (
-    <div className="flex flex-col justify-center items-center h-dvh text-center px-6 overflow-hidden">
-      <h1 className="text-3xl font-bold  mb-8">{message}</h1>
+    <div className="flex flex-col justify-center items-center mt-10 text-center px-6 overflow-hidden">
+      <h2 className="  mb-8">{message}</h2>
       <Button onClick={() => router.push("/")} className="px-6 py-2">
         Home
       </Button>

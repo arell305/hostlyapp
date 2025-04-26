@@ -7,6 +7,12 @@ import {
   TicketInfoSchema,
   UserSchema,
   TicketSchema,
+  UserWithOrganizationId,
+  UserWithOrgAndCustomer,
+  UserWithCustomerId,
+  UserWithClerkId,
+  UserWithOrgAndCustomerAndClerkId,
+  UserWithOrgAndClerkId,
 } from "@/types/schemas-types";
 import { GuestListSchema, OrganizationSchema } from "@/types/types";
 import { DateTime } from "luxon";
@@ -41,6 +47,64 @@ export function validateCustomer(
 
   return customer;
 }
+
+export function validateUser(
+  user: UserSchema | null,
+  checkActive?: boolean,
+  checkCustomerId?: true,
+  checkOrganizationId?: true,
+  checkClerkUserId?: true
+): UserWithOrgAndCustomerAndClerkId;
+
+export function validateUser(
+  user: UserSchema | null,
+  checkActive?: boolean,
+  checkCustomerId?: boolean,
+  checkOrganizationId?: true,
+  checkClerkUserId?: true
+): UserWithOrgAndClerkId;
+
+export function validateUser(
+  user: UserSchema | null,
+  checkActive?: boolean,
+  checkCustomerId?: boolean,
+  checkOrganizationId?: boolean,
+  checkClerkUserId?: true
+): UserWithClerkId;
+
+export function validateUser(
+  user: UserSchema | null,
+  checkActive?: boolean,
+  checkCustomerId?: true,
+  checkOrganizationId?: true,
+  checkClerkUserId?: boolean
+): UserWithOrgAndCustomer;
+
+export function validateUser(
+  user: UserSchema | null,
+  checkActive?: boolean,
+  checkCustomerId?: true,
+  checkOrganizationId?: false,
+  checkClerkUserId?: boolean
+): UserWithCustomerId;
+
+export function validateUser(
+  user: UserSchema | null,
+  checkActive?: boolean,
+  checkCustomerId?: false,
+  checkOrganizationId?: true,
+  checkClerkUserId?: boolean
+): UserWithOrganizationId;
+
+export function validateUser(
+  user: UserSchema | null,
+  checkActive?: boolean,
+  checkCustomerId?: boolean,
+  checkOrganizationId?: boolean,
+  checkClerkUserId?: boolean
+): UserSchema;
+
+// --- Implementation ---
 
 export function validateUser(
   user: UserSchema | null,

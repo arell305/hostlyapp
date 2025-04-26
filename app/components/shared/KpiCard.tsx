@@ -18,7 +18,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
   icon = <CalendarDays className="w-5 h-5" />,
 }) => {
   return (
-    <CustomCard className="gap-2">
+    <CustomCard className="gap-2 p-4">
       <div className="flex items-center justify-between">
         <span className="text-sm ">{label}</span>
         <div>{icon}</div>

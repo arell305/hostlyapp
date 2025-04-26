@@ -5,30 +5,30 @@ import { GenericActionCtx } from "convex/server";
 import { api } from "../_generated/api";
 import { Id } from "../_generated/dataModel";
 
-export async function createStripeConnectedAccount(
-  email: string,
-  companyName: string
-) {
-  try {
-    const account = await stripe.accounts.create({
-      type: "express",
-      country: "US",
-      email,
-      business_profile: {
-        name: companyName,
-      },
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-    });
+// export async function createStripeConnectedAccount(
+//   email: string,
+//   companyName: string
+// ) {
+//   try {
+//     const account = await stripe.accounts.create({
+//       type: "express",
+//       country: "US",
+//       email,
+//       business_profile: {
+//         name: companyName,
+//       },
+//       capabilities: {
+//         card_payments: { requested: true },
+//         transfers: { requested: true },
+//       },
+//     });
 
-    return account;
-  } catch (error) {
-    console.error("Failed to create Stripe connected account:", error);
-    throw new Error(ErrorMessages.STRIPE_CONNECT_CREATE_ERROR);
-  }
-}
+//     return account;
+//   } catch (error) {
+//     console.error("Failed to create Stripe connected account:", error);
+//     throw new Error(ErrorMessages.STRIPE_CONNECT_CREATE_ERROR);
+//   }
+// }
 
 export async function createStripeOnboardingSession(
   stripeAccountId: string
@@ -102,3 +102,26 @@ export const handlePaymentIntentSucceeded = async (
     throw new Error(ErrorMessages.CONNECTED_ACCOUNT_PAYMENT_INTENT_SUCCEEDED);
   }
 };
+
+export async function createStripeConnectedAccount({
+  email,
+  customerId,
+}: {
+  email: string;
+  customerId: string;
+}): Promise<Stripe.Account> {
+  try {
+    const account = await stripe.accounts.create({
+      type: "express",
+      email,
+      metadata: {
+        customerId,
+      },
+    });
+
+    return account;
+  } catch (error) {
+    console.error(ErrorMessages.STRIPE_CONNECT_CREATE_ERROR, error);
+    throw new Error(ErrorMessages.STRIPE_CONNECT_CREATE_ERROR);
+  }
+}

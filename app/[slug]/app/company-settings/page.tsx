@@ -6,7 +6,7 @@ import FullLoading from "../components/loading/FullLoading";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import CompanySettingsContent from "./CompanySettingsContent";
 import { useAuth } from "@clerk/nextjs";
-import { UserRole } from "@/types/enums";
+import { isManager } from "../../../../utils/permissions";
 
 const CompanySettings = () => {
   const { organization, organizationContextError } = useContextOrganization();
@@ -17,7 +17,7 @@ const CompanySettings = () => {
     organization?.photo ? { storageId: organization.photo } : "skip"
   );
 
-  if (!organization) {
+  if (!organization || !orgRole) {
     return <FullLoading />;
   }
 
@@ -25,11 +25,7 @@ const CompanySettings = () => {
     return <ErrorComponent message={organizationContextError} />;
   }
 
-  const canEditSettings =
-    orgRole === UserRole.Admin ||
-    orgRole === UserRole.Manager ||
-    orgRole === UserRole.Hostly_Admin ||
-    orgRole === UserRole.Hostly_Moderator;
+  const canEditSettings = isManager(orgRole);
 
   return (
     <CompanySettingsContent

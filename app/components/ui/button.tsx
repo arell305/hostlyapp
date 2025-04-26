@@ -9,12 +9,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primaryBlue text-white hover:bg-primaryBlue/80",
+        default: "bg-primaryBlue text-whiteText hover:bg-primaryBlue/80",
         destructive:
           "bg-altRed text-destructive-foreground hover:bg-destructive/90",
         outline: "border  bg-cardBackground hover:bg-cardBackgroundHover ",
-        secondary:
-          "text-customDarkBlue bg-white border border-customDarkBlue hover:bg-secondary/80",
+        secondary: "text-whiteText  hover:underline",
         ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
         link: "text-primary underline-offset-4 hover:underline",
         navGhost:
@@ -39,6 +38,8 @@ const buttonVariants = cva(
         datePreset: "h-12 px-4 py-4",
         sidebar:
           "h-12 w-full px-4 text-base md:text-sm font-medium rounded-[12px]",
+        modal: "font-medium px-4 py-2 text-base rounded-[20px] w-full",
+        heading: "text-base w-[120px] gap-1 h-10 rounded-md",
       },
     },
     defaultVariants: {

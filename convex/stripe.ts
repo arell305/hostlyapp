@@ -26,6 +26,7 @@ import {
   DisconnectStripeActionResponse,
   CreatePaymentIntentResponse,
   WebhookResponse,
+  CreateStripeOnboardingLinkResponse,
 } from "@/types/convex-types";
 import { USD_CURRENCY } from "@/types/constants";
 import { sendClerkInvitation } from "../utils/clerk";
@@ -49,6 +50,7 @@ import {
   validateCustomer,
   validateOrganization,
   validateSubscription,
+  validateUser,
 } from "./backendUtils/validation";
 import {
   createStripeConnectedAccount,
@@ -929,3 +931,93 @@ export const reactivateStripeSubscription = action({
     }
   },
 });
+
+export const createStripeOnboardingLink = action({
+  args: { origin: v.string() },
+  handler: async (
+    ctx,
+    { origin }
+  ): Promise<CreateStripeOnboardingLinkResponse> => {
+    try {
+      const identity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+      const email = identity.email as string;
+
+      const user = validateUser(
+        await ctx.runQuery(internal.users.findUserByEmail, {
+          email,
+        }),
+        true,
+        true,
+        true
+      );
+
+      const existingAccount = await ctx.runQuery(
+        internal.connectedAccounts.getConnectedAccountByCustomerId,
+        {
+          customerId: user.customerId,
+        }
+      );
+
+      let stripeAccountId = existingAccount?.stripeAccountId;
+
+      if (!stripeAccountId) {
+        const account = await createStripeConnectedAccount({
+          email: user.email,
+          customerId: user.customerId!,
+        });
+
+        stripeAccountId = account.id;
+
+        ctx.runMutation(internal.connectedAccounts.saveConnectedAccount, {
+          customerId: user.customerId!,
+          stripeAccountId: account.id,
+          status: StripeAccountStatus.NOT_ONBOARDED,
+        });
+      }
+
+      const url = await generateStripeAccountLink({
+        accountId: stripeAccountId,
+        type: "account_onboarding",
+        returnUrl: origin,
+        refreshUrl: origin,
+      });
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          url,
+        },
+      };
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+});
+
+type StripeAccountLinkType = "account_onboarding" | "account_update";
+
+export async function generateStripeAccountLink({
+  accountId,
+  type = "account_onboarding",
+  returnUrl,
+  refreshUrl,
+}: {
+  accountId: string;
+  type?: StripeAccountLinkType;
+  returnUrl: string;
+  refreshUrl: string;
+}): Promise<string> {
+  try {
+    const accountLink = await stripe.accountLinks.create({
+      account: accountId,
+      return_url: returnUrl,
+      refresh_url: refreshUrl,
+      type,
+    });
+
+    return accountLink.url;
+  } catch (error) {
+    console.error(ErrorMessages.STRIPE_CONNECTED_ONBOARDING_LINK, error);
+    throw new Error(ErrorMessages.STRIPE_CONNECTED_ONBOARDING_LINK);
+  }
+}

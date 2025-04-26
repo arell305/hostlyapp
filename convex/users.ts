@@ -17,11 +17,18 @@ import { Id } from "./_generated/dataModel";
 import { requireAuthenticatedUser } from "../utils/auth";
 import { handleError, isUserInOrganization } from "./backendUtils/helper";
 import {
+  FindUserByIdResponse,
   GetUserByClerkIdResponse,
   UpdateUserByClerkIdResponse,
+  UpdateUserByIdResponse,
 } from "@/types/convex-types";
-import { validateUser } from "./backendUtils/validation";
-import { ResponseStatus, ErrorMessages, UserRole } from "@/types/enums";
+import { validateOrganization, validateUser } from "./backendUtils/validation";
+import {
+  ResponseStatus,
+  ErrorMessages,
+  UserRole,
+  ShowErrorMessages,
+} from "@/types/enums";
 
 export const createUser = internalMutation({
   args: {
@@ -89,33 +96,17 @@ export const updateUserByEmail = internalMutation({
 
 export const internalUpdateUserById = internalMutation({
   args: {
-    email: v.optional(v.string()),
-    clerkUserId: v.string(),
-    organizationId: v.optional(v.id("organizations")),
-    newEmail: v.optional(v.string()),
     role: v.optional(RoleConvex),
+    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const { userId, role } = args;
     try {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) =>
-          q.eq("clerkUserId", args.clerkUserId)
-        )
-        .first();
-
-      if (!user) {
-        throw new Error(ErrorMessages.USER_NOT_FOUND);
-      }
-
-      await ctx.db.patch(user._id, {
-        clerkUserId: args.clerkUserId || user.clerkUserId,
-        organizationId: args.organizationId || user.organizationId,
-        email: args.newEmail || user.email,
-        role: args.role || user.role,
+      await ctx.db.patch(userId, {
+        role: args.role || role,
       });
 
-      return user._id;
+      return userId;
     } catch (error) {
       console.error(ErrorMessages.USER_DB_UPDATE_BY_ID_ERROR, error);
       throw new Error(ErrorMessages.USER_DB_UPDATE_BY_ID_ERROR);
@@ -218,6 +209,51 @@ export const findUserByEmail = internalQuery({
     } catch (error) {
       console.error(ErrorMessages.USER_DB_QUERY_BY_EMAIL_ERROR, error);
       throw new Error(ErrorMessages.USER_DB_QUERY_BY_EMAIL_ERROR);
+    }
+  },
+});
+
+export const findUserById = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args): Promise<FindUserByIdResponse> => {
+    const { userId } = args;
+    try {
+      const identity = await requireAuthenticatedUser(ctx);
+
+      const user = validateUser(await ctx.db.get(userId), false, false, true);
+
+      if (!user.organizationId) {
+        throw new Error(ErrorMessages.USER_NO_COMPANY);
+      }
+
+      const organization = validateOrganization(
+        await ctx.db.get(user.organizationId)
+      );
+      isUserInOrganization(identity, organization.clerkOrganizationId);
+
+      let promoCode: string | undefined;
+
+      if (user.role === UserRole.Promoter) {
+        const promoterPromoCode = await ctx.db
+          .query("promoterPromoCode")
+          .filter((q) => q.eq(q.field("promoterUserId"), user._id))
+          .unique();
+
+        promoCode = promoterPromoCode?.name;
+      }
+
+      const userWithPromoCode: UserWithPromoCode = {
+        ...user,
+        promoCode,
+        isActive: user.isActive ?? false,
+      };
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: { user: userWithPromoCode },
+      };
+    } catch (error) {
+      return handleError(error);
     }
   },
 });
@@ -342,6 +378,64 @@ export const getUserByClerkId = query({
       };
     } catch (error) {
       return handleError(error);
+    }
+  },
+});
+
+export const updateUserById = mutation({
+  args: {
+    userId: v.id("users"),
+    update: v.object({
+      role: v.optional(RoleConvex),
+      isActive: v.optional(v.boolean()),
+    }),
+  },
+  handler: async (ctx, args): Promise<UpdateUserByIdResponse> => {
+    const { userId, update } = args;
+    try {
+      const idenitity = await requireAuthenticatedUser(ctx, [
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Hostly_Moderator,
+        UserRole.Hostly_Admin,
+      ]);
+
+      const user = validateUser(await ctx.db.get(userId), false, false, true);
+
+      const organization: OrganizationSchema = validateOrganization(
+        await ctx.db.get(user.organizationId)
+      );
+
+      isUserInOrganization(idenitity, organization.clerkOrganizationId);
+
+      await ctx.db.patch(user._id, {
+        role: update.role ?? user.role,
+        isActive: update.isActive ?? user.isActive,
+      });
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          userId,
+        },
+      };
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+});
+
+export const getUserByIdInternal = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args): Promise<UserSchema | null> => {
+    const { userId } = args;
+    try {
+      const user: UserSchema | null = await ctx.db.get(userId);
+
+      return user;
+    } catch (error) {
+      console.error(ErrorMessages.USER_DB_QUERY_BY_ID_ERROR);
+      throw new Error(ErrorMessages.USER_DB_QUERY_BY_ID_ERROR);
     }
   },
 });

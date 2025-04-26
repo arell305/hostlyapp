@@ -4,53 +4,42 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { UserRole, roleMap } from "@/types/enums";
+import { UserSchema } from "@/types/schemas-types";
 
 interface MemberCardProps {
-  name?: string;
-  role: UserRole;
-  imageUrl?: string;
-  clerkUserId: string;
-  isCurrentUser: boolean;
+  user: UserSchema;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({
-  name,
-  role,
-  imageUrl,
-  clerkUserId,
-  isCurrentUser,
-}) => {
+const MemberCard: React.FC<MemberCardProps> = ({ user }) => {
   const pathname = usePathname();
   const router = useRouter();
   const handleClick = () => {
     const slug = pathname.split("/")[1];
-    const newUrl = `/${slug}/app/team/${clerkUserId}`;
+    const newUrl = `/${slug}/app/team/${user._id}`;
     router.push(newUrl);
   };
 
   return (
     <div
-      className="h-[95px] border-b border-gray-300 p-4 w-full hover:bg-gray-100 cursor-pointer "
+      className="h-[95px] border-b w-full hover:bg-cardBackgroundHover cursor-pointer "
       onClick={handleClick}
     >
-      <div className="flex justify-between items-center">
+      <div className="h-full flex items-center justify-between px-4">
+        {" "}
         <div className="flex items-center justify-between">
           <Image
-            src={imageUrl || "https://avatar.iran.liara.run/public"}
-            alt={`${name}`}
+            src={user.imageUrl || "https://avatar.iran.liara.run/public"}
+            alt={`${user.name}`}
             className="rounded-full w-16 h-16 object-cover mr-4"
             width={64}
             height={64}
           />
           <div className="flex-grow">
-            <h2 className="text-lg font-semibold">
-              {`${name}`}{" "}
-              {isCurrentUser && (
-                <span className="text-customDarkBlue text-sm">You</span>
-              )}
-            </h2>
+            <h2 className="text-lg font-semibold">{`${user.name}`} </h2>
 
-            <p className="text-gray-800">{roleMap[role] || role}</p>
+            <p className="text-grayText">
+              {roleMap[user.role as UserRole] || "No Role"}
+            </p>
           </div>
         </div>
         <div className=" relative">

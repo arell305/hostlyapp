@@ -27,6 +27,7 @@ import {
   SubscriptionBillingCycle,
   TicketCounts,
   TicketSoldCounts,
+  UserWithPromoCode,
 } from "./types";
 import { Id } from "../../convex/_generated/dataModel";
 import { PaginationResult } from "convex/server";
@@ -61,7 +62,7 @@ export interface UpdateOrganizationMembershipsSuccess {
 }
 
 export interface UpdateOrganizationMembershipsData {
-  clerkUserId: string;
+  userId: Id<"users">;
 }
 
 export type GetAllOrganizationsResponse =
@@ -121,7 +122,7 @@ export interface UpdateOrganizationMetadataSuccess {
 }
 
 export interface UpdateOrganizationMetadataData {
-  clerkOrgId: string;
+  organizationId: Id<"organizations">;
 }
 
 export type GetEventsByOrganizationResponse =
@@ -340,7 +341,7 @@ export type GetStripeDashboardUrlResponse =
 
 export interface GetStripeDashboardUrlSuccess {
   status: ResponseStatus.SUCCESS;
-  data: GetStripeDashboardUrlData | null;
+  data: GetStripeDashboardUrlData;
 }
 
 export interface GetStripeDashboardUrlData {
@@ -357,7 +358,7 @@ export interface UpdateClerkOrganizationPhotoSuccess {
 }
 
 export interface UpdateClerkOrganizationPhotoData {
-  clerkOrganizationId: string;
+  organizationId: Id<"organizations">;
 }
 
 export type GetUsersByOrganizationSlugResponse =
@@ -366,7 +367,7 @@ export type GetUsersByOrganizationSlugResponse =
 
 export interface GetUsersByOrganizationSlugSuccess {
   status: ResponseStatus.SUCCESS;
-  data: GetUsersByOrganizationSlugData | null;
+  data: GetUsersByOrganizationSlugData;
 }
 
 export interface GetUsersByOrganizationSlugData {
@@ -484,10 +485,10 @@ export type GetGuestListByPromoterResponse =
 
 export interface GetGuestListByPromoterSuccess {
   status: ResponseStatus.SUCCESS;
-  data: PromoterGuestsData | null;
+  data: PromoterGuestsData;
 }
 export interface PromoterGuestsData {
-  guestListId: Id<"guestLists">;
+  guestListId: Id<"guestLists"> | null;
   names: GuestListNameSchema[];
 }
 
@@ -526,7 +527,7 @@ export type GetEventWithGuestListsResponse =
 
 export interface GetEventWithGuestListsSuccess {
   status: ResponseStatus.SUCCESS;
-  data: GetEventWithGuestListsData | null;
+  data: GetEventWithGuestListsData;
 }
 
 export interface GetEventWithGuestListsData {
@@ -804,4 +805,39 @@ export interface GetGuestListKpisData {
   avgCheckinsPerEvent: number;
   avgCheckinRate: number;
   avgCheckinsPerPromoter: number;
+}
+
+export type FindUserByIdResponse = FindUserByIdSuccess | ErrorResponse;
+
+export interface FindUserByIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: FindUserByIdData;
+}
+
+export interface FindUserByIdData {
+  user: UserWithPromoCode;
+}
+
+export type UpdateUserByIdResponse = UpdateUserByIdSuccess | ErrorResponse;
+
+export interface UpdateUserByIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateUserByIdData;
+}
+
+export interface UpdateUserByIdData {
+  userId: Id<"users">;
+}
+
+export type CreateStripeOnboardingLinkResponse =
+  | CreateStripeOnboardingLinkSuccess
+  | ErrorResponse;
+
+export interface CreateStripeOnboardingLinkSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CreateStripeOnboardingLinkData;
+}
+
+export interface CreateStripeOnboardingLinkData {
+  url: string;
 }

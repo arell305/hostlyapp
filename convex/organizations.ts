@@ -309,9 +309,10 @@ export const getOrganizationByName = internalQuery({
 });
 
 export const getUsersByOrganization = query({
-  args: { organizationId: v.id("organizations") },
+  args: { organizationId: v.id("organizations"), isActive: v.boolean() },
+
   handler: async (ctx, args): Promise<GetUsersByOrganizationSlugResponse> => {
-    const { organizationId } = args;
+    const { organizationId, isActive } = args;
     try {
       const identity = await requireAuthenticatedUser(ctx);
 
@@ -326,6 +327,7 @@ export const getUsersByOrganization = query({
         .withIndex("by_organizationId", (q) =>
           q.eq("organizationId", organization._id)
         )
+        .filter((q) => q.eq(q.field("isActive"), isActive))
         .collect();
 
       return {
@@ -444,6 +446,53 @@ export const getPublicOrganizationContext = query({
       };
     } catch (error) {
       return handleError(error);
+    }
+  },
+});
+
+export const updateOrganizationById = internalMutation({
+  args: {
+    organizationId: v.id("organizations"),
+    updates: v.object({
+      name: v.optional(v.string()),
+      isActive: v.optional(v.boolean()),
+      photo: v.optional(v.union(v.id("_storage"), v.null())),
+      promoDiscount: v.optional(v.number()),
+      slug: v.optional(v.string()),
+    }),
+  },
+  handler: async (ctx, args): Promise<Id<"organizations">> => {
+    const { organizationId, updates } = args;
+    try {
+      const patch: Record<string, unknown> = {};
+
+      if (updates.name !== undefined) {
+        patch.name = updates.name;
+      }
+
+      if (updates.isActive !== undefined) {
+        patch.isActive = updates.isActive;
+      }
+
+      if (updates.photo !== undefined) {
+        patch.photo = updates.photo;
+      }
+
+      if (updates.promoDiscount !== undefined) {
+        patch.promoDiscount = updates.promoDiscount;
+      }
+
+      if (updates.slug !== undefined) {
+        patch.slug = updates.slug;
+      }
+
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(organizationId, patch);
+      }
+      return organizationId;
+    } catch (error) {
+      console.error(ErrorMessages.COMPANY_DB_UPDATE_ERROR, error);
+      throw new Error(ErrorMessages.COMPANY_DB_UPDATE_ERROR);
     }
   },
 });
