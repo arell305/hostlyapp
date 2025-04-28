@@ -68,3 +68,11 @@ export const guestListKpis = [
     icon: BadgeCheck,
   },
 ];
+
+export const GUEST_LIST_CREDIT_PRICE: {
+  amountInCents: number;
+  creditsPerUnit: number;
+} = {
+  amountInCents: 1000, // $10.00 per credit
+  creditsPerUnit: 1,
+};

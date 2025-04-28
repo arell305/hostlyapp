@@ -34,8 +34,8 @@ const TicketCard: React.FC<TicketCardProps> = ({
 
   return (
     <div
-      className={`border-b border-gray-300 p-4 w-full flex justify-between items-center ${
-        canCheckInTickets ? "hover:bg-gray-100 cursor-pointer" : ""
+      className={`border-b  p-4 w-full flex justify-between items-center ${
+        canCheckInTickets ? "hover:bg-cardBackgroundHover cursor-pointer" : ""
       }`}
       onClick={handleClick}
     >
@@ -48,25 +48,22 @@ const TicketCard: React.FC<TicketCardProps> = ({
           )}
           <p className="font-semibold">{ticket.ticketUniqueId}</p>
           {ticket.promoterName && (
-            <Badge className="ml-2 text-xs text-gray-500">{`Promoter: ${ticket.promoterName}`}</Badge>
+            <Badge className="ml-2 text-xs text-grayText">{`Promoter: ${ticket.promoterName}`}</Badge>
           )}
         </div>
         <div className="flex flex-col">
           <div className="flex">
-            <p className="text-gray-500 text-xs">
+            <p className="text-grayText text-xs">
               {formatUnixToTimeAndAbbreviatedDate(ticket._creationTime)}
             </p>
           </div>
-          <p className="text-gray-500 text-xs">{ticket.email}</p>
+          <p className="text-grayText text-xs">{ticket.email}</p>
         </div>
       </div>
       {ticket.checkInTime && (
         <div className="flex items-center justify-center flex-col w-[40px]">
-          <FaCheckCircle
-            className=" text-customDarkBlue text-center"
-            size={33}
-          />
-          <p className="text-[10px] text-gray-500">
+          <FaCheckCircle className=" text-primaryBlue text-center" size={33} />
+          <p className="text-[10px] text-grayText">
             {" "}
             {formatArrivalTime(ticket.checkInTime)}
           </p>

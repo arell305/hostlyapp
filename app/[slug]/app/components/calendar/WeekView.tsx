@@ -5,6 +5,7 @@ import {
   formatShortDate,
   formatNarrowWeekday,
 } from "../../../../../utils/luxon";
+import CustomCard from "@/components/shared/cards/CustomCard";
 
 interface WeekViewProps {
   date: Date;
@@ -34,22 +35,22 @@ const WeekView: React.FC<WeekViewProps> = ({
   const weekDates = getWeekDates(date);
 
   return (
-    <div className="flex flex-col items-center border-b pb-2 px-2 pt-3 md:pt-0">
+    <CustomCard className="flex flex-col items-center  py-2 px-2  ">
       <div className="flex items-center justify-between w-full max-w-[600px] mb-4 h-[44px]">
         <button
           onClick={() => onNavigate("prev")}
-          className="px-3 py-2 hover:bg-gray-100 rounded"
+          className="px-3 py-2 hover:bg-cardBackgroundHover rounded"
         >
-          <RiArrowDropLeftLine className="text-xl" />
+          <RiArrowDropLeftLine className="text-2xl" />
         </button>
         <h3 className="text-xl leading-[18px] font-sans">
           {formatShortDate(weekDates[0])} - {formatShortDate(weekDates[6])}
         </h3>
         <button
           onClick={() => onNavigate("next")}
-          className="px-3 py-2 hover:bg-gray-100 rounded"
+          className="px-3 py-2 hover:bg-cardBackgroundHover rounded"
         >
-          <RiArrowDropRightLine className="text-xl" />
+          <RiArrowDropRightLine className="text-2xl" />
         </button>
       </div>
 
@@ -76,8 +77,8 @@ const WeekView: React.FC<WeekViewProps> = ({
               type="button"
               className={`react-calendar__tile w-[14.2857%] aspect-square flex items-center justify-center 
                 text-lg font-medium transition-all overflow-hidden
-                md:hover:bg-gray-100
-                ${isSelected ? "md:hover:bg-gray-100 react-calendar__tile--active" : ""}`}
+                md:hover:bg-cardBackgroundHover
+                ${isSelected ? "md:hover:hover:bg-cardBackgroundHover react-calendar__tile--active" : ""}`}
               onClick={() => onDateClick(day)}
             >
               <abbr
@@ -85,7 +86,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                 className="relative font-medium flex flex-col justify-center items-center leading-none translate-y-[1px]"
               >
                 {isToday && (
-                  <div className="absolute w-6 h-6 bg-gray-300 mt-1 rounded-full"></div>
+                  <div className="absolute w-6 h-6 bg-primaryBlue  rounded-full"></div>
                 )}
                 <span className="relative">{day.getDate()}</span>
                 {hasEvent && (
@@ -96,7 +97,7 @@ const WeekView: React.FC<WeekViewProps> = ({
           );
         })}
       </div>
-    </div>
+    </CustomCard>
   );
 };
 

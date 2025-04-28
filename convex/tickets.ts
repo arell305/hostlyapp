@@ -130,9 +130,11 @@ export const getTicketsByEventId = query({
         UserRole.Admin,
         UserRole.Manager,
         UserRole.Moderator,
+        UserRole.Promoter,
       ]);
 
       const clerkUserId = identity.id as string;
+
       const user = validateUser(
         await ctx.db
           .query("users")
@@ -144,10 +146,21 @@ export const getTicketsByEventId = query({
 
       isUserInCompanyOfEvent(user, event);
 
-      const tickets: TicketSchema[] = await ctx.db
-        .query("tickets")
-        .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
-        .collect();
+      let tickets: TicketSchema[];
+
+      if (user.role === UserRole.Promoter) {
+        tickets = await ctx.db
+          .query("tickets")
+          .withIndex("by_eventId_and_promoterUserId", (q) =>
+            q.eq("eventId", eventId).eq("promoterUserId", user._id)
+          )
+          .collect();
+      } else {
+        tickets = await ctx.db
+          .query("tickets")
+          .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+          .collect();
+      }
 
       const promoterIds = Array.from(
         new Set(

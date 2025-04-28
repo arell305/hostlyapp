@@ -1,6 +1,10 @@
 import { Gender } from "@/types/enums";
 import { TicketSchema, TicketSchemaWithPromoter } from "@/types/schemas-types";
-import { GuestEntry, GuestListNameSchema } from "@/types/types";
+import {
+  GuestEntry,
+  GuestListNameSchema,
+  GuestWithPromoter,
+} from "@/types/types";
 import _ from "lodash";
 import { Id } from "../convex/_generated/dataModel";
 import { isValidPhoneNumber } from "./frontend-validation";
@@ -21,9 +25,9 @@ export function getTotalFemales(guests: GuestListNameSchema[]): number {
 }
 
 export function getSortedFilteredGuests(
-  guests: GuestListNameSchema[],
+  guests: GuestWithPromoter[],
   showCheckedIn: boolean
-): GuestListNameSchema[] {
+): GuestWithPromoter[] {
   return guests
     .filter((guest) => (showCheckedIn ? guest.attended : !guest.attended))
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -55,7 +59,9 @@ export function filterBySearchTerm<T>(
   );
 }
 
-export function countTicketsByGender(tickets: TicketSchema[]): {
+export function countTicketsByGender(
+  tickets: TicketSchema[] | TicketSchemaWithPromoter[]
+): {
   maleTickets: number;
   femaleTickets: number;
 } {

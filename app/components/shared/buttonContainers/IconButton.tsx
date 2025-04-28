@@ -20,11 +20,11 @@ const IconButton = ({
       className={cn(
         "p-1.5 rounded-full transition",
         variant === "default" &&
-          "bg-transparent hover:bg-gray-800 border border-greenCustom",
+          "bg-transparent hover:bg-cardBackgroundHover border ",
         variant === "outline" &&
           "bg-transparent border border-gray-600 hover:bg-gray-700",
         variant === "green" && "bg-greenCustom",
-        variant === "ghost" && "bg-transparent hover:bg-gray-800",
+        variant === "ghost" && "bg-transparent hover:bg-cardBackgroundHover",
         className
       )}
     >

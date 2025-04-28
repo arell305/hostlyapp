@@ -3,7 +3,6 @@ import { SubscriptionSchema } from "@/types/schemas-types";
 import React, { useState } from "react";
 import { useCancelSubscription } from "./hooks/useCancelSubscription";
 import { useResumeSubscription } from "./hooks/useResumeSubscription";
-import InfoRow from "../components/UserInfoRow";
 import { GoPencil } from "react-icons/go";
 import {
   subscriptionBenefits,

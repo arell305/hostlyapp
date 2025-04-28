@@ -69,6 +69,7 @@ export enum ActiveTab {
   VIEW = "view",
   GUEST_LIST = "guestList",
   TICKET_INFO = "ticketInfo",
+  SUMMARY = "summary",
 }
 
 export enum ActiveStripeTab {

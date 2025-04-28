@@ -17,7 +17,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
         link: "text-primary underline-offset-4 hover:underline",
         navGhost:
-          "text-customDarkBlue font-semibold hover:underline font-raleway text-base p-0 h-auto",
+          "text-whiteText font-semibold underline hover:text-whiteText/80 text-base p-0 h-auto",
         navDestructive:
           "text-red-600 hover:underline font-raleway text-base p-0 h-auto font-medium",
         sidebar:

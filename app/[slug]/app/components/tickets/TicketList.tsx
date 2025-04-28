@@ -1,6 +1,8 @@
 import React from "react";
 import { TicketSchemaWithPromoter } from "@/types/schemas-types";
 import TicketCard from "../cards/TicketCard";
+import CustomCard from "@/components/shared/cards/CustomCard";
+import EmptyList from "@/components/shared/EmptyList";
 
 interface TicketListProps {
   tickets: TicketSchemaWithPromoter[];
@@ -15,8 +17,11 @@ const TicketList: React.FC<TicketListProps> = ({
   setShowRedeemTicket,
   canCheckInTickets,
 }) => {
+  if (tickets.length === 0) {
+    return <EmptyList items={tickets} />;
+  }
   return (
-    <div className="bg-white">
+    <CustomCard>
       {tickets.map((ticket) => (
         <TicketCard
           key={ticket._id}
@@ -26,7 +31,7 @@ const TicketList: React.FC<TicketListProps> = ({
           setShowRedeemTicket={setShowRedeemTicket}
         />
       ))}
-    </div>
+    </CustomCard>
   );
 };
 

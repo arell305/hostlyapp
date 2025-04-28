@@ -21,7 +21,7 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
   error,
 }) => {
   return (
-    <LabelWrapper className="relative max-w-[540px]">
+    <LabelWrapper className="relative max-w-[500px]">
       <Label htmlFor="address" className="font-semibold">
         {label}
       </Label>
@@ -36,24 +36,25 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
             container: (provided) => ({ ...provided }),
             control: (provided, state) => ({
               ...provided,
-              border: "0px",
-              borderBottom: `2px solid ${state.isFocused ? "#324E78" : "#D1D5DB"}`,
+              border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`,
               backgroundColor: "transparent",
-              boxShadow: "none",
-              "&:hover": {
-                borderBottomColor: state.isFocused ? "#324E78" : "#D1D5DB",
-                borderRadius: "0",
-              },
+
               maxWidth: "500px",
-              borderRadius: "0",
+              borderRadius: "6px",
               padding: "0",
-              paddingRight: "10px",
+              paddingLeft: "8px",
+              paddingRight: "2.5rem",
+              paddingTop: "4px",
+              paddingBottom: "4px",
               minHeight: "auto",
               height: "auto",
+              "&:hover": {
+                border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`, // <-- force hover to match normal
+              },
             }),
             input: (provided) => ({
               ...provided,
-              color: "#374151",
+              color: "#F9FAFA",
               paddingLeft: "0",
               marginLeft: "0",
             }),
@@ -64,9 +65,10 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
             }),
             singleValue: (provided) => ({
               ...provided,
-              color: "#374151",
-              whiteSpace: "normal",
-              wordWrap: "break-word",
+              color: "#F9FAFA",
+              overflow: "hidden",
+              whiteSpace: "nowrap", // <-- important
+              textOverflow: "ellipsis",
             }),
             dropdownIndicator: (provided) => ({ ...provided, display: "none" }),
             menu: (provided) => ({
@@ -75,7 +77,14 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
               position: "absolute",
             }),
             menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
-            option: (provided) => ({ ...provided, paddingLeft: "10px" }),
+            option: (provided, state) => ({
+              ...provided,
+              backgroundColor: state.isFocused
+                ? "" // <-- background when hovering (example dark gray)
+                : "#0F0F13", // <-- normal background
+              color: "#F9FAFA", // <-- text color
+              paddingLeft: "10px",
+            }),
           },
         }}
       />
@@ -83,9 +92,9 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
         <button
           type="button"
           onClick={onClear}
-          className="absolute right-2 md:right-4 -bottom-4 transform -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700"
+          className="absolute right-2 top-[45%] transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-200"
         >
-          <FaTimes />
+          <FaTimes size={16} />
         </button>
       )}
       <p

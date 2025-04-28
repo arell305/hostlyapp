@@ -42,8 +42,8 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
       <div className="flex">
         <Label
           htmlFor={id}
-          className={`focus:border-customDarkBlue w-[200px] h-[200px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg hover:bg-gray-100 ${
-            imageUrl ? "" : "border-2 border-dashed border-gray-300"
+          className={`focus:border-white w-[200px] h-[200px] flex justify-center items-center cursor-pointer relative mt-2 rounded-lg hover:bg-cardBackgroundHover ${
+            imageUrl ? "" : "border-2 border-dashed "
           }`}
         >
           {isLoading ? (

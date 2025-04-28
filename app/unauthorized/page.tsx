@@ -1,4 +1,5 @@
 "use client";
+import StaticPageContainer from "@/components/shared/containers/StaticPageContainer";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
@@ -6,7 +7,7 @@ export default function UnauthorizedPage() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-blue-200">
+    <StaticPageContainer>
       <div className="bg-white p-6 rounded-lg shadow-lg text-center">
         <h1 className="text-2xl font-semibold text-red-600">Access Denied</h1>
         <p className="text-gray-600 mt-2">
@@ -16,6 +17,6 @@ export default function UnauthorizedPage() {
           Go Home
         </Button>
       </div>
-    </div>
+    </StaticPageContainer>
   );
 }

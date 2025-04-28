@@ -436,3 +436,5 @@ export interface GuestEntry {
   name: string;
   phoneNumber?: string;
 }
+
+export type CalendarValue = Date | null | [Date | null, Date | null];

@@ -213,7 +213,8 @@ export default defineSchema({
     ticketUniqueId: v.string(),
   })
     .index("by_eventId", ["eventId"])
-    .index("by_ticketUniqueId", ["ticketUniqueId"]),
+    .index("by_ticketUniqueId", ["ticketUniqueId"])
+    .index("by_eventId_and_promoterUserId", ["eventId", "promoterUserId"]),
   connectedPayments: defineTable({
     organizationId: v.id("organizations"),
     eventId: v.id("events"),
@@ -237,4 +238,13 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_stripeCustomerId", ["stripeCustomerId"])
     .index("by_stripeAccountId", ["stripeAccountId"]),
+  guestListCredits: defineTable({
+    organizationId: v.id("organizations"),
+    userId: v.id("users"),
+    amountPaid: v.number(),
+    creditsAdded: v.number(),
+    stripePaymentIntentId: v.string(),
+  })
+    .index("by_organizationId", ["organizationId"])
+    .index("by_userId", ["userId"]),
 });

@@ -1,15 +1,11 @@
 import React, { useState } from "react";
-import { PromoterGuestsData } from "@/types/convex-types";
+import { GetEventWithGuestListsData } from "@/types/convex-types";
 import { formatToTimeAndShortDate, isPast } from "../../../../../utils/luxon";
 import { useDeleteGuestName } from "../hooks/useDeleteGuestName";
 import { useUpdateGuestName } from "../hooks/useUpdateGuestName";
 import { FrontendErrorMessages } from "@/types/enums";
-import { GuestListNameSchema } from "@/types/types";
 import { Button } from "@/components/ui/button";
-import { FiClock } from "react-icons/fi";
-import { TbCircleLetterF, TbCircleLetterM } from "react-icons/tb";
 import ToggleButton from "../../components/ui/ToggleButton";
-import GuestCard from "../../components/GuestCard";
 import ResponsiveEditGuestName from "../../components/responsive/ResponsiveEditGuestName";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import { Id } from "../../../../../convex/_generated/dataModel";
@@ -17,26 +13,30 @@ import _ from "lodash";
 import {
   formatName,
   getSortedFilteredGuests,
-  getTotalFemales,
-  getTotalMales,
 } from "../../../../../utils/format";
 import { useRouter, usePathname } from "next/navigation";
+import SectionContainer from "@/components/shared/containers/SectionContainer";
+import CustomCard from "@/components/shared/cards/CustomCard";
+import EmptyList from "@/components/shared/EmptyList";
+import GuestListContainer from "./GuestListContainer";
 
 type PromoterGuestListContentProps = {
   eventId: Id<"events">;
-  guestList: PromoterGuestsData;
   isGuestListOpen: boolean;
   guestListCloseTime: number;
+  guestListData: GetEventWithGuestListsData;
 };
 
 const PromoterGuestListContent = ({
   eventId,
-  guestList,
   isGuestListOpen,
   guestListCloseTime,
+  guestListData,
 }: PromoterGuestListContentProps) => {
   const router = useRouter();
   const pathname = usePathname();
+
+  const guestList = guestListData.guests;
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState<string>("");
@@ -64,11 +64,6 @@ const PromoterGuestListContent = ({
     error: deleteNameError,
     setError: setDeleteNameError,
   } = useDeleteGuestName();
-
-  const formattedGuestListCloseTime =
-    formatToTimeAndShortDate(guestListCloseTime);
-
-  const guestListClosed = isPast(guestListCloseTime);
 
   const handleEdit = (id: string, name: string) => {
     setEditingId(id);
@@ -101,14 +96,16 @@ const PromoterGuestListContent = ({
       setEditNameError("No name selected");
       return;
     }
-
-    if (!guestList.guestListId) {
+    if (!guestListData.guests) {
       setEditNameError("No guest list found");
       return;
     }
-
+    if (!guestList) {
+      setEditNameError("No guest list found");
+      return;
+    }
     const success = await updateGuestName(
-      guestList.guestListId,
+      guestList[0].guestListId,
       editingId,
       newName
     );
@@ -123,12 +120,12 @@ const PromoterGuestListContent = ({
       return;
     }
 
-    if (!guestList.guestListId) {
+    if (!guestList) {
       setDeleteNameError("No guest list found");
       return;
     }
 
-    const success = await deleteGuestName(guestList.guestListId, deletingId);
+    const success = await deleteGuestName(guestList[0].guestListId, deletingId);
     if (success) {
       setDeletingId(null);
       setShowConfirmDeleteGuest(false);
@@ -141,21 +138,23 @@ const PromoterGuestListContent = ({
     setDeleteNameError(null);
   };
 
-  const isEmptyGuestList = guestList.guestListId === null;
+  const isEmptyGuestList = guestList.length === 0;
 
-  const totalMales = getTotalMales(guestList.names);
-  const totalFemales = getTotalFemales(guestList.names);
   const filteredGuests = getSortedFilteredGuests(
-    guestList.names,
+    guestList.map((guest) => ({
+      ...guest,
+      name: guest.name,
+      promoterId: guest.promoterId,
+      promoterName: guest.promoterName,
+      guestListId: guest.guestListId,
+    })),
     showCheckedInGuests
   );
 
   return (
-    <div className="flex flex-col min-h-[80vh]  bg-gray-100 pt-4">
-      <div className=" bg-white w-[95%] mx-auto px-4 pt-4 rounded-md mb-4 shadow-md">
+    <SectionContainer>
+      <CustomCard>
         <div className="flex justify-between mb-2 items-center">
-          <h1 className="text-2xl font-bold mb-2">Guest List</h1>
-
           {isGuestListOpen ? (
             <>
               <Button
@@ -169,36 +168,9 @@ const PromoterGuestListContent = ({
             <p className="text-red-500 font-semibold">Closed</p>
           )}
         </div>
-        <div className="mb-2 flex flex-col ">
-          <div className="flex items-center space-x-3 py-3 border-b">
-            <FiClock className="text-2xl text-gray-900" />
-            <p>
-              {guestListClosed ? "Guest List Closed:" : "Guest List Closes:"}{" "}
-              <span className="text-gray-700 font-semibold">
-                {formattedGuestListCloseTime}
-              </span>
-            </p>
-          </div>
-          <div className="flex items-center  space-x-3 py-3 border-b">
-            <TbCircleLetterM className="text-2xl" />
-            <p>
-              Males Attended:{" "}
-              <span className="text-gray-700 font-semibold">{totalMales}</span>
-            </p>
-          </div>
-          <div className="flex items-center space-x-3 py-3">
-            <TbCircleLetterF className="text-2xl" />
-            <p>
-              Females Attended:{" "}
-              <span className="text-gray-700 font-semibold">
-                {totalFemales}
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
+      </CustomCard>
       {isEmptyGuestList ? (
-        <p>No guest list added</p>
+        <EmptyList items={[]} message="No guest list added" />
       ) : (
         <div className="mt-4 mb-[150px]">
           <div className="ml-4">
@@ -207,23 +179,18 @@ const PromoterGuestListContent = ({
               setIsChecked={setShowCheckedInGuests}
             />
           </div>
-          <div className="bg-white mt-3 ">
-            {filteredGuests?.map((guest: GuestListNameSchema) => (
-              <GuestCard
-                key={guest.id}
-                guest={guest}
-                editingId={editingId}
-                editName={editName}
-                canEditGuests={isGuestListOpen}
-                onEdit={handleEdit}
-                onCheckIn={handleSave}
-                onShowDelete={handleShowDelete}
-                onCancelEdit={() => setEditingId(null)}
-                setEditName={setEditName}
-                canCheckInGuests={false}
-              />
-            ))}
-          </div>
+          <GuestListContainer
+            filteredGuests={filteredGuests}
+            isCheckInOpen={false}
+            canCheckInGuests={false}
+            canSeePhoneNumber={true}
+            editingId={editingId}
+            editName={editName}
+            onEdit={handleEdit}
+            onShowDelete={handleShowDelete}
+            onCancelEdit={() => setEditingId(null)}
+            setEditName={setEditName}
+          />
         </div>
       )}
       <ResponsiveEditGuestName
@@ -254,7 +221,7 @@ const PromoterGuestListContent = ({
           onOpenChange: handleCloseModal,
         }}
       />
-    </div>
+    </SectionContainer>
   );
 };
 

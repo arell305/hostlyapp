@@ -1,68 +1,96 @@
-import { TicketInfoSchema } from "@/types/schemas-types";
-import { OrganizationSchema } from "@/types/types";
-import { Id } from "../../../../../convex/_generated/dataModel";
-import { PiNewspaper } from "react-icons/pi";
-import { isPast } from "../../../../../utils/luxon";
-import { ClerkPermissions } from "@/types/enums";
-import ModeratorTicketsPage from "../../events/tickets/ModeratorTicketsPage";
-import PromoterTicketsPage from "../../events/tickets/PromoterTicketsPage";
-import ManagerTicketsPage from "../../events/tickets/ManagerTicketsPage";
+import { TicketSchemaWithPromoter } from "@/types/schemas-types";
+import useRedeemTicket from "../../hooks/useRedeemTicket";
+import { useToast } from "@/hooks/use-toast";
+import { useMemo, useRef, useState } from "react";
+import useMediaQuery from "@/hooks/useMediaQuery";
+import { DESKTOP_WIDTH } from "@/types/constants";
+import { filterBySearchTerm } from "../../../../../utils/format";
+import SectionContainer from "@/components/shared/containers/SectionContainer";
+import SearchInput from "../../events/components/SearchInput";
+import TicketList from "./TicketList";
+import ResponsiveConfirm from "../responsive/ResponsiveConfirm";
 
 interface TicketInfoTabProps {
-  ticketData?: TicketInfoSchema | null;
-  canViewAllTickets?: boolean;
-  eventId: Id<"events">;
-  has: any;
-  organization: OrganizationSchema;
+  tickets: TicketSchemaWithPromoter[];
+  canCheckInGuests: boolean;
 }
 
 const TicketTab: React.FC<TicketInfoTabProps> = ({
-  ticketData,
-  eventId,
-  has,
-  organization,
+  tickets,
+  canCheckInGuests,
 }) => {
-  const isPromoter = has({ permission: ClerkPermissions.UPLOAD_GUESTLIST });
-  const canViewAllTickets = has({
-    permission: ClerkPermissions.VIEW_ALL_GUESTLISTS,
-  });
-  const canCheckInGuests: boolean = has({
-    permission: ClerkPermissions.CHECK_GUESTS,
-  });
+  const {
+    redeemTicketError,
+    isRedeemTicketLoading,
+    selectedTicketId,
+    setSelectedTicketId,
+    handleRedeem,
+    setRedeemTicketError,
+  } = useRedeemTicket();
+  const { toast } = useToast();
 
-  if (!ticketData) {
-    return (
-      <div className="mb-4 flex flex-col gap-4 bg-gray-100 min-h-[100vh]">
-        <div className=" bg-white w-[95%] mx-auto px-4 pt-4 mt-4 rounded-md mb-4 shadow-md">
-          <h1 className="text-2xl font-bold pb-3">Ticket Info</h1>
-          <div className="flex items-center  space-x-3 py-3 ">
-            <PiNewspaper className="text-2xl" />
-            <p>There is no ticket option for this event</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  const isTicketsSalesOpen = !isPast(ticketData.ticketSalesEndTime);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showRedeemModal, setShowRedeemModal] = useState<boolean>(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
-  if (isPromoter) {
-    return <PromoterTicketsPage eventId={eventId} />;
-  }
-  if (canCheckInGuests) {
-    return <ModeratorTicketsPage eventId={eventId} />;
-  }
-  if (canViewAllTickets) {
-    return (
-      <ManagerTicketsPage
-        eventId={eventId}
-        organizationId={organization._id}
-        isTicketsSalesOpen={isTicketsSalesOpen}
-        ticketData={ticketData}
+  const handleConfirmRedeem = async () => {
+    const result = await handleRedeem();
+    if (result) {
+      toast({
+        title: "Success",
+        description: "Ticket Redeemed",
+      });
+    }
+  };
+
+  const filteredTickets = useMemo(() => {
+    return filterBySearchTerm(tickets, searchTerm, (t) => t.ticketUniqueId);
+  }, [tickets, searchTerm]);
+
+  return (
+    <SectionContainer>
+      <SearchInput
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        searchInputRef={searchInputRef}
+        isDesktop={isDesktop}
+        placeholder="Search Ticket ID..."
       />
-    );
-  }
 
-  return <div>TicketTab</div>;
+      <TicketList
+        tickets={filteredTickets}
+        canCheckInTickets={canCheckInGuests}
+        setSelectedTicketId={setSelectedTicketId}
+        setShowRedeemTicket={setShowRedeemModal}
+      />
+      <ResponsiveConfirm
+        isOpen={showRedeemModal}
+        title={"Redeem Ticket"}
+        confirmText={"Redeem"}
+        cancelText={"Cancel"}
+        content={`Redeem ticket for ${selectedTicketId}`}
+        error={redeemTicketError}
+        isLoading={isRedeemTicketLoading}
+        modalProps={{
+          onClose: () => {
+            setShowRedeemModal(false);
+            setSelectedTicketId("");
+            setRedeemTicketError(null);
+          },
+          onConfirm: handleConfirmRedeem,
+        }}
+        drawerProps={{
+          onSubmit: handleConfirmRedeem,
+          onOpenChange: (open) => {
+            setShowRedeemModal(false);
+            setSelectedTicketId("");
+            setRedeemTicketError(null);
+          },
+        }}
+      />
+    </SectionContainer>
+  );
 };
 
 export default TicketTab;

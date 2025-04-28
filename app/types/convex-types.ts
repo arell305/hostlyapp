@@ -841,3 +841,29 @@ export interface CreateStripeOnboardingLinkSuccess {
 export interface CreateStripeOnboardingLinkData {
   url: string;
 }
+
+export type CreateGuestListCreditPaymentIntentResponse =
+  | CreateGuestListCreditPaymentIntentSuccess
+  | ErrorResponse;
+
+export interface CreateGuestListCreditPaymentIntentSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CreateGuestListCreditPaymentIntentData;
+}
+
+export interface CreateGuestListCreditPaymentIntentData {
+  clientSecret: string;
+}
+
+export type CreateGuestListCreditResponse =
+  | CreateGuestListCreditSuccess
+  | ErrorResponse;
+
+export interface CreateGuestListCreditSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CreateGuestListCreditData;
+}
+
+export interface CreateGuestListCreditData {
+  guestListCreditId: Id<"guestListCredits">;
+}

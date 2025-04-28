@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import type { UserResource } from "@clerk/types";
 import { OrganizationSchema } from "@/types/types";
 import ResponsiveInviteUser from "../components/responsive/ResponsiveInviteUser";
 import { isHostlyUser } from "../../../../utils/permissions";

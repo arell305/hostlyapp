@@ -25,6 +25,7 @@ import type * as connectedAccounts from "../connectedAccounts.js";
 import type * as connectedPayments from "../connectedPayments.js";
 import type * as customers from "../customers.js";
 import type * as events from "../events.js";
+import type * as guestListCredits from "../guestListCredits.js";
 import type * as guestListInfo from "../guestListInfo.js";
 import type * as guestLists from "../guestLists.js";
 import type * as http from "../http.js";
@@ -62,6 +63,7 @@ declare const fullApi: ApiFromModules<{
   connectedPayments: typeof connectedPayments;
   customers: typeof customers;
   events: typeof events;
+  guestListCredits: typeof guestListCredits;
   guestListInfo: typeof guestListInfo;
   guestLists: typeof guestLists;
   http: typeof http;

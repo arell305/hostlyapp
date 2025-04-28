@@ -7,8 +7,9 @@ import EventIdContent from "./EventIdContent";
 import FullLoading from "../../components/loading/FullLoading";
 import ErrorComponent from "../../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
-import { ResponseStatus } from "@/types/enums";
+import { ClerkPermissions, ResponseStatus } from "@/types/enums";
 import EventDeleted from "../components/EventDeleted";
+import { GetEventWithGuestListsData } from "@/types/convex-types";
 
 export default function EventPageWrapper() {
   const { has } = useAuth();
@@ -24,6 +25,23 @@ export default function EventPageWrapper() {
 
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
 
+  const responseTickets = useQuery(
+    api.tickets.getTicketsByEventId,
+    getEventByIdResponse?.data?.event._id
+      ? {
+          eventId: getEventByIdResponse?.data.event._id,
+        }
+      : "skip"
+  );
+
+  const responseGuestList = useQuery(
+    api.events.getEventWithGuestLists,
+    getEventByIdResponse?.data?.event._id
+      ? {
+          eventId: getEventByIdResponse?.data.event._id,
+        }
+      : "skip"
+  );
   const isAppAdmin = organization?.slug === "admin";
 
   const handleNavigateHome = () => {
@@ -37,7 +55,9 @@ export default function EventPageWrapper() {
     !organization ||
     !subscription ||
     connectedAccountEnabled === undefined ||
-    !has
+    !has ||
+    responseTickets === undefined ||
+    responseGuestList === undefined
   ) {
     return <FullLoading />;
   }
@@ -46,11 +66,27 @@ export default function EventPageWrapper() {
     return <ErrorComponent message={getEventByIdResponse.error} />;
   }
 
+  if (responseTickets.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={responseTickets.error} />;
+  }
+
+  if (responseGuestList.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={responseGuestList.error} />;
+  }
+
   if (organizationContextError) {
     return <ErrorComponent message={organizationContextError} />;
   }
 
   const data = getEventByIdResponse.data;
+  const tickets = responseTickets.data?.tickets;
+  const guestListData: GetEventWithGuestListsData = responseGuestList.data;
+  const canCheckInGuests: boolean = has({
+    permission: ClerkPermissions.CHECK_GUESTS,
+  });
+  const canUploadGuest: boolean = has({
+    permission: ClerkPermissions.UPLOAD_GUESTLIST,
+  });
 
   if (!data.event.isActive) {
     return <EventDeleted onBack={handleNavigateHome} />;
@@ -60,11 +96,14 @@ export default function EventPageWrapper() {
     <EventIdContent
       data={data}
       isAppAdmin={isAppAdmin}
-      has={has}
       isStripeEnabled={connectedAccountEnabled}
       organization={organization}
       subscription={subscription}
       handleNavigateHome={handleNavigateHome}
+      tickets={tickets}
+      canCheckInGuests={canCheckInGuests}
+      canUploadGuest={canUploadGuest}
+      guestListData={guestListData}
     />
   );
 }

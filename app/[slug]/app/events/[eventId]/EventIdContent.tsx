@@ -7,7 +7,6 @@ import {
   TicketFormInput,
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
-import TabsNav from "./TabsNav";
 import EventForm from "@/[slug]/app/components/EventForm";
 import GuestListTab from "./GuestListTab";
 import ViewTab from "../ViewTab";
@@ -17,11 +16,16 @@ import {
   GuestListInfoSchema,
   SubscriptionSchema,
   TicketInfoSchema,
+  TicketSchemaWithPromoter,
 } from "@/types/schemas-types";
 import { ActiveStripeTab, ActiveTab } from "@/types/enums";
 import TicketTab from "../../components/tickets/TicketTab";
 import { useUpdateEvent } from "../hooks/useUpdateEvent";
 import { Id } from "../../../../../convex/_generated/dataModel";
+import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
+import SummaryPage from "./summary/SummaryPage";
+import { GetEventWithGuestListsData } from "@/types/convex-types";
+import SectionContainer from "@/components/shared/containers/SectionContainer";
 
 interface EventIdContentProps {
   data: {
@@ -30,27 +34,34 @@ interface EventIdContentProps {
     guestListInfo?: GuestListInfoSchema | null;
   };
   isAppAdmin: boolean;
-  has: any;
   isStripeEnabled: boolean;
   organization: OrganizationSchema;
   subscription: SubscriptionSchema;
   handleNavigateHome: () => void;
+  tickets: TicketSchemaWithPromoter[];
+  canCheckInGuests: boolean;
+  guestListData: GetEventWithGuestListsData;
+  canUploadGuest: boolean;
 }
 
 const EventIdContent: React.FC<EventIdContentProps> = ({
   data,
   isAppAdmin,
-  has,
   isStripeEnabled,
   organization,
   subscription,
   handleNavigateHome,
+  tickets,
+  canCheckInGuests,
+  guestListData,
+  canUploadGuest,
 }) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showConfirmCancelEdit, setShowConfirmCancelEdit] =
     useState<boolean>(false);
+  const [showConfirmHome, setShowConfirmHome] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab | ActiveStripeTab>(
-    ActiveTab.VIEW
+    ActiveTab.SUMMARY
   );
   const {
     updateEvent,
@@ -59,16 +70,28 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   } = useUpdateEvent();
 
   const tabs: Tab[] = [
+    { label: "Summary", value: ActiveTab.SUMMARY },
     { label: "View", value: ActiveTab.VIEW },
-    { label: "Guest List", value: ActiveTab.GUEST_LIST },
-    { label: "Ticket Info", value: ActiveTab.TICKET_INFO },
+    ...(data.guestListInfo
+      ? [{ label: "Guest List", value: ActiveTab.GUEST_LIST }]
+      : []),
+    ...(data.ticketInfo
+      ? [{ label: "Tickets", value: ActiveTab.TICKET_INFO }]
+      : []),
   ];
 
   const handleCancelEdit = () => {
     if (isEditing) {
       setShowConfirmCancelEdit(true);
     } else {
-      setIsEditing(false);
+      handleNavigateHome();
+    }
+  };
+  const handleGoHome = () => {
+    if (isEditing) {
+      setShowConfirmHome(true);
+    } else {
+      handleNavigateHome();
     }
   };
   const handleUpdateEvent = async (
@@ -91,16 +114,14 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   };
 
   return (
-    // <section className="container mx-auto max-w-3xl md:p-6 rounded-lg">
-
-    <section className="container mx-auto max-w-2xl  rounded-lg">
+    <SectionContainer>
       <TopRowNav
         eventData={data.event}
         isAdminOrg={isAppAdmin}
         setIsEditing={setIsEditing}
         isEditing={isEditing}
         onCancelEdit={handleCancelEdit}
-        handleNavigateHome={handleNavigateHome}
+        handleGoHome={handleGoHome}
       />
       {isEditing ? (
         <EventForm
@@ -117,24 +138,30 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
         />
       ) : (
         <>
-          <TabsNav
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            tabs={tabs}
+          <ToggleTabs
+            options={tabs}
+            value={activeTab}
+            onChange={setActiveTab}
           />
-          {activeTab === ActiveTab.TICKET_INFO && (
-            <TicketTab
+          {activeTab === ActiveTab.SUMMARY && (
+            <SummaryPage
+              guestListInfo={data.guestListInfo}
               ticketData={data.ticketInfo}
-              has={has}
-              eventId={data.event._id}
-              organization={organization}
+              tickets={tickets}
+              organizationId={organization._id}
             />
           )}
-          {activeTab === ActiveTab.GUEST_LIST && (
+
+          {activeTab === ActiveTab.TICKET_INFO && (
+            <TicketTab canCheckInGuests={canCheckInGuests} tickets={tickets} />
+          )}
+          {activeTab === ActiveTab.GUEST_LIST && data.guestListInfo && (
             <GuestListTab
               guestListInfo={data.guestListInfo}
-              has={has}
               eventData={data.event}
+              guestListData={guestListData}
+              canUploadGuest={canUploadGuest}
+              canCheckInGuests={canCheckInGuests}
             />
           )}
           {activeTab === ActiveTab.VIEW && (
@@ -157,19 +184,43 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           onConfirm: () => {
             setShowConfirmCancelEdit(false);
             setIsEditing(false);
-            handleNavigateHome();
           },
         }}
         drawerProps={{
           onSubmit: () => {
             setShowConfirmCancelEdit(false);
             setIsEditing(false);
-            handleNavigateHome();
           },
           onOpenChange: (open) => setShowConfirmCancelEdit(open),
         }}
       />
-    </section>
+      <ResponsiveConfirm
+        isOpen={showConfirmHome}
+        title="Confirm Home Navigation"
+        confirmText="Yes, Go Home"
+        cancelText="No, Stay Here"
+        content="Are you sure you want to go home? Any unsaved changes will be discarded."
+        confirmVariant="destructive"
+        error={null}
+        isLoading={false}
+        modalProps={{
+          onClose: () => setShowConfirmHome(false),
+          onConfirm: () => {
+            setShowConfirmHome(false);
+            setIsEditing(false);
+            handleNavigateHome();
+          },
+        }}
+        drawerProps={{
+          onSubmit: () => {
+            setShowConfirmHome(false);
+            setIsEditing(false);
+            handleNavigateHome();
+          },
+          onOpenChange: (open) => setShowConfirmHome(open),
+        }}
+      />
+    </SectionContainer>
   );
 };
 

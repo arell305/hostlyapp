@@ -235,6 +235,7 @@ export const getEventWithGuestLists = query({
         UserRole.Hostly_Admin,
         UserRole.Admin,
         UserRole.Manager,
+        UserRole.Promoter,
       ]);
 
       const clerkUserId = identity.id as string;
@@ -248,23 +249,32 @@ export const getEventWithGuestLists = query({
 
       const event: EventSchema | null = await ctx.db.get(args.eventId);
       const validatedEvent = validateEvent(event);
-      console.log("validatedEvent", validatedEvent);
+
       isUserInCompanyOfEvent(validatedUser, validatedEvent);
 
-      const guestLists: GuestListSchema[] = await ctx.db
+      let guestListsQuery = ctx.db
         .query("guestLists")
-        .filter((q) => q.eq(q.field("eventId"), eventId))
-        .collect();
+        .filter((q) => q.eq(q.field("eventId"), eventId));
+
+      if (validatedUser.role === UserRole.Promoter) {
+        guestListsQuery = guestListsQuery.filter((q) =>
+          q.eq(q.field("userPromoterId"), validatedUser._id)
+        );
+      }
+
+      const guestLists: GuestListSchema[] = await guestListsQuery.collect();
 
       const promoterIds: Id<"users">[] = Array.from(
         new Set(guestLists.map((gl) => gl.userPromoterId))
       );
+
       const promoters: Promoter[] = await Promise.all(
         promoterIds.map(async (promoterId) => {
           const user = await ctx.db.get(promoterId);
           return { promoterUserId: promoterId, name: user?.name || "Unknown" };
         })
       );
+
       const promoterMap: Map<string, string> = new Map(
         promoters.map((p) => [p.promoterUserId, p.name])
       );
@@ -282,6 +292,7 @@ export const getEventWithGuestLists = query({
         (sum, guest) => sum + (guest.malesInGroup || 0),
         0
       );
+
       const totalFemales: number = allGuests.reduce(
         (sum, guest) => sum + (guest.femalesInGroup || 0),
         0
@@ -290,7 +301,6 @@ export const getEventWithGuestLists = query({
       const sortedGuests: AllGuestSchema[] = allGuests.sort((a, b) =>
         a.name.localeCompare(b.name)
       );
-      console.log("sortedGuests", sortedGuests);
 
       return {
         status: ResponseStatus.SUCCESS,

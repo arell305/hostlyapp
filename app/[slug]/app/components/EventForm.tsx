@@ -398,6 +398,7 @@ const EventForm: React.FC<EventFormProps> = ({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add a description for your event."
           rows={6}
+          className="w-full max-w-[500px]"
         />
         <LabeledAddressAutoComplete
           label="Address*"

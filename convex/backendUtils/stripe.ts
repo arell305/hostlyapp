@@ -466,3 +466,31 @@ async function retrievePrice(priceId: string): Promise<Stripe.Price> {
     throw new Error(ErrorMessages.STRIPE_RETRIEVE_PRICE);
   }
 }
+
+type CreatePaymentIntentResult =
+  | { success: true; paymentIntent: Stripe.PaymentIntent }
+  | { success: false; error: string };
+
+export async function createPaymentIntent({
+  amount,
+  metadata,
+}: {
+  amount: number;
+  metadata: Record<string, string | number>;
+}): Promise<CreatePaymentIntentResult> {
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "usd",
+      metadata,
+    });
+
+    return { success: true, paymentIntent };
+  } catch (error) {
+    console.error("Error creating PaymentIntent:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}

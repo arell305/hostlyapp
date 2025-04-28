@@ -27,7 +27,6 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ slug, orgRole }) => {
           <IconButton
             icon={isOpen ? <X size={24} /> : <Menu size={24} />}
             variant="ghost"
-            iconClassName="text-white"
           />
         </SheetTrigger>
 

@@ -18,6 +18,7 @@ interface GuestCardProps {
   canCheckInGuests?: boolean;
   onCheckIn?: (guestId: string) => void;
   isCheckInOpen?: boolean;
+  canSeePhoneNumber: boolean;
 }
 
 const GuestCard: React.FC<GuestCardProps> = ({
@@ -29,6 +30,7 @@ const GuestCard: React.FC<GuestCardProps> = ({
   canCheckInGuests,
   onCheckIn,
   isCheckInOpen,
+  canSeePhoneNumber,
 }) => {
   const [showOptions, setShowOptions] = useState<boolean>(false);
 

@@ -13,6 +13,7 @@ import EventForm from "../components/EventForm";
 import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
 import { useRouter } from "next/navigation";
 import { Id } from "../../../../convex/_generated/dataModel";
+import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 
 const AddEventContent: React.FC<{
   organization: OrganizationSchema;
@@ -52,17 +53,20 @@ const AddEventContent: React.FC<{
 
   return (
     <div>
-      <div className="flex justify-between items-baseline pt-4 md:pt-0 px-4">
-        <h1 className="">Add Event</h1>
-        <Button
-          variant="navGhost"
-          size="nav"
-          className=""
-          onClick={handleCancel}
-        >
-          Cancel
-        </Button>
-      </div>
+      <SectionHeaderWithAction
+        title="Add Event"
+        actions={
+          <Button
+            variant="navGhost"
+            size="nav"
+            className="text-whiteText hover:text-whiteText/80 underline w-auto text-base"
+            onClick={handleCancel}
+          >
+            Cancel
+          </Button>
+        }
+      />
+
       {!connectedAccountEnabled && (
         <div className="p-1">
           <Notification

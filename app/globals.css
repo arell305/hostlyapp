@@ -405,7 +405,7 @@ input::-webkit-date-and-time-value {
   color: #f3f4f6 !important; /* Tailwind's text-whiteText */
   border-radius: 0.5rem;
   padding: 1rem;
-  width: 100%;
+  width: 100% !important;
   border: 1px solid #1b1c20 !important;
 }
 
@@ -417,6 +417,11 @@ input::-webkit-date-and-time-value {
 }
 .react-calendar-container-lg {
   width: 400px;
+}
+
+.react-calendar__month-view__days__day--neighboringMonth {
+  color: #9ca3af !important; /* gray-400 */
+  opacity: 0.4;
 }
 
 .react-calendar__navigation {
@@ -465,7 +470,7 @@ input::-webkit-date-and-time-value {
 .react-calendar__tile--active {
   background-color: #1b1c20 !important;
   color: #f3f4f6 !important; /* your whiteText */
-  border: 2px solid #f9fafa !important; /* clean white border */
+  border: 2px solid #324e78 !important; /* clean white border */
   font-weight: 600 !important;
 }
 
