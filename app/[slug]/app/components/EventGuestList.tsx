@@ -22,9 +22,14 @@ import CustomCard from "@/components/shared/cards/CustomCard";
 interface EventGuestListProps {
   eventId: Id<"events">;
   isCheckInOpen: boolean;
+  canSeePhoneNumber: boolean;
 }
 
-const EventGuestList = ({ eventId, isCheckInOpen }: EventGuestListProps) => {
+const EventGuestList = ({
+  eventId,
+  isCheckInOpen,
+  canSeePhoneNumber,
+}: EventGuestListProps) => {
   const getEventWithGuestListsResponse = useQuery(
     api.events.getEventWithGuestLists,
     { eventId }
@@ -157,6 +162,7 @@ const EventGuestList = ({ eventId, isCheckInOpen }: EventGuestListProps) => {
             canEditGuests={false}
             canSeePromoterName={true}
             isCheckInOpen={isCheckInOpen}
+            canSeePhoneNumber={canSeePhoneNumber}
           />
         ))}
       </CustomCard>
