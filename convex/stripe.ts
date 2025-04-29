@@ -58,11 +58,7 @@ import {
   createStripeOnboardingSession,
 } from "./backendUtils/stripeConnect";
 import { deactivateStripeConnectedAccount } from "./connectedAccounts";
-import {
-  getTicketSoldCounts,
-  handleError,
-  validateTicketAvailability,
-} from "./backendUtils/helper";
+import { handleError, validateTicketAvailability } from "./backendUtils/helper";
 import {
   handleAccountUpdated,
   handleCustomerUpdated,
@@ -482,10 +478,10 @@ export const createConnectedAccount = action({
         }
       );
 
-      const account = await createStripeConnectedAccount(
-        customer.email,
-        customer.companyName
-      );
+      const account = await createStripeConnectedAccount({
+        email: customer.email,
+        customerId: customer._id,
+      });
 
       const connectedAccountId = await ctx.runMutation(
         internal.connectedAccounts.saveConnectedAccount,
