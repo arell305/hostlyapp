@@ -77,11 +77,17 @@ const PendingMembersSection = ({
     } finally {
       setLoadingMembers(false);
     }
-  }, [setError, setPendingUsers, setLoadingMembers]);
+  }, [
+    setError,
+    setPendingUsers,
+    setLoadingMembers,
+    getPendingInvitationList,
+    organization.clerkOrganizationId,
+  ]);
 
   useEffect(() => {
     fetchData();
-  }, [organization, getPendingInvitationList]);
+  }, [organization, getPendingInvitationList, fetchData]);
 
   if (loadingMembers) {
     return <Skeleton className="h-[100px] w-full" />;

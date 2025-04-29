@@ -109,7 +109,16 @@ const PaymentForm = () => {
         setCanMakePayment(true);
       }
     });
-  }, [stripe, selectedPlan, promoState, email, router, setError, setIsLoading]);
+  }, [
+    stripe,
+    selectedPlan,
+    promoState,
+    email,
+    router,
+    setError,
+    setIsLoading,
+    createStripeSubscription,
+  ]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();

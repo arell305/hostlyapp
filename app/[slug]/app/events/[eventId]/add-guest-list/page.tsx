@@ -1,22 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Id } from "../../../../../../convex/_generated/dataModel";
 import { useAddGuestList } from "../../hooks/useAddGuestList";
 import { parseGuestListInput } from "../../../../../../utils/format";
 import FormActions from "@/components/shared/buttonContainers/FormActions";
 import LabeledTextAreaField from "@/components/shared/fields/LabeledTextAreaField";
 
-// After
-interface PageProps {
-  params: {
-    eventId: Id<"events">;
-    slug: string;
-  };
-}
-
-const AddGuestListPage: React.FC<PageProps> = ({ params }) => {
+const AddGuestListPage: React.FC = () => {
+  const { eventId } = useParams();
   const [guestInput, setGuestInput] = useState<string>("");
   const { addGuestList, isLoading, error, setError } = useAddGuestList();
   const router = useRouter();
@@ -33,7 +26,7 @@ const AddGuestListPage: React.FC<PageProps> = ({ params }) => {
       return;
     }
 
-    await addGuestList(params.eventId, guests);
+    await addGuestList(eventId as Id<"events">, guests);
   };
 
   return (
