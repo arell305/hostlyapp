@@ -8,11 +8,15 @@ import { parseGuestListInput } from "../../../../../../utils/format";
 import FormActions from "@/components/shared/buttonContainers/FormActions";
 import LabeledTextAreaField from "@/components/shared/fields/LabeledTextAreaField";
 
-interface AddGuestListPageProps {
-  eventId: Id<"events">;
+// After
+interface PageProps {
+  params: {
+    eventId: Id<"events">;
+    slug: string;
+  };
 }
 
-const AddGuestListPage: React.FC<AddGuestListPageProps> = ({ eventId }) => {
+const AddGuestListPage: React.FC<PageProps> = ({ params }) => {
   const [guestInput, setGuestInput] = useState<string>("");
   const { addGuestList, isLoading, error, setError } = useAddGuestList();
   const router = useRouter();
@@ -29,7 +33,7 @@ const AddGuestListPage: React.FC<AddGuestListPageProps> = ({ eventId }) => {
       return;
     }
 
-    await addGuestList(eventId, guests);
+    await addGuestList(params.eventId, guests);
   };
 
   return (

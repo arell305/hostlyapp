@@ -109,7 +109,7 @@ const PaymentForm = () => {
         setCanMakePayment(true);
       }
     });
-  }, [stripe, selectedPlan, promoState, email]);
+  }, [stripe, selectedPlan, promoState, email, router, setError, setIsLoading]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
