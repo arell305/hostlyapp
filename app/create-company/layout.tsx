@@ -1,17 +1,5 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import DashboardNavbar from "@/[slug]/app/components/DashboardNavbar";
-import DashboardMobileSidebar from "@/[slug]/app/components/DashboardMobileSidebar";
-import DashboardDesktopSidebar from "@/[slug]/app/components/DashboardDesktopSidebar";
-import dynamic from "next/dynamic";
-
-const DynamicDashboardNavbar = dynamic(
-  () => import("@/[slug]/app/components/DashboardNavbar"),
-  {
-    ssr: false,
-    loading: () => <p>Loading...</p>,
-  }
-);
 
 const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
