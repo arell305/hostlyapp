@@ -30,8 +30,8 @@ const PlanSelector: React.FC<PlanSelectorProps> = ({
           return (
             <div
               key={option.id}
-              className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${
-                isSelected ? "border-blue-500 bg-blue-50" : "border-gray-300"
+              className={`p-4 border rounded-lg cursor-pointer hover:bg-cardBackgroundHover ${
+                isSelected ? "border-primaryBlue " : ""
               }`}
               onClick={() => onSelect(option)}
             >
@@ -47,7 +47,7 @@ const PlanSelector: React.FC<PlanSelectorProps> = ({
                   `$${option.price}/month`
                 )}
               </p>
-              <p className="text-sm text-gray-500">{option.description}</p>
+              <p className="text-sm text-grayText">{option.description}</p>
             </div>
           );
         })}

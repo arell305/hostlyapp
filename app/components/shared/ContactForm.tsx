@@ -1,10 +1,8 @@
 "use client";
 import React, { useState, ChangeEvent, FormEvent } from "react";
-import axios from "axios";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-
+import SingleSubmitButton from "./buttonContainers/SingleSubmitButton";
+import LabeledInputField from "./fields/LabeledInputField";
+import { useSendContactForm } from "@/hooks/useSendContactForm";
 interface FormData {
   name: string;
   email: string;
@@ -18,6 +16,7 @@ interface Errors {
 }
 
 const ContactForm: React.FC = () => {
+  const { sendContactForm, isLoading, error, setError } = useSendContactForm();
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -26,7 +25,6 @@ const ContactForm: React.FC = () => {
 
   const [errors, setErrors] = useState<Errors>({});
   const [message, setMessage] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -44,117 +42,70 @@ const ContactForm: React.FC = () => {
     if (!formData.email) errors.email = "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
       errors.email = "Email is invalid.";
-    if (!formData.company) errors.company = "company is required.";
+    if (!formData.company) errors.company = "Company is required.";
     return errors;
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setErrors({});
-    setMessage("");
-    setLoading(true);
     const errors = validateForm();
     setErrors(errors);
     if (Object.keys(errors).length === 0) {
-      try {
-        await axios.post(
-          "/api/form",
-          {
-            name: formData.name,
-            company: formData.company,
-            email: formData.email,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+      const success = await sendContactForm({
+        fromEmail: formData.email,
+        fromName: formData.name,
+        fromCompany: formData.company,
+      });
+      if (success) {
         setMessage("Form submitted successfully!");
         setFormData({
           name: "",
           email: "",
           company: "",
         });
-      } catch (error) {
-        setMessage("Error submitting form. Please try again.");
-      } finally {
-        setLoading(false);
       }
-    } else {
-      setLoading(false);
     }
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-gray-50 p-6 rounded-lg shadow-lg  border-2 border-gray-300 w-[700px]"
+      className="p-6 rounded-lg shadow-lg border w-[700px] bg-cardBackground"
     >
-      <div className="mb-4">
-        <Label htmlFor="name" className="block ">
-          Name
-        </Label>
-        <Input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="Enter your full name"
-          error={errors.name}
-        />
-        {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-      </div>
+      <LabeledInputField
+        label="Name"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        placeholder="Enter your full name"
+        error={errors.name}
+      />
 
-      <div className="mb-4">
-        <Label htmlFor="email" className="block ">
-          Email
-        </Label>
-        <Input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="Enter your best email"
-          error={errors.email}
-        />
-        {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-      </div>
+      <LabeledInputField
+        label="Email"
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        placeholder="Enter your best email"
+        error={errors.email}
+      />
+      <LabeledInputField
+        label="Company"
+        name="company"
+        value={formData.company}
+        onChange={handleChange}
+        placeholder="Enter your company"
+        error={errors.company}
+      />
 
-      <div className="mb-4">
-        <Label htmlFor="company" className="blocke">
-          Company
-        </Label>
-        <Input
-          id="company"
-          name="company"
-          value={formData.company}
-          onChange={handleChange}
-          placeholder="Enter your company"
-          error={errors.company}
-        ></Input>
-        {errors.company && (
-          <p className="text-red-500 text-sm">{errors.company}</p>
-        )}
-      </div>
-
-      <Button type="submit" disabled={loading} className="mt-6">
-        {loading ? "Submitting..." : "Submit"}
-      </Button>
-
-      {message && (
-        <p
-          className={`mt-4 text-sm ${
-            message.includes("Error")
-              ? "text-red-500"
-              : "italic text-custom_black"
-          }`}
-        >
-          {message}
-        </p>
-      )}
+      <SingleSubmitButton
+        isLoading={isLoading}
+        error={error}
+        onClick={() => {}}
+        disabled={isLoading}
+      />
+      {message && <p className="mt-4 text-green-500">{message}</p>}
     </form>
   );
 };

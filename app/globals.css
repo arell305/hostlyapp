@@ -73,8 +73,9 @@ body {
   }
 
   main {
-    @apply max-w-3xl mx-auto pt-[220px] pb-8 px-4 md:pb-4;
+    @apply max-w-3xl mx-auto  pb-8 px-4 md:pb-4;
   }
+  /* pt-[220px] pb-8 px-4 md:pb-4 */
 
   h1 {
     @apply text-[28px] font-bold;

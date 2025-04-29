@@ -58,19 +58,19 @@ const Pricing = () => {
 
   return (
     <section className="py-16 px-4 max-w-7xl mx-auto text-center">
-      <h2 className="mb-10 text-3xl md:text-5xl  text-center font-raleway font-bold">
+      <h2 className="mb-10 text-3xl md:text-5xl  text-center  font-bold">
         Pricing{" "}
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {plans.map((plan, index) => (
           <div
             key={index}
-            className="border rounded-2xl shadow p-6 flex flex-col items-center bg-white"
+            className="border rounded-2xl shadow p-6 flex flex-col items-center bg-cardBackground"
           >
-            <h3 className="text-2xl font-bold text-customDarkBlue font-raleway mb-2">
+            <h3 className="text-2xl font-bold text-whiteText  mb-2">
               {plan.name}
             </h3>
-            <span className="text-sm font-medium text-customDarkBlue mb-1">
+            <span className="text-sm font-medium text-whiteText mb-1">
               {plan.badge}
             </span>
 
@@ -83,7 +83,7 @@ const Pricing = () => {
                   "3 Guest List Events",
                 ];
                 return (
-                  <li key={i} className="text-gray-700 pl-5 relative">
+                  <li key={i} className="text-grayText pl-5 relative">
                     <span className="absolute left-0">•</span>
                     <span
                       className={
@@ -100,7 +100,7 @@ const Pricing = () => {
             </ul>
             <button
               onClick={handleClick}
-              className="mt-auto bg-customDarkBlue text-white px-6 py-2 rounded-xl font-semibold hover:bg-black transition"
+              className="mt-auto bg-primaryBlue text-white px-6 py-2 rounded-[20px] font-semibold hover:bg-black transition"
             >
               Get Started
             </button>

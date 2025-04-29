@@ -9,7 +9,7 @@ import {
   CreateGuestListCreditResponse,
 } from "@/types/convex-types";
 import { GUEST_LIST_CREDIT_PRICE } from "@/types/constants";
-import { api, internal } from "./_generated/api";
+import { internal } from "./_generated/api";
 
 export const createGuestListCredit = mutation({
   args: {

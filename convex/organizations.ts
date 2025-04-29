@@ -431,6 +431,17 @@ export const getPublicOrganizationContext = query({
         )
         .first();
 
+      const now = Date.now();
+
+      const events = await ctx.db
+        .query("events")
+        .withIndex("by_organizationId_and_startTime", (q) =>
+          q.eq("organizationId", organization._id)
+        )
+        .filter((q) => q.gt(q.field("endTime"), now))
+        .order("asc")
+        .collect();
+
       return {
         status: ResponseStatus.SUCCESS,
         data: {
@@ -441,6 +452,7 @@ export const getPublicOrganizationContext = query({
             connectedAccountStripeId: connectedAccount?.stripeAccountId,
             isStripeEnabled:
               connectedAccount?.status === StripeAccountStatus.VERIFIED,
+            events,
           },
         },
       };

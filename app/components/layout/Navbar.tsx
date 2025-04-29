@@ -23,12 +23,12 @@ const Navbar: React.FC = () => {
 
   return (
     <nav
-      className={`md:px-8 px-1 bg-white w-full z-20 top-0 start-0 border-b shadow border-gray-200  sticky transition-transform duration-300 ${
+      className={`md:px-8 px-1 bg-cardBackground w-full z-20 top-0 start-0 border-b shadow  sticky transition-transform duration-300 ${
         visible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
       <div className="max-w-screen-xl flex items-center justify-between mx-auto px-2 py-2">
-        <a href="#" className="text-2xl font-bold font-raleway">
+        <a href="#" className="text-2xl font-bold">
           {TITLE}
         </a>
         <div className="flex md:order-2 space-x-3 md:space-x-3 rtl:space-x-reverse">
@@ -44,7 +44,7 @@ const Navbar: React.FC = () => {
               onClick={() => router.push("/sign-in")}
               variant="outline"
               size="navButton"
-              className="text-customDarkBlue rounded-[12px]  text-base font-medium w-[90px] h-[42px]
+              className="text-primaryBlue rounded-[12px] border-primaryBlue  text-base font-medium w-[90px] h-[42px]
 "
             >
               Sign in

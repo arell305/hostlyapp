@@ -51,7 +51,7 @@ const EventPage = () => {
   const ticketInfoData = getEventByIdResponse?.data?.ticketInfo;
   const ticketSoldCounts = getEventByIdResponse?.data?.ticketSoldCounts;
   return (
-    <main className="bg-gray-100 min-h-screen flex  overflow-hidden flex-col items-center">
+    <div>
       <EventsPageNav
         handleNavigateHome={handleBrowseMoreEvents}
         buttonText="Back to Events"
@@ -65,7 +65,7 @@ const EventPage = () => {
         onBrowseMoreEvents={handleBrowseMoreEvents}
         ticketSoldCounts={ticketSoldCounts}
       />
-    </main>
+    </div>
   );
 };
 

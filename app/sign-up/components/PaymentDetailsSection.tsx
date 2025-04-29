@@ -2,6 +2,7 @@ import { CardElement } from "@stripe/react-stripe-js";
 import { FaApple } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
+import { Label } from "@/components/ui/label";
 
 interface PaymentDetailsSectionProps {
   method: "card" | "apple";
@@ -53,17 +54,24 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
 
   return (
     <>
-      <label className="block text-sm font-medium mb-2">Card Details</label>
+      <Label>Card Details</Label>
       <div
-        className={`p-2 border-b-2 mb-6 ${
-          cardError
-            ? "border-red-500"
-            : focused
-              ? "border-blue-500"
-              : "border-gray-300"
+        className={`p-2 border mb-6 mt-1 text-white ${
+          cardError ? "border-red-500" : focused ? "border-primaryBlue" : ""
         }`}
       >
         <CardElement
+          options={{
+            style: {
+              base: {
+                color: "#F9FAFA",
+                fontSize: "16px",
+                "::placeholder": {
+                  color: "#A2A5AD",
+                },
+              },
+            },
+          }}
           onFocus={onFocus}
           onBlur={onBlur}
           onChange={onCardChange}

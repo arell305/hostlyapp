@@ -867,3 +867,18 @@ export interface CreateGuestListCreditSuccess {
 export interface CreateGuestListCreditData {
   guestListCreditId: Id<"guestListCredits">;
 }
+
+export type SendContactFormEmailResponse =
+  | SendContactFormEmailSuccess
+  | ErrorResponse;
+
+export interface SendContactFormEmailSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: SendContactFormEmailData;
+}
+
+export interface SendContactFormEmailData {
+  email: string;
+  name: string;
+  company: string;
+}

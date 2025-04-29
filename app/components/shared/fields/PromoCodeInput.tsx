@@ -34,11 +34,12 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
           onChange={(e) => onChange(e.target.value)}
           className="md:w-[300px]"
           disabled={isLoading || disabled}
+          placeholder="Enter promo code"
         />
         <Button
           onClick={onApply}
           type="button"
-          className="ml-4"
+          className="ml-4 bg-cardBackgroundHover"
           disabled={isLoading || disabled}
         >
           {isLoading ? "Applying..." : "Apply"}

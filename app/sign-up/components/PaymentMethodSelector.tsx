@@ -1,4 +1,6 @@
+import { Label } from "@/components/ui/label";
 import { FaApple, FaCreditCard } from "react-icons/fa";
+import PaymentMethodOption from "./PaymentMethodOption";
 
 interface PaymentMethodSelectorProps {
   selected: "card" | "apple";
@@ -11,30 +13,22 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
 }) => {
   return (
     <>
-      <label className="block text-sm font-medium mb-2">Payment Method</label>
+      <Label className="block text-sm font-medium mb-2">Payment Method</Label>
       <div className="flex space-x-4 mt-2 mb-8">
-        <div
-          onClick={() => onSelect("card")}
-          className={`p-4 border rounded-lg cursor-pointer ${
-            selected === "card"
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-300"
-          }`}
-        >
-          <FaCreditCard className="mb-2" />
-          Card
-        </div>
-        <div
-          onClick={() => onSelect("apple")}
-          className={`p-4 border rounded-lg cursor-pointer ${
-            selected === "apple"
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-300"
-          }`}
-        >
-          <FaApple className="mb-2" />
-          Apple Pay
-        </div>
+        <PaymentMethodOption
+          label="Card"
+          icon={<FaCreditCard />}
+          value="card"
+          selected={selected}
+          onSelect={onSelect}
+        />
+        <PaymentMethodOption
+          label="Apple Pay"
+          icon={<FaApple />}
+          value="apple"
+          selected={selected}
+          onSelect={onSelect}
+        />
       </div>
     </>
   );

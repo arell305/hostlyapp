@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
   const creditsModal = useModal();
 
   return (
-    <footer className="bg- py-10 px-4 border-custom5 bg-customDarkBlue text-white">
+    <footer className=" py-10 px-4 border-t bg-cardBackground ">
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="mb-4 md:mb-0">

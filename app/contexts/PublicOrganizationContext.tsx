@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import type { UserResource } from "@clerk/types";
 import { Id } from "../../convex/_generated/dataModel";
-
+import { EventSchema } from "@/types/schemas-types";
 type PublicOrganizationContextType = {
   name: string;
   photo: Id<"_storage"> | null;
@@ -16,6 +16,7 @@ type PublicOrganizationContextType = {
   publicOrganizationContextError: string | null;
   user?: UserResource | null;
   organizationId?: Id<"organizations">;
+  events: EventSchema[];
 };
 
 const PublicOrganizationContext = createContext<
@@ -49,6 +50,7 @@ export const PublicOrganizationProvider: React.FC<{
         ? response?.error || null
         : null,
     user,
+    events: organizationData?.events || [],
   };
 
   return (
