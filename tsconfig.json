@@ -18,7 +18,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./app/*"]
+      "@/*": ["./app/*"],
+      "@/utils/*": ["./utils/*"],
+      "convex/_generated/*": ["./convex/_generated/*"]
     },
     "target": "ES2017"
   },

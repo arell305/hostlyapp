@@ -4,8 +4,7 @@ import Calendar from "react-calendar";
 import { RiArrowDropLeftLine, RiArrowDropRightLine } from "react-icons/ri";
 import WeekView from "./WeekView";
 import { CalendarValue } from "@/types/types";
-import { formatNarrowWeekday } from "../../../../../../utils/luxon";
-
+import { formatNarrowWeekday } from "@/utils/luxon";
 interface CalendarSwitcherProps {
   isWeekView: boolean;
   date: Date;

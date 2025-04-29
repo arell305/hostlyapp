@@ -1,8 +1,8 @@
 import { useAction } from "convex/react";
 import { useState } from "react";
 import { ResponseStatus } from "@/types/enums"; // Adjust path if needed
-import { Id } from "../../../../convex/_generated/dataModel";
-import { api } from "../../../../convex/_generated/api";
+import { Id } from "convex/_generated/dataModel";
+import { api } from "convex/_generated/api";
 
 type CreateClerkOrgArgs = {
   companyName: string;
