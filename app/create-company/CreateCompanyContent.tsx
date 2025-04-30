@@ -5,16 +5,14 @@ import { IoBusinessOutline } from "react-icons/io5";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import _ from "lodash";
-import { validatePromoDiscount } from "../../utils/frontend-validation";
 import { Id } from "../../convex/_generated/dataModel";
 import { useCompressAndUploadImage } from "./hooks/useCompressAndUploadImage";
 import { useCreateClerkOrganization } from "./hooks/useCreateClerkOrganization";
-import type { ActiveSessionResource } from "@clerk/types";
+import type { SignedInSessionResource } from "@clerk/types";
 import LabeledInputField from "@/components/shared/fields/LabeledInputField";
 import LabelWrapper from "@/components/shared/fields/LabelWrapper";
 import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
 import ImageUploadField from "@/components/shared/fields/ImageUploadField";
-import { FrontendErrorMessages } from "@/types/enums";
 import { validateCompanyForm } from "../../utils/form-validation/validateCreateCompany";
 
 type ErrorState = {
@@ -24,7 +22,7 @@ type ErrorState = {
 
 type CreateCompanyContentProps = {
   setActive: (active: { session: string; organization: string }) => void;
-  session: ActiveSessionResource;
+  session: SignedInSessionResource;
 };
 
 const CreateCompanyContent = ({
