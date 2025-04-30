@@ -18,10 +18,10 @@ const ToggleSectionCard: React.FC<ToggleSectionCardProps> = ({
 }) => {
   return (
     <div
-      className={`max-w-[505px] mt-12 border-b pb-2 mb-6 pt-2 cursor-pointer hover:bg-gray-100 mx-4 ${className}`}
+      className={`max-w-[505px] mt-12 border-b pb-2 mb-6 pt-2 cursor-pointer rounded hover:bg-cardBackgroundHover  ${className}`}
       onClick={onToggle}
     >
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center px-2">
         <h2 className="text-lg">
           {label}
           {subtitle && <span className="text-sm pl-1">{subtitle}</span>}

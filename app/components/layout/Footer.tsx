@@ -74,13 +74,15 @@ const Footer: React.FC = () => {
           </p>
         </div>
       </div>
-      {privacyModal.isOpen && (
-        <PrivacyModal handleClose={privacyModal.closeModal} />
-      )}
-      {termsModal.isOpen && <TermsModal handleClose={termsModal.closeModal} />}
-      {creditsModal.isOpen && (
-        <CreditsModal handleClose={creditsModal.closeModal} />
-      )}
+      <PrivacyModal
+        onClose={privacyModal.closeModal}
+        open={privacyModal.isOpen}
+      />
+      <TermsModal onClose={termsModal.closeModal} open={termsModal.isOpen} />
+      <CreditsModal
+        onClose={creditsModal.closeModal}
+        open={creditsModal.isOpen}
+      />
     </footer>
   );
 };

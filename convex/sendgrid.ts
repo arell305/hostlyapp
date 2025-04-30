@@ -76,35 +76,19 @@ export const sendContactFormEmail = action({
     const emailBody = {
       personalizations: [
         {
-          to: [{ email: process.env.CONTACT_RECEIVER_EMAIL! }],
+          to: [{ email: "tech@hostlyapp.com" }],
+          dynamic_template_data: {
+            name: fromName,
+            email: fromEmail,
+            companyName: fromCompany,
+          },
         },
       ],
       from: {
-        email: process.env.CONTACT_RECEIVER_EMAIL!, // Must be verified
+        email: "tech@hostlyapp.com",
         name: "Hostly Contact Form",
       },
-      subject: `New Form Submission: ${fromName}`,
-      content: [
-        {
-          type: "text/plain",
-          value: `
-You received a new form submission.
-
-From: ${fromName} <${fromEmail}>
-Company: ${fromCompany}
-          `,
-        },
-        {
-          type: "text/html",
-          value: `
-            <div style="font-family: sans-serif; font-size: 16px; line-height: 1.5;">
-              <h2>New Form Submission</h2>
-              <p><strong>From:</strong> ${fromName} (${fromEmail})</p>
-              <p><strong>Company:</strong> ${fromCompany}</p>
-            </div>
-          `,
-        },
-      ],
+      template_id: "d-bd80672b4c21431c87c3997940542dbb",
     };
 
     try {
@@ -116,8 +100,10 @@ Company: ${fromCompany}
         },
         body: JSON.stringify(emailBody),
       });
-
+      console.error("SendGrid response:", response);
+      const errorBody = await response.text();
       if (!response.ok) {
+        console.error("SendGrid response body:", errorBody);
         throw new Error(
           `Failed to send contact form email: ${response.statusText}`
         );
@@ -125,7 +111,11 @@ Company: ${fromCompany}
 
       return {
         status: ResponseStatus.SUCCESS,
-        data: { email: fromEmail, name: fromName, company: fromCompany },
+        data: {
+          email: fromEmail,
+          name: fromName,
+          company: fromCompany,
+        },
       };
     } catch (error: any) {
       console.error("Error sending contact form email:", error);

@@ -22,6 +22,7 @@ export const useSendContactForm = () => {
     setError(null);
 
     try {
+      console.log("sending email", fromEmail, fromName, fromCompany);
       const result = await sendEmail({ fromEmail, fromName, fromCompany });
 
       if (result.status === ResponseStatus.SUCCESS) {

@@ -24,7 +24,7 @@ export const DESKTOP_WIDTH = "(min-width: 768px)";
 
 export const UPDATED_DATE = "March 13, 2025";
 export const EFFECTIVE_DATE = "March 13, 2025";
-export const CONTACT_EMAIL = "hostlycustomerservice@gmail.com";
+export const CONTACT_EMAIL = "support@hostlyapp.com";
 export const CONTACT_PHONE = "702-613-8800";
 export const COMPANY_NAME = "Hostly";
 

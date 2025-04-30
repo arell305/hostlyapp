@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { TITLE } from "../../types/constants";
-import { SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignOutButton, useAuth } from "@clerk/nextjs";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 
 const Navbar: React.FC = () => {
   const router = useRouter();
+  const { isLoaded } = useAuth();
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   const [visible, setVisible] = useState(true);
 
@@ -23,7 +24,7 @@ const Navbar: React.FC = () => {
 
   return (
     <nav
-      className={`md:px-8 px-1 bg-cardBackground w-full z-20 top-0 start-0 border-b shadow  sticky transition-transform duration-300 ${
+      className={`md:px-8 px-1 bg-cardBackground w-full z-20 top-0 start-0 border-b shadow sticky transition-transform duration-300 ${
         visible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
@@ -32,27 +33,32 @@ const Navbar: React.FC = () => {
           {TITLE}
         </a>
         <div className="flex md:order-2 space-x-3 md:space-x-3 rtl:space-x-reverse">
-          <SignedOut>
-            <Button
-              type="button"
-              size="navButton"
-              onClick={() => router.push("/sign-up")}
-            >
-              Sign up
-            </Button>
-            <Button
-              onClick={() => router.push("/sign-in")}
-              variant="outline"
-              size="navButton"
-              className="text-primaryBlue rounded-[12px] border-primaryBlue  text-base font-medium w-[90px] h-[42px]
-"
-            >
-              Sign in
-            </Button>
-          </SignedOut>
-          <SignedIn>
-            <SignOutButton />
-          </SignedIn>
+          {!isLoaded ? (
+            <div className="w-[180px] h-[42px] bg-gray-700 animate-pulse rounded-lg" />
+          ) : (
+            <>
+              <SignedOut>
+                <Button
+                  type="button"
+                  size="navButton"
+                  onClick={() => router.push("/sign-up")}
+                >
+                  Sign up
+                </Button>
+                <Button
+                  onClick={() => router.push("/sign-in")}
+                  variant="outline"
+                  size="navButton"
+                  className="text-primaryBlue rounded-[12px] border-primaryBlue text-base font-medium w-[90px] h-[42px]"
+                >
+                  Sign in
+                </Button>
+              </SignedOut>
+              <SignedIn>
+                <SignOutButton />
+              </SignedIn>
+            </>
+          )}
         </div>
       </div>
     </nav>

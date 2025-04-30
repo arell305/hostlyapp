@@ -48,6 +48,7 @@ const ContactForm: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("formData", formData);
     const errors = validateForm();
     setErrors(errors);
     if (Object.keys(errors).length === 0) {
