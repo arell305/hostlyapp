@@ -33,9 +33,10 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ open, onClose }) => {
               <strong>Effective Date:</strong> {UPDATED_DATE}
             </p>
             <p>
-              <strong>{TITLE}</strong> ("us", "we", or "our") values your
-              privacy. This policy outlines how we collect, use, and protect
-              your personal information when you use our website.
+              <strong>{TITLE}</strong> (&quot;us&quot;, &quot;we&quot;, or
+              &quot;our&quot;) values your privacy. This policy outlines how we
+              collect, use, and protect your personal information when you use
+              our website.
             </p>
             <p>
               We may collect personal data such as your email address, name,
