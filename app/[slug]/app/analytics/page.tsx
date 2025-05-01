@@ -3,10 +3,13 @@ import React from "react";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import ErrorComponent from "../components/errors/ErrorComponent";
 import AnalyticsContent from "./AnalyticsContent";
+import { useUser } from "@clerk/nextjs";
+import { isAnalyticsUser, isPromoter } from "@/utils/permissions";
 
 const AnalyticsPage = () => {
   const { organization, organizationContextError, subscription } =
     useContextOrganization();
+  const { user } = useUser();
 
   if (organizationContextError) {
     return <ErrorComponent message={organizationContextError} />;
@@ -20,10 +23,16 @@ const AnalyticsPage = () => {
     return <ErrorComponent message="No organization found" />;
   }
 
+  const orgRole = user?.publicMetadata.role as string;
+  const canViewPromoter = isPromoter(orgRole);
+  const canViewCompanyAnalytics = isAnalyticsUser(orgRole);
+
   return (
     <AnalyticsContent
       subscription={subscription}
       organizationId={organization._id}
+      canViewPromoter={canViewPromoter}
+      canViewCompanyAnalytics={canViewCompanyAnalytics}
     />
   );
 };

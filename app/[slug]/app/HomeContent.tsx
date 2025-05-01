@@ -106,11 +106,10 @@ const HomeContent: React.FC<HomeContentProps> = ({
         }
       />
       {showStripeNotification && (
-        <div className="p-1 md:pb-2">
+        <div className=" md:mb-4">
           <Notification
             title="Stripe Required"
             description="Please integrate Stripe to accept payments."
-            variant="customDarkBlue"
             route="stripe"
           />
         </div>

@@ -4,6 +4,7 @@ import { TITLE } from "../../types/constants";
 import { SignedIn, SignedOut, SignOutButton, useAuth } from "@clerk/nextjs";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
+import Logo from "../shared/Logo";
 
 const Navbar: React.FC = () => {
   const router = useRouter();
@@ -28,10 +29,8 @@ const Navbar: React.FC = () => {
         visible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      <div className="max-w-screen-xl flex items-center justify-between mx-auto px-2 py-2">
-        <a href="#" className="text-2xl font-bold">
-          {TITLE}
-        </a>
+      <div className="max-w-screen-xl flex items-center justify-between mx-auto px-2 h-14">
+        <Logo />
         <div className="flex md:order-2 space-x-3 md:space-x-3 rtl:space-x-reverse">
           {!isLoaded ? (
             <div className="w-[180px] h-[42px] bg-gray-700 animate-pulse rounded-lg" />

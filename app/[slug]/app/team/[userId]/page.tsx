@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { QueryState } from "@/types/enums";
 import UserIdContent from "./UserIdContent";
-import { useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import FullLoading from "../../components/loading/FullLoading";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { handleQueryState } from "../../../../../utils/handleQueryState";
@@ -13,7 +13,7 @@ const UserPage = () => {
   const params = useParams();
   const userId = params.userId as Id<"users">;
 
-  const { orgRole } = useAuth();
+  const { user } = useUser();
   const userFromDb = useQuery(
     api.users.findUserById,
     userId ? { userId } : "skip"
@@ -25,14 +25,15 @@ const UserPage = () => {
     return result.element;
   }
 
-  if (!orgRole) {
+  if (!user) {
     return <FullLoading />;
   }
 
+  const orgRole = user?.publicMetadata.role as string;
   const canEditUsers = isManager(orgRole);
-  const user = result.data.user;
+  const userData = result.data.user;
 
-  return <UserIdContent userData={user} canEditUsers={canEditUsers} />;
+  return <UserIdContent userData={userData} canEditUsers={canEditUsers} />;
 };
 
 export default UserPage;

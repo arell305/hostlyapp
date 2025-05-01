@@ -106,23 +106,26 @@ import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Protect, useAuth, useUser } from "@clerk/nextjs";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
-import { ClerkPermissions } from "@/types/enums";
 import Sidebar from "./components/shared/nav/Sidebar";
 import Navbar from "./components/shared/nav/Navbar1";
 import TicketScannerFAB from "./components/ui/TicketScannerFAB";
 import FullLoading from "./components/loading/FullLoading";
+import { isModerator } from "@/utils/permissions";
 
 const CompanyLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { slug } = useParams();
   const cleanSlug = typeof slug === "string" ? slug.split("?")[0] : "";
-  const { orgRole } = useAuth();
 
-  if (!slug || !orgRole) {
+  const { user } = useUser();
+  if (!slug || !user) {
     return <FullLoading />;
   }
 
+  const orgRole = user.publicMetadata.role as string;
+  const canCheckInTickets = isModerator(orgRole);
+  console.log("canCheckInTickets", user.publicMetadata);
   return (
     <div className="flex min-h-screen">
       <Sidebar slug={cleanSlug} orgRole={orgRole} />
@@ -131,13 +134,7 @@ const CompanyLayout: React.FC<{ children: React.ReactNode }> = ({
         <main className="pt-[72px]">
           <OrganizationProvider>
             {children}
-            <Protect
-              condition={(has) =>
-                has({ permission: ClerkPermissions.CHECK_GUESTS })
-              }
-            >
-              <TicketScannerFAB />
-            </Protect>
+            {canCheckInTickets && <TicketScannerFAB />}
           </OrganizationProvider>
         </main>
       </div>

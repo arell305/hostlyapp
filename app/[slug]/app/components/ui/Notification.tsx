@@ -30,7 +30,9 @@ export function Notification({
       variant={variant}
       onClick={handleClick}
       className={
-        route ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""
+        route
+          ? "cursor-pointer hover:bg-cardBackgroundHover transition-colors"
+          : ""
       }
     >
       <AlertTitle className="flex gap-1">

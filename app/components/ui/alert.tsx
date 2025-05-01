@@ -9,7 +9,7 @@ const alertVariants = cva(
     variants: {
       variant: {
         customDarkBlue: "border-customDarkBlue text-foreground",
-        default: "bg-background text-foreground",
+        default: "bg-cardBackground text-grayText",
         destructive:
           "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
       },
@@ -30,7 +30,7 @@ const Alert = React.forwardRef<
     className={cn(
       alertVariants({ variant }),
       className,
-      onClick && "cursor-pointer hover:bg-gray-50 transition-colors"
+      onClick && "cursor-pointer hover:bg-cardBackgroundHover transition-colors"
     )}
     onClick={onClick}
     {...props}
@@ -44,7 +44,10 @@ const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    className={cn(
+      "mb-1 font-medium leading-none tracking-tight text-whiteText",
+      className
+    )}
     {...props}
   />
 ));

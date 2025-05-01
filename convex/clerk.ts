@@ -58,7 +58,6 @@ export const fulfill = internalAction({
   handler: async (ctx, args): Promise<WebhookResponse> => {
     try {
       const payload = await verifyClerkWebhook(args.payload, args.headers);
-      console.log("payload", payload);
       switch (payload.type) {
         case "user.created":
           await handleUserCreated(ctx, payload.data);
@@ -98,7 +97,7 @@ export const getPendingInvitationList = action({
       const users: PendingInvitationUser[] = data.map((invitation) => ({
         clerkInvitationId: invitation.id,
         email: invitation.emailAddress,
-        role: invitation.role,
+        role: invitation.publicMetadata.role as UserRole,
       }));
       return {
         status: ResponseStatus.SUCCESS,

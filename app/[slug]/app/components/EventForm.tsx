@@ -51,6 +51,8 @@ interface EventFormProps {
   isUpdateEventLoading?: boolean;
   subscription: SubscriptionSchema;
   organizationId?: Id<"organizations">;
+  isSubmitLoading?: boolean;
+  submitError?: string | null;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -65,6 +67,8 @@ const EventForm: React.FC<EventFormProps> = ({
   isUpdateEventLoading,
   subscription,
   organizationId,
+  isSubmitLoading,
+  submitError,
 }) => {
   // Text fields
   const [eventName, setEventName] = useState(initialEventData?.name || "");
@@ -547,10 +551,10 @@ const EventForm: React.FC<EventFormProps> = ({
         )}
         <EventFormActions
           isEdit={isEdit}
-          isLoading={isLoading}
+          isLoading={isSubmitLoading ? isSubmitLoading && isLoading : isLoading}
           isUpdateLoading={isUpdateEventLoading}
           isDeleteLoading={isDeleteLoading}
-          saveError={saveEventError}
+          saveError={submitError || saveEventError}
           deleteError={deleteError}
           onCancel={() => onCancelEdit?.()}
           onDelete={handleDeleteEvent}

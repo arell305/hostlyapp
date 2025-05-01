@@ -65,6 +65,16 @@ body {
     --chart-5: 340 75% 55%;
   }
 }
+/* Chrome, Safari */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* Inverts black icon to white */
+  opacity: 0.8;
+}
+
+/* Firefox */
+input[type="datetime-local"]::-moz-focus-inner {
+  color: white;
+}
 
 @layer base {
   html,

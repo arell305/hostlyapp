@@ -19,7 +19,8 @@ import {
   isHostlyUser,
   isManager,
 } from "../../../../../../utils/permissions";
-
+import Image from "next/image";
+import Logo from "@/components/shared/Logo";
 type SidebarContentProps = {
   onNavigate?: () => void;
   slug: string;
@@ -43,8 +44,8 @@ const SidebarContent = ({ onNavigate, slug, orgRole }: SidebarContentProps) => {
   return (
     <nav className="flex flex-col  bg-cardBackground  h-screen ">
       {/* Static buttons */}
-      <div className="h-14 flex items-center border-b pl-8">
-        <p>Hostly</p>
+      <div className="h-14 flex items-center border-b">
+        <Logo />
       </div>
 
       <div className="flex flex-col gap-2 md:gap-0 px-4 mt-2">

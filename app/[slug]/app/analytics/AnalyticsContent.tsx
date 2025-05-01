@@ -18,9 +18,13 @@ import { DateRange } from "react-day-picker";
 const AnalyticsContent = ({
   subscription,
   organizationId,
+  canViewPromoter,
+  canViewCompanyAnalytics,
 }: {
   subscription: SubscriptionSchema;
   organizationId: Id<"organizations">;
+  canViewPromoter: boolean;
+  canViewCompanyAnalytics: boolean;
 }) => {
   const { subscriptionTier } = subscription;
   const hasGuestListAccess =

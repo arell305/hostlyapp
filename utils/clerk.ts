@@ -1,4 +1,4 @@
-import { ErrorMessages } from "@/types/enums";
+import { ErrorMessages, UserRole } from "@/types/enums";
 import {
   Invitation,
   OrganizationInvitation,
@@ -24,6 +24,9 @@ export async function sendClerkInvitation(email: string): Promise<Invitation> {
       emailAddress: email,
       ignoreExisting: true,
       redirectUrl,
+      publicMetadata: {
+        role: UserRole.Admin,
+      },
     });
 
     return invitation;
@@ -139,7 +142,6 @@ export async function clerkInviteUserToOrganization(
   email: string,
   role: string
 ): Promise<OrganizationInvitation> {
-  console.log("role", role);
   try {
     const response = await fetch(
       `https://api.clerk.com/v1/organizations/${clerkOrgId}/invitations`,
@@ -151,11 +153,13 @@ export async function clerkInviteUserToOrganization(
         },
         body: JSON.stringify({
           email_address: email,
-          role,
+          role: "org:member",
+          public_metadata: {
+            role,
+          },
         }),
       }
     );
-
     if (!response.ok) {
       throw new Error(`Failed to create invitation: ${await response.text()}`);
     }
@@ -213,5 +217,26 @@ export async function updateOrganizationMembershipHelper(
       error
     );
     throw new Error(ErrorMessages.CLERK_ORGANIZATION_UPDATE_MEMBERSHIP_ERROR);
+  }
+}
+
+export async function updateClerkUserPublicMetadata(
+  userId: string,
+  newMetadata: Record<string, any>
+): Promise<void> {
+  try {
+    const user = await clerkClient.users.getUser(userId);
+    const currentMetadata = user.publicMetadata || {};
+    const mergedMetadata = { ...currentMetadata, ...newMetadata };
+
+    await clerkClient.users.updateUser(userId, {
+      publicMetadata: mergedMetadata,
+    });
+  } catch (error) {
+    console.error(
+      `Failed to update public metadata for user ${userId}:`,
+      error
+    );
+    throw new Error(ErrorMessages.CLERK_USER_METADATA_UPDATE_ERROR);
   }
 }

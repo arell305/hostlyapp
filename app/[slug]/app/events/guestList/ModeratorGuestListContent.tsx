@@ -1,17 +1,11 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
-import { Id } from "../../../../../convex/_generated/dataModel";
 import { GetEventWithGuestListsData } from "@/types/convex-types";
 import useMediaQuery from "@/hooks/useMediaQuery";
-import { formatToTimeAndShortDate } from "../../../../../utils/luxon";
 import { GuestWithPromoter } from "@/types/types";
 import { useUpdateGuestAttendance } from "../hooks/useUpdateGuestAttendance";
-import {
-  filterGuestsByName,
-  getTotalFemales,
-  getTotalMales,
-} from "../../../../../utils/format";
+import { filterGuestsByName } from "../../../../../utils/format";
 import SearchInput from "../components/SearchInput";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import GuestListContainer from "./GuestListContainer";

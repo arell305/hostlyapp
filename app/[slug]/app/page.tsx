@@ -1,5 +1,5 @@
 "use client";
-import { useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import FullLoading from "./components/loading/FullLoading";
 import ErrorComponent from "./components/errors/ErrorComponent";
 import { SubscriptionTier } from "@/types/enums";
@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 
 const HomePage: React.FC = () => {
-  const { orgRole } = useAuth();
+  const { user } = useUser();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -22,10 +22,10 @@ const HomePage: React.FC = () => {
   } = useContextOrganization();
 
   if (
-    !subscription ||
-    !organization ||
+    subscription === undefined ||
+    organization === undefined ||
     connectedAccountEnabled === undefined ||
-    !orgRole
+    !user
   ) {
     return <FullLoading />;
   }
@@ -38,7 +38,9 @@ const HomePage: React.FC = () => {
     router.push(`${pathname}/add-event`);
   };
 
+  const orgRole = user?.publicMetadata.role as string;
   const canCreateEvents = canCreateEvent(orgRole);
+
   const showStripeNotification = !connectedAccountEnabled && canCreateEvents;
   const showPlusTierData =
     subscription.subscriptionTier === SubscriptionTier.PLUS && canCreateEvents;

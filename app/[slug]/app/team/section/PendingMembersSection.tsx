@@ -12,10 +12,12 @@ import { useRevokeInvitation } from "../hooks/useRevokeInvitation";
 
 interface PendingMembersSectionProps {
   organization: OrganizationSchema;
+  canManageTeam: boolean;
 }
 
 const PendingMembersSection = ({
   organization,
+  canManageTeam,
 }: PendingMembersSectionProps) => {
   const [pendingUsers, setPendingUsers] = useState<PendingInvitationUser[]>([]);
   const [loadingMembers, setLoadingMembers] = useState<boolean>(false);
@@ -109,6 +111,7 @@ const PendingMembersSection = ({
             key={user.clerkInvitationId}
             user={user}
             onRevoke={handleShowRevokeConfirmation}
+            canManageTeam={canManageTeam}
           />
         ))}
       </CustomCard>

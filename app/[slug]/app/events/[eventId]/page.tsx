@@ -1,5 +1,5 @@
 "use client";
-import { useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "../../../../../convex/_generated/api";
@@ -7,12 +7,13 @@ import EventIdContent from "./EventIdContent";
 import FullLoading from "../../components/loading/FullLoading";
 import ErrorComponent from "../../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
-import { ClerkPermissions, ResponseStatus } from "@/types/enums";
+import { ResponseStatus } from "@/types/enums";
 import EventDeleted from "../components/EventDeleted";
 import { GetEventWithGuestListsData } from "@/types/convex-types";
+import { isModerator, isPromoter } from "@/utils/permissions";
 
 export default function EventPageWrapper() {
-  const { has } = useAuth();
+  const { user } = useUser();
   const params = useParams();
   const router = useRouter();
   const eventId = params.eventId as string;
@@ -55,7 +56,7 @@ export default function EventPageWrapper() {
     !organization ||
     !subscription ||
     connectedAccountEnabled === undefined ||
-    !has ||
+    !user ||
     responseTickets === undefined ||
     responseGuestList === undefined
   ) {
@@ -78,15 +79,13 @@ export default function EventPageWrapper() {
     return <ErrorComponent message={organizationContextError} />;
   }
 
+  const orgRole = user?.publicMetadata.role as string;
+  const canCheckInGuests = isModerator(orgRole);
+  const canUploadGuest = isPromoter(orgRole);
+
   const data = getEventByIdResponse.data;
   const tickets = responseTickets.data?.tickets;
   const guestListData: GetEventWithGuestListsData = responseGuestList.data;
-  const canCheckInGuests: boolean = has({
-    permission: ClerkPermissions.CHECK_GUESTS,
-  });
-  const canUploadGuest: boolean = has({
-    permission: ClerkPermissions.UPLOAD_GUESTLIST,
-  });
 
   if (!data.event.isActive) {
     return <EventDeleted onBack={handleNavigateHome} />;

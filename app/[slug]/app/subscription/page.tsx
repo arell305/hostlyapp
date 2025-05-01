@@ -1,5 +1,5 @@
 "use client";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import React, { useEffect, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
@@ -12,7 +12,7 @@ import SubscriptionContent from "./SubscriptionContent";
 import { isAdmin } from "../../../../utils/permissions";
 
 const SubscriptionPage = () => {
-  const { orgRole } = useAuth();
+  const { user } = useUser();
 
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -39,7 +39,7 @@ const SubscriptionPage = () => {
     !subscription ||
     !organization ||
     !customerDetails ||
-    !orgRole
+    !user
   ) {
     return <FullLoading />;
   }
@@ -52,6 +52,7 @@ const SubscriptionPage = () => {
     return <ErrorComponent message={customerDetails.error} />;
   }
   const customer: CustomerSchema = customerDetails.data?.customer;
+  const orgRole = user?.publicMetadata.role as string;
   const canEditSettings = isAdmin(orgRole);
 
   return (

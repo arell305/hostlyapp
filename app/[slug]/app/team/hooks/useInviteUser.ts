@@ -38,5 +38,5 @@ export const useInviteUser = () => {
     }
   };
 
-  return { inviteUser, isLoading, error };
+  return { inviteUser, isLoading, error, setError };
 };

@@ -37,8 +37,8 @@ const AddEventContent: React.FC<{
       ticketData,
       guestListData
     );
-    if (result) {
-      router.push(`/${organization.slug}/app/events`);
+    if (result.success) {
+      router.push(`/${organization.slug}/app/events/${result.eventId}`);
     }
   };
 
@@ -68,11 +68,10 @@ const AddEventContent: React.FC<{
       />
 
       {!connectedAccountEnabled && (
-        <div className="p-1">
+        <div className="">
           <Notification
             title="Stripe Required"
             description="Please integrate Stripe to create ticket events."
-            variant="customDarkBlue"
             route="stripe"
           />
         </div>
@@ -86,6 +85,8 @@ const AddEventContent: React.FC<{
         saveEventError={error}
         subscription={subscription}
         organizationId={organization._id}
+        isSubmitLoading={isLoading}
+        submitError={error}
       />
       <ResponsiveConfirm
         isOpen={showCancelConfirmModal}

@@ -30,7 +30,7 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       <Label className="font-bold font-playfair text-xl mb-2" htmlFor={id}>
         {label}
       </Label>
-      <p className="text-sm text-gray-600">{note}</p>
+      <p className="text-sm text-grayText">{note}</p>
       <div className="relative w-64 h-64 mt-2">
         {imageUrl ? (
           <>
@@ -50,7 +50,7 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-3 w-3 text-gray-600"
+                className="h-3 w-3 text-grayText"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -71,11 +71,11 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
               onChange={onChange}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
-            <div className="w-full h-full border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center transition-colors duration-200 group-hover:bg-gray-100">
+            <div className="w-full h-full border-2 border-dashed  rounded-md flex items-center justify-center transition-colors duration-200 group-hover:bg-cardBackgroundHover">
               {isUploading ? (
                 <Loading />
               ) : (
-                <RiImageAddFill className="text-4xl text-gray-500" />
+                <RiImageAddFill className="text-4xl text-grayText" />
               )}
             </div>
             <p

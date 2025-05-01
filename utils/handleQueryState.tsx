@@ -6,6 +6,8 @@ import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
 import { Skeleton } from "@/components/ui/skeleton";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import { UserResource } from "@clerk/types";
+import MessagePage from "@/components/shared/shared-page/MessagePage";
+import router from "next/router";
 
 export interface QuerySuccess<T> {
   status: ResponseStatus.SUCCESS;
@@ -44,9 +46,14 @@ export function handleQueryState<T>(
     return {
       type: QueryState.Error,
       element: (
-        <div className="flex items-center justify-center min-h-screen">
-          <ErrorComponent message={queryResult.error || "An error occurred."} />
-        </div>
+        <MessagePage
+          title="Error"
+          description={queryResult.error || "An error occurred."}
+          buttonLabel="Go to Home"
+          onButtonClick={() => {
+            router.push("/");
+          }}
+        />
       ),
     };
   }

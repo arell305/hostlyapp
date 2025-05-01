@@ -9,7 +9,7 @@ export const canCreateEvent = (role?: string): boolean => {
   );
 };
 
-export const canCheckInGuests = (role?: string): boolean => {
+export const isModerator = (role?: string): boolean => {
   return role === UserRole.Moderator;
 };
 
@@ -43,6 +43,11 @@ export const isAnalyticsUser = (role?: string): boolean => {
     role === UserRole.Admin ||
     role === UserRole.Manager ||
     role === UserRole.Hostly_Admin ||
+    role === UserRole.Hostly_Moderator ||
     role === UserRole.Promoter
   );
+};
+
+export const isPromoter = (role?: string): boolean => {
+  return role === UserRole.Promoter;
 };

@@ -4,6 +4,12 @@ import type { NextFetchEvent } from "next/server";
 import { api } from "./convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
 import { UserRole } from "@/types/enums";
+import {
+  isAdmin,
+  isAdminOrHostlyAdmin,
+  isHostlyUser,
+  isManager,
+} from "./utils/permissions";
 
 const isProtectedRoute = createRouteMatcher(["/create-company"]);
 const isHostlyAdminProtected = createRouteMatcher(["/admin/app/companies"]);
@@ -30,6 +36,9 @@ export default clerkMiddleware(
       process.env.NEXT_PUBLIC_CONVEX_URL || ""
     );
 
+    const { userId, sessionClaims, orgId } = await auth();
+    const userRole = sessionClaims?.userRole;
+
     if (path.startsWith("/favicon_io")) {
       return NextResponse.next();
     }
@@ -39,45 +48,34 @@ export default clerkMiddleware(
     }
 
     if (isStripeRoute(req)) {
-      await auth.protect((has) => {
-        return has({ role: UserRole.Admin });
-      });
+      const preventAccess = !isAdmin(userRole);
+      if (preventAccess) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
     }
 
     if (isHostlyAdminProtected(req)) {
-      await auth.protect((has) => {
-        return (
-          has({ role: UserRole.Hostly_Admin }) ||
-          has({ role: UserRole.Hostly_Moderator })
-        );
-      });
+      const preventAccess = !isHostlyUser(userRole);
+      if (preventAccess) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
     }
 
     if (isAddEventRoute(req)) {
-      await auth.protect((has) => {
-        return (
-          has({ role: UserRole.Admin }) ||
-          has({ role: UserRole.Manager }) ||
-          has({ role: UserRole.Hostly_Admin }) ||
-          has({ role: UserRole.Hostly_Moderator })
-        );
-      });
+      const preventAccess = !isManager(userRole);
+      if (preventAccess) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
     }
 
     if (isSubscriptionRoute(req)) {
-      await auth.protect((has) => {
-        return (
-          has({ role: UserRole.Admin }) ||
-          has({ role: UserRole.Hostly_Admin }) ||
-          has({ role: UserRole.Hostly_Moderator })
-        );
-      });
+      const preventAccess = !isAdminOrHostlyAdmin(userRole);
+      if (preventAccess) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
     }
 
     if (path === "/") {
-      const { userId, orgId } = await auth();
-
-      // user creates a company if they don't belong to org
       if (userId && !orgId) {
         return NextResponse.redirect(new URL("/create-company", req.url));
       }
@@ -114,7 +112,6 @@ export default clerkMiddleware(
     }
 
     if (isProtectedRoute(req)) {
-      const { userId } = await auth();
       if (!userId) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
       }
@@ -125,8 +122,6 @@ export default clerkMiddleware(
       const slug = match ? match[1] : null;
 
       if (!slug) return NextResponse.next();
-
-      const { userId, orgId } = await auth();
 
       if (!userId) {
         return NextResponse.redirect(new URL("/sign-in", req.url));

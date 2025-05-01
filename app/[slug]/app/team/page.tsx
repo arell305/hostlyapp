@@ -1,18 +1,24 @@
 "use client";
-import { useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import TeamContent from "./TeamContent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import FullLoading from "../components/loading/FullLoading";
+import { isManager } from "@/utils/permissions";
 
 const TeamPage = () => {
-  const { orgRole } = useAuth();
+  const { user } = useUser();
   const { organization } = useContextOrganization();
 
-  if (!orgRole || !organization) {
+  if (!user || !organization) {
     return <FullLoading />;
   }
 
-  return <TeamContent orgRole={orgRole} organization={organization} />;
+  const orgRole = user?.publicMetadata.role as string;
+  const canManageTeam = isManager(orgRole);
+
+  return (
+    <TeamContent canManageTeam={canManageTeam} organization={organization} />
+  );
 };
 
 export default TeamPage;

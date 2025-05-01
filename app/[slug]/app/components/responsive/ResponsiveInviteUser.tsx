@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
-import { PendingInvitationUser } from "@/types/types";
 import { DESKTOP_WIDTH } from "@/types/constants";
 import { changeableRoles, roleMap, UserRole } from "@/types/enums";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -16,20 +15,18 @@ interface ResponsiveInviteUserProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   clerkOrganizationId: string;
-  onInviteSuccess: (newPendingUser: PendingInvitationUser) => void;
-  isHostlyAdmin: boolean;
+  canManageTeam: boolean;
 }
 
 const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
   isOpen,
   onOpenChange,
   clerkOrganizationId,
-  onInviteSuccess,
-  isHostlyAdmin,
+  canManageTeam,
 }) => {
   const [inviteEmail, setInviteEmail] = useState<string>("");
   const [inviteRole, setInviteRole] = useState<UserRole>(
-    isHostlyAdmin ? UserRole.Hostly_Moderator : UserRole.Promoter
+    canManageTeam ? UserRole.Hostly_Moderator : UserRole.Promoter
   );
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   const [formErrors, setFormErrors] = useState<{
@@ -37,7 +34,7 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
     role?: string;
   }>({});
 
-  const { inviteUser, isLoading, error } = useInviteUser();
+  const { inviteUser, isLoading, error, setError } = useInviteUser();
 
   useEffect(() => {
     if (!isDesktop) {
@@ -49,9 +46,10 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
   }, [isOpen, isDesktop]);
 
   const resetState = () => {
+    setError(null);
     setInviteEmail("");
     setInviteRole(
-      isHostlyAdmin ? UserRole.Hostly_Moderator : UserRole.Promoter
+      canManageTeam ? UserRole.Hostly_Moderator : UserRole.Promoter
     );
   };
 
@@ -102,7 +100,7 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
           setInviteRole(value as UserRole);
           setFormErrors((prev) => ({ ...prev, role: undefined }));
         }}
-        options={(isHostlyAdmin
+        options={(!canManageTeam
           ? [UserRole.Hostly_Moderator]
           : changeableRoles
         ).map((role) => ({

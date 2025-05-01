@@ -7,6 +7,7 @@ import {
 import { GenericActionCtx } from "convex/server";
 import { Webhook } from "svix";
 import { internal } from "../_generated/api";
+import { updateClerkUserPublicMetadata } from "@/utils/clerk";
 
 export async function verifyClerkWebhook(
   payload: string,
@@ -50,7 +51,6 @@ export const handleUserCreated = async (
       });
       return;
     }
-
     // Else create a new user
     await ctx.runMutation(internal.users.createUser, {
       email: data.email_addresses[0]?.email_address,
@@ -74,11 +74,21 @@ export const handleOrganizationInvitationAccepted = async (
       internal.organizations.internalGetOrganizationByClerkId,
       { clerkOrganizationId: data.organization_id }
     );
+    const user = await ctx.runQuery(internal.users.findUserByEmail, {
+      email: data.email_address,
+    });
+
+    if (!user?.clerkUserId) {
+      throw new Error(ErrorMessages.CLERK_USER_NOT_FOUND);
+    }
 
     await ctx.runMutation(internal.users.updateUserByEmail, {
       email: data.email_address,
-      role: data.role as UserRole,
+      role: data.public_metadata.role as UserRole,
       organizationId: organization._id,
+    });
+    await updateClerkUserPublicMetadata(user?.clerkUserId, {
+      role: data.public_metadata.role,
     });
   } catch (err) {
     console.error("Error handling organizationInvitation.accepted:", err);

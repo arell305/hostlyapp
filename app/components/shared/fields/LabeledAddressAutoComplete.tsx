@@ -70,17 +70,25 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
               whiteSpace: "nowrap", // <-- important
               textOverflow: "ellipsis",
             }),
+            noOptionsMessage: (provided) => ({
+              ...provided,
+              backgroundColor: "#0F0F13", // match dropdown background
+              color: "#9CA3AF", // gray-400 text color
+              padding: "8px 12px",
+            }),
             dropdownIndicator: (provided) => ({ ...provided, display: "none" }),
             menu: (provided) => ({
               ...provided,
+              backgroundColor: "#0F0F13", // dark background for menu dropdown
+              border: "none", // remove white border if any
+              boxShadow: "none", // optional: remove default shadow
               zIndex: 9999,
-              position: "absolute",
             }),
             menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
             option: (provided, state) => ({
               ...provided,
               backgroundColor: state.isFocused
-                ? "" // <-- background when hovering (example dark gray)
+                ? "#1f2937" // <-- background when hovering (example dark gray)
                 : "#0F0F13", // <-- normal background
               color: "#F9FAFA", // <-- text color
               paddingLeft: "10px",

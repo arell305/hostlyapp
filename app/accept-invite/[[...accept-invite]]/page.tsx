@@ -3,7 +3,7 @@ import { SignUp } from "@clerk/nextjs";
 
 const AcceptInvitePage = () => {
   return (
-    <StaticPageContainer>
+    <StaticPageContainer className="h-100dvh">
       <SignUp />
     </StaticPageContainer>
   );

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { UserButton } from "@clerk/nextjs";
+import { useOrganization, UserButton, useUser } from "@clerk/nextjs";
 import { IoBusinessOutline } from "react-icons/io5";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -23,12 +23,18 @@ type ErrorState = {
 type CreateCompanyContentProps = {
   setActive: (active: { session: string; organization: string }) => void;
   session: SignedInSessionResource;
+  navigateToApp: (slug: string) => void;
 };
 
 const CreateCompanyContent = ({
   setActive,
   session,
+  navigateToApp,
 }: CreateCompanyContentProps) => {
+  const { user } = useUser();
+  const { organization } = useOrganization();
+  console.log("organization", organization);
+  console.log("user", user?.publicMetadata);
   const [companyName, setCompanyName] = useState<string>("");
   const [promoDiscountAmount, setPromoDiscountAmount] = useState<string>("");
 
@@ -95,10 +101,12 @@ const CreateCompanyContent = ({
         session: session.id,
         organization: newOrganizationId,
       });
-      window.location.href = `/${response.slug}/app`;
+      setTimeout(() => {
+        navigateToApp(response.slug);
+      }, 300);
     }
   };
-
+  console.log("here");
   return (
     <main className="">
       <nav className={"px-4 w-full flex justify-end  z-10 top-0 fixed h-12  "}>
@@ -123,7 +131,7 @@ const CreateCompanyContent = ({
           />
           <LabeledInputField
             name="promoDiscountAmount"
-            label="Promo Discount"
+            label="Promo Discount ($)"
             type="number"
             placeholder="Enter Promo Discount Amount"
             value={promoDiscountAmount}

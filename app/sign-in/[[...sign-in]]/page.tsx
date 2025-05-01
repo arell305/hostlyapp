@@ -3,7 +3,7 @@ import { SignIn } from "@clerk/nextjs";
 
 const SignInPage = () => {
   return (
-    <StaticPageContainer>
+    <StaticPageContainer className="h-[100dvh]">
       <SignIn />
     </StaticPageContainer>
   );

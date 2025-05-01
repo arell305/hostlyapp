@@ -129,6 +129,8 @@ export enum ErrorMessages {
   CLERK_WEBHHOOK_CREATE_USER = "Ckerk error handling user.created",
   CLERK_WEBHOOK_UPDATED_USER = "Clerk webhook error handling user.updated",
   CLERK_WEBHOOK_UPDATED_USER_NO_EMAIL = "User updated event received without an email",
+  CLERK_USER_METADATA_UPDATE_ERROR = "Error updating user metadata",
+  CLERK_USER_NOT_FOUND = "User not found",
   COMPANY_DB_QUERY_ERROR = "DB error querying company",
   COMPANY_DB_QUERY_ID_ERROR = "DB error querying company by id",
   COMPANY_DB_UPDATE_ERROR = "DB error updating company",
