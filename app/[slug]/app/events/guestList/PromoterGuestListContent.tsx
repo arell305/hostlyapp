@@ -153,32 +153,14 @@ const PromoterGuestListContent = ({
 
   return (
     <SectionContainer>
-      <CustomCard>
-        <div className="flex justify-between mb-2 items-center">
-          {isGuestListOpen ? (
-            <>
-              <Button
-                variant="navGhost"
-                onClick={() => router.push(`${pathname}/add-guest-list`)}
-              >
-                Add Guests
-              </Button>
-            </>
-          ) : (
-            <p className="text-red-500 font-semibold">Closed</p>
-          )}
-        </div>
-      </CustomCard>
       {isEmptyGuestList ? (
         <EmptyList items={[]} message="No guest list added" />
       ) : (
-        <div className="mt-4 mb-[150px]">
-          <div className="ml-4">
-            <ToggleButton
-              isChecked={showCheckedInGuests}
-              setIsChecked={setShowCheckedInGuests}
-            />
-          </div>
+        <div className="space-y-4">
+          <ToggleButton
+            isChecked={showCheckedInGuests}
+            setIsChecked={setShowCheckedInGuests}
+          />
           <GuestListContainer
             filteredGuests={filteredGuests}
             isCheckInOpen={false}

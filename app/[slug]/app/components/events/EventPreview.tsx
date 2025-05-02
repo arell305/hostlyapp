@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { getTextBeforeComma } from "../../../../../utils/string";
 import { EventSchema, TicketInfoSchema } from "@/types/schemas-types";
 import { isTicketSalesOpen } from "@/lib/frontendHelper";
-import IconTextRow from "../../components/ui/IconTextRow";
+import IconTextRow from "../ui/IconTextRow";
 
 interface EventPreviewProps {
   eventData: EventSchema;
@@ -42,7 +42,7 @@ const EventPreview: React.FC<EventPreviewProps> = ({
   return (
     <Link href={`${pathname}/events/${eventData._id}`} className="">
       <div
-        className={`w-full md:w-[220px] md:h-[${isApp ? "380" : "340"}px] shadow-md cursor-pointer hover:shadow-xl rounded-md transition duration-200 bg-white pb-1`}
+        className={`w-full md:w-[220px] md:h-[${isApp ? "380" : "340"}px] shadow-md cursor-pointer hover:shadow-xl rounded-md transition duration-200 bg-cardBackground pb-1`}
       >
         <div
           className={`flex items-center justify-between pl-4 py-2 ${!displayEventPhoto ? "mb-2" : ""}`}

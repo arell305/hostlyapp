@@ -21,7 +21,6 @@ import {
   normalizeCalendarDate,
 } from "../../../utils/calendar";
 import { CalendarSwitcher } from "./components/calendar/CalendarSwitcher";
-import router from "next/router";
 import { Button } from "@/components/ui/button";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import { PlusIcon } from "lucide-react";
@@ -35,6 +34,7 @@ interface HomeContentProps {
   showStripeNotification: boolean;
   subscription: SubscriptionSchema;
   handleAddEventClick: () => void;
+  handleEventClick: (eventId: string) => void;
 }
 
 const HomeContent: React.FC<HomeContentProps> = ({
@@ -44,6 +44,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
   showStripeNotification,
   subscription,
   handleAddEventClick,
+  handleEventClick,
 }) => {
   const [date, setDate] = useState(() => today);
   const [isWeekView, setIsWeekView] = useState(true);
@@ -130,7 +131,11 @@ const HomeContent: React.FC<HomeContentProps> = ({
         onToggle={() => setIsWeekView(!isWeekView)}
       />
 
-      <SelectedDateEvents date={date} events={selectedEvents} />
+      <SelectedDateEvents
+        date={date}
+        events={selectedEvents}
+        handleEventClick={handleEventClick}
+      />
 
       {showPlusTierData && <PlusTierData subscription={subscription} />}
     </div>

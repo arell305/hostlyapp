@@ -1,32 +1,31 @@
 import React from "react";
 import { EventSchema } from "@/types/schemas-types";
-import EventPreview from "./EventPreview";
 import { formatLongDate } from "../../../../../utils/luxon";
+import EventList from "../events/EventList";
 
 interface SelectedDateEventsProps {
   date: Date;
   events: EventSchema[];
+  handleEventClick: (eventId: string) => void;
 }
 
 const SelectedDateEvents: React.FC<SelectedDateEventsProps> = ({
   date,
   events,
+  handleEventClick,
 }) => {
   return (
     <div className="mt-1 mb-5">
       <div className="events-list mt-4">
-        <h3 className="font-medium text-xl md:text-2xl  pl-4 pb-3">
+        <h3 className="font-medium text-xl md:text-2xl  pl-4 md:pl-0 pb-3">
           Selected Date: {formatLongDate(date)}
         </h3>
-        {events.length > 0 ? (
-          <div className="py-8 flex flex-wrap justify-center  gap-x-4 gap-y-3 bg-gray-200 px-4">
-            {events.map((event: EventSchema) => (
-              <EventPreview key={event._id} eventData={event} isApp={true} />
-            ))}
-          </div>
-        ) : (
-          <p className="pl-4 border-b pb-4">No events for the selected date.</p>
-        )}
+        <EventList
+          events={events}
+          emptyText="No upcoming events found."
+          className=""
+          handleEventClick={handleEventClick}
+        />
       </div>
     </div>
   );

@@ -8,9 +8,10 @@ import FullLoading from "../../components/loading/FullLoading";
 import ErrorComponent from "../../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { ResponseStatus } from "@/types/enums";
-import EventDeleted from "../components/EventDeleted";
 import { GetEventWithGuestListsData } from "@/types/convex-types";
+import { isManager } from "@/utils/permissions";
 import { isModerator, isPromoter } from "@/utils/permissions";
+import MessagePage from "@/components/shared/shared-page/MessagePage";
 
 export default function EventPageWrapper() {
   const { user } = useUser();
@@ -51,6 +52,12 @@ export default function EventPageWrapper() {
     }
   };
 
+  const handleAddGuestList = () => {
+    if (organization?.slug) {
+      router.push(`/${organization.slug}/app/events/${eventId}/add-guest-list`);
+    }
+  };
+
   if (
     !getEventByIdResponse ||
     !organization ||
@@ -82,13 +89,21 @@ export default function EventPageWrapper() {
   const orgRole = user?.publicMetadata.role as string;
   const canCheckInGuests = isModerator(orgRole);
   const canUploadGuest = isPromoter(orgRole);
+  const canEditEvent = isManager(orgRole);
 
   const data = getEventByIdResponse.data;
   const tickets = responseTickets.data?.tickets;
   const guestListData: GetEventWithGuestListsData = responseGuestList.data;
 
   if (!data.event.isActive) {
-    return <EventDeleted onBack={handleNavigateHome} />;
+    return (
+      <MessagePage
+        buttonLabel="Home"
+        onButtonClick={handleNavigateHome}
+        title="Event Not Found"
+        description="The event you are looking for does not exist."
+      />
+    );
   }
 
   return (
@@ -103,6 +118,8 @@ export default function EventPageWrapper() {
       canCheckInGuests={canCheckInGuests}
       canUploadGuest={canUploadGuest}
       guestListData={guestListData}
+      canEditEvent={canEditEvent}
+      handleAddGuestList={handleAddGuestList}
     />
   );
 }

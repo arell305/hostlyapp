@@ -42,6 +42,8 @@ interface EventIdContentProps {
   canCheckInGuests: boolean;
   guestListData: GetEventWithGuestListsData;
   canUploadGuest: boolean;
+  canEditEvent: boolean;
+  handleAddGuestList: () => void;
 }
 
 const EventIdContent: React.FC<EventIdContentProps> = ({
@@ -55,6 +57,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   canCheckInGuests,
   guestListData,
   canUploadGuest,
+  canEditEvent,
+  handleAddGuestList,
 }) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showConfirmCancelEdit, setShowConfirmCancelEdit] =
@@ -122,6 +126,9 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
         isEditing={isEditing}
         onCancelEdit={handleCancelEdit}
         handleGoHome={handleGoHome}
+        canUploadGuest={canUploadGuest}
+        canEditEvent={canEditEvent}
+        handleAddGuestList={handleAddGuestList}
       />
       {isEditing ? (
         <EventForm

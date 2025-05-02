@@ -1,9 +1,9 @@
 import { EventSchema } from "@/types/schemas-types";
-import { Protect } from "@clerk/nextjs";
-import { ClerkPermissions } from "@/types/enums";
-import { Home } from "lucide-react";
+import { Home, Plus } from "lucide-react";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import EditToggleButton from "@/components/shared/buttonContainers/EditToggleButton";
+import TopBarContainer from "@/components/shared/containers/TopBarContainer";
+import CenteredTitle from "@/components/shared/headings/CenteredTitle";
 interface TopRowNavProps {
   eventData: EventSchema;
   isAdminOrg: boolean;
@@ -11,6 +11,9 @@ interface TopRowNavProps {
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   onCancelEdit: () => void;
   handleGoHome: () => void;
+  canUploadGuest: boolean;
+  canEditEvent: boolean;
+  handleAddGuestList: () => void;
 }
 
 const TopRowNav: React.FC<TopRowNavProps> = ({
@@ -19,34 +22,40 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
   setIsEditing,
   onCancelEdit,
   handleGoHome,
+  canUploadGuest,
+  canEditEvent,
+  handleAddGuestList,
 }) => {
   return (
-    <div className="relative flex items-center justify-between pt-4 px-3 md:px-0 mb-4">
+    <TopBarContainer>
+      {" "}
       <div className="">
-        <IconButton icon={<Home size={20} />} onClick={handleGoHome} />
+        <IconButton
+          icon={<Home size={20} />}
+          onClick={handleGoHome}
+          title="Home"
+        />
       </div>
-
       {/* Centered event name */}
-      <p className="absolute left-1/2 transform -translate-x-1/2 text-lg font-bold text-center">
-        {eventData.name}
-      </p>
-
+      <CenteredTitle title={eventData.name} />
       {/* Right side: Edit button or empty space to keep layout consistent */}
       <div className=" flex justify-end">
-        <Protect
-          condition={(has) =>
-            has({ permission: ClerkPermissions.CREATE_EVENT })
-          }
-          fallback={<div />}
-        >
+        {canEditEvent && (
           <EditToggleButton
             isEditing={isEditing}
             onToggle={() => setIsEditing((prev) => !prev)}
             onCancelEdit={onCancelEdit}
           />
-        </Protect>
+        )}
+        {canUploadGuest && (
+          <IconButton
+            icon={<Plus size={20} />}
+            onClick={handleAddGuestList}
+            title="Add Guest List"
+          />
+        )}
       </div>
-    </div>
+    </TopBarContainer>
   );
 };
 

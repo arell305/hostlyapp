@@ -10,7 +10,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { UserWithPromoCode } from "@/types/types";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { DESKTOP_WIDTH } from "@/types/constants";
@@ -34,7 +33,6 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
   setIsOpen,
   user,
 }) => {
-  const { toast } = useToast();
   const [promoCode, setPromoCode] = useState<string | null | undefined>(
     user?.promoCode
   );

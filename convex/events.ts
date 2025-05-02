@@ -597,12 +597,16 @@ export const getEventsByMonth = query({
       { year, month },
       { zone: TIME_ZONE }
     ).endOf("month");
+
+    console.log("args", args);
     try {
       const identity = await requireAuthenticatedUser(ctx);
 
       const organization = validateOrganization(
         await ctx.db.get(organizationId)
       );
+
+      console.log("organization", organization);
 
       isUserInOrganization(identity, organization.clerkOrganizationId);
 
@@ -613,6 +617,7 @@ export const getEventsByMonth = query({
         .filter((q) => q.lte(q.field("startTime"), endDate.toMillis()))
         .collect();
 
+      console.log("events", events);
       return {
         status: ResponseStatus.SUCCESS,
         data: {

@@ -1,60 +1,57 @@
 "use client";
 
-import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Id } from "../../../../../../convex/_generated/dataModel";
-import { useAddGuestList } from "../../hooks/useAddGuestList";
-import { parseGuestListInput } from "../../../../../../utils/format";
-import FormActions from "@/components/shared/buttonContainers/FormActions";
-import LabeledTextAreaField from "@/components/shared/fields/LabeledTextAreaField";
+import { useQuery } from "convex/react";
+import { handleQueryState } from "@/utils/handleQueryState";
+import { api } from "convex/_generated/api";
+import { QueryState } from "@/types/enums";
+import AddGuestListContent from "./AddGuestListContent";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import MessagePage from "@/components/shared/shared-page/MessagePage";
 
 const AddGuestListPage: React.FC = () => {
-  const { eventId } = useParams();
-  const [guestInput, setGuestInput] = useState<string>("");
-  const { addGuestList, isLoading, error, setError } = useAddGuestList();
+  const params = useParams();
   const router = useRouter();
+  const eventId = params.eventId as string;
+  const { organization } = useContextOrganization();
 
-  const handleSubmit = async () => {
-    if (guestInput.trim() === "") {
-      return;
-    }
+  const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
 
-    const { guests, invalidPhones } = parseGuestListInput(guestInput);
+  const result = handleQueryState(getEventByIdResponse);
 
-    if (invalidPhones.length > 0) {
-      setError(`Invalid phone number(s): ${invalidPhones.join(", ")}`);
-      return;
-    }
+  if (result.type === QueryState.Loading || result.type === QueryState.Error) {
+    return result.element;
+  }
 
-    await addGuestList(eventId as Id<"events">, guests);
+  const eventData = result.data.event;
+
+  const handleGoBack = () => {
+    router.back();
   };
 
+  const handleNavigateHome = () => {
+    if (organization?.slug) {
+      router.push(`/${organization.slug}/app/`);
+    }
+  };
+
+  if (!eventData.isActive) {
+    return (
+      <MessagePage
+        buttonLabel="Home"
+        onButtonClick={handleNavigateHome}
+        title="Event Not Found"
+        description="The event you are looking for does not exist."
+      />
+    );
+  }
+
   return (
-    <main>
-      <h1 className="">Add Guest List</h1>
-      <p className="text-gray-600 mb-4">
-        Enter each guest on a new line. Optionally include a phone number after
-        a comma.
-        <br /> Example: <code>Jane Doe, +15556667777</code>
-      </p>
-      <LabeledTextAreaField
-        label="Guest Names and Phone Numbers"
-        value={guestInput}
-        onChange={(e) => setGuestInput(e.target.value)}
-        placeholder="Enter guest names (optionally with phone numbers)..."
-        rows={10}
-        error={error || undefined}
-        name="guestListInput"
-      />
-      <FormActions
-        onCancel={() => router.back()}
-        onSubmit={handleSubmit}
-        isLoading={isLoading}
-        error={error}
-        submitText="Add Guests"
-        loadingText="Adding"
-      />
-    </main>
+    <AddGuestListContent
+      eventData={eventData}
+      handleGoBack={handleGoBack}
+      handleNavigateHome={handleNavigateHome}
+    />
   );
 };
 

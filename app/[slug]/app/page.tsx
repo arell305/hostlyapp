@@ -38,6 +38,10 @@ const HomePage: React.FC = () => {
     router.push(`${pathname}/add-event`);
   };
 
+  const handleEventClick = (eventId: string) => {
+    router.push(`${pathname}/events/${eventId}`);
+  };
+
   const orgRole = user?.publicMetadata.role as string;
   const canCreateEvents = canCreateEvent(orgRole);
 
@@ -53,6 +57,7 @@ const HomePage: React.FC = () => {
       showStripeNotification={showStripeNotification}
       subscription={subscription}
       handleAddEventClick={handleAddEventClick}
+      handleEventClick={handleEventClick}
     />
   );
 };

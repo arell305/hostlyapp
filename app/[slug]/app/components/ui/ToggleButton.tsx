@@ -12,7 +12,7 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({
 
   return (
     <>
-      <label className="themeSwitcherTwo  relative inline-flex cursor-pointer select-none items-center justify-center rounded-md bg-white p-1 border shadow">
+      <label className="themeSwitcherTwo  relative inline-flex cursor-pointer select-none items-center justify-center rounded-md  p-1 border shadow">
         <input
           type="checkbox"
           className="sr-only"
@@ -22,7 +22,7 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({
         <span
           className={`flex items-center space-x-[6px] rounded-md py-2 px-[18px] text-sm font-medium ${
             !isChecked
-              ? "text-white bg-customDarkBlue border-[.5px] border-gray-700"
+              ? "text-white bg-cardBackgroundHover border-[.5px] border-gray-700"
               : "text-body-color"
           }`}
         >
@@ -31,7 +31,7 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({
         <span
           className={`flex items-center space-x-[6px] rounded-md py-2 px-[18px] text-sm font-medium ${
             isChecked
-              ? "text-white bg-customDarkBlue border-[.5px] border-gray-700"
+              ? "text-white bg-cardBackgroundHover border-[.5px] border-gray-700"
               : "text-body-color"
           }`}
         >

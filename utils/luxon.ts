@@ -146,3 +146,13 @@ export const getDateRangeFromPreset = (preset: PresetOption): DateRange => {
       };
   }
 };
+
+export function formatEventDateParts(startTime: number) {
+  const date = DateTime.fromMillis(startTime);
+
+  return {
+    month: date.toFormat("MMM").toUpperCase(),
+    day: date.toFormat("d"),
+    time: date.toFormat("h:mm a"),
+  };
+}

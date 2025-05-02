@@ -69,7 +69,7 @@ const GuestCard: React.FC<GuestCardProps> = ({
 
   return (
     <div
-      className={` border-b border-gray-300 p-4 w-full flex justify-between items-center ${canCheckInGuests && onCheckIn && isCheckInOpen ? "hover:bg-gray-100 cursor-pointer" : ""}`}
+      className={` border-b  p-4 w-full flex justify-between items-center ${canCheckInGuests && onCheckIn && isCheckInOpen ? "hover:bg-gray-100 cursor-pointer" : ""}`}
       onClick={() => {
         if (canCheckInGuests && onCheckIn && isCheckInOpen) {
           onCheckIn(guest.id);

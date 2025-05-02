@@ -5,7 +5,17 @@ import MobileSidebar from "./MobileSidebar";
 import NavbarActions from "./NavBarActions";
 import Image from "next/image";
 import Logo from "@/components/shared/Logo";
-const Navbar = ({ slug, orgRole }: { slug: string; orgRole: string }) => {
+import { UserWithPromoCode } from "@/types/types";
+
+const Navbar = ({
+  slug,
+  orgRole,
+  userData,
+}: {
+  slug: string;
+  orgRole: string;
+  userData?: UserWithPromoCode;
+}) => {
   const [showNavbar, setShowNavbar] = useState<boolean>(true);
   const [lastScrollY, setLastScrollY] = useState<number>(0);
 
@@ -43,7 +53,7 @@ const Navbar = ({ slug, orgRole }: { slug: string; orgRole: string }) => {
         <Logo />
       </div>
 
-      <NavbarActions slug={slug} orgRole={orgRole} />
+      <NavbarActions orgRole={orgRole} userData={userData} />
     </nav>
   );
 };

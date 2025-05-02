@@ -1,7 +1,7 @@
 import type { UserResource } from "@clerk/types";
 import _ from "lodash";
 import { EventSchema } from "@/types/schemas-types";
-import EventPreview from "./calendar/EventPreview";
+import EventPreview from "./events/EventPreview";
 import HomeNav from "./nav/HomeNav";
 import ProfileBanner from "@/components/shared/company/ProfileBanner";
 import EventGrid from "@/components/shared/containers/EventGrid";

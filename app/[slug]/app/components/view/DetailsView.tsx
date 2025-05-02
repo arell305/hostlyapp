@@ -36,7 +36,7 @@ const DetailsView: React.FC<DetailsViewProps> = ({
   const isSalesOpen = isTicketSalesOpen(ticketInfoData);
 
   return (
-    <div className="flex flex-col rounded border border-altGray w-[95%] shadow bg-white mx-auto">
+    <div className="flex flex-col rounded border  w-[95%] shadow  mx-auto">
       {displayEventPhoto === undefined && <EventFormSkeleton />}
       <div
         className={`flex items-center justify-between pl-4 pb-2 pt-4 ${displayEventPhoto ? "mb-2" : ""}`}
