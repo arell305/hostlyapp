@@ -12,15 +12,21 @@ import {
 import GuestListTimeCard from "../../components/GuestListTimeCard";
 import TicketTimeCard from "../../components/TicketTimeCard";
 import { LuClipboardList } from "react-icons/lu";
-import { Promoter } from "@/types/types";
+import { Promoter, TicketCounts } from "@/types/types";
 import { Id } from "../../../../../../convex/_generated/dataModel";
 import PromoterSelect from "../../components/PromoterSelect";
+import { PromoterGuestsData } from "@/types/convex-types";
+import PromoterGuestsListData from "./PromoterGuestsData";
+import PromoterTicketData from "./PromoterTicketData";
 
 interface SummaryContentProps {
   guestListInfo?: GuestListInfoSchema | null;
   ticketData?: TicketInfoSchema | null;
   tickets: TicketSchemaWithPromoter[];
   promoters: Promoter[];
+  isPromoter: boolean;
+  guestListResults: PromoterGuestsData | null;
+  promoterTicketData: TicketCounts | null;
 }
 
 const SummaryContent: React.FC<SummaryContentProps> = ({
@@ -28,13 +34,15 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
   ticketData,
   tickets,
   promoters,
+  isPromoter,
+  guestListResults,
+  promoterTicketData,
 }) => {
   const [selectedPromoterId, setSelectedPromoterId] = useState<
     Id<"users"> | "all"
   >("all");
 
   let isGuestListOpen: boolean = false;
-
   if (guestListInfo) {
     isGuestListOpen = !isPast(guestListInfo.guestListCloseTime);
   }
@@ -45,38 +53,51 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
   }
   return (
     <div className="flex flex-col gap-4">
+      <h2>Tickets</h2>
       {ticketData ? (
-        <TicketTimeCard ticketData={ticketData} tickets={tickets} />
+        <>
+          <TicketTimeCard ticketData={ticketData} tickets={tickets} />
+          {isPromoter && promoterTicketData && (
+            <PromoterTicketData promoterTicketData={promoterTicketData} />
+          )}
+        </>
       ) : (
         <EmptyStateCard
-          title="Ticket Sales"
           message="There is no ticket sales option for this event"
           icon={<LuClipboardList className="text-2xl" />}
         />
       )}
+      <h2>Guest List</h2>
       {guestListInfo ? (
-        <GuestListTimeCard
-          isCheckInOpen={isCheckInOpen}
-          guestListClosed={isGuestListOpen}
-          guestListCloseTime={formatToTimeAndShortDate(
-            guestListInfo.guestListCloseTime
+        <>
+          <GuestListTimeCard
+            isCheckInOpen={isCheckInOpen}
+            isGuestListOpen={isGuestListOpen}
+            guestListCloseTime={formatToTimeAndShortDate(
+              guestListInfo.guestListCloseTime
+            )}
+            formattedCheckInEndTime={formatToTimeAndShortDate(
+              guestListInfo.checkInCloseTime
+            )}
+          />
+          {isPromoter && guestListResults && (
+            <PromoterGuestsListData guestListResults={guestListResults} />
           )}
-          formattedCheckInEndTime={formatToTimeAndShortDate(
-            guestListInfo.checkInCloseTime
-          )}
-        />
+        </>
       ) : (
         <EmptyStateCard
-          title="Guest List"
           message="There is no guest list option for this event"
           icon={<LuClipboardList className="text-2xl" />}
         />
       )}
-      <PromoterSelect
-        promoters={promoters}
-        selectedPromoterId={selectedPromoterId}
-        setSelectedPromoterId={setSelectedPromoterId}
-      />
+
+      {!isPromoter && (
+        <PromoterSelect
+          promoters={promoters}
+          selectedPromoterId={selectedPromoterId}
+          setSelectedPromoterId={setSelectedPromoterId}
+        />
+      )}
     </div>
   );
 };

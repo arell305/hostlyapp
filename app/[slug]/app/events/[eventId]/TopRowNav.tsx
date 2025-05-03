@@ -14,10 +14,12 @@ interface TopRowNavProps {
   canUploadGuest: boolean;
   canEditEvent: boolean;
   handleAddGuestList: () => void;
+  isGuestListOpen: boolean;
 }
 
 const TopRowNav: React.FC<TopRowNavProps> = ({
   eventData,
+  isGuestListOpen,
   isEditing,
   setIsEditing,
   onCancelEdit,
@@ -47,13 +49,17 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
             onCancelEdit={onCancelEdit}
           />
         )}
-        {canUploadGuest && (
-          <IconButton
-            icon={<Plus size={20} />}
-            onClick={handleAddGuestList}
-            title="Add Guest List"
-          />
-        )}
+        {canUploadGuest &&
+          (isGuestListOpen ? (
+            <IconButton
+              icon={<Plus size={20} />}
+              onClick={handleAddGuestList}
+              title="Add Guest List"
+              disabled={true} // or false if you want it active
+            />
+          ) : (
+            <span className="text-sm text-muted-foreground">Closed</span>
+          ))}
       </div>
     </TopBarContainer>
   );

@@ -17,6 +17,8 @@ interface SummaryPageProps {
   ticketData?: TicketInfoSchema | null;
   tickets: TicketSchemaWithPromoter[];
   organizationId: Id<"organizations">;
+  isPromoter: boolean;
+  eventId: Id<"events">;
 }
 
 const SummaryPage: React.FC<SummaryPageProps> = ({
@@ -24,21 +26,65 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
   ticketData,
   tickets,
   organizationId,
+  isPromoter,
+  eventId,
 }) => {
-  const responsePromoters = useQuery(api.organizations.getPromotersByOrg, {
-    organizationId,
-  });
+  const responsePromoters = useQuery(
+    api.organizations.getPromotersByOrg,
+    isPromoter ? "skip" : { organizationId }
+  );
+
+  const responseGuestList = useQuery(
+    api.guestLists.getGuestListByPromoter,
+    !isPromoter ? "skip" : { eventId }
+  );
+
+  const responsePromoterTicketData = useQuery(
+    api.tickets.getTicketsByClerkUser,
+    !isPromoter ? "skip" : { eventId }
+  );
 
   const resultPromoters = handleQueryState(responsePromoters);
-
+  const resultGuestList = handleQueryState(responseGuestList);
+  const resultPromoterTicketData = handleQueryState(responsePromoterTicketData);
+  // Skip loading/error UI if the user is a promoter (query was skipped)
   if (
-    resultPromoters.type === QueryState.Loading ||
-    resultPromoters.type === QueryState.Error
+    !isPromoter &&
+    (resultPromoters.type === QueryState.Loading ||
+      resultPromoters.type === QueryState.Error)
   ) {
     return resultPromoters.element;
   }
 
-  const promoters: Promoter[] = resultPromoters.data.promoters;
+  if (
+    isPromoter &&
+    (resultGuestList.type === QueryState.Loading ||
+      resultGuestList.type === QueryState.Error)
+  ) {
+    return resultGuestList.element;
+  }
+
+  if (
+    isPromoter &&
+    (resultPromoterTicketData.type === QueryState.Loading ||
+      resultPromoterTicketData.type === QueryState.Error)
+  ) {
+    return resultPromoterTicketData.element;
+  }
+  const promoters: Promoter[] =
+    isPromoter || resultPromoters.type !== QueryState.Success
+      ? []
+      : resultPromoters.data.promoters;
+
+  const guestListResults =
+    isPromoter && resultGuestList.type === QueryState.Success
+      ? resultGuestList.data
+      : null;
+
+  const promoterTicketData =
+    isPromoter && resultPromoterTicketData.type === QueryState.Success
+      ? resultPromoterTicketData.data.ticketCounts
+      : null;
 
   return (
     <SummaryContent
@@ -46,6 +92,9 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
       ticketData={ticketData}
       tickets={tickets}
       promoters={promoters}
+      isPromoter={isPromoter}
+      guestListResults={guestListResults}
+      promoterTicketData={promoterTicketData}
     />
   );
 };

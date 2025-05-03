@@ -16,6 +16,7 @@ import {
 } from "@/types/schemas-types";
 import {
   CheckInTicketResponse,
+  GetPromoterTicketKpisResponse,
   GetTicketsByClerkUserResponse,
   GetTicketsByEventIdResponse,
   InsertTicketSoldResponse,
@@ -342,6 +343,82 @@ export const getTicketsByEvent = internalQuery({
     } catch (error) {
       console.error("Error in getTicketsByEvent:", error);
       return [];
+    }
+  },
+});
+
+export const getPromoterTicketKpis = query({
+  args: {
+    fromTimestamp: v.number(),
+    toTimestamp: v.number(),
+  },
+  handler: async (ctx, args): Promise<GetPromoterTicketKpisResponse> => {
+    const { fromTimestamp, toTimestamp } = args;
+
+    try {
+      const identity = await requireAuthenticatedUser(ctx, [UserRole.Promoter]);
+      const clerkUserId = identity.id as string;
+
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+          .unique()
+      );
+
+      // Get events in organization within date range
+      const events = await ctx.db
+        .query("events")
+        .withIndex("by_organizationId", (q) =>
+          q.eq("organizationId", user.organizationId)
+        )
+        .collect();
+
+      const filteredEventIds = events
+        .filter(
+          (event) =>
+            event.startTime >= fromTimestamp && event.startTime <= toTimestamp
+        )
+        .map((e) => e._id);
+
+      // Get tickets for each filtered event for this promoter
+      const ticketsArrays = await Promise.all(
+        filteredEventIds.map((eventId) =>
+          ctx.db
+            .query("tickets")
+            .withIndex("by_eventId_and_promoterUserId", (q) =>
+              q.eq("eventId", eventId).eq("promoterUserId", user._id)
+            )
+            .collect()
+        )
+      );
+
+      const allTickets = ticketsArrays.flat();
+
+      const maleCount = allTickets.filter(
+        (t) => t.gender === Gender.Male
+      ).length;
+      const femaleCount = allTickets.filter(
+        (t) => t.gender === Gender.Female
+      ).length;
+
+      const dayCount =
+        Math.ceil((toTimestamp - fromTimestamp) / (1000 * 60 * 60 * 24)) || 1;
+
+      const avgMalePerDay = maleCount / dayCount;
+      const avgFemalePerDay = femaleCount / dayCount;
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          maleCount,
+          femaleCount,
+          avgMalePerDay,
+          avgFemalePerDay,
+        },
+      };
+    } catch (error) {
+      return handleError(error);
     }
   },
 });

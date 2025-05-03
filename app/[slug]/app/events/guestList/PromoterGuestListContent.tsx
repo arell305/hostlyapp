@@ -1,41 +1,27 @@
 import React, { useState } from "react";
 import { GetEventWithGuestListsData } from "@/types/convex-types";
-import { formatToTimeAndShortDate, isPast } from "../../../../../utils/luxon";
 import { useDeleteGuestName } from "../hooks/useDeleteGuestName";
 import { useUpdateGuestName } from "../hooks/useUpdateGuestName";
 import { FrontendErrorMessages } from "@/types/enums";
-import { Button } from "@/components/ui/button";
 import ToggleButton from "../../components/ui/ToggleButton";
 import ResponsiveEditGuestName from "../../components/responsive/ResponsiveEditGuestName";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
-import { Id } from "../../../../../convex/_generated/dataModel";
 import _ from "lodash";
 import {
   formatName,
   getSortedFilteredGuests,
 } from "../../../../../utils/format";
-import { useRouter, usePathname } from "next/navigation";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
-import CustomCard from "@/components/shared/cards/CustomCard";
 import EmptyList from "@/components/shared/EmptyList";
 import GuestListContainer from "./GuestListContainer";
 
 type PromoterGuestListContentProps = {
-  eventId: Id<"events">;
-  isGuestListOpen: boolean;
-  guestListCloseTime: number;
   guestListData: GetEventWithGuestListsData;
 };
 
 const PromoterGuestListContent = ({
-  eventId,
-  isGuestListOpen,
-  guestListCloseTime,
   guestListData,
 }: PromoterGuestListContentProps) => {
-  const router = useRouter();
-  const pathname = usePathname();
-
   const guestList = guestListData.guests;
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -172,6 +158,7 @@ const PromoterGuestListContent = ({
             onShowDelete={handleShowDelete}
             onCancelEdit={() => setEditingId(null)}
             setEditName={setEditName}
+            canEditGuests={true}
           />
         </div>
       )}

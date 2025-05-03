@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import { FaEllipsisV, FaCheckCircle } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
+import { FaCheckCircle } from "react-icons/fa";
 import { GuestWithPromoter } from "@/types/types";
 import { Badge } from "@/components/ui/badge";
 import { formatArrivalTime } from "../../../../utils/luxon";
+import IconButton from "@/components/shared/buttonContainers/IconButton";
+import { Pencil, Trash } from "lucide-react";
 
 interface GuestCardProps {
   guest: GuestWithPromoter;
@@ -32,38 +32,9 @@ const GuestCard: React.FC<GuestCardProps> = ({
   isCheckInOpen,
   canSeePhoneNumber,
 }) => {
-  const [showOptions, setShowOptions] = useState<boolean>(false);
-
-  const optionsRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        optionsRef.current &&
-        !optionsRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setShowOptions(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const handleOptionsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowOptions((prev) => !prev);
-  };
-
   const handleShowDeleteModal = () => {
     if (onShowDelete) {
       onShowDelete(guest.id);
-      setShowOptions(false);
     }
   };
 
@@ -110,44 +81,26 @@ const GuestCard: React.FC<GuestCardProps> = ({
           </>
         </div>
       )}
-      {canEditGuests && !guest.attended && (
-        <div className="relative">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleOptionsClick}
-            ref={buttonRef}
-          >
-            <FaEllipsisV />
-          </Button>
-          {/* Dropdown Menu */}
-          {showOptions && (
-            <div
-              ref={optionsRef}
-              className="absolute right-0 z-10 w-48 bg-white border rounded-md shadow-lg"
-            >
-              <div className="py-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onEdit) {
-                      setShowOptions(false);
-                      onEdit(guest.id, guest.name);
-                    }
-                  }}
-                  className="block px-4 py-3  text-gray-700 hover:bg-gray-100 w-full text-left border-b"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={handleShowDeleteModal}
-                  className="block px-4 py-3  text-red-700 hover:bg-red-100 w-full text-left"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
+      {canEditGuests && !guest.attended && isCheckInOpen && (
+        <div className="flex gap-2">
+          {onEdit && (
+            <IconButton
+              icon={<Pencil size={20} />}
+              title="Edit"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(guest.id, guest.name);
+              }}
+            />
           )}
+          <IconButton
+            icon={<Trash size={20} />}
+            title="Delete"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShowDeleteModal();
+            }}
+          />
         </div>
       )}
     </div>

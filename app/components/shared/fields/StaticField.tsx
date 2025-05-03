@@ -1,6 +1,7 @@
 "use client";
 
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { ReactNode } from "react";
 
 interface StaticFieldProps {
@@ -8,7 +9,8 @@ interface StaticFieldProps {
   value: string | number | null;
   secondaryValue?: string | null;
   className?: string;
-  icon?: ReactNode; // <-- NEW
+  icon?: ReactNode;
+  badge?: string | ReactNode; // Can be string or a custom node
 }
 
 const StaticField: React.FC<StaticFieldProps> = ({
@@ -17,9 +19,19 @@ const StaticField: React.FC<StaticFieldProps> = ({
   secondaryValue,
   className,
   icon,
+  badge,
 }) => {
   return (
-    <div className={"w-full border-b px-4 py-3 " + (className || "")}>
+    <div className={"relative w-full border-b px-4 py-3 " + (className || "")}>
+      {badge && (
+        <div className="absolute top-2 right-3">
+          {typeof badge === "string" ? (
+            <Badge variant="default">{badge}</Badge>
+          ) : (
+            badge
+          )}
+        </div>
+      )}
       <div className="flex items-center gap-2">
         {icon && <div className="text-grayText">{icon}</div>}
         <Label className="font-normal text-grayText">{label}</Label>

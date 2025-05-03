@@ -490,6 +490,10 @@ export interface GetGuestListByPromoterSuccess {
 export interface PromoterGuestsData {
   guestListId: Id<"guestLists"> | null;
   names: GuestListNameSchema[];
+  totalCheckedIn: number;
+  totalGuests: number;
+  totalMalesCheckedIn: number;
+  totalFemalesCheckedIn: number;
 }
 
 export type UpdateGuestNameResponse = UpdateGuestNameSuccess | ErrorResponse;
@@ -881,4 +885,20 @@ export interface SendContactFormEmailData {
   email: string;
   name: string;
   company: string;
+}
+
+export type GetPromoterTicketKpisResponse =
+  | GetPromoterTicketKpisSuccess
+  | ErrorResponse;
+
+export interface GetPromoterTicketKpisSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetPromoterTicketKpisData;
+}
+
+export interface GetPromoterTicketKpisData {
+  maleCount: number;
+  femaleCount: number;
+  avgMalePerDay: number;
+  avgFemalePerDay: number;
 }

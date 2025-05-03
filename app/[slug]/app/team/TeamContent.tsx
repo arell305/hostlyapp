@@ -33,16 +33,17 @@ const TeamContent = ({ canManageTeam, organization }: TeamContentProps) => {
           )
         }
       />
-
-      <ToggleTabs
-        options={[
-          { label: "Active", value: "active" },
-          { label: "Pending", value: "pending" },
-          { label: "Deleted", value: "deleted" },
-        ]}
-        value={selectedTab}
-        onChange={setSelectedTab}
-      />
+      {canManageTeam && (
+        <ToggleTabs
+          options={[
+            { label: "Active", value: "active" },
+            { label: "Pending", value: "pending" },
+            { label: "Deleted", value: "deleted" },
+          ]}
+          value={selectedTab}
+          onChange={setSelectedTab}
+        />
+      )}
       {selectedTab === "active" && (
         <ActiveMembersSection organization={organization} />
       )}

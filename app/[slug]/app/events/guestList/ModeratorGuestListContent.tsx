@@ -95,6 +95,7 @@ const ModeratorGuestListContent = ({
           isCheckInOpen={isCheckInOpen}
           canCheckInGuests={canCheckInGuests}
           canSeePhoneNumber={!canCheckInGuests}
+          canEditGuests={false}
         />
       </SectionContainer>
 

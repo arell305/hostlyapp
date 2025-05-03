@@ -4,7 +4,7 @@ import CustomCard from "@/components/shared/cards/CustomCard";
 import { ReactNode } from "react";
 
 interface EmptyStateCardProps {
-  title: string;
+  title?: string;
   message: string;
   icon: ReactNode;
   className?: string;

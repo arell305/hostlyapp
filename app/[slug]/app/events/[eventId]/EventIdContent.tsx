@@ -26,6 +26,7 @@ import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
 import SummaryPage from "./summary/SummaryPage";
 import { GetEventWithGuestListsData } from "@/types/convex-types";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
+import { isPast } from "date-fns";
 
 interface EventIdContentProps {
   data: {
@@ -117,6 +118,10 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     }
   };
 
+  let isGuestListOpen: boolean = data.guestListInfo?.guestListCloseTime
+    ? !isPast(data.guestListInfo.guestListCloseTime)
+    : false;
+
   return (
     <SectionContainer>
       <TopRowNav
@@ -129,6 +134,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
         canUploadGuest={canUploadGuest}
         canEditEvent={canEditEvent}
         handleAddGuestList={handleAddGuestList}
+        isGuestListOpen={isGuestListOpen}
       />
       {isEditing ? (
         <EventForm
@@ -156,6 +162,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
               ticketData={data.ticketInfo}
               tickets={tickets}
               organizationId={organization._id}
+              isPromoter={canUploadGuest}
+              eventId={data.event._id}
             />
           )}
 
@@ -165,7 +173,6 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           {activeTab === ActiveTab.GUEST_LIST && data.guestListInfo && (
             <GuestListTab
               guestListInfo={data.guestListInfo}
-              eventData={data.event}
               guestListData={guestListData}
               canUploadGuest={canUploadGuest}
               canCheckInGuests={canCheckInGuests}

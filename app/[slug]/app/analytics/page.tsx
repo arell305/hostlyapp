@@ -4,7 +4,7 @@ import { useContextOrganization } from "@/contexts/OrganizationContext";
 import ErrorComponent from "../components/errors/ErrorComponent";
 import AnalyticsContent from "./AnalyticsContent";
 import { useUser } from "@clerk/nextjs";
-import { isAnalyticsUser, isPromoter } from "@/utils/permissions";
+import { isManager, isPromoter } from "@/utils/permissions";
 
 const AnalyticsPage = () => {
   const { organization, organizationContextError, subscription } =
@@ -25,7 +25,7 @@ const AnalyticsPage = () => {
 
   const orgRole = user?.publicMetadata.role as string;
   const canViewPromoter = isPromoter(orgRole);
-  const canViewCompanyAnalytics = isAnalyticsUser(orgRole);
+  const canViewCompanyAnalytics = isManager(orgRole);
 
   return (
     <AnalyticsContent

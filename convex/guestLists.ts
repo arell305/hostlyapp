@@ -116,6 +116,7 @@ export const getGuestListByPromoter = query({
   },
   handler: async (ctx, args): Promise<GetGuestListByPromoterResponse> => {
     const { eventId } = args;
+
     try {
       const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Promoter,
@@ -140,20 +141,43 @@ export const getGuestListByPromoter = query({
           )
         )
         .first();
+
       if (!guestList) {
         return {
           status: ResponseStatus.SUCCESS,
           data: {
             guestListId: null,
             names: [],
+            totalCheckedIn: 0,
+            totalGuests: 0,
+            totalMalesCheckedIn: 0,
+            totalFemalesCheckedIn: 0,
           },
         };
       }
+
+      const names = guestList.names;
+
+      const totalCheckedIn = names.filter((g) => g.attended).length;
+      const totalGuests = names.length;
+
+      const totalMalesCheckedIn = names.reduce((sum, g) => {
+        return sum + (g.attended && g.malesInGroup ? g.malesInGroup : 0);
+      }, 0);
+
+      const totalFemalesCheckedIn = names.reduce((sum, g) => {
+        return sum + (g.attended && g.femalesInGroup ? g.femalesInGroup : 0);
+      }, 0);
+
       return {
         status: ResponseStatus.SUCCESS,
         data: {
           guestListId: guestList._id,
-          names: guestList.names,
+          names,
+          totalCheckedIn,
+          totalGuests,
+          totalMalesCheckedIn,
+          totalFemalesCheckedIn,
         },
       };
     } catch (error) {
@@ -291,6 +315,7 @@ export const getGuestListKpis = query({
         UserRole.Admin,
         UserRole.Manager,
         UserRole.Hostly_Admin,
+        UserRole.Promoter,
       ]);
 
       const organization = validateOrganization(
@@ -298,6 +323,15 @@ export const getGuestListKpis = query({
       );
 
       isUserInOrganization(identity, organization.clerkOrganizationId);
+
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .withIndex("by_clerkUserId", (q) =>
+            q.eq("clerkUserId", identity.id as string)
+          )
+          .unique()
+      );
 
       const events = await ctx.db
         .query("events")
@@ -312,6 +346,7 @@ export const getGuestListKpis = query({
       );
 
       const eventIds = filteredEvents.map((e) => e._id);
+
       const guestListsArrays = await Promise.all(
         eventIds.map((eventId) =>
           ctx.db
@@ -321,7 +356,14 @@ export const getGuestListKpis = query({
         )
       );
 
-      const guestLists = guestListsArrays.flat();
+      // Flatten and filter if promoter
+      let guestLists = guestListsArrays.flat();
+
+      if (identity.role === UserRole.Promoter) {
+        guestLists = guestLists.filter(
+          (gl) => gl.userPromoterId.toString() === user._id
+        );
+      }
 
       let totalRsvps = 0;
       let totalCheckins = 0;
@@ -333,11 +375,16 @@ export const getGuestListKpis = query({
         promoterSet.add(gl.userPromoterId.toString());
       }
 
-      const avgRsvpPerEvent = filteredEvents.length
-        ? totalRsvps / filteredEvents.length
+      const relevantEventCount =
+        identity.role === UserRole.Promoter
+          ? new Set(guestLists.map((gl) => gl.eventId.toString())).size
+          : filteredEvents.length;
+
+      const avgRsvpPerEvent = relevantEventCount
+        ? totalRsvps / relevantEventCount
         : 0;
-      const avgCheckinsPerEvent = filteredEvents.length
-        ? totalCheckins / filteredEvents.length
+      const avgCheckinsPerEvent = relevantEventCount
+        ? totalCheckins / relevantEventCount
         : 0;
       const avgCheckinRate = totalRsvps ? totalCheckins / totalRsvps : 0;
       const avgCheckinsPerPromoter = promoterSet.size

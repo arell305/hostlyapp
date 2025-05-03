@@ -3,39 +3,48 @@
 import { FiClock } from "react-icons/fi";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import StaticField from "@/components/shared/fields/StaticField";
-import SectionTitleWithStatus from "@/components/shared/headings/SectionTitleWithStatus";
+import { Badge } from "@/components/ui/badge";
 
 interface GuestListTimeCardProps {
   isCheckInOpen: boolean;
-  guestListClosed: boolean;
   guestListCloseTime: string;
   formattedCheckInEndTime: string;
   className?: string;
+  isGuestListOpen: boolean;
 }
 
 const GuestListTimeCard: React.FC<GuestListTimeCardProps> = ({
   isCheckInOpen,
-  guestListClosed,
   guestListCloseTime,
   formattedCheckInEndTime,
   className,
+  isGuestListOpen,
 }) => {
   return (
     <CustomCard className={className}>
-      <SectionTitleWithStatus
-        title="Guest List"
-        statusText={!isCheckInOpen ? "Check In Closed" : undefined}
-      />
-
       <StaticField
-        label={guestListClosed ? "RSVPS Closed:" : "RSVPS Closes:"}
+        label={isGuestListOpen ? "RSVPS Closes:" : "RSVPS Closed:"}
         value={guestListCloseTime}
         icon={<FiClock className="text-xl text-grayText" />}
+        badge={
+          isGuestListOpen ? (
+            <Badge variant="success">Open</Badge>
+          ) : (
+            <Badge variant="destructive">Closed</Badge>
+          )
+        }
       />
       <StaticField
         label={isCheckInOpen ? "Check In Ends:" : "Check In Ended:"}
         value={formattedCheckInEndTime}
         icon={<FiClock className="text-xl text-grayText" />}
+        badge={
+          isCheckInOpen ? (
+            <Badge variant="success">Open</Badge>
+          ) : (
+            <Badge variant="destructive">Closed</Badge>
+          )
+        }
       />
     </CustomCard>
   );

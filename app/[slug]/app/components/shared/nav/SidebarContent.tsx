@@ -19,7 +19,6 @@ import {
   isHostlyUser,
   isManager,
 } from "../../../../../../utils/permissions";
-import Image from "next/image";
 import Logo from "@/components/shared/Logo";
 type SidebarContentProps = {
   onNavigate?: () => void;

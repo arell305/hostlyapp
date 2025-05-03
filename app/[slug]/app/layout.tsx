@@ -4,13 +4,12 @@ import { useParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import Sidebar from "./components/shared/nav/Sidebar";
-import Navbar from "./components/shared/nav/Navbar1";
 import TicketScannerFAB from "./components/ui/TicketScannerFAB";
 import FullLoading from "./components/loading/FullLoading";
 import { isModerator } from "@/utils/permissions";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
-
+import Navbar from "./components/shared/nav/Navbar";
 const CompanyLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {

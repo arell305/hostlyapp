@@ -6,25 +6,15 @@ import KpiGrid from "@/components/shared/containers/KpiGrid";
 import KpiCard from "@/components/shared/KpiCard";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import BarChartContainer from "@/components/shared/analytics/BarChart";
-import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
-import { handleQueryState } from "../../../../../utils/handleQueryState";
 import { GetGuestListKpisData } from "@/types/convex-types";
-import { QueryState } from "@/types/enums";
 
-interface GuestListAnalyticsSectionProps {
-  organizationId: Id<"organizations">;
-  dateRange: {
-    from: Date | undefined;
-    to: Date | undefined;
-  };
+interface GuestListAnalyticsContentProps {
+  guestListKpisData: GetGuestListKpisData;
 }
 
-const GuestListAnalyticsSection = ({
-  organizationId,
-  dateRange,
-}: GuestListAnalyticsSectionProps) => {
+const GuestListAnalyticsContent = ({
+  guestListKpisData,
+}: GuestListAnalyticsContentProps) => {
   const data = [
     { date: "2025-04-01", amount: 320 },
     { date: "2025-04-02", amount: 450 },
@@ -44,19 +34,6 @@ const GuestListAnalyticsSection = ({
     { date: "2025-04-08", amount: 1350 },
   ];
 
-  const guestListData = useQuery(api.guestLists.getGuestListKpis, {
-    organizationId,
-    fromTimestamp: dateRange.from?.getTime() ?? 0,
-    toTimestamp: dateRange.to?.getTime() ?? Date.now(),
-  });
-
-  const result = handleQueryState(guestListData);
-
-  if (result.type === QueryState.Loading || result.type === QueryState.Error) {
-    return result.element;
-  }
-
-  const guestListKpisData: GetGuestListKpisData = result.data;
   return (
     <SectionContainer>
       <KpiGrid>
@@ -87,4 +64,4 @@ const GuestListAnalyticsSection = ({
   );
 };
 
-export default GuestListAnalyticsSection;
+export default GuestListAnalyticsContent;

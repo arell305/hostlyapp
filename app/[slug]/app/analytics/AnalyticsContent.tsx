@@ -8,12 +8,12 @@ import PageHeading from "@/components/shared/PageHeading";
 import PresetRangeDropdown from "@/components/shared/containers/date-filters/PresetRangeDropdown";
 import SingleDatePickerModal from "@/components/shared/containers/date-filters/DateRange";
 import { PresetOption } from "@/types/constants";
-import GuestListAnalyticsSection from "./sections/GuestListAnalyticsSection";
-import TicketAnalyticsSection from "./sections/TicketAnalyticsSection";
 import { getDateRangeFromPreset } from "../../../../utils/luxon";
 
 import { Id } from "../../../../convex/_generated/dataModel";
 import { DateRange } from "react-day-picker";
+import TicketAnalyticsContent from "./sections/TicketAnalyticsPage";
+import GuestListAnalyticsPage from "./sections/GuestListAnalyticsPage";
 
 const AnalyticsContent = ({
   subscription,
@@ -123,13 +123,19 @@ const AnalyticsContent = ({
       </div>
 
       {selectedTab === "tickets" && (
-        <TicketAnalyticsSection
+        <TicketAnalyticsContent
           organizationId={organizationId}
           dateRange={dateRange}
+          canViewPromoter={canViewPromoter}
+          canViewCompanyAnalytics={canViewCompanyAnalytics}
         />
+        // <TicketAnalyticsSection
+        //   organizationId={organizationId}
+        //   dateRange={dateRange}
+        // />
       )}
       {selectedTab === "guestlist" && hasGuestListAccess && (
-        <GuestListAnalyticsSection
+        <GuestListAnalyticsPage
           organizationId={organizationId}
           dateRange={dateRange}
         />

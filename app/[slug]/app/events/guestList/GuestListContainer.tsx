@@ -16,6 +16,7 @@ interface GuestListContainerProps {
   onShowDelete?: (id: string) => void;
   onCancelEdit?: () => void;
   setEditName?: (name: string) => void;
+  canEditGuests: boolean;
 }
 const GuestListContainer = ({
   filteredGuests,
@@ -29,6 +30,7 @@ const GuestListContainer = ({
   onShowDelete,
   onCancelEdit,
   setEditName,
+  canEditGuests,
 }: GuestListContainerProps) => {
   if (filteredGuests.length === 0) {
     return <EmptyList items={filteredGuests} />;
@@ -39,7 +41,7 @@ const GuestListContainer = ({
         <GuestCard
           key={guest.id}
           guest={guest}
-          canEditGuests={false}
+          canEditGuests={canEditGuests}
           canSeePromoterName={true}
           canCheckInGuests={canCheckInGuests}
           onCheckIn={handleCheckInGuest}

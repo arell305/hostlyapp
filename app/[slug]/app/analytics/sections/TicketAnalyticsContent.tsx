@@ -4,35 +4,17 @@ import React from "react";
 import { ticketKpis } from "@/types/constants";
 import KpiGrid from "@/components/shared/containers/KpiGrid";
 import KpiCard from "@/components/shared/KpiCard";
-import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
-import { ResponseStatus } from "@/types/enums";
-import Loading from "../../components/loading/Loading";
-import ErrorComponent from "../../components/errors/ErrorComponent";
 import BarChartContainer from "@/components/shared/analytics/BarChart";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
-interface TicketAnalyticsSectionProps {
-  organizationId: Id<"organizations">;
-  dateRange: {
-    from: Date | undefined;
-    to: Date | undefined;
-  };
+import { GetTotalRevenueByOrganizationData } from "@/types/convex-types";
+
+interface TicketAnalyticsContentProps {
+  revenueData: GetTotalRevenueByOrganizationData;
 }
 
-const TicketAnalyticsSection = ({
-  organizationId,
-  dateRange,
-}: TicketAnalyticsSectionProps) => {
-  const revenueData = useQuery(
-    api.connectedPayments.getTotalRevenueByOrganization,
-    {
-      organizationId: organizationId,
-      fromTimestamp: dateRange.from?.getTime() ?? 0,
-      toTimestamp: dateRange.to?.getTime() ?? Date.now(),
-    }
-  );
-
+const TicketAnalyticsContent = ({
+  revenueData,
+}: TicketAnalyticsContentProps) => {
   const formatValue = (key: string, value: number) => {
     if (key.toLowerCase().includes("revenue")) {
       return `$${value.toLocaleString(undefined, {
@@ -61,14 +43,6 @@ const TicketAnalyticsSection = ({
     { date: "2025-04-08", amount: 1350 },
   ];
 
-  const isLoading = revenueData === undefined;
-  const isError = revenueData?.status === ResponseStatus.ERROR;
-
-  if (isLoading) return <Loading />;
-  if (isError) return <ErrorComponent message="Error fetching revenue data" />;
-
-  const revenue = revenueData.data;
-
   return (
     <SectionContainer>
       <KpiGrid>
@@ -76,7 +50,10 @@ const TicketAnalyticsSection = ({
           <KpiCard
             key={key}
             label={label}
-            value={formatValue(key, revenue[key as keyof typeof revenue] ?? 0)}
+            value={formatValue(
+              key,
+              revenueData[key as keyof typeof revenueData] ?? 0
+            )}
             changeText="+10%" // Placeholder – replace with real logic if needed
             icon={React.createElement(icon, { className: "w-5 h-5" })}
           />
@@ -115,4 +92,4 @@ const TicketAnalyticsSection = ({
   );
 };
 
-export default TicketAnalyticsSection;
+export default TicketAnalyticsContent;

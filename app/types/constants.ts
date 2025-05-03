@@ -76,3 +76,26 @@ export const GUEST_LIST_CREDIT_PRICE: {
   amountInCents: 1000, // $10.00 per credit
   creditsPerUnit: 1,
 };
+
+export const promoterTicketsKpis = [
+  {
+    label: "Females / Day",
+    key: "avgFemalesPerDay",
+    icon: Users,
+  },
+  {
+    label: "Males / Day",
+    key: "avgMalesPerDay",
+    icon: UserCheck,
+  },
+  {
+    label: "Total Females",
+    key: "totalFemales",
+    icon: Users,
+  },
+  {
+    label: "Total Males",
+    key: "totalMales",
+    icon: Users,
+  },
+];

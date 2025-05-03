@@ -12,11 +12,13 @@ const IconButton = ({
   iconClassName,
   className,
   variant = "default",
+  disabled,
   ...props
 }: IconButtonProps) => {
   return (
     <button
       {...props}
+      disabled={disabled}
       className={cn(
         "p-1.5 rounded-full transition",
         variant === "default" &&

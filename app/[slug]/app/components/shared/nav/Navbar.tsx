@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import MobileSidebar from "./MobileSidebar";
 import NavbarActions from "./NavBarActions";
-import Image from "next/image";
 import Logo from "@/components/shared/Logo";
 import { UserWithPromoCode } from "@/types/types";
 
@@ -46,12 +45,10 @@ const Navbar = ({
       <MobileSidebar slug={slug} orgRole={orgRole} />
 
       {/* Centered logo only on mobile */}
-      <div className="flex-1 flex justify-center md:hidden">
+      <div className="flex-1 flex justify-center lg:hidden">
         <Logo />
       </div>
-      <div className="flex-1 flex">
-        <Logo />
-      </div>
+      <div className="flex-1 hidden lg:flex"></div>
 
       <NavbarActions orgRole={orgRole} userData={userData} />
     </nav>

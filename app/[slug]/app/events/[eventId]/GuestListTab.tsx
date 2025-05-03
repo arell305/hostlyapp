@@ -6,7 +6,6 @@ import ModeratorGuestListContent from "../guestList/ModeratorGuestListContent";
 import PromoterGuestListContent from "../guestList/PromoterGuestListContent";
 
 interface GuestListTabProps {
-  eventData: EventSchema;
   guestListInfo: GuestListInfoSchema;
   guestListData: GetEventWithGuestListsData;
   canUploadGuest: boolean;
@@ -14,24 +13,16 @@ interface GuestListTabProps {
 }
 
 const GuestListTab: React.FC<GuestListTabProps> = ({
-  eventData,
   guestListInfo,
   guestListData,
   canUploadGuest,
   canCheckInGuests,
 }) => {
-  let isGuestListOpen: boolean = !isPast(guestListInfo.guestListCloseTime);
-
   let isCheckInOpen: boolean = !isPast(guestListInfo.checkInCloseTime);
   return (
     <>
       {canUploadGuest ? (
-        <PromoterGuestListContent
-          eventId={eventData._id}
-          isGuestListOpen={isGuestListOpen}
-          guestListCloseTime={guestListInfo.guestListCloseTime}
-          guestListData={guestListData}
-        />
+        <PromoterGuestListContent guestListData={guestListData} />
       ) : (
         <ModeratorGuestListContent
           isCheckInOpen={isCheckInOpen}
