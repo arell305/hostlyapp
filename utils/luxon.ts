@@ -156,3 +156,7 @@ export function formatEventDateParts(startTime: number) {
     time: date.toFormat("h:mm a"),
   };
 }
+
+export function formatToEventDateTime(timestamp: number): string {
+  return DateTime.fromMillis(timestamp).toFormat("EEE, MMM d • h:mm a");
+}

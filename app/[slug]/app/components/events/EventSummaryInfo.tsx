@@ -1,0 +1,30 @@
+import React from "react";
+import { LuMapPin } from "react-icons/lu";
+import _ from "lodash";
+import { formatToEventDateTime } from "@/utils/luxon"; // Make sure this is your helper
+import { getTextBeforeComma } from "@/utils/helpers";
+
+interface EventSummaryInfoProps {
+  name: string;
+  startTime: number;
+  address: string;
+}
+
+const EventSummaryInfo: React.FC<EventSummaryInfoProps> = ({
+  name,
+  startTime,
+  address,
+}) => {
+  return (
+    <div className="space-y-1 mt-1">
+      <p className="">{_.capitalize(name)}</p>
+      <p className="text-sm ">{formatToEventDateTime(startTime)}</p>
+      <p className="flex items-center space-x-1 text-sm  truncate">
+        <LuMapPin className="w-4 h-4" />
+        <span>{getTextBeforeComma(address)}</span>
+      </p>
+    </div>
+  );
+};
+
+export default EventSummaryInfo;

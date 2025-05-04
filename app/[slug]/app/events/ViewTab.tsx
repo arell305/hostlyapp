@@ -10,7 +10,7 @@ interface ViewTabProps {
 }
 const ViewTab: React.FC<ViewTabProps> = ({ eventData, ticketData }) => {
   return (
-    <SectionContainer>
+    <SectionContainer className="flex flex-col lg:flex-row">
       <DetailsView eventData={eventData} />
       <About description={eventData.description} />
       {ticketData && <TicketView ticketData={ticketData} />}

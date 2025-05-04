@@ -36,12 +36,23 @@ const DetailsView: React.FC<DetailsViewProps> = ({
   const isSalesOpen = isTicketSalesOpen(ticketInfoData);
 
   return (
-    <div className="flex flex-col rounded border  w-[95%] shadow  mx-auto">
-      {displayEventPhoto === undefined && <EventFormSkeleton />}
+    <div className="flex flex-col   ">
+      {displayEventPhoto ? (
+        <div className="relative w-full max-w-[375px]   aspect-[4/5]">
+          <Image
+            src={displayEventPhoto}
+            alt="Company Avatar"
+            fill
+            className="object-cover md:rounded-md"
+          />
+        </div>
+      ) : (
+        <EventFormSkeleton />
+      )}
       <div
-        className={`flex items-center justify-between pl-4 pb-2 pt-4 ${displayEventPhoto ? "mb-2" : ""}`}
+        className={`flex items-center justify-between pb-2 pt-4 ${displayEventPhoto ? "mb-2" : ""}`}
       >
-        <h2 className={`font-playfair font-bold text-2xl pl-3 `}>
+        <h2 className={` font-bold text-6xl pl-3 `}>
           {_.capitalize(eventData.name)}
         </h2>
         {isSalesOpen && (
@@ -53,17 +64,7 @@ const DetailsView: React.FC<DetailsViewProps> = ({
           </Badge>
         )}
       </div>
-      {displayEventPhoto && (
-        <div className="relative w-full max-w-[375px] mx-auto   aspect-[4/5]">
-          <Image
-            src={displayEventPhoto}
-            alt="Company Avatar"
-            fill
-            className="object-cover md:rounded-md"
-          />
-        </div>
-      )}
-      <div className="p-3">
+      <div className="">
         <IconTextRow
           icon={<MdOutlineCalendarToday />}
           text={

@@ -13,6 +13,7 @@ interface CompanyEventsContentProps {
   handleNavigateHome: () => void;
   name: string;
   events: EventSchema[];
+  handleNavigateEvent: (eventId: string) => void;
 }
 
 const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
@@ -21,19 +22,26 @@ const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
   handleNavigateHome,
   name,
   events,
+  handleNavigateEvent,
 }) => {
   return (
     <div>
       <HomeNav user={user} handleNavigateHome={handleNavigateHome} />
-      <SectionContainer>
-        <ProfileBanner displayPhoto={displayCompanyPhoto} name={name} />
+      <main>
+        <SectionContainer>
+          <ProfileBanner displayPhoto={displayCompanyPhoto} name={name} />
 
-        <EventGrid>
-          {events.map((event: EventSchema) => (
-            <EventPreview key={event._id} eventData={event} isApp={false} />
-          ))}
-        </EventGrid>
-      </SectionContainer>
+          <EventGrid>
+            {events.map((event: EventSchema) => (
+              <EventPreview
+                key={event._id}
+                eventData={event}
+                handleNavigateEvent={handleNavigateEvent}
+              />
+            ))}
+          </EventGrid>
+        </SectionContainer>
+      </main>
     </div>
   );
 };

@@ -4,15 +4,21 @@ import { cn } from "@/lib/utils";
 interface CustomCardProps {
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
-const CustomCard: React.FC<CustomCardProps> = ({ children, className }) => {
+const CustomCard: React.FC<CustomCardProps> = ({
+  children,
+  className,
+  onClick,
+}) => {
   return (
     <div
       className={cn(
         "rounded-md border  bg-cardBackground flex flex-col ",
         className
       )}
+      onClick={onClick}
     >
       {children}
     </div>

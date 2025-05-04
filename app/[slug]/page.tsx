@@ -1,6 +1,6 @@
 "use client";
 import { useQuery } from "convex/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { api } from "../../convex/_generated/api";
 import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
 import { useUser } from "@clerk/nextjs";
@@ -18,9 +18,14 @@ const CompanyEvents = () => {
   } = useContextPublicOrganization();
   const { user } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleNavigateHome = () => {
     router.push("/");
+  };
+
+  const handleNavigateEvent = (eventId: string) => {
+    router.push(`${pathname}/events/${eventId}`);
   };
 
   const displayCompanyPhoto = useQuery(
@@ -32,10 +37,11 @@ const CompanyEvents = () => {
     return <ErrorComponent message={publicOrganizationContextError} />;
   }
 
+  console.log("organizationId", organizationId);
   if (
     !organizationId ||
     user === undefined ||
-    displayCompanyPhoto === undefined ||
+    // displayCompanyPhoto === undefined
     events === undefined
   ) {
     return <FullLoading />;
@@ -48,6 +54,7 @@ const CompanyEvents = () => {
       handleNavigateHome={handleNavigateHome}
       name={name}
       events={events}
+      handleNavigateEvent={handleNavigateEvent}
     />
   );
 };
