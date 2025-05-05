@@ -11,9 +11,13 @@ import { ResponseStatus } from "@/types/enums";
 import EventContent from "./EventContent";
 import { useUser } from "@clerk/nextjs";
 import EventsPageNav from "@/[slug]/app/components/nav/EventsPageNav";
+import ProfileBanner from "@/components/shared/company/ProfileBanner";
+import SectionContainer from "@/components/shared/containers/SectionContainer";
+import { ArrowLeft } from "lucide-react";
+import HomeNav from "@/[slug]/app/components/nav/HomeNav";
 
 const EventPage = () => {
-  const { isStripeEnabled, connectedAccountStripeId } =
+  const { name, photo, isStripeEnabled, connectedAccountStripeId } =
     useContextPublicOrganization();
 
   const pathname = usePathname();
@@ -22,6 +26,11 @@ const EventPage = () => {
   const eventId = params.eventId as string;
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
   const { user } = useUser();
+
+  const displayCompanyPhoto = useQuery(
+    api.photo.getFileUrl,
+    photo ? { storageId: photo } : "skip"
+  );
 
   let stripePromise: Promise<Stripe | null> = Promise.resolve(null);
 
@@ -40,7 +49,11 @@ const EventPage = () => {
     );
   }
 
-  if (getEventByIdResponse === undefined || user === undefined) {
+  if (
+    getEventByIdResponse === undefined ||
+    user === undefined ||
+    name === undefined
+  ) {
     return <FullLoading />;
   }
 
@@ -52,19 +65,30 @@ const EventPage = () => {
   const ticketSoldCounts = getEventByIdResponse?.data?.ticketSoldCounts;
   return (
     <div>
-      <EventsPageNav
-        handleNavigateHome={handleBrowseMoreEvents}
-        buttonText="Back to Events"
-      />
-      <EventContent
-        isStripeEnabled={isStripeEnabled}
-        connectedAccountStripeId={connectedAccountStripeId}
-        stripePromise={stripePromise}
-        eventData={eventData}
-        ticketInfoData={ticketInfoData}
-        onBrowseMoreEvents={handleBrowseMoreEvents}
-        ticketSoldCounts={ticketSoldCounts}
-      />
+      <HomeNav user={user} handleNavigateHome={handleBrowseMoreEvents} />
+
+      <main>
+        <div className="px-4 mt-2">
+          <button
+            onClick={handleBrowseMoreEvents}
+            className="text-sm text-primaryBlue flex items-center gap-1 hover:underline"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Events
+          </button>
+        </div>
+        <ProfileBanner displayPhoto={displayCompanyPhoto} name={name} />
+
+        <EventContent
+          isStripeEnabled={isStripeEnabled}
+          connectedAccountStripeId={connectedAccountStripeId}
+          stripePromise={stripePromise}
+          eventData={eventData}
+          ticketInfoData={ticketInfoData}
+          onBrowseMoreEvents={handleBrowseMoreEvents}
+          ticketSoldCounts={ticketSoldCounts}
+        />
+      </main>
     </div>
   );
 };

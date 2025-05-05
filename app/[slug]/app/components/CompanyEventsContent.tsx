@@ -6,6 +6,7 @@ import HomeNav from "./nav/HomeNav";
 import ProfileBanner from "@/components/shared/company/ProfileBanner";
 import EventGrid from "@/components/shared/containers/EventGrid";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
+import EmptyList from "@/components/shared/EmptyList";
 
 interface CompanyEventsContentProps {
   user: UserResource | null;
@@ -30,7 +31,7 @@ const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
       <main>
         <SectionContainer>
           <ProfileBanner displayPhoto={displayCompanyPhoto} name={name} />
-
+          <EmptyList items={events} message="No events found" />
           <EventGrid>
             {events.map((event: EventSchema) => (
               <EventPreview

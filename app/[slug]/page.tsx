@@ -37,7 +37,6 @@ const CompanyEvents = () => {
     return <ErrorComponent message={publicOrganizationContextError} />;
   }
 
-  console.log("organizationId", organizationId);
   if (
     !organizationId ||
     user === undefined ||

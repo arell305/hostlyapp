@@ -53,51 +53,57 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
   }
   return (
     <div className="flex flex-col gap-4">
-      <h2>Tickets</h2>
-      {ticketData ? (
-        <>
-          <TicketTimeCard ticketData={ticketData} tickets={tickets} />
-          {isPromoter && promoterTicketData && (
-            <PromoterTicketData promoterTicketData={promoterTicketData} />
-          )}
-        </>
-      ) : (
-        <EmptyStateCard
-          message="There is no ticket sales option for this event"
-          icon={<LuClipboardList className="text-2xl" />}
-        />
-      )}
-      <h2>Guest List</h2>
-      {guestListInfo ? (
-        <>
-          <GuestListTimeCard
-            isCheckInOpen={isCheckInOpen}
-            isGuestListOpen={isGuestListOpen}
-            guestListCloseTime={formatToTimeAndShortDate(
-              guestListInfo.guestListCloseTime
+      <div>
+        <h2 className="mb-1">Tickets</h2>
+        {ticketData ? (
+          <>
+            <TicketTimeCard ticketData={ticketData} tickets={tickets} />
+            {isPromoter && promoterTicketData && (
+              <PromoterTicketData promoterTicketData={promoterTicketData} />
             )}
-            formattedCheckInEndTime={formatToTimeAndShortDate(
-              guestListInfo.checkInCloseTime
-            )}
+          </>
+        ) : (
+          <EmptyStateCard
+            message="There is no ticket sales option for this event"
+            icon={<LuClipboardList className="text-2xl" />}
           />
-          {isPromoter && guestListResults && (
-            <PromoterGuestsListData guestListResults={guestListResults} />
-          )}
-        </>
-      ) : (
-        <EmptyStateCard
-          message="There is no guest list option for this event"
-          icon={<LuClipboardList className="text-2xl" />}
-        />
-      )}
-
-      {!isPromoter && (
-        <PromoterSelect
-          promoters={promoters}
-          selectedPromoterId={selectedPromoterId}
-          setSelectedPromoterId={setSelectedPromoterId}
-        />
-      )}
+        )}
+      </div>
+      <div>
+        <h2 className="mb-1">Guest List</h2>
+        {guestListInfo ? (
+          <>
+            <GuestListTimeCard
+              isCheckInOpen={isCheckInOpen}
+              isGuestListOpen={isGuestListOpen}
+              guestListCloseTime={formatToTimeAndShortDate(
+                guestListInfo.guestListCloseTime
+              )}
+              formattedCheckInEndTime={formatToTimeAndShortDate(
+                guestListInfo.checkInCloseTime
+              )}
+            />
+            {isPromoter && guestListResults && (
+              <PromoterGuestsListData guestListResults={guestListResults} />
+            )}
+          </>
+        ) : (
+          <EmptyStateCard
+            message="There is no guest list option for this event"
+            icon={<LuClipboardList className="text-2xl" />}
+          />
+        )}
+      </div>
+      <div>
+        <h2 className="mb-1">Promoters</h2>
+        {!isPromoter && (
+          <PromoterSelect
+            promoters={promoters}
+            selectedPromoterId={selectedPromoterId}
+            setSelectedPromoterId={setSelectedPromoterId}
+          />
+        )}
+      </div>
     </div>
   );
 };

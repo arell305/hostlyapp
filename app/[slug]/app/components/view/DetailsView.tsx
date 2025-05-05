@@ -36,7 +36,7 @@ const DetailsView: React.FC<DetailsViewProps> = ({
   const isSalesOpen = isTicketSalesOpen(ticketInfoData);
 
   return (
-    <div className="flex flex-col   ">
+    <div className="flex flex-col w-[350px] mx-auto  ">
       {displayEventPhoto ? (
         <div className="relative w-full max-w-[375px]   aspect-[4/5]">
           <Image

@@ -28,7 +28,8 @@ import { ResponseStatus } from "@/types/enums";
 import { isValidEmail } from "../../../../utils/helpers";
 import { Button } from "@/components/ui/button";
 import { TicketSoldCounts } from "@/types/types";
-
+import SectionContainer from "@/components/shared/containers/SectionContainer";
+import EmptyList from "@/components/shared/EmptyList";
 interface EventContentProps {
   isStripeEnabled: boolean;
   connectedAccountStripeId: string | null;
@@ -168,94 +169,98 @@ const EventContent: React.FC<EventContentProps> = ({
     clientSecret && !paymentSuccess && isTicketsSalesOpen;
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col space-y-6 pb-20 pt-2">
+    <SectionContainer className="flex flex-col md:flex-row ">
       <DetailsView eventData={eventData} ticketInfoData={ticketInfoData} />
-      <About description={eventData.description} />
-      {paymentSuccess && (
-        <OrderReceipt onBrowseMoreEvents={onBrowseMoreEvents} />
-      )}
-      {!isTicketsSalesOpen && <MessageCard message="Ticket sales are closed" />}
+      <div className="flex flex-col space-y-4">
+        <About description={eventData.description} />
+        {paymentSuccess && (
+          <OrderReceipt onBrowseMoreEvents={onBrowseMoreEvents} />
+        )}
+        {!isTicketsSalesOpen && <EmptyList message="Ticket sales are closed" />}
 
-      {shouldShowTicketPurchase && (
-        <div className="flex flex-col bg-white rounded border border-altGray shadow mx-auto w-[95%]">
-          {!shouldShowStripeForm && (
-            <div className="py-3 px-7 pb-10">
-              <h2 className="text-2xl font-bold mb-2 text-start">Tickets</h2>
+        {shouldShowTicketPurchase && (
+          <div className="flex flex-col bg-white rounded border border-altGray shadow mx-auto w-[95%]">
+            {!shouldShowStripeForm && (
+              <div className="py-3 px-7 pb-10">
+                <h2 className="text-2xl font-bold mb-2 text-start">Tickets</h2>
 
-              <TicketSelector
-                label="Male"
-                count={maleCount}
-                setCount={setMaleCount}
-                price={discountedMalePrice}
-                soldCount={ticketSoldCounts?.male || 0}
-                capacity={ticketInfoData?.ticketTypes.male.capacity || 0}
-              />
-              <TicketSelector
-                label="Female"
-                count={femaleCount}
-                setCount={setFemaleCount}
-                price={discountedFemalePrice}
-                soldCount={ticketSoldCounts?.female || 0}
-                capacity={ticketInfoData?.ticketTypes.female.capacity || 0}
-              />
-            </div>
-          )}
+                <TicketSelector
+                  label="Male"
+                  count={maleCount}
+                  setCount={setMaleCount}
+                  price={discountedMalePrice}
+                  soldCount={ticketSoldCounts?.male || 0}
+                  capacity={ticketInfoData?.ticketTypes.male.capacity || 0}
+                />
+                <TicketSelector
+                  label="Female"
+                  count={femaleCount}
+                  setCount={setFemaleCount}
+                  price={discountedFemalePrice}
+                  soldCount={ticketSoldCounts?.female || 0}
+                  capacity={ticketInfoData?.ticketTypes.female.capacity || 0}
+                />
+              </div>
+            )}
 
-          {shouldShowPurchaseForm && (
-            <>
-              <OrderSummary
-                maleCount={maleCount}
-                femaleCount={femaleCount}
-                totalMalePrice={totalMalePrice}
-                totalFemalePrice={totalFemalePrice}
-                totalDiscount={totalDiscount}
-                discountAmount={discountAmount}
-                totalPrice={totalPrice}
-                validationResult={validationResult}
-              />
-              {shouldShowStripeForm ? (
-                <div className="py-5 px-7 space-y-4">
-                  <Button
-                    onClick={() => setClientSecret(null)}
-                    variant="navGhost"
-                    size="nav"
-                  >
-                    ← Back to ticket selection
-                  </Button>
+            {shouldShowPurchaseForm && (
+              <>
+                <OrderSummary
+                  maleCount={maleCount}
+                  femaleCount={femaleCount}
+                  totalMalePrice={totalMalePrice}
+                  totalFemalePrice={totalFemalePrice}
+                  totalDiscount={totalDiscount}
+                  discountAmount={discountAmount}
+                  totalPrice={totalPrice}
+                  validationResult={validationResult}
+                />
+                {shouldShowStripeForm ? (
+                  <div className="py-5 px-7 space-y-4">
+                    <Button
+                      onClick={() => setClientSecret(null)}
+                      variant="navGhost"
+                      size="nav"
+                    >
+                      ← Back to ticket selection
+                    </Button>
 
-                  <Elements stripe={stripePromise} options={{ clientSecret }}>
-                    <TicketPaymentForm setPaymentSuccess={setPaymentSuccess} />
-                  </Elements>
-                </div>
-              ) : (
-                <div className="py-3 px-7">
-                  <EmailInput
-                    email={email}
-                    setEmail={setEmail}
-                    emailError={emailError}
-                    setEmailError={setEmailError}
-                  />
-                  <PromoCodeInput
-                    setPromoCode={setPromoCode}
-                    setPromoCodeError={setPromoCodeError}
-                    promoCodeError={promoCodeError}
-                    onApplyPromo={handleApplyPromoCode}
-                    isApplyPromoCodeLoading={isApplyPromoCodeLoading}
-                    promoCode={promoCode}
-                    isPromoApplied={isPromoApplied}
-                  />
-                  <CheckoutButton
-                    onCheckout={handleCheckout}
-                    checkoutError={checkoutError}
-                    isCheckoutLoading={isCheckoutLoading}
-                  />
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </div>
+                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                      <TicketPaymentForm
+                        setPaymentSuccess={setPaymentSuccess}
+                      />
+                    </Elements>
+                  </div>
+                ) : (
+                  <div className="py-3 px-7">
+                    <EmailInput
+                      email={email}
+                      setEmail={setEmail}
+                      emailError={emailError}
+                      setEmailError={setEmailError}
+                    />
+                    <PromoCodeInput
+                      setPromoCode={setPromoCode}
+                      setPromoCodeError={setPromoCodeError}
+                      promoCodeError={promoCodeError}
+                      onApplyPromo={handleApplyPromoCode}
+                      isApplyPromoCodeLoading={isApplyPromoCodeLoading}
+                      promoCode={promoCode}
+                      isPromoApplied={isPromoApplied}
+                    />
+                    <CheckoutButton
+                      onCheckout={handleCheckout}
+                      checkoutError={checkoutError}
+                      isCheckoutLoading={isCheckoutLoading}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </SectionContainer>
   );
 };
 

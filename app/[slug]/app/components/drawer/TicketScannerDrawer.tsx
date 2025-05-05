@@ -5,6 +5,8 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { ResponseStatus } from "@/types/enums";
+import IconButton from "@/components/shared/buttonContainers/IconButton";
+import { X } from "lucide-react";
 const TicketScannerModal = ({
   open,
   onClose,
@@ -49,7 +51,13 @@ const TicketScannerModal = ({
         onClose();
       }}
     >
-      <DrawerContent className="fixed inset-x-0 bottom-0 h-[100vh] bg-white rounded-t-lg shadow-lg flex flex-col">
+      <DrawerContent className="fixed inset-x-0 bottom-0 h-[100vh]  rounded-t-lg  flex flex-col">
+        <IconButton
+          onClick={onClose}
+          className="absolute top-4 right-4"
+          variant="outline"
+          icon={<X />}
+        />
         <DrawerTitle className="text-center text-2xl font-bold py-4">
           Scan Ticket
         </DrawerTitle>
@@ -65,14 +73,6 @@ const TicketScannerModal = ({
             {checkInStatus}
           </p>
         )}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-3/4">
-          <button
-            onClick={onClose}
-            className="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition"
-          >
-            Close
-          </button>
-        </div>
       </DrawerContent>
     </Drawer>
   );
