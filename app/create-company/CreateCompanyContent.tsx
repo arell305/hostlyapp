@@ -33,8 +33,6 @@ const CreateCompanyContent = ({
 }: CreateCompanyContentProps) => {
   const { user } = useUser();
   const { organization } = useOrganization();
-  console.log("organization", organization);
-  console.log("user", user?.publicMetadata);
   const [companyName, setCompanyName] = useState<string>("");
   const [promoDiscountAmount, setPromoDiscountAmount] = useState<string>("");
 
@@ -106,7 +104,6 @@ const CreateCompanyContent = ({
       }, 300);
     }
   };
-  console.log("here");
   return (
     <main className="">
       <nav className={"px-4 w-full flex justify-end  z-10 top-0 fixed h-12  "}>

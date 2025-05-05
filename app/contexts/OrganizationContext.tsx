@@ -38,7 +38,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
     api.organizations.getOrganizationContext,
     queryKey ? { slug: queryKey } : "skip"
   );
-
+  console.log("response", response);
   // Re-fetch when slug changes
   useEffect(() => {
     if (cleanSlug && cleanSlug !== queryKey) {

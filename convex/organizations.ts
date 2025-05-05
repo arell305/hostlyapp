@@ -15,6 +15,7 @@ import {
 } from "@/types/enums";
 import {
   GetAllOrganizationsResponse,
+  GetOrganizationByClerkUserIdResponse,
   GetOrganizationContextResponse,
   GetOrganizationImagePublicResponse,
   GetOrganizationPublicContextResponse,
@@ -27,6 +28,7 @@ import { handleError, isUserInOrganization } from "./backendUtils/helper";
 import {
   validateOrganization,
   validateSubscription,
+  validateUser,
 } from "./backendUtils/validation";
 import { ConnectedAccountsSchema } from "@/types/schemas-types";
 
@@ -202,6 +204,35 @@ export const getOrganizationByClerkId = query({
   },
 });
 
+export const getOrganizationByClerkUserId = query({
+  args: {
+    clerkUserId: v.string(),
+  },
+  handler: async (ctx, args): Promise<GetOrganizationByClerkUserIdResponse> => {
+    const { clerkUserId } = args;
+    try {
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+          .unique()
+      );
+
+      const organization = validateOrganization(
+        await ctx.db.get(user.organizationId)
+      );
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          organization,
+        },
+      };
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+});
 export const internalGetOrganizationByClerkId = internalQuery({
   args: {
     clerkOrganizationId: v.string(),
@@ -367,7 +398,6 @@ export const getOrganizationContext = query({
     const { slug } = args;
     try {
       const identity = await requireAuthenticatedUser(ctx);
-
       const organization = validateOrganization(
         await ctx.db
           .query("organizations")

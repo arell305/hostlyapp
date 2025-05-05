@@ -26,7 +26,7 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
 }) => {
   const [inviteEmail, setInviteEmail] = useState<string>("");
   const [inviteRole, setInviteRole] = useState<UserRole>(
-    canManageTeam ? UserRole.Hostly_Moderator : UserRole.Promoter
+    canManageTeam ? UserRole.Promoter : UserRole.Hostly_Moderator
   );
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   const [formErrors, setFormErrors] = useState<{

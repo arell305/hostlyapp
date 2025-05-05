@@ -902,3 +902,16 @@ export interface GetPromoterTicketKpisData {
   avgMalePerDay: number;
   avgFemalePerDay: number;
 }
+
+export type GetOrganizationByClerkUserIdResponse =
+  | GetOrganizationByClerkUserIdSuccess
+  | ErrorResponse;
+
+export interface GetOrganizationByClerkUserIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetOrganizationByClerkUserIdData;
+}
+
+export interface GetOrganizationByClerkUserIdData {
+  organization: OrganizationSchema;
+}

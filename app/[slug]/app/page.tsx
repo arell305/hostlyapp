@@ -20,7 +20,6 @@ const HomePage: React.FC = () => {
     connectedAccountEnabled,
     subscription,
   } = useContextOrganization();
-
   if (
     subscription === undefined ||
     organization === undefined ||
@@ -48,7 +47,6 @@ const HomePage: React.FC = () => {
   const showStripeNotification = !connectedAccountEnabled && canCreateEvents;
   const showPlusTierData =
     subscription.subscriptionTier === SubscriptionTier.PLUS && canCreateEvents;
-
   return (
     <HomeContent
       organization={organization}
