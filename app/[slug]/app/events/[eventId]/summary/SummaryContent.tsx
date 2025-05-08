@@ -14,6 +14,7 @@ import {
 } from "@/types/convex-types";
 import PromoterGuestsListData from "./PromoterGuestsData";
 import PromoterTicketData from "./PromoterTicketData";
+import EmptyList from "@/components/shared/EmptyList";
 
 interface SummaryContentProps {
   guestListInfo?: GuestListInfoSchema | null;
@@ -43,7 +44,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
     isCheckInOpen = !isPast(guestListInfo.checkInCloseTime);
   }
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-8">
       <div>
         <h2 className="mb-1">Tickets</h2>
         {ticketInfo && ticketSalesByPromoterData ? (
@@ -89,7 +90,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
       </div>
       {isPromoter && promoterGuestStatsData && (
         <div>
-          <h2 className="mb-1">Guest Attendance</h2>
+          <h2 className="mb-1">Promoter Guest Attendance</h2>
 
           <PromoterGuestsListData
             guestListData={promoterGuestStatsData.promoterGuestStats[0]}
@@ -99,9 +100,16 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
       {ticketInfo && !isPromoter && ticketSalesByPromoterData && (
         <div>
           <h2 className="mb-1">Promoter Ticket Sales</h2>
+          <EmptyList
+            items={ticketSalesByPromoterData.tickets}
+            message="No promoter ticket sales found"
+          />
           <div className="flex flex-col gap-2">
             {ticketSalesByPromoterData.tickets.map((ticket) => (
-              <PromoterTicketData promoterTicketData={ticket} />
+              <PromoterTicketData
+                promoterTicketData={ticket}
+                key={ticket.promoterId}
+              />
             ))}
           </div>
         </div>
@@ -111,8 +119,15 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
         <div>
           <h2 className="mb-1">Promoter Guest List Summary</h2>
           <div className="flex flex-col gap-2">
+            <EmptyList
+              items={promoterGuestStatsData.promoterGuestStats}
+              message="No promoter guests found"
+            />
             {promoterGuestStatsData.promoterGuestStats.map((promoter) => (
-              <PromoterGuestsListData guestListData={promoter} />
+              <PromoterGuestsListData
+                guestListData={promoter}
+                key={promoter.promoterId}
+              />
             ))}
           </div>
         </div>
