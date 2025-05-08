@@ -2,10 +2,8 @@ import React, { useMemo, useRef, useState } from "react";
 import { TicketSchemaWithPromoter } from "@/types/schemas-types";
 import useRedeemTicket from "../../hooks/useRedeemTicket";
 import { useToast } from "@/hooks/use-toast";
-import useMediaQuery from "@/hooks/useMediaQuery";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import TicketList from "../../components/tickets/TicketList";
-import { DESKTOP_WIDTH } from "@/types/constants";
 import { filterBySearchTerm } from "../../../../../utils/format";
 import SearchInput from "../components/SearchInput";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
@@ -30,7 +28,6 @@ const ModeratorTicketsContent: React.FC<ModeratorTicketsContentProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showRedeemModal, setShowRedeemModal] = useState<boolean>(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const handleConfirmRedeem = async () => {
     const result = await handleRedeem();
@@ -52,7 +49,6 @@ const ModeratorTicketsContent: React.FC<ModeratorTicketsContentProps> = ({
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         searchInputRef={searchInputRef}
-        isDesktop={isDesktop}
         placeholder="Search Ticket ID..."
       />
 
