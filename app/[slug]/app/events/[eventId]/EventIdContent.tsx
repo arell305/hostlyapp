@@ -20,10 +20,6 @@ import { useUpdateEvent } from "../hooks/useUpdateEvent";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
 import SummaryPage from "./summary/SummaryPage";
-import {
-  GetEventWithGuestListsData,
-  GetGuestsGroupedByPromoterData,
-} from "@/types/convex-types";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import { isPast } from "date-fns";
 import TicketPage from "../../components/tickets/TicketPage";
@@ -40,8 +36,6 @@ interface EventIdContentProps {
   subscription: SubscriptionSchema;
   handleNavigateHome: () => void;
   canCheckInGuests: boolean;
-  guestListData?: GetEventWithGuestListsData;
-  guestsGroupedByPromoter?: GetGuestsGroupedByPromoterData;
   canUploadGuest: boolean;
   canEditEvent: boolean;
   handleAddGuestList: () => void;
@@ -54,7 +48,6 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   subscription,
   handleNavigateHome,
   canCheckInGuests,
-  guestListData,
   canUploadGuest,
   canEditEvent,
   handleAddGuestList,
