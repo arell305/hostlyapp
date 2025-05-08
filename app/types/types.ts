@@ -140,7 +140,7 @@ export interface PromoCodeUsageData {
 export interface Guest {
   promoterId: string;
   promoterName: string;
-  guestListId: Id<"guestLists">;
+  guestListId: Id<"guestListEntries">;
   attended?: boolean;
   malesInGroup?: number;
   femalesInGroup?: number;
@@ -164,7 +164,7 @@ export interface GuestListNameSchema {
 }
 
 export interface GuestListSchema {
-  _id: Id<"guestLists">;
+  _id: Id<"guestListEntries">;
   names: GuestListNameSchema[];
   eventId: Id<"events">;
   userPromoterId: Id<"users">;
@@ -179,7 +179,7 @@ export interface AllGuestSchema {
   checkInTime?: number;
   promoterId: string;
   promoterName: string;
-  guestListId: Id<"guestLists">;
+  guestListId: Id<"guestListEntries">;
   phoneNumber?: string;
   eventId: Id<"events">;
 }
@@ -188,7 +188,7 @@ export interface GuestWithPromoter {
   id: string;
   name: string;
   promoterId?: string;
-  guestListId?: Id<"guestLists">;
+  guestListId?: Id<"guestListEntries">;
   promoterName?: string;
   attended?: boolean;
   malesInGroup?: number;
