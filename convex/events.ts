@@ -7,11 +7,7 @@ import {
   internalQuery,
 } from "./_generated/server";
 import {
-  AllGuestSchema,
   CancelEventResponse,
-  GuestListNameSchema,
-  GuestListSchema,
-  Promoter,
   OrganizationSchema,
   TicketSoldCounts,
 } from "@/types/types";
@@ -27,8 +23,6 @@ import {
   AddEventResponse,
   GetEventByIdResponse,
   UpdateEventResponse,
-  GetEventWithGuestListsResponse,
-  UpdateGuestAttendanceResponse,
   GetEventsByMonthResponse,
   GetEventWithTicketsData,
 } from "@/types/convex-types";
@@ -44,12 +38,7 @@ import {
 import { getCurrentTime } from "../utils/luxon";
 import { internal } from "./_generated/api";
 import { requireAuthenticatedUser } from "../utils/auth";
-import {
-  validateEvent,
-  validateGuestList,
-  validateOrganization,
-  validateUser,
-} from "./backendUtils/validation";
+import { validateEvent, validateOrganization } from "./backendUtils/validation";
 import {
   getTicketSoldCounts,
   handleError,
@@ -57,7 +46,6 @@ import {
   handleGuestListUpdateData,
   handleTicketData,
   handleTicketUpdateData,
-  isUserInCompanyOfEvent,
   isUserInOrganization,
   performAddEventCleanup,
 } from "./backendUtils/helper";
@@ -216,175 +204,6 @@ export const getEventById = query({
           guestListInfo,
           ticketSoldCounts,
         },
-      };
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-});
-
-// export const getEventWithGuestLists = query({
-//   args: { eventId: v.id("events") },
-//   handler: async (ctx, args): Promise<GetEventWithGuestListsResponse> => {
-//     const { eventId } = args;
-
-//     try {
-//       const identity = await requireAuthenticatedUser(ctx, [
-//         UserRole.Moderator,
-//         UserRole.Hostly_Moderator,
-//         UserRole.Hostly_Admin,
-//         UserRole.Admin,
-//         UserRole.Manager,
-//         UserRole.Promoter,
-//       ]);
-
-//       const clerkUserId = identity.id as string;
-
-//       const user: UserSchema | null = await ctx.db
-//         .query("users")
-//         .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-//         .first();
-
-//       const validatedUser = validateUser(user);
-
-//       const event: EventSchema | null = await ctx.db.get(args.eventId);
-//       const validatedEvent = validateEvent(event);
-
-//       isUserInCompanyOfEvent(validatedUser, validatedEvent);
-
-//       let guestListsQuery = ctx.db
-//         .query("guestLists")
-//         .filter((q) => q.eq(q.field("eventId"), eventId));
-
-//       if (validatedUser.role === UserRole.Promoter) {
-//         guestListsQuery = guestListsQuery.filter((q) =>
-//           q.eq(q.field("userPromoterId"), validatedUser._id)
-//         );
-//       }
-
-//       const guestLists: GuestListSchema[] = await guestListsQuery.collect();
-
-//       const promoterIds: Id<"users">[] = Array.from(
-//         new Set(guestLists.map((gl) => gl.userPromoterId))
-//       );
-
-//       const promoters: Promoter[] = await Promise.all(
-//         promoterIds.map(async (promoterId) => {
-//           const user = await ctx.db.get(promoterId);
-//           return { promoterUserId: promoterId, name: user?.name || "Unknown" };
-//         })
-//       );
-
-//       const promoterMap: Map<string, string> = new Map(
-//         promoters.map((p) => [p.promoterUserId, p.name])
-//       );
-
-//       const allGuests: AllGuestSchema[] = guestLists.flatMap((guestList) =>
-//         guestList.names.map((guest) => ({
-//           ...guest,
-//           promoterId: guestList.userPromoterId,
-//           promoterName: promoterMap.get(guestList.userPromoterId) || "Unknown",
-//           guestListId: guestList._id,
-//         }))
-//       );
-
-//       const totalMales: number = allGuests.reduce(
-//         (sum, guest) => sum + (guest.malesInGroup || 0),
-//         0
-//       );
-
-//       const totalFemales: number = allGuests.reduce(
-//         (sum, guest) => sum + (guest.femalesInGroup || 0),
-//         0
-//       );
-
-//       const sortedGuests: AllGuestSchema[] = allGuests.sort((a, b) =>
-//         a.name.localeCompare(b.name)
-//       );
-
-//       return {
-//         status: ResponseStatus.SUCCESS,
-//         data: {
-//           event: validatedEvent,
-//           guests: sortedGuests,
-//           totalMales,
-//           totalFemales,
-//         },
-//       };
-//     } catch (error) {
-//       return handleError(error);
-//     }
-//   },
-// });
-
-export const updateGuestAttendance = mutation({
-  args: {
-    guestListId: v.id("guestLists"),
-    guestId: v.string(),
-    attended: v.boolean(),
-    malesInGroup: v.number(),
-    femalesInGroup: v.number(),
-  },
-  handler: async (ctx, args): Promise<UpdateGuestAttendanceResponse> => {
-    const { guestListId, guestId, attended, malesInGroup, femalesInGroup } =
-      args;
-
-    try {
-      const identity = await requireAuthenticatedUser(ctx, [
-        UserRole.Moderator,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
-
-      const clerkUserId = identity.id as string;
-
-      const user: UserSchema | null = await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique();
-
-      const validatedUser = validateUser(user);
-
-      const guestList: GuestListSchema | null = await ctx.db.get(guestListId);
-      const validatedGuestList = validateGuestList(guestList);
-
-      const event: EventSchema | null = await ctx.db.get(
-        validatedGuestList.eventId
-      );
-      const validatedEvent = validateEvent(event);
-
-      isUserInCompanyOfEvent(validatedUser, validatedEvent);
-
-      const updatedNames: GuestListNameSchema[] = validatedGuestList.names.map(
-        (guest) => {
-          if (guest.id === guestId) {
-            return {
-              ...guest,
-              attended,
-              malesInGroup,
-              femalesInGroup,
-              checkInTime:
-                guest.checkInTime || (attended ? getCurrentTime() : undefined),
-            };
-          }
-          return guest;
-        }
-      );
-      await ctx.db.patch(guestListId, {
-        names: updatedNames,
-      });
-      const updatedGuest: GuestListNameSchema | undefined = updatedNames.find(
-        (g) => g.id === guestId
-      );
-      if (!updatedGuest) {
-        // Handle the case where the guest was not found
-        console.error(`Guest with ID ${guestId} not found.`);
-        throw new Error(ErrorMessages.GUEST_NOT_FOUND);
-      }
-
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: { guestListName: updatedGuest },
       };
     } catch (error) {
       return handleError(error);
@@ -598,15 +417,12 @@ export const getEventsByMonth = query({
       { zone: TIME_ZONE }
     ).endOf("month");
 
-    console.log("args", args);
     try {
       const identity = await requireAuthenticatedUser(ctx);
 
       const organization = validateOrganization(
         await ctx.db.get(organizationId)
       );
-
-      console.log("organization", organization);
 
       isUserInOrganization(identity, organization.clerkOrganizationId);
 
@@ -617,7 +433,6 @@ export const getEventsByMonth = query({
         .filter((q) => q.lte(q.field("startTime"), endDate.toMillis()))
         .collect();
 
-      console.log("events", events);
       return {
         status: ResponseStatus.SUCCESS,
         data: {
