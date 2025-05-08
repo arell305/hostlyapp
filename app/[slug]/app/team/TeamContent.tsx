@@ -65,7 +65,13 @@ const TeamContent = ({
         />
       )}
       {selectedTab === "deleted" && (
-        <DeletedMembersSection organization={organization} />
+        <DeletedMembersSection
+          organization={organization}
+          handleMemberClick={(user) => {
+            // Cast user to expected type before passing to handler
+            handleMemberClick(user as UserSchema);
+          }}
+        />
       )}
 
       <ResponsiveInviteUser
