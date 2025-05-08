@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
-
 import { GuestCheckIn } from "@/types/types";
 import {
   Dialog,
@@ -10,18 +9,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CiCircleMinus, CiCirclePlus } from "react-icons/ci";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import BaseDrawer from "../drawer/BaseDrawer";
-import { Loader2 } from "lucide-react";
 import { DESKTOP_WIDTH } from "@/types/constants";
+import FormActions from "@/components/shared/buttonContainers/FormActions";
+import CountInputField from "@/components/shared/fields/CountInputField";
+import CountInputContainer from "@/components/shared/containers/CountInputContainer";
+import { GuestListEntryWithPromoter } from "@/types/schemas-types";
+import { Id } from "convex/_generated/dataModel";
 
 interface ResponsiveGuestCheckInProps {
   isOpen: boolean;
   onClose: () => void;
-  guest: GuestCheckIn;
-  onSave: (guestId: string, maleCount: number, femaleCount: number) => void;
+  guest: GuestListEntryWithPromoter;
+  onSave: (
+    guestId: Id<"guestListEntries">,
+    maleCount: number,
+    femaleCount: number
+  ) => void;
   isLoading: boolean;
   error: string | null;
 }
@@ -41,9 +45,23 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const handleSave = () => {
-    onSave(guest.id, maleCount, femaleCount);
-    onClose();
+    onSave(guest._id, maleCount, femaleCount);
   };
+
+  const renderCheckInForm = () => (
+    <CountInputContainer>
+      <CountInputField
+        label="Males:"
+        value={maleCount}
+        onChange={setMaleCount}
+      />
+      <CountInputField
+        label="Females:"
+        value={femaleCount}
+        onChange={setFemaleCount}
+      />
+    </CountInputContainer>
+  );
 
   if (isDesktop) {
     return (
@@ -51,79 +69,25 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex flex-col">
-              <DialogDescription>
-                Check in the guest you want to add to the event.
-              </DialogDescription>
+              {`${guest.name || "Guest"}`}
             </DialogTitle>
+            <DialogDescription>
+              Check in the guest you want to add to the event.
+            </DialogDescription>
           </DialogHeader>
-          <div className="my-4 flex items-center justify-between mx-10">
-            <div className="flex flex-col items-center">
-              <label className="text-xl mb-2">Males:</label>
-              <div className="flex items-center gap-3">
-                <CiCircleMinus
-                  className="text-4xl"
-                  onClick={() => setMaleCount(Math.max(0, maleCount - 1))}
-                />
-                <Input
-                  type="number"
-                  value={maleCount}
-                  onChange={(e) => setMaleCount(Number(e.target.value))}
-                  className="w-6 text-center items-center text-xl"
-                />
-                <CiCirclePlus
-                  className="text-4xl"
-                  onClick={() => setMaleCount(maleCount + 1)}
-                />
-              </div>
-            </div>
 
-            <div className="flex items-center justify-between ">
-              <div className="flex flex-col items-center">
-                <label className="text-xl mb-2">Females:</label>
-                <div className="flex items-center gap-3">
-                  <CiCircleMinus
-                    className="text-4xl"
-                    onClick={() => setFemaleCount(Math.max(0, femaleCount - 1))}
-                  />
-                  <Input
-                    type="number"
-                    value={femaleCount}
-                    onChange={(e) => setFemaleCount(Number(e.target.value))}
-                    className="w-6 text-center items-center text-xl"
-                  />
-                  <CiCirclePlus
-                    className="text-4xl"
-                    onClick={() => setFemaleCount(femaleCount + 1)}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <p
-            className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
-          >
-            {error || "Placeholder to maintain height"}
-          </p>{" "}
-          <DialogFooter>
-            <Button variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
-              onClick={handleSave}
-              disabled={isLoading}
-            >
-              {" "}
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save"
-              )}
-            </Button>
-          </DialogFooter>
+          {renderCheckInForm()}
+          <FormActions
+            onCancel={onClose}
+            onSubmit={handleSave}
+            isLoading={isLoading}
+            cancelText="Cancel"
+            submitText="Save"
+            submitVariant="default"
+            error={error}
+            loadingText="Saving..."
+            isSubmitDisabled={isLoading}
+          />
         </DialogContent>
       </Dialog>
     );
@@ -141,49 +105,7 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
       error={error}
       isLoading={isLoading}
     >
-      <div className="my-4 flex items-center justify-between mx-14">
-        <div className="flex flex-col items-center">
-          <label className=" mb-2">Males:</label>
-          <div className="flex items-center gap-3">
-            <CiCircleMinus
-              className="text-4xl"
-              onClick={() => setMaleCount(Math.max(0, maleCount - 1))}
-            />
-            <Input
-              type="number"
-              value={maleCount}
-              onChange={(e) => setMaleCount(Number(e.target.value))}
-              className="w-6 text-center items-center text-xl"
-            />
-            <CiCirclePlus
-              className="text-4xl"
-              onClick={() => setMaleCount(maleCount + 1)}
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between ">
-          <div className="flex flex-col items-center">
-            <label className=" mb-2">Females:</label>
-            <div className="flex items-center gap-3">
-              <CiCircleMinus
-                className="text-4xl"
-                onClick={() => setFemaleCount(Math.max(0, femaleCount - 1))}
-              />
-              <Input
-                type="number"
-                value={femaleCount}
-                onChange={(e) => setFemaleCount(Number(e.target.value))}
-                className="w-6 text-center items-center text-xl"
-              />
-              <CiCirclePlus
-                className="text-4xl"
-                onClick={() => setFemaleCount(femaleCount + 1)}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      {renderCheckInForm()}
     </BaseDrawer>
   );
 };

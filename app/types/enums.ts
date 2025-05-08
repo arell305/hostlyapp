@@ -292,6 +292,8 @@ export enum ShowErrorMessages {
   NOT_ENOUGH_MALE_TICKETS = "Not enough male tickets available.",
   NOT_ENOUGH_FEMALE_TICKETS = "Not enough female tickets available.",
   USER_NOT_FOUND = "User not found",
+  GUEST_INACTIVE = "Guest is inactive",
+  GUEST_DOES_NOT_BELONG_TO_PROMOTER = "Guest does not belong to promoter",
 }
 
 export enum FrontendErrorMessages {
@@ -314,6 +316,8 @@ export enum FrontendErrorMessages {
   ENTER_CARD = "Please enter your card details.",
   ROLE_REQUIRED = "Role is required",
   COMPANY_NAME_REQUIRED = "Company name is required",
+  PHONE_NUMBER_FORMAT = "Phone number must be a valid 10-digit number.",
+  NO_GUEST_SELECTED = "No guest selected",
 }
 
 export enum Gender {

@@ -1,32 +1,28 @@
 import React from "react";
-import { PromoterGuestsData } from "@/types/convex-types";
+import { PromoterGuestStatsData } from "@/types/convex-types";
 import CheckInProgressBar from "@/components/shared/analytics/CheckInProgressBar";
 import CustomCard from "@/components/shared/cards/CustomCard";
 interface PromoterGuestsListDataProps {
-  guestListResults: PromoterGuestsData;
+  guestListData: PromoterGuestStatsData;
 }
 
 const PromoterGuestsListData: React.FC<PromoterGuestsListDataProps> = ({
-  guestListResults,
+  guestListData,
 }) => {
-  const {
-    totalGuests,
-    totalCheckedIn,
-    totalMalesCheckedIn,
-    totalFemalesCheckedIn,
-  } = guestListResults;
+  const { totalMales, totalFemales, totalCheckedIn, totalRSVPs, promoterName } =
+    guestListData;
 
   return (
     <CustomCard className="p-4 space-y-4 w-full ">
-      <CheckInProgressBar checkedIn={totalCheckedIn} total={totalGuests} />
-
+      <h3 className="text-lg font-bold">{promoterName}</h3>
+      <CheckInProgressBar checkedIn={totalCheckedIn} total={totalRSVPs} />
       <div className="flex justify-between items-center">
         <span className="text-grayText">Males Checked In</span>
-        <p>{totalMalesCheckedIn}</p>
+        <p>{totalMales}</p>
       </div>
       <div className="flex justify-between items-center">
         <span className="text-grayText">Females Checked In</span>
-        <p>{totalFemalesCheckedIn}</p>
+        <p>{totalFemales}</p>
       </div>
     </CustomCard>
   );

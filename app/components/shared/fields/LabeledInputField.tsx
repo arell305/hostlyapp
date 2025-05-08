@@ -5,7 +5,7 @@ import LabelWrapper from "./LabelWrapper";
 interface LabeledInputFieldProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
-  error?: string;
+  error?: string | null;
   className?: string;
   name: string;
 }

@@ -9,7 +9,7 @@ import {
   SubscriptionTier,
   UserRole,
 } from "./enums";
-import { EventSchema } from "./schemas-types";
+import { EventSchema, GuestListEntrySchema } from "./schemas-types";
 
 export interface PricingOption {
   id: string;
@@ -180,18 +180,8 @@ export interface AllGuestSchema {
   promoterId: string;
   promoterName: string;
   guestListId: Id<"guestLists">;
-}
-
-export interface DeleteGuestNameResponse {
-  status: ResponseStatus;
-  data: DeleteGuestNameData | null;
-  error?: string | null;
-}
-
-export interface DeleteGuestNameData {
-  guestListId: Id<"guestLists">;
-  deletedGuestId: string;
-  remainingGuestsCount: number;
+  phoneNumber?: string;
+  eventId: Id<"events">;
 }
 
 export interface GuestWithPromoter {
@@ -440,3 +430,13 @@ export interface GuestEntry {
 }
 
 export type CalendarValue = Date | null | [Date | null, Date | null];
+
+export interface PromoterGuestSummary {
+  promoterId: string;
+  promoterName: string;
+  entries: GuestListEntrySchema[];
+  totalMales: number;
+  totalFemales: number;
+  totalAttended: number;
+  totalGuests: number;
+}

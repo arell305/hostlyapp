@@ -1,4 +1,4 @@
-import { ErrorMessages, ShowErrorMessages } from "@/types/enums";
+import { ErrorMessages, ShowErrorMessages, UserRole } from "@/types/enums";
 import {
   ConnectedAccountsSchema,
   CustomerSchema,
@@ -13,6 +13,7 @@ import {
   UserWithClerkId,
   UserWithOrgAndCustomerAndClerkId,
   UserWithOrgAndClerkId,
+  GuestListEntrySchema,
 } from "@/types/schemas-types";
 import { GuestListSchema, OrganizationSchema } from "@/types/types";
 import { DateTime } from "luxon";
@@ -217,3 +218,36 @@ export const validateTicketCheckIn = (
     );
   }
 };
+
+export function validateGuestEntry(
+  guestEntry: GuestListEntrySchema | null,
+  requireActive: boolean = true
+): GuestListEntrySchema {
+  if (!guestEntry) {
+    throw new Error(ShowErrorMessages.GUEST_NOT_FOUND);
+  }
+
+  if (requireActive && guestEntry.isActive === false) {
+    throw new Error(ShowErrorMessages.GUEST_INACTIVE);
+  }
+
+  return guestEntry;
+}
+
+export function validateGuestEntryOwnership(
+  guestEntry: GuestListEntrySchema,
+  user: UserSchema
+): void {
+  const isHostlyUser =
+    user.role === UserRole.Hostly_Moderator ||
+    user.role === UserRole.Hostly_Admin;
+
+  const isOwner = guestEntry.userPromoterId === user._id;
+
+  if (!isOwner && !isHostlyUser) {
+    if (user.role === UserRole.Promoter) {
+      throw new Error(ShowErrorMessages.GUEST_DOES_NOT_BELONG_TO_PROMOTER);
+    }
+    throw new Error(ShowErrorMessages.FORBIDDEN_PRIVILEGES);
+  }
+}

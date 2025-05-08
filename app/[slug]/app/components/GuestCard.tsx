@@ -1,24 +1,27 @@
 import { FaCheckCircle } from "react-icons/fa";
-import { GuestWithPromoter } from "@/types/types";
 import { Badge } from "@/components/ui/badge";
 import { formatArrivalTime } from "../../../../utils/luxon";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import { Pencil, Trash } from "lucide-react";
+import { GuestListEntryWithPromoter } from "@/types/schemas-types";
 
+import { Id } from "convex/_generated/dataModel";
+import { formatPhoneNumber } from "@/utils/format";
 interface GuestCardProps {
-  guest: GuestWithPromoter;
-  editingId?: string | null;
+  guest: GuestListEntryWithPromoter;
+  editingId?: Id<"guestListEntries"> | null;
   editName?: string;
   canEditGuests: boolean;
-  onEdit?: (id: string, name: string) => void;
-  onShowDelete?: (id: string) => void;
+  onEdit?: (id: Id<"guestListEntries">, name: string) => void;
+  onShowDelete?: (id: Id<"guestListEntries">) => void;
   onCancelEdit?: () => void;
   setEditName?: (name: string) => void;
   canSeePromoterName?: boolean;
   canCheckInGuests?: boolean;
-  onCheckIn?: (guestId: string) => void;
+  onCheckIn?: (guest: GuestListEntryWithPromoter) => void;
   isCheckInOpen?: boolean;
   canSeePhoneNumber: boolean;
+  isGuestListOpen?: boolean;
 }
 
 const GuestCard: React.FC<GuestCardProps> = ({
@@ -31,19 +34,23 @@ const GuestCard: React.FC<GuestCardProps> = ({
   onCheckIn,
   isCheckInOpen,
   canSeePhoneNumber,
+  isGuestListOpen,
 }) => {
   const handleShowDeleteModal = () => {
     if (onShowDelete) {
-      onShowDelete(guest.id);
+      onShowDelete(guest._id);
     }
   };
+  const canUpdateGuestName =
+    canEditGuests && !guest.attended && isGuestListOpen;
+  const canCheckInGuest = canCheckInGuests && onCheckIn && isCheckInOpen;
 
   return (
     <div
-      className={` border-b  p-4 w-full flex justify-between items-center ${canCheckInGuests && onCheckIn && isCheckInOpen ? "hover:bg-gray-100 cursor-pointer" : ""}`}
+      className={` border-b  p-4 w-full flex justify-between items-center ${canCheckInGuest ? "hover:bg-cardBackgroundHover cursor-pointer" : ""}`}
       onClick={() => {
-        if (canCheckInGuests && onCheckIn && isCheckInOpen) {
-          onCheckIn(guest.id);
+        if (canCheckInGuest) {
+          onCheckIn(guest);
         }
       }}
     >
@@ -51,6 +58,11 @@ const GuestCard: React.FC<GuestCardProps> = ({
         <div>
           <div className="flex items-center">
             <p className="text-xl font-semibold">{guest.name}</p>
+            {canSeePhoneNumber && guest.phoneNumber && (
+              <p className="text-lg text-whiteText/70 font-normal pt-[2px] ml-2">
+                {formatPhoneNumber(guest.phoneNumber)}
+              </p>
+            )}
           </div>
           <div className="flex ">
             {canSeePromoterName && (
@@ -71,7 +83,7 @@ const GuestCard: React.FC<GuestCardProps> = ({
         <div className="flex items-center justify-center flex-col w-[40px]">
           <>
             <FaCheckCircle
-              className=" text-customDarkBlue text-center"
+              className=" text-primaryBlue text-center"
               size={33}
             />
             <p className="text-[10px] text-gray-500">
@@ -81,7 +93,7 @@ const GuestCard: React.FC<GuestCardProps> = ({
           </>
         </div>
       )}
-      {canEditGuests && !guest.attended && isCheckInOpen && (
+      {canUpdateGuestName && (
         <div className="flex gap-2">
           {onEdit && (
             <IconButton
@@ -89,7 +101,7 @@ const GuestCard: React.FC<GuestCardProps> = ({
               title="Edit"
               onClick={(e) => {
                 e.stopPropagation();
-                onEdit(guest.id, guest.name);
+                onEdit(guest._id, guest.name);
               }}
             />
           )}

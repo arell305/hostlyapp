@@ -177,3 +177,21 @@ export interface StripeConnectedCustomersSchema {
   stripeCustomerId: string;
   stripeAccountId: string;
 }
+
+export interface GuestListEntrySchema {
+  _id: Id<"guestListEntries">;
+  _creationTime: number;
+  eventId: Id<"events">;
+  userPromoterId: Id<"users">;
+  name: string;
+  checkInTime?: number;
+  malesInGroup?: number;
+  femalesInGroup?: number;
+  attended?: boolean;
+  phoneNumber?: string | null;
+  isActive: boolean;
+}
+
+export interface GuestListEntryWithPromoter extends GuestListEntrySchema {
+  promoterName: string;
+}

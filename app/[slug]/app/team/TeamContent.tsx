@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { OrganizationSchema } from "@/types/types";
+import { OrganizationSchema, UserSchema } from "@/types/types";
 import ResponsiveInviteUser from "../components/responsive/ResponsiveInviteUser";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
@@ -12,9 +12,14 @@ import { Plus } from "lucide-react";
 interface TeamContentProps {
   canManageTeam: boolean;
   organization: OrganizationSchema;
+  handleMemberClick: (user: UserSchema) => void;
 }
 
-const TeamContent = ({ canManageTeam, organization }: TeamContentProps) => {
+const TeamContent = ({
+  canManageTeam,
+  organization,
+  handleMemberClick,
+}: TeamContentProps) => {
   const [selectedTab, setSelectedTab] = useState<
     "active" | "pending" | "deleted"
   >("active");
@@ -45,7 +50,13 @@ const TeamContent = ({ canManageTeam, organization }: TeamContentProps) => {
         />
       )}
       {selectedTab === "active" && (
-        <ActiveMembersSection organization={organization} />
+        <ActiveMembersSection
+          organization={organization}
+          handleMemberClick={(user) => {
+            // Cast user to expected type before passing to handler
+            handleMemberClick(user as UserSchema);
+          }}
+        />
       )}
       {selectedTab === "pending" && (
         <PendingMembersSection

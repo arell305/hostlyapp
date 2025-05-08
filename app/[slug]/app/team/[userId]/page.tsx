@@ -9,15 +9,22 @@ import FullLoading from "../../components/loading/FullLoading";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { handleQueryState } from "../../../../../utils/handleQueryState";
 import { isManager } from "../../../../../utils/permissions";
+import { useRouter } from "next/navigation";
+
 const UserPage = () => {
   const params = useParams();
   const userId = params.userId as Id<"users">;
+  const router = useRouter();
 
   const { user } = useUser();
   const userFromDb = useQuery(
     api.users.findUserById,
     userId ? { userId } : "skip"
   );
+
+  const handleBack = () => {
+    router.back();
+  };
 
   const result = handleQueryState(userFromDb);
 
@@ -33,7 +40,13 @@ const UserPage = () => {
   const canEditUsers = isManager(orgRole);
   const userData = result.data.user;
 
-  return <UserIdContent userData={userData} canEditUsers={canEditUsers} />;
+  return (
+    <UserIdContent
+      userData={userData}
+      canEditUsers={canEditUsers}
+      handleBack={handleBack}
+    />
+  );
 };
 
 export default UserPage;

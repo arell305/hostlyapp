@@ -23,7 +23,6 @@ import {
   calculateTicketPricing,
   isTicketSalesOpen,
 } from "@/lib/frontendHelper";
-import MessageCard from "@/[slug]/app/components/ui/MessageCard";
 import { ResponseStatus } from "@/types/enums";
 import { isValidEmail } from "../../../../utils/helpers";
 import { Button } from "@/components/ui/button";

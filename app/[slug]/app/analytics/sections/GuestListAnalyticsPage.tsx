@@ -21,7 +21,7 @@ const GuestListAnalyticsPage = ({
   organizationId,
   dateRange,
 }: GuestListAnalyticsPageProps) => {
-  const guestListData = useQuery(api.guestLists.getGuestListKpis, {
+  const guestListData = useQuery(api.guestListEntries.getGuestListKpis, {
     organizationId,
     fromTimestamp: dateRange.from?.getTime() ?? 0,
     toTimestamp: dateRange.to?.getTime() ?? Date.now(),

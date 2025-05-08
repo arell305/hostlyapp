@@ -1,4 +1,7 @@
 import { DateTime } from "luxon";
+import { formatName } from "../format";
+import { FrontendErrorMessages } from "@/types/enums";
+import { isValidPhoneNumber } from "../frontend-validation";
 
 interface ValidateEventFormParams {
   eventName: string;
@@ -96,4 +99,52 @@ export function validateEventForm({
   }
 
   return errors;
+}
+
+export interface GuestEditInput {
+  name: string;
+  phoneNumber: string;
+  initialName: string | null;
+}
+
+export interface GuestEditValidationResult {
+  errors: { name?: string; phone?: string };
+  formattedName: string;
+  isValid: boolean;
+  noChanges: boolean;
+}
+
+export function validateGuestEditInput({
+  name,
+  phoneNumber,
+  initialName,
+}: GuestEditInput): GuestEditValidationResult {
+  const trimmedName = name.trim();
+  const trimmedPhone = phoneNumber.trim();
+  const formattedName = formatName(trimmedName);
+
+  const errors: { name?: string; phone?: string } = {};
+
+  if (!initialName) {
+    errors.name = FrontendErrorMessages.NO_GUEST_SELECTED;
+  }
+
+  if (trimmedName === "") {
+    errors.name = FrontendErrorMessages.NAME_EMPTY;
+  }
+
+  if (trimmedPhone !== "" && !isValidPhoneNumber(trimmedPhone)) {
+    errors.phone = FrontendErrorMessages.PHONE_NUMBER_FORMAT;
+  }
+
+  const isNameUnchanged = formattedName === initialName;
+  const isPhoneUnchanged = trimmedPhone === ""; // treat empty as unchanged/null
+  const noChanges = isNameUnchanged && isPhoneUnchanged;
+
+  return {
+    errors,
+    formattedName,
+    isValid: Object.keys(errors).length === 0 && !noChanges,
+    noChanges,
+  };
 }

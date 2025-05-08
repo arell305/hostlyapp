@@ -6,24 +6,22 @@ import { Id } from "../../../../../convex/_generated/dataModel";
 
 export const useUpdateGuestAttendance = () => {
   const updateGuestAttendanceMutation = useMutation(
-    api.events.updateGuestAttendance
+    api.guestListEntries.checkInGuestEntry
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const updateGuestAttendance = async (
-    guestListId: Id<"guestLists">,
-    guestId: string,
-    attended: boolean,
+    guestId: Id<"guestListEntries">,
     malesInGroup: number,
-    femalesInGroup: number
+    femalesInGroup: number,
+    attended: boolean
   ): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await updateGuestAttendanceMutation({
-        guestListId,
         guestId,
         attended,
         malesInGroup,

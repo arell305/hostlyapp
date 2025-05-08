@@ -1,9 +1,4 @@
-import {
-  GuestListInfoSchema,
-  TicketInfoSchema,
-  TicketSchemaWithPromoter,
-} from "@/types/schemas-types";
-import React, { useState } from "react";
+import { GuestListInfoSchema, TicketInfoSchema } from "@/types/schemas-types";
 import EmptyStateCard from "../../components/EmptyStateCard";
 import {
   formatToTimeAndShortDate,
@@ -12,36 +7,32 @@ import {
 import GuestListTimeCard from "../../components/GuestListTimeCard";
 import TicketTimeCard from "../../components/TicketTimeCard";
 import { LuClipboardList } from "react-icons/lu";
-import { Promoter, TicketCounts } from "@/types/types";
-import { Id } from "../../../../../../convex/_generated/dataModel";
-import PromoterSelect from "../../components/PromoterSelect";
-import { PromoterGuestsData } from "@/types/convex-types";
+import {
+  PromoterGuestStatsData,
+  CheckInData,
+  GetTicketSalesByPromoterData,
+} from "@/types/convex-types";
 import PromoterGuestsListData from "./PromoterGuestsData";
 import PromoterTicketData from "./PromoterTicketData";
 
 interface SummaryContentProps {
   guestListInfo?: GuestListInfoSchema | null;
-  ticketData?: TicketInfoSchema | null;
-  tickets: TicketSchemaWithPromoter[];
-  promoters: Promoter[];
   isPromoter: boolean;
-  guestListResults: PromoterGuestsData | null;
-  promoterTicketData: TicketCounts | null;
+  ticketInfo?: TicketInfoSchema | null;
+  promoterGuestStatsData: {
+    promoterGuestStats: PromoterGuestStatsData[];
+    checkInData?: CheckInData;
+  } | null;
+  ticketSalesByPromoterData: GetTicketSalesByPromoterData | null;
 }
 
 const SummaryContent: React.FC<SummaryContentProps> = ({
-  guestListInfo,
-  ticketData,
-  tickets,
-  promoters,
   isPromoter,
-  guestListResults,
-  promoterTicketData,
+  promoterGuestStatsData,
+  guestListInfo,
+  ticketInfo,
+  ticketSalesByPromoterData,
 }) => {
-  const [selectedPromoterId, setSelectedPromoterId] = useState<
-    Id<"users"> | "all"
-  >("all");
-
   let isGuestListOpen: boolean = false;
   if (guestListInfo) {
     isGuestListOpen = !isPast(guestListInfo.guestListCloseTime);
@@ -55,16 +46,21 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
     <div className="flex flex-col gap-4">
       <div>
         <h2 className="mb-1">Tickets</h2>
-        {ticketData ? (
+        {ticketInfo && ticketSalesByPromoterData ? (
           <>
-            <TicketTimeCard ticketData={ticketData} tickets={tickets} />
-            {isPromoter && promoterTicketData && (
-              <PromoterTicketData promoterTicketData={promoterTicketData} />
+            <TicketTimeCard
+              ticketTotals={ticketSalesByPromoterData?.ticketTotals}
+              ticketInfo={ticketInfo}
+            />
+            {isPromoter && (
+              <PromoterTicketData
+                promoterTicketData={ticketSalesByPromoterData.tickets[0]}
+              />
             )}
           </>
         ) : (
           <EmptyStateCard
-            message="There is no ticket sales option for this event"
+            message="There is no ticket option for this event."
             icon={<LuClipboardList className="text-2xl" />}
           />
         )}
@@ -83,9 +79,6 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
                 guestListInfo.checkInCloseTime
               )}
             />
-            {isPromoter && guestListResults && (
-              <PromoterGuestsListData guestListResults={guestListResults} />
-            )}
           </>
         ) : (
           <EmptyStateCard
@@ -94,16 +87,36 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
           />
         )}
       </div>
-      <div>
-        <h2 className="mb-1">Promoters</h2>
-        {!isPromoter && (
-          <PromoterSelect
-            promoters={promoters}
-            selectedPromoterId={selectedPromoterId}
-            setSelectedPromoterId={setSelectedPromoterId}
+      {isPromoter && promoterGuestStatsData && (
+        <div>
+          <h2 className="mb-1">Guest Attendance</h2>
+
+          <PromoterGuestsListData
+            guestListData={promoterGuestStatsData.promoterGuestStats[0]}
           />
-        )}
-      </div>
+        </div>
+      )}
+      {ticketInfo && !isPromoter && ticketSalesByPromoterData && (
+        <div>
+          <h2 className="mb-1">Promoter Ticket Sales</h2>
+          <div className="flex flex-col gap-2">
+            {ticketSalesByPromoterData.tickets.map((ticket) => (
+              <PromoterTicketData promoterTicketData={ticket} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {guestListInfo && !isPromoter && promoterGuestStatsData && (
+        <div>
+          <h2 className="mb-1">Promoter Guest List Summary</h2>
+          <div className="flex flex-col gap-2">
+            {promoterGuestStatsData.promoterGuestStats.map((promoter) => (
+              <PromoterGuestsListData guestListData={promoter} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

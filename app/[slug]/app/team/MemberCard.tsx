@@ -1,28 +1,20 @@
 "use client";
 import { RiArrowRightSLine } from "react-icons/ri";
-import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { UserRole, roleMap } from "@/types/enums";
 import { UserSchema } from "@/types/schemas-types";
+import { capitalizeWords } from "@/utils/helpers";
 
 interface MemberCardProps {
   user: UserSchema;
+  handleMemberClick: (user: UserSchema) => void;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ user }) => {
-  const pathname = usePathname();
-  const router = useRouter();
-  const handleClick = () => {
-    const slug = pathname.split("/")[1];
-    const newUrl = `/${slug}/app/team/${user._id}`;
-    router.push(newUrl);
-  };
-
+const MemberCard: React.FC<MemberCardProps> = ({ user, handleMemberClick }) => {
   return (
     <div
       className="h-[95px] border-b w-full hover:bg-cardBackgroundHover cursor-pointer "
-      onClick={handleClick}
+      onClick={() => handleMemberClick(user)}
     >
       <div className="h-full flex items-center justify-between px-4">
         {" "}
@@ -35,7 +27,9 @@ const MemberCard: React.FC<MemberCardProps> = ({ user }) => {
             height={64}
           />
           <div className="flex-grow">
-            <h2 className="text-lg font-semibold">{`${user.name}`} </h2>
+            <h2 className="text-lg font-semibold">
+              {`${capitalizeWords(user.name || "Unknown Name")}`}
+            </h2>
 
             <p className="text-grayText">
               {roleMap[user.role as UserRole] || "No Role"}

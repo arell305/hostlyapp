@@ -23,7 +23,7 @@ import {
 import { CalendarSwitcher } from "./components/calendar/CalendarSwitcher";
 import { Button } from "@/components/ui/button";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
-import { PlusIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const today = getCurrentDate();
 
@@ -99,9 +99,9 @@ const HomeContent: React.FC<HomeContentProps> = ({
         title="My Events"
         actions={
           canCreateEvents && (
-            <Button onClick={handleAddEventClick} className="gap-1">
-              <PlusIcon className="" />
-              Add Event
+            <Button onClick={handleAddEventClick} size="heading">
+              <Plus size={20} />
+              <span>Add Event</span>
             </Button>
           )
         }

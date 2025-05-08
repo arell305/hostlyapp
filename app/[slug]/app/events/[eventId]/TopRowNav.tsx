@@ -55,7 +55,7 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
               icon={<Plus size={20} />}
               onClick={handleAddGuestList}
               title="Add Guest List"
-              disabled={true} // or false if you want it active
+              disabled={!isGuestListOpen}
             />
           ) : (
             <span className="text-sm text-muted-foreground">Closed</span>

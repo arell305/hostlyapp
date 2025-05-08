@@ -1,19 +1,18 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
-import { GetEventWithGuestListsData } from "@/types/convex-types";
-import useMediaQuery from "@/hooks/useMediaQuery";
-import { GuestWithPromoter } from "@/types/types";
 import { useUpdateGuestAttendance } from "../hooks/useUpdateGuestAttendance";
 import { filterGuestsByName } from "../../../../../utils/format";
 import SearchInput from "../components/SearchInput";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import GuestListContainer from "./GuestListContainer";
 import ResponsiveGuestCheckIn from "../../components/responsive/ResponsiveGuestCheckIn";
+import { GuestListEntryWithPromoter } from "@/types/schemas-types";
+import { Id } from "convex/_generated/dataModel";
 
 interface ModeratorGuestListContentProps {
   isCheckInOpen: boolean;
-  guestListData: GetEventWithGuestListsData;
+  guestListData: GuestListEntryWithPromoter[];
   canCheckInGuests: boolean;
 }
 
@@ -22,15 +21,12 @@ const ModeratorGuestListContent = ({
   guestListData,
   canCheckInGuests,
 }: ModeratorGuestListContentProps) => {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [selectedGuest, setSelectedGuest] = useState<GuestWithPromoter | null>(
-    null
-  );
-
+  const [selectedGuest, setSelectedGuest] =
+    useState<GuestListEntryWithPromoter | null>(null);
   const {
     updateGuestAttendance,
     isLoading: isCheckInGuestLoading,
@@ -39,15 +35,12 @@ const ModeratorGuestListContent = ({
   } = useUpdateGuestAttendance();
 
   const filteredGuests = useMemo(() => {
-    return filterGuestsByName(guestListData.guests, searchTerm);
+    return filterGuestsByName(guestListData, searchTerm);
   }, [guestListData, searchTerm]);
 
-  const handleCheckInGuest = (guestId: string) => {
-    const guest = filteredGuests.find((g) => g.id === guestId);
-    if (guest) {
-      setSelectedGuest(guest);
-      setIsModalOpen(true);
-    }
+  const handleCheckInGuest = (guest: GuestListEntryWithPromoter) => {
+    setSelectedGuest(guest);
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
@@ -57,21 +50,20 @@ const ModeratorGuestListContent = ({
   };
 
   const handleSaveGuestUpdate = async (
-    guestId: string,
+    guestId: Id<"guestListEntries">,
     maleCount: number,
     femaleCount: number
   ) => {
-    if (!selectedGuest || !selectedGuest.guestListId) {
+    if (!selectedGuest) {
       setIsCheckInGuestError("No guest selected");
       return;
     }
 
     const success = await updateGuestAttendance(
-      selectedGuest.guestListId,
       guestId,
-      true,
       maleCount,
-      femaleCount
+      femaleCount,
+      true
     );
 
     if (success) {
@@ -86,7 +78,6 @@ const ModeratorGuestListContent = ({
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           searchInputRef={searchInputRef}
-          isDesktop={isDesktop}
           placeholder="Search guests..."
         />
         <GuestListContainer

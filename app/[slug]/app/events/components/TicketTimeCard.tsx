@@ -9,23 +9,19 @@ import {
   TicketSchemaWithPromoter,
 } from "@/types/schemas-types";
 import { countTicketsByGender } from "../../../../../utils/format";
-
+import { TicketTotals } from "@/types/convex-types";
 interface TicketTimeCardProps {
   className?: string;
-  ticketData: TicketInfoSchema;
-  tickets: TicketSchemaWithPromoter[];
+  ticketInfo: TicketInfoSchema;
+  ticketTotals: TicketTotals | null;
 }
 
 const TicketTimeCard = ({
   className,
-  ticketData,
-  tickets,
+  ticketInfo,
+  ticketTotals,
 }: TicketTimeCardProps) => {
-  const isTicketsSalesOpen = !isPast(ticketData.ticketSalesEndTime);
-
-  const { maleTickets, femaleTickets } = useMemo(() => {
-    return countTicketsByGender(tickets);
-  }, [tickets]);
+  const isTicketsSalesOpen = !isPast(ticketInfo.ticketSalesEndTime);
 
   return (
     <CustomCard className={className}>
@@ -37,17 +33,17 @@ const TicketTimeCard = ({
         label={
           isTicketsSalesOpen ? "Tickets Sales Ends:" : "Tickets Sales Ended:"
         }
-        value={formatToTimeAndShortDate(ticketData.ticketSalesEndTime)}
+        value={formatToTimeAndShortDate(ticketInfo.ticketSalesEndTime)}
         icon={<FiClock className="text-xl text-grayText" />}
       />
       <StaticField
         label="Male Tickets Sold:"
-        value={`${maleTickets} / ${ticketData.ticketTypes.male.capacity}`}
+        value={`${ticketTotals?.maleCount} / ${ticketInfo.ticketTypes.male.capacity}`}
         icon={<FiClock className="text-xl text-grayText" />}
       />
       <StaticField
         label="Female Tickets Sold:"
-        value={`${femaleTickets} / ${ticketData.ticketTypes.female.capacity}`}
+        value={`${ticketTotals?.femaleCount} / ${ticketInfo.ticketTypes.female.capacity}`}
         icon={<FiClock className="text-xl text-grayText" />}
       />
     </CustomCard>

@@ -4,6 +4,7 @@ import { OrganizationJSON } from "@clerk/backend";
 import { WEBSITE } from "@/types/constants";
 import { DateTime } from "luxon";
 import { UserSchema } from "@/types/schemas-types";
+import _ from "lodash";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -158,3 +159,7 @@ const splitName = (fullName?: string): [string, string] => {
 
   return [firstName, lastName];
 };
+
+export function capitalizeWords(input: string): string {
+  return _.startCase(_.toLower(input));
+}

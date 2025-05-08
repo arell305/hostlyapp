@@ -1,21 +1,19 @@
-import { TicketSchemaWithPromoter } from "@/types/schemas-types";
 import useRedeemTicket from "../../hooks/useRedeemTicket";
 import { useToast } from "@/hooks/use-toast";
 import { useMemo, useRef, useState } from "react";
-import useMediaQuery from "@/hooks/useMediaQuery";
-import { DESKTOP_WIDTH } from "@/types/constants";
 import { filterBySearchTerm } from "../../../../../utils/format";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import SearchInput from "../../events/components/SearchInput";
 import TicketList from "./TicketList";
 import ResponsiveConfirm from "../responsive/ResponsiveConfirm";
+import { TicketSchemaWithPromoter } from "@/types/schemas-types";
 
-interface TicketInfoTabProps {
+interface TicketContentProps {
   tickets: TicketSchemaWithPromoter[];
   canCheckInGuests: boolean;
 }
 
-const TicketTab: React.FC<TicketInfoTabProps> = ({
+const TicketContent: React.FC<TicketContentProps> = ({
   tickets,
   canCheckInGuests,
 }) => {
@@ -32,7 +30,6 @@ const TicketTab: React.FC<TicketInfoTabProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showRedeemModal, setShowRedeemModal] = useState<boolean>(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const handleConfirmRedeem = async () => {
     const result = await handleRedeem();
@@ -54,7 +51,6 @@ const TicketTab: React.FC<TicketInfoTabProps> = ({
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         searchInputRef={searchInputRef}
-        isDesktop={isDesktop}
         placeholder="Search Ticket ID..."
       />
 
@@ -93,4 +89,4 @@ const TicketTab: React.FC<TicketInfoTabProps> = ({
   );
 };
 
-export default TicketTab;
+export default TicketContent;

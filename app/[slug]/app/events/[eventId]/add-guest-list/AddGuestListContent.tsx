@@ -23,6 +23,7 @@ const AddGuestListPage: React.FC<AddGuestListContentProps> = ({
   const [guestInput, setGuestInput] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { addGuestList, isLoading, error, setError } = useAddGuestList();
+  const [guestInputError, setGuestInputError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     setSuccessMessage(null);
@@ -31,9 +32,10 @@ const AddGuestListPage: React.FC<AddGuestListContentProps> = ({
     if (guestInput.trim() === "") return;
 
     const { guests, invalidPhones } = parseGuestListInput(guestInput);
-
     if (invalidPhones.length > 0) {
-      setError(`Invalid phone number(s): ${invalidPhones.join(", ")}`);
+      setGuestInputError(
+        `Invalid phone number(s): ${invalidPhones.join(", ")}`
+      );
       return;
     }
 
@@ -61,10 +63,13 @@ const AddGuestListPage: React.FC<AddGuestListContentProps> = ({
       <LabeledTextAreaField
         label="Guest Names and Phone Numbers"
         value={guestInput}
-        onChange={(e) => setGuestInput(e.target.value)}
+        onChange={(e) => {
+          setGuestInput(e.target.value);
+          setGuestInputError(null);
+        }}
         placeholder="Enter guest names (optionally with phone numbers)..."
         rows={10}
-        error={error || undefined}
+        error={guestInputError}
         name="guestListInput"
       />
       {successMessage && (

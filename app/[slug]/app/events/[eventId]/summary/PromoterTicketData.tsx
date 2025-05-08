@@ -1,23 +1,24 @@
 import CustomCard from "@/components/shared/cards/CustomCard";
-import { TicketCounts } from "@/types/types";
+import { TicketSalesGroup } from "@/types/convex-types";
 
 interface PromoterTicketDataProps {
-  promoterTicketData: TicketCounts;
+  promoterTicketData: TicketSalesGroup;
 }
 
 const PromoterTicketData: React.FC<PromoterTicketDataProps> = ({
   promoterTicketData,
 }) => {
-  const { male, female } = promoterTicketData;
+  const { maleCount, femaleCount, promoterName } = promoterTicketData;
   return (
     <CustomCard className="p-4 space-y-4 w-full max-w-md">
+      <h2 className="text-lg font-bold">{promoterName}</h2>
       <div className="flex justify-between items-center">
         <span className="text-grayText">Males Tickets Sold</span>
-        <p>{male}</p>
+        <p>{maleCount}</p>
       </div>
       <div className="flex justify-between items-center">
         <span className="text-grayText">Females Tickets Sold</span>
-        <p>{female}</p>
+        <p>{femaleCount}</p>
       </div>
     </CustomCard>
   );

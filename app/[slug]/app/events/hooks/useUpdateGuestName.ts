@@ -5,23 +5,27 @@ import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
 
 export const useUpdateGuestName = () => {
-  const updateGuestNameMutation = useMutation(api.guestLists.updateGuestName);
+  const updateGuestNameMutation = useMutation(
+    api.guestListEntries.updateGuestListEntry
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const updateGuestName = async (
-    guestListId: Id<"guestLists">,
-    guestId: string,
-    newName: string
+    guestId: Id<"guestListEntries">,
+    newName: string,
+    phoneNumber?: string | null
   ): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await updateGuestNameMutation({
-        guestListId,
         guestId,
-        newName,
+        updates: {
+          name: newName,
+          phoneNumber,
+        },
       });
 
       if (response.status === ResponseStatus.SUCCESS) {

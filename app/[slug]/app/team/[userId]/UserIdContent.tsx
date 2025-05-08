@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { UserWithPromoCode } from "@/types/types";
 import { UserRole } from "@/types/enums";
-import { useRouter } from "next/navigation";
 import { useUpdateUser } from "../hooks/useUpdateUser";
 import { useState } from "react";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
@@ -17,22 +16,19 @@ import ProfileHeader from "@/components/shared/headings/ProfileHeader";
 interface UserIdContentProps {
   userData: UserWithPromoCode;
   canEditUsers: boolean;
+  handleBack: () => void;
 }
 
 const UserIdContent: React.FC<UserIdContentProps> = ({
   userData,
   canEditUsers,
+  handleBack,
 }) => {
-  const router = useRouter();
   const [showDeleteConfirmation, setShowDeleteConfirmation] =
     useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [selectedRole, setSelectedRole] = useState<string>(userData.role ?? "");
   const { updateUserById, error, isLoading, setError } = useUpdateUser();
-
-  const handleBack = () => {
-    router.back();
-  };
 
   const handleShowDeleteConfirmation = () => {
     setError(null);
@@ -86,21 +82,25 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
         </NavButtonsContainer>
         <ProfileHeader imageUrl={userData.imageUrl} name={userData.name} />
         <StaticField label="Email" value={userData.email} />
-        <EditableSelectField
-          label="Role"
-          name="role"
-          value={userData.role ?? ""}
-          options={[
-            { label: "Moderator", value: UserRole.Moderator },
-            { label: "Manager", value: UserRole.Manager },
-            { label: "Promoter", value: UserRole.Promoter },
-          ]}
-          onChange={(value) => setSelectedRole(value)}
-          onSave={handleSaveRole}
-          isEditing={isEditing}
-          isSaving={isLoading}
-          error={error}
-        />
+        {userData.role === UserRole.Admin ? (
+          <StaticField label="Role" value="Admin" />
+        ) : (
+          <EditableSelectField
+            label="Role"
+            name="role"
+            value={userData.role ?? ""}
+            options={[
+              { label: "Moderator", value: UserRole.Moderator },
+              { label: "Manager", value: UserRole.Manager },
+              { label: "Promoter", value: UserRole.Promoter },
+            ]}
+            onChange={(value) => setSelectedRole(value)}
+            onSave={handleSaveRole}
+            isEditing={isEditing}
+            isSaving={isLoading}
+            error={error}
+          />
+        )}
 
         {userData.role === UserRole.Promoter && (
           <StaticField

@@ -6,7 +6,9 @@ import { Id } from "../../../../../convex/_generated/dataModel";
 import { GuestEntry } from "@/types/types";
 
 export const useAddGuestList = () => {
-  const addGuestListMutation = useMutation(api.guestLists.addGuestList);
+  const addGuestListMutation = useMutation(
+    api.guestListEntries.addGuestListEntry
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

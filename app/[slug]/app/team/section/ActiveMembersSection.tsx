@@ -12,8 +12,12 @@ import { UserSchema } from "@/types/schemas-types";
 
 interface ActiveMembersSectionProps {
   organization: OrganizationSchema;
+  handleMemberClick: (user: UserSchema) => void;
 }
-const ActiveMembersSection = ({ organization }: ActiveMembersSectionProps) => {
+const ActiveMembersSection = ({
+  organization,
+  handleMemberClick,
+}: ActiveMembersSectionProps) => {
   const companyUsersData = useQuery(api.organizations.getUsersByOrganization, {
     organizationId: organization._id,
     isActive: true,
@@ -30,7 +34,11 @@ const ActiveMembersSection = ({ organization }: ActiveMembersSectionProps) => {
   return (
     <CustomCard className="p-0">
       {companyUsers.map((member) => (
-        <MemberCard key={member.clerkUserId} user={member} />
+        <MemberCard
+          key={member.clerkUserId}
+          user={member}
+          handleMemberClick={handleMemberClick}
+        />
       ))}
     </CustomCard>
   );

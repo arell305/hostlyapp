@@ -153,11 +153,22 @@ export default defineSchema({
     .index("by_organizationId", ["organizationId"])
     .index("by_organizationId_and_startTime", ["organizationId", "startTime"])
     .index("by_startTime", ["startTime"]),
-  guestLists: defineTable({
-    names: v.array(GuestListNames),
+
+  guestListEntries: defineTable({
     eventId: v.id("events"),
     userPromoterId: v.id("users"),
-  }).index("by_eventId", ["eventId"]),
+    name: v.string(),
+    checkInTime: v.optional(v.number()),
+    malesInGroup: v.optional(v.number()),
+    femalesInGroup: v.optional(v.number()),
+    attended: v.optional(v.boolean()),
+    phoneNumber: v.optional(v.union(v.string(), v.null())),
+    isActive: v.boolean(),
+  })
+    .index("by_eventId", ["eventId"])
+    .index("by_userPromoterId", ["userPromoterId"])
+    .index("by_eventId_and_user", ["eventId", "userPromoterId"]),
+
   promoterPromoCode: defineTable({
     name: v.string(),
     promoterUserId: v.id("users"),

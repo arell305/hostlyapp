@@ -17,6 +17,7 @@ import {
 import {
   CheckInTicketResponse,
   GetPromoterTicketKpisResponse,
+  GetTicketSalesByPromoterResponse,
   GetTicketsByClerkUserResponse,
   GetTicketsByEventIdResponse,
   InsertTicketSoldResponse,
@@ -415,6 +416,122 @@ export const getPromoterTicketKpis = query({
           femaleCount,
           avgMalePerDay,
           avgFemalePerDay,
+        },
+      };
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+});
+
+export const getTicketSalesByPromoterWithDetails = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args): Promise<GetTicketSalesByPromoterResponse> => {
+    try {
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Hostly_Admin,
+        UserRole.Hostly_Moderator,
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Moderator,
+        UserRole.Promoter,
+      ]);
+
+      const clerkUserId = identity.id as string;
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+          .first()
+      );
+
+      const event = validateEvent(await ctx.db.get(args.eventId));
+      isUserInCompanyOfEvent(user, event);
+
+      if (!event.ticketInfoId) {
+        return {
+          status: ResponseStatus.SUCCESS,
+          data: { tickets: [], ticketTotals: null },
+        };
+      }
+
+      const isManager = [
+        UserRole.Admin,
+        UserRole.Hostly_Admin,
+        UserRole.Hostly_Moderator,
+        UserRole.Manager,
+        UserRole.Moderator,
+      ].includes(user.role as UserRole);
+
+      const allTickets = await ctx.db
+        .query("tickets")
+        .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+        .collect();
+
+      const ticketsToUse = isManager
+        ? allTickets
+        : allTickets.filter((t) => t.promoterUserId === user._id);
+
+      const grouped = new Map<
+        Id<"users">,
+        {
+          promoterId: Id<"users">;
+          promoterName: string;
+          maleCount: number;
+          femaleCount: number;
+        }
+      >();
+
+      let totalMales = 0;
+      let totalFemales = 0;
+
+      for (const ticket of ticketsToUse) {
+        const promoterId = ticket.promoterUserId;
+        if (!promoterId) continue;
+
+        const existing = grouped.get(promoterId) ?? {
+          promoterId,
+          promoterName: "",
+          maleCount: 0,
+          femaleCount: 0,
+        };
+
+        if (ticket.gender === "male") {
+          existing.maleCount += 1;
+          totalMales += 1;
+        } else if (ticket.gender === "female") {
+          existing.femaleCount += 1;
+          totalFemales += 1;
+        }
+
+        grouped.set(promoterId, existing);
+      }
+
+      // Fetch promoter names
+      const promoterIds = Array.from(grouped.keys());
+      const users = await Promise.all(promoterIds.map((id) => ctx.db.get(id)));
+
+      users.forEach((u) => {
+        if (!u) return;
+        const group = grouped.get(u._id);
+        if (group) group.promoterName = u.name ?? "Unknown";
+      });
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          tickets: Array.from(grouped.values()).sort(
+            (a, b) =>
+              b.maleCount + b.femaleCount - (a.maleCount + a.femaleCount)
+          ),
+          ticketTotals: isManager
+            ? {
+                maleCount: totalMales,
+                femaleCount: totalFemales,
+              }
+            : null,
         },
       };
     } catch (error) {

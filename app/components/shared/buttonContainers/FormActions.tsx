@@ -58,7 +58,7 @@ const FormActions: React.FC<FormActionsProps> = ({
         </Button>
       </div>
       <p
-        className={`text-sm text-center ${
+        className={`text-sm text-center pt-1 ${
           error ? "text-red-500" : "text-transparent"
         }`}
       >

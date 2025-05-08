@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   EventFormInput,
   GuestListFormInput,
-  OrganizationSchema,
   Tab,
   TicketFormInput,
 } from "@/types/types";
@@ -16,17 +15,20 @@ import {
   GuestListInfoSchema,
   SubscriptionSchema,
   TicketInfoSchema,
-  TicketSchemaWithPromoter,
 } from "@/types/schemas-types";
 import { ActiveStripeTab, ActiveTab } from "@/types/enums";
-import TicketTab from "../../components/tickets/TicketTab";
 import { useUpdateEvent } from "../hooks/useUpdateEvent";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
 import SummaryPage from "./summary/SummaryPage";
-import { GetEventWithGuestListsData } from "@/types/convex-types";
+import {
+  GetEventWithGuestListsData,
+  GetGuestsGroupedByPromoterData,
+} from "@/types/convex-types";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import { isPast } from "date-fns";
+import TicketPage from "../../components/tickets/TicketPage";
+import GuestListPage from "../guestList/GuestListPage";
 
 interface EventIdContentProps {
   data: {
@@ -36,12 +38,11 @@ interface EventIdContentProps {
   };
   isAppAdmin: boolean;
   isStripeEnabled: boolean;
-  organization: OrganizationSchema;
   subscription: SubscriptionSchema;
   handleNavigateHome: () => void;
-  tickets: TicketSchemaWithPromoter[];
   canCheckInGuests: boolean;
-  guestListData: GetEventWithGuestListsData;
+  guestListData?: GetEventWithGuestListsData;
+  guestsGroupedByPromoter?: GetGuestsGroupedByPromoterData;
   canUploadGuest: boolean;
   canEditEvent: boolean;
   handleAddGuestList: () => void;
@@ -51,10 +52,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   data,
   isAppAdmin,
   isStripeEnabled,
-  organization,
   subscription,
   handleNavigateHome,
-  tickets,
   canCheckInGuests,
   guestListData,
   canUploadGuest,
@@ -159,24 +158,31 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           {activeTab === ActiveTab.SUMMARY && (
             <SummaryPage
               guestListInfo={data.guestListInfo}
-              ticketData={data.ticketInfo}
-              tickets={tickets}
-              organizationId={organization._id}
               isPromoter={canUploadGuest}
+              ticketInfo={data.ticketInfo}
               eventId={data.event._id}
             />
           )}
 
           {activeTab === ActiveTab.TICKET_INFO && (
-            <TicketTab canCheckInGuests={canCheckInGuests} tickets={tickets} />
+            <TicketPage
+              canCheckInGuests={canCheckInGuests}
+              eventId={data.event._id}
+            />
           )}
           {activeTab === ActiveTab.GUEST_LIST && data.guestListInfo && (
-            <GuestListTab
-              guestListInfo={data.guestListInfo}
-              guestListData={guestListData}
+            <GuestListPage
+              eventId={data.event._id}
               canUploadGuest={canUploadGuest}
               canCheckInGuests={canCheckInGuests}
+              guestListInfo={data.guestListInfo}
             />
+            // <GuestListTab
+            //   guestListInfo={data.guestListInfo}
+            //   guestListData={guestListData}
+            //   canUploadGuest={canUploadGuest}
+            //   canCheckInGuests={canCheckInGuests}
+            // />
           )}
           {activeTab === ActiveTab.VIEW && (
             <ViewTab eventData={data.event} ticketData={data.ticketInfo} />

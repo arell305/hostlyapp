@@ -1,47 +1,49 @@
-import React, { useState } from "react";
-import { GetEventWithGuestListsData } from "@/types/convex-types";
+import React, { useMemo, useRef, useState } from "react";
 import { useDeleteGuestName } from "../hooks/useDeleteGuestName";
 import { useUpdateGuestName } from "../hooks/useUpdateGuestName";
-import { FrontendErrorMessages } from "@/types/enums";
-import ToggleButton from "../../components/ui/ToggleButton";
 import ResponsiveEditGuestName from "../../components/responsive/ResponsiveEditGuestName";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import _ from "lodash";
-import {
-  formatName,
-  getSortedFilteredGuests,
-} from "../../../../../utils/format";
+import { filterGuestsByName } from "../../../../../utils/format";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import EmptyList from "@/components/shared/EmptyList";
 import GuestListContainer from "./GuestListContainer";
+import { Id } from "convex/_generated/dataModel";
+import { validateGuestEditInput } from "@/utils/form-validation/validateEventForm";
+import SearchInput from "../components/SearchInput";
+import { GuestListEntryWithPromoter } from "@/types/schemas-types";
 
 type PromoterGuestListContentProps = {
-  guestListData: GetEventWithGuestListsData;
+  guestListData: GuestListEntryWithPromoter[];
+  isGuestListOpen: boolean;
 };
 
 const PromoterGuestListContent = ({
   guestListData,
+  isGuestListOpen,
 }: PromoterGuestListContentProps) => {
-  const guestList = guestListData.guests;
-
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<Id<"guestListEntries"> | null>(
+    null
+  );
   const [editName, setEditName] = useState<string>("");
+  const [editPhoneNumber, setEditPhoneNumber] = useState<string>("");
   const [showEditNameModal, setShowEditNameModal] = useState<boolean>(false);
   const [initialName, setInitialName] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // delete guest states
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<Id<"guestListEntries"> | null>(
+    null
+  );
   const [showConfirmDeleteGuest, setShowConfirmDeleteGuest] =
-    useState<boolean>(false);
-
-  const [showCheckedInGuests, setShowCheckedInGuests] =
     useState<boolean>(false);
 
   const {
     updateGuestName,
     isLoading: editNameLoading,
-    error: editNameError,
-    setError: setEditNameError,
+    error: updateGuestNameError,
+    setError: setUpdateGuestNameError,
   } = useUpdateGuestName();
 
   const {
@@ -51,54 +53,59 @@ const PromoterGuestListContent = ({
     setError: setDeleteNameError,
   } = useDeleteGuestName();
 
-  const handleEdit = (id: string, name: string) => {
+  const handleEdit = (id: Id<"guestListEntries">, name: string) => {
     setEditingId(id);
     setEditName(name);
     setInitialName(name);
     setShowEditNameModal(true);
   };
 
-  const handleShowDelete = (id: string) => {
+  const handleShowDelete = (id: Id<"guestListEntries">) => {
     setDeletingId(id);
     setShowConfirmDeleteGuest(true);
   };
 
   const handleSave = async () => {
-    setEditNameError(null);
+    setErrors({});
 
-    if (editName.trim() === "") {
-      setEditNameError(FrontendErrorMessages.NAME_EMPTY);
+    const result = validateGuestEditInput({
+      name: editName,
+      phoneNumber: editPhoneNumber,
+      initialName,
+    });
+
+    if (!editingId) {
+      setErrors({ name: "No guest selected" });
       return;
     }
 
-    const newName = formatName(editName);
-
-    if (newName === initialName) {
+    if (result.noChanges) {
       setShowEditNameModal(false);
       return;
     }
 
-    if (!editingId) {
-      setEditNameError("No name selected");
+    if (!result.isValid) {
+      setErrors(result.errors);
+      if (Object.keys(result.errors).length === 0) {
+        // Name is unchanged, no error needed, just close
+        setShowEditNameModal(false);
+      }
       return;
     }
-    if (!guestListData.guests) {
-      setEditNameError("No guest list found");
-      return;
-    }
-    if (!guestList) {
-      setEditNameError("No guest list found");
-      return;
-    }
+    const formattedPhoneNumber =
+      editPhoneNumber?.trim() === "" ? null : editPhoneNumber;
+
     const success = await updateGuestName(
-      guestList[0].guestListId,
       editingId,
-      newName
+      result.formattedName,
+      formattedPhoneNumber
     );
+
     if (success) {
-      handleCloseModal();
+      handleCloseUpdateGuestNameModal();
     }
   };
+
   const handleDelete = async () => {
     setDeleteNameError(null);
     if (!deletingId) {
@@ -106,15 +113,14 @@ const PromoterGuestListContent = ({
       return;
     }
 
-    if (!guestList) {
+    if (!guestListData) {
       setDeleteNameError("No guest list found");
       return;
     }
 
-    const success = await deleteGuestName(guestList[0].guestListId, deletingId);
+    const success = await deleteGuestName(deletingId);
     if (success) {
-      setDeletingId(null);
-      setShowConfirmDeleteGuest(false);
+      handleCloseModal();
     }
   };
 
@@ -124,28 +130,28 @@ const PromoterGuestListContent = ({
     setDeleteNameError(null);
   };
 
-  const isEmptyGuestList = guestList.length === 0;
+  const handleCloseUpdateGuestNameModal = () => {
+    setShowEditNameModal(false);
+    setErrors({});
+    setUpdateGuestNameError(null);
+  };
 
-  const filteredGuests = getSortedFilteredGuests(
-    guestList.map((guest) => ({
-      ...guest,
-      name: guest.name,
-      promoterId: guest.promoterId,
-      promoterName: guest.promoterName,
-      guestListId: guest.guestListId,
-    })),
-    showCheckedInGuests
-  );
+  const isEmptyGuestList = guestListData.length === 0;
 
+  const filteredGuests = useMemo(() => {
+    return filterGuestsByName(guestListData, searchTerm);
+  }, [guestListData, searchTerm]);
   return (
     <SectionContainer>
       {isEmptyGuestList ? (
         <EmptyList items={[]} message="No guest list added" />
       ) : (
-        <div className="space-y-4">
-          <ToggleButton
-            isChecked={showCheckedInGuests}
-            setIsChecked={setShowCheckedInGuests}
+        <>
+          <SearchInput
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            searchInputRef={searchInputRef}
+            placeholder="Search guests..."
           />
           <GuestListContainer
             filteredGuests={filteredGuests}
@@ -159,18 +165,28 @@ const PromoterGuestListContent = ({
             onCancelEdit={() => setEditingId(null)}
             setEditName={setEditName}
             canEditGuests={true}
+            isGuestListOpen={isGuestListOpen}
           />
-        </div>
+        </>
       )}
       <ResponsiveEditGuestName
         isOpen={showEditNameModal}
         onOpenChange={setShowEditNameModal}
         editName={editName}
         setEditName={setEditName}
-        error={editNameError}
+        error={updateGuestNameError}
         isLoading={editNameLoading}
         onSaveGuestName={handleSave}
-        setEditNameError={setEditNameError}
+        editPhoneNumber={editPhoneNumber}
+        setEditPhoneNumber={setEditPhoneNumber}
+        editNameError={errors.name || null}
+        setEditNameError={(err) =>
+          setErrors((prev) => ({ ...prev, name: err || undefined }))
+        }
+        editPhoneNumberError={errors.phone || null}
+        setEditPhoneNumberError={(err) =>
+          setErrors((prev) => ({ ...prev, phone: err || undefined }))
+        }
       />
       <ResponsiveConfirm
         isOpen={showConfirmDeleteGuest}

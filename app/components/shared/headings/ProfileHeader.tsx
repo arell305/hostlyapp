@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import { capitalizeWords } from "@/utils/helpers";
 
 interface ProfileHeaderProps {
   imageUrl?: string | null;
@@ -20,7 +21,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ imageUrl, name }) => {
           className="rounded-full object-cover aspect-square w-[100px] h-[100px]"
         />
       )}
-      <h2 className="mt-2 text-2xl font-semibold">{name}</h2>
+      <h2 className="mt-2 text-2xl font-semibold">
+        {capitalizeWords(name || "Unknown Name")}
+      </h2>
     </div>
   );
 };

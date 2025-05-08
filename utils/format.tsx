@@ -1,5 +1,9 @@
 import { Gender } from "@/types/enums";
-import { TicketSchema, TicketSchemaWithPromoter } from "@/types/schemas-types";
+import {
+  GuestListEntryWithPromoter,
+  TicketSchema,
+  TicketSchemaWithPromoter,
+} from "@/types/schemas-types";
 import {
   GuestEntry,
   GuestListNameSchema,
@@ -25,18 +29,18 @@ export function getTotalFemales(guests: GuestListNameSchema[]): number {
 }
 
 export function getSortedFilteredGuests(
-  guests: GuestWithPromoter[],
+  guests: GuestListEntryWithPromoter[],
   showCheckedIn: boolean
-): GuestWithPromoter[] {
+): GuestListEntryWithPromoter[] {
   return guests
     .filter((guest) => (showCheckedIn ? guest.attended : !guest.attended))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function filterGuestsByName(
-  guests: GuestListNameSchema[],
+  guests: GuestListEntryWithPromoter[],
   searchTerm: string
-): GuestListNameSchema[] {
+): GuestListEntryWithPromoter[] {
   const normalizedTerm = searchTerm.trim().toLowerCase();
 
   if (!normalizedTerm) return guests;
@@ -123,22 +127,43 @@ export function parseGuestListInput(input: string): ParsedGuestListResult {
   const invalidPhones: string[] = [];
 
   for (const line of lines) {
-    const [namePart, phonePart] = line.split(",").map((s) => s.trim());
-    const name = namePart
+    const words = line.split(/\s+/);
+    const lastWord = words[words.length - 1];
+    const restAsName = words.slice(0, -1).join(" ");
+    const looksLikePhone = /^\+?\d{6,}$/.test(lastWord); // 6+ digits, optional +
+
+    let name: string;
+    const entry: GuestEntry = { name: "" };
+
+    if (words.length === 1 || !looksLikePhone) {
+      name = line; // full line is name
+    } else {
+      name = restAsName;
+      if (isValidPhoneNumber(lastWord)) {
+        entry.phoneNumber = lastWord;
+      } else {
+        invalidPhones.push(lastWord);
+      }
+    }
+
+    const cleanedName = name
       .split(" ")
       .map((word) => _.capitalize(word.toLowerCase()))
       .join(" ");
 
-    if (phonePart && !isValidPhoneNumber(phonePart)) {
-      invalidPhones.push(phonePart);
-    }
-
-    guests.push({
-      name,
-      ...(phonePart &&
-        isValidPhoneNumber(phonePart) && { phoneNumber: phonePart }),
-    });
+    entry.name = cleanedName;
+    guests.push(entry);
   }
 
   return { guests, invalidPhones };
+}
+
+export function formatPhoneNumber(phone: string): string {
+  const cleaned = phone.replace(/\D/g, "");
+  if (cleaned.length !== 10) return phone;
+
+  const area = cleaned.slice(0, 3);
+  const prefix = cleaned.slice(3, 6);
+  const line = cleaned.slice(6);
+  return `(${area}) ${prefix}-${line}`;
 }

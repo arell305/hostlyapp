@@ -5,20 +5,20 @@ import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
 
 export const useDeleteGuestName = () => {
-  const deleteGuestNameMutation = useMutation(api.guestLists.deleteGuestName);
+  const deleteGuestNameMutation = useMutation(
+    api.guestListEntries.deleteGuestListEntry
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const deleteGuestName = async (
-    guestListId: Id<"guestLists">,
-    guestId: string
+    guestId: Id<"guestListEntries">
   ): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await deleteGuestNameMutation({
-        guestListId,
         guestId,
       });
 

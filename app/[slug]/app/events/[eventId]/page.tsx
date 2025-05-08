@@ -1,23 +1,25 @@
 "use client";
 import { useUser } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
-import { api } from "../../../../../convex/_generated/api";
 import EventIdContent from "./EventIdContent";
 import FullLoading from "../../components/loading/FullLoading";
 import ErrorComponent from "../../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
-import { ResponseStatus } from "@/types/enums";
-import { GetEventWithGuestListsData } from "@/types/convex-types";
-import { isManager } from "@/utils/permissions";
+import { isHostlyUser, isManager } from "@/utils/permissions";
 import { isModerator, isPromoter } from "@/utils/permissions";
+import { api } from "convex/_generated/api";
+import { useQuery } from "convex/react";
+import { Id } from "convex/_generated/dataModel";
+import { handleQueryState } from "@/utils/handleQueryState";
+import { QueryState } from "@/types/enums";
+import { GetEventByIdData } from "@/types/convex-types";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
 
 export default function EventPageWrapper() {
   const { user } = useUser();
   const params = useParams();
   const router = useRouter();
-  const eventId = params.eventId as string;
+  const eventId = params.eventId as Id<"events">;
   const {
     organization,
     organizationContextError,
@@ -25,26 +27,13 @@ export default function EventPageWrapper() {
     subscription,
   } = useContextOrganization();
 
+  const orgRole = user?.publicMetadata.role as string;
+  const canCheckInGuests = isModerator(orgRole);
+  const canUploadGuest = isPromoter(orgRole);
+  const canEditEvent = isManager(orgRole);
+  const isAppAdmin = isHostlyUser(orgRole);
+
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
-
-  const responseTickets = useQuery(
-    api.tickets.getTicketsByEventId,
-    getEventByIdResponse?.data?.event._id
-      ? {
-          eventId: getEventByIdResponse?.data.event._id,
-        }
-      : "skip"
-  );
-
-  const responseGuestList = useQuery(
-    api.events.getEventWithGuestLists,
-    getEventByIdResponse?.data?.event._id
-      ? {
-          eventId: getEventByIdResponse?.data.event._id,
-        }
-      : "skip"
-  );
-  const isAppAdmin = organization?.slug === "admin";
 
   const handleNavigateHome = () => {
     if (organization?.slug) {
@@ -58,44 +47,29 @@ export default function EventPageWrapper() {
     }
   };
 
+  const eventResult = handleQueryState(getEventByIdResponse);
+
   if (
-    !getEventByIdResponse ||
     !organization ||
     !subscription ||
     connectedAccountEnabled === undefined ||
     !user ||
-    responseTickets === undefined ||
-    responseGuestList === undefined
+    eventResult.type === QueryState.Loading
   ) {
     return <FullLoading />;
-  }
-
-  if (getEventByIdResponse.status === ResponseStatus.ERROR) {
-    return <ErrorComponent message={getEventByIdResponse.error} />;
-  }
-
-  if (responseTickets.status === ResponseStatus.ERROR) {
-    return <ErrorComponent message={responseTickets.error} />;
-  }
-
-  if (responseGuestList.status === ResponseStatus.ERROR) {
-    return <ErrorComponent message={responseGuestList.error} />;
   }
 
   if (organizationContextError) {
     return <ErrorComponent message={organizationContextError} />;
   }
 
-  const orgRole = user?.publicMetadata.role as string;
-  const canCheckInGuests = isModerator(orgRole);
-  const canUploadGuest = isPromoter(orgRole);
-  const canEditEvent = isManager(orgRole);
+  if (eventResult.type === QueryState.Error) {
+    return eventResult.element;
+  }
 
-  const data = getEventByIdResponse.data;
-  const tickets = responseTickets.data?.tickets;
-  const guestListData: GetEventWithGuestListsData = responseGuestList.data;
+  const eventData: GetEventByIdData = eventResult.data;
 
-  if (!data.event.isActive) {
+  if (!eventData.event.isActive) {
     return (
       <MessagePage
         buttonLabel="Home"
@@ -108,18 +82,15 @@ export default function EventPageWrapper() {
 
   return (
     <EventIdContent
-      data={data}
       isAppAdmin={isAppAdmin}
       isStripeEnabled={connectedAccountEnabled}
-      organization={organization}
       subscription={subscription}
       handleNavigateHome={handleNavigateHome}
-      tickets={tickets}
       canCheckInGuests={canCheckInGuests}
       canUploadGuest={canUploadGuest}
-      guestListData={guestListData}
       canEditEvent={canEditEvent}
       handleAddGuestList={handleAddGuestList}
+      data={eventData}
     />
   );
 }

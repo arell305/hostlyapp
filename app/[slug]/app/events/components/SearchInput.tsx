@@ -4,12 +4,13 @@ import { Input } from "@/components/ui/input";
 import { FaSearch } from "react-icons/fa";
 import { MdOutlineCancel } from "react-icons/md";
 import { RefObject } from "react";
+import useMediaQuery from "@/hooks/useMediaQuery";
+import { DESKTOP_WIDTH } from "@/types/constants";
 
 interface SearchInputProps {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   searchInputRef: RefObject<HTMLInputElement>;
-  isDesktop: boolean;
   placeholder?: string;
 }
 
@@ -17,9 +18,10 @@ const SearchInput: React.FC<SearchInputProps> = ({
   searchTerm,
   setSearchTerm,
   searchInputRef,
-  isDesktop,
   placeholder = "Search...",
 }) => {
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
+
   const handleClick = () => {
     if (searchInputRef.current && !isDesktop) {
       searchInputRef.current.focus();

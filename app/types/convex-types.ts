@@ -16,8 +16,12 @@ import {
   UserSchema,
   EventWithTicketInfo,
   PromoterPromoCodeWithDiscount,
+  GuestListEntryWithPromoter,
+  GuestListEntrySchema,
+  TicketSchema,
 } from "./schemas-types";
 import {
+  CheckInStats,
   Guest,
   GuestListNameSchema,
   OrganizationDetails,
@@ -508,16 +512,17 @@ export interface UpdateGuestNameData {
   updatedGuest?: GuestListNameSchema;
 }
 
-export type AddGuestListResponse = AddGuestListSuccess | ErrorResponse;
+export type AddGuestListEntryResponse =
+  | AddGuestListEntrySuccess
+  | ErrorResponse;
 
-export interface AddGuestListSuccess {
+export interface AddGuestListEntrySuccess {
   status: ResponseStatus.SUCCESS;
-  data: AddGuestListData | null;
+  data: AddGuestListEntryData;
 }
 
-export interface AddGuestListData {
-  guestListId: Id<"guestLists">;
-  names: NewGuest[];
+export interface AddGuestListEntryData {
+  guestEntryIds: Id<"guestListEntries">[];
 }
 
 export interface NewGuest {
@@ -535,10 +540,7 @@ export interface GetEventWithGuestListsSuccess {
 }
 
 export interface GetEventWithGuestListsData {
-  event: EventSchema;
-  guests: Guest[];
-  totalMales: number;
-  totalFemales: number;
+  guests: GuestListEntryWithPromoter[];
 }
 
 export type UpdateGuestAttendanceResponse =
@@ -914,4 +916,122 @@ export interface GetOrganizationByClerkUserIdSuccess {
 
 export interface GetOrganizationByClerkUserIdData {
   organization: OrganizationSchema;
+}
+
+export type DeleteGuestListEntryResponse =
+  | DeleteGuestListEntrySuccess
+  | ErrorResponse;
+
+export interface DeleteGuestListEntrySuccess {
+  status: ResponseStatus.SUCCESS;
+  data: DeleteGuestListEntryData;
+}
+
+export interface DeleteGuestListEntryData {
+  guestListEntryId: Id<"guestListEntries">;
+}
+
+export type UpdateGuestListEntryResponse =
+  | UpdateGuestListEntrySuccess
+  | ErrorResponse;
+
+export interface UpdateGuestListEntrySuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateGuestListEntryData;
+}
+
+export interface UpdateGuestListEntryData {
+  guestListEntryId: Id<"guestListEntries">;
+}
+
+export type CheckInGuestEntryResponse =
+  | CheckInGuestEntrySuccess
+  | ErrorResponse;
+
+export interface CheckInGuestEntrySuccess {
+  status: ResponseStatus.SUCCESS;
+  data: CheckInGuestEntryData;
+}
+
+export interface CheckInGuestEntryData {
+  guestListEntryId: Id<"guestListEntries">;
+}
+
+export type GetGuestsGroupedByPromoterResponse =
+  | GetGuestsGroupedByPromoterSuccess
+  | ErrorResponse;
+
+export interface GetGuestsGroupedByPromoterSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetGuestsGroupedByPromoterData;
+}
+
+export interface GetGuestsGroupedByPromoterData {
+  guests: GroupedGuestsByPromoter[];
+  totalMales: number;
+  totalFemales: number;
+  totalGuests: number;
+  totalCheckedIn: number;
+}
+
+export interface GroupedGuestsByPromoter {
+  promoterId: Id<"users">;
+  promoterName: string;
+  guests: GuestListEntrySchema[];
+  totalMales: number;
+  totalFemales: number;
+}
+
+export type GetPromoterGuestStatsResponse =
+  | GetPromoterGuestStatsSuccess
+  | ErrorResponse;
+
+export interface GetPromoterGuestStatsSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: {
+    promoterGuestStats: PromoterGuestStatsData[];
+    checkInData?: CheckInData;
+  };
+}
+
+export interface PromoterGuestStatsData {
+  promoterId: Id<"users">;
+  promoterName: string;
+  totalMales: number;
+  totalFemales: number;
+  totalRSVPs: number;
+  totalCheckedIn: number;
+}
+
+export interface CheckInData {
+  totalCheckedIn: number;
+  totalMales: number;
+  totalFemales: number;
+  totalRSVPs: number;
+}
+
+export type GetTicketSalesByPromoterResponse =
+  | GetTicketSalesByPromoterSuccess
+  | ErrorResponse;
+
+export interface GetTicketSalesByPromoterSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetTicketSalesByPromoterData;
+}
+
+export interface GetTicketSalesByPromoterData {
+  tickets: TicketSalesGroup[];
+  ticketTotals: TicketTotals | null;
+}
+
+export interface TicketSalesGroup {
+  promoterId: Id<"users">;
+  promoterName: string;
+  maleCount: number;
+  femaleCount: number;
+}
+
+export interface TicketTotals {
+  maleCount: number;
+  femaleCount: number;
 }
