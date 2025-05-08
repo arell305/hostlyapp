@@ -18,11 +18,8 @@ import {
   PromoterPromoCodeWithDiscount,
   GuestListEntryWithPromoter,
   GuestListEntrySchema,
-  TicketSchema,
 } from "./schemas-types";
 import {
-  CheckInStats,
-  Guest,
   GuestListNameSchema,
   OrganizationDetails,
   OrganizationPublic,
@@ -492,7 +489,7 @@ export interface GetGuestListByPromoterSuccess {
   data: PromoterGuestsData;
 }
 export interface PromoterGuestsData {
-  guestListId: Id<"guestLists"> | null;
+  guestListId: Id<"guestListEntries"> | null;
   names: GuestListNameSchema[];
   totalCheckedIn: number;
   totalGuests: number;
@@ -508,7 +505,7 @@ export interface UpdateGuestNameSuccess {
 }
 
 export interface UpdateGuestNameData {
-  guestListId: Id<"guestLists">;
+  guestListId: Id<"guestListEntries">;
   updatedGuest?: GuestListNameSchema;
 }
 
