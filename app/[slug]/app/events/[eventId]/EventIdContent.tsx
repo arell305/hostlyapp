@@ -7,7 +7,6 @@ import {
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
 import EventForm from "@/[slug]/app/components/EventForm";
-import GuestListTab from "./GuestListTab";
 import ViewTab from "../ViewTab";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import {
@@ -177,12 +176,6 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
               canCheckInGuests={canCheckInGuests}
               guestListInfo={data.guestListInfo}
             />
-            // <GuestListTab
-            //   guestListInfo={data.guestListInfo}
-            //   guestListData={guestListData}
-            //   canUploadGuest={canUploadGuest}
-            //   canCheckInGuests={canCheckInGuests}
-            // />
           )}
           {activeTab === ActiveTab.VIEW && (
             <ViewTab eventData={data.event} ticketData={data.ticketInfo} />
