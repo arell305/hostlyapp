@@ -8,7 +8,7 @@ interface LabeledTextAreaFieldProps {
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
   rows?: number;
-  error: string | null;
+  error?: string | null;
   name?: string;
   className?: string;
 }
