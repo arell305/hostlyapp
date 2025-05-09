@@ -15,11 +15,13 @@ interface GuestListAnalyticsPageProps {
     from: Date | undefined;
     to: Date | undefined;
   };
+  canViewCompanyAnalytics: boolean;
 }
 
 const GuestListAnalyticsPage = ({
   organizationId,
   dateRange,
+  canViewCompanyAnalytics,
 }: GuestListAnalyticsPageProps) => {
   const guestListData = useQuery(api.guestListEntries.getGuestListKpis, {
     organizationId,
@@ -35,7 +37,12 @@ const GuestListAnalyticsPage = ({
 
   const guestListKpisData: GetGuestListKpisData = result.data;
 
-  return <GuestListAnalyticsContent guestListKpisData={guestListKpisData} />;
+  return (
+    <GuestListAnalyticsContent
+      canViewCompanyAnalytics={canViewCompanyAnalytics}
+      guestListKpisData={guestListKpisData}
+    />
+  );
 };
 
 export default GuestListAnalyticsPage;

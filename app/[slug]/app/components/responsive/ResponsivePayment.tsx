@@ -7,8 +7,6 @@ import {
   CardElement,
 } from "@stripe/react-stripe-js";
 import { stripePromise } from "../../../../../utils/stripe";
-
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,13 +14,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 import BaseDrawer from "../drawer/BaseDrawer";
 import { useAction } from "convex/react";
 import { toast } from "@/hooks/use-toast";
 import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
 import { DESKTOP_WIDTH } from "@/types/constants";
+import FormActions from "@/components/shared/buttonContainers/FormActions";
 
 type ResponsivePaymentProps = {
   isOpen: boolean;
@@ -42,6 +40,11 @@ const PaymentForm: React.FC<ResponsivePaymentProps> = ({
   const updateSubscriptionPaymentMethod = useAction(
     api.stripe.updateSubscriptionPaymentMethod
   );
+
+  const handleClose = () => {
+    setEditPaymentError(null);
+    onOpenChange(false);
+  };
 
   const handleEditPayment = async () => {
     setEditPaymentError(null);
@@ -81,7 +84,7 @@ const PaymentForm: React.FC<ResponsivePaymentProps> = ({
           title: "Payment Updated",
           description: "Your payment method has been updated",
         });
-        onOpenChange(false); // Close the modal/drawer after success
+        handleClose();
       } else {
         console.error(response.error);
         setEditPaymentError(FrontendErrorMessages.GENERIC_ERROR);
@@ -99,8 +102,8 @@ const PaymentForm: React.FC<ResponsivePaymentProps> = ({
   const CardInput = (
     <div
       className={cn(
-        "rounded-none w-full border-b-2 bg-transparent py-1 focus-within:outline-none",
-        editPaymentError ? "border-red-500" : "border-gray-300",
+        " w-full border rounded-md  bg-transparent p-3 focus-within:outline-none mb-4",
+        editPaymentError ? "border-red-500" : "",
         "focus-within:border-customDarkBlue"
       )}
     >
@@ -109,7 +112,7 @@ const PaymentForm: React.FC<ResponsivePaymentProps> = ({
           style: {
             base: {
               fontSize: "16px",
-              color: "#2d3748",
+              color: "#F9FAFA",
               backgroundColor: "transparent",
               "::placeholder": { color: "#a0aec0" },
             },
@@ -127,41 +130,24 @@ const PaymentForm: React.FC<ResponsivePaymentProps> = ({
           <DialogTitle className="flex">Update Payment</DialogTitle>
         </DialogHeader>
         {CardInput}
-        <p
-          className={`text-sm mt-1 ${editPaymentError ? "text-red-500" : "text-transparent"}`}
-        >
-          {editPaymentError || "Placeholder to maintain height"}
-        </p>
-        <div className="flex justify-center space-x-10">
-          <Button
-            disabled={isEditPaymentLoading}
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            className="font-semibold w-[140px]"
-          >
-            Cancel
-          </Button>
-          <Button
-            className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
-            onClick={handleEditPayment}
-            disabled={isEditPaymentLoading}
-          >
-            {isEditPaymentLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save"
-            )}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={handleClose}
+          onSubmit={handleEditPayment}
+          cancelText="Cancel"
+          submitText="Save"
+          loadingText="Saving"
+          isLoading={isEditPaymentLoading}
+          isSubmitDisabled={isEditPaymentLoading}
+          error={editPaymentError}
+          cancelVariant="secondary"
+          submitVariant="default"
+        />
       </DialogContent>
     </Dialog>
   ) : (
     <BaseDrawer
       isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleClose}
       title="Update Payment"
       description="Enter a new payment method"
       confirmText={isEditPaymentLoading ? "Saving..." : "Save"}

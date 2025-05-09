@@ -100,6 +100,7 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
       <CustomCard className="p-0">
         <EditableImageContainer className="mt-6">
           <EditableImage
+            companyName={companyName}
             displayImage={displayCompanyPhoto}
             isEditing={isEditing}
             canEdit={canEditSettings}

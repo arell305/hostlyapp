@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
 import { Elements } from "@stripe/react-stripe-js";
 import { DESKTOP_WIDTH, GUEST_LIST_CREDIT_PRICE } from "@/types/constants";
 import useMediaQuery from "@/hooks/useMediaQuery";
@@ -16,6 +15,8 @@ import { useCreateGuestListPaymentIntent } from "../../hooks/useCreatePaymentInt
 import FormActions from "@/components/shared/buttonContainers/FormActions";
 import { stripePromise } from "../../../../../utils/stripe";
 import { PaymentForm } from "./PaymentForm";
+import { Minus, Plus } from "lucide-react";
+import IconButton from "@/components/shared/buttonContainers/IconButton";
 
 interface GuestListCheckoutProps {
   open: boolean;
@@ -66,26 +67,19 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
   const QuantityStep = (
     <div className="space-y-6 mt-2">
       <div className="flex items-center justify-center gap-4">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
+        <IconButton
+          icon={<Minus />}
           onClick={() => handleQuantityChange(-1)}
           disabled={quantity <= 1}
-        >
-          -
-        </Button>
+        />
 
         <span className="text-xl font-semibold">{quantity}</span>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
+        <IconButton
+          icon={<Plus />}
           onClick={() => handleQuantityChange(1)}
-        >
-          +
-        </Button>
+          disabled={quantity >= 10}
+        />
       </div>
 
       <div className="text-center">

@@ -163,3 +163,9 @@ const splitName = (fullName?: string): [string, string] => {
 export function capitalizeWords(input: string): string {
   return _.startCase(_.toLower(input));
 }
+
+export function getInitial(name?: string | null): string {
+  if (!name || typeof name !== "string") return "?";
+  const trimmed = name.trim();
+  return trimmed.length > 0 ? trimmed[0].toUpperCase() : "?";
+}

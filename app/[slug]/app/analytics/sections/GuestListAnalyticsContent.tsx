@@ -1,65 +1,84 @@
 "use client";
 
 import React from "react";
-import { guestListKpis } from "@/types/constants";
 import KpiGrid from "@/components/shared/containers/KpiGrid";
 import KpiCard from "@/components/shared/KpiCard";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import BarChartContainer from "@/components/shared/analytics/BarChart";
 import { GetGuestListKpisData } from "@/types/convex-types";
+import HorizontalBarChartContainer from "@/components/shared/analytics/HorizontalBarChartContainer";
 
 interface GuestListAnalyticsContentProps {
   guestListKpisData: GetGuestListKpisData;
+  canViewCompanyAnalytics: boolean;
 }
 
 const GuestListAnalyticsContent = ({
   guestListKpisData,
+  canViewCompanyAnalytics,
 }: GuestListAnalyticsContentProps) => {
-  const data = [
-    { date: "2025-04-01", amount: 320 },
-    { date: "2025-04-02", amount: 450 },
-    { date: "2025-04-03", amount: 600 },
-    { date: "2025-04-04", amount: 750 },
-    { date: "2025-04-05", amount: 900 },
-    { date: "2025-04-06", amount: 1050 },
-    { date: "2025-04-07", amount: 1200 },
-    { date: "2025-04-08", amount: 1350 },
-    { date: "2025-04-01", amount: 320 },
-    { date: "2025-04-02", amount: 450 },
-    { date: "2025-04-03", amount: 600 },
-    { date: "2025-04-04", amount: 750 },
-    { date: "2025-04-05", amount: 900 },
-    { date: "2025-04-06", amount: 1050 },
-    { date: "2025-04-07", amount: 1200 },
-    { date: "2025-04-08", amount: 1350 },
+  const kpis = [
+    {
+      label: "Avg RSVPs per Event",
+      value: guestListKpisData.avgRsvpPerEvent.value,
+      change: guestListKpisData.avgRsvpPerEvent.change,
+    },
+    {
+      label: "Avg Check-ins per Event",
+      value: guestListKpisData.avgCheckinsPerEvent.value,
+      change: guestListKpisData.avgCheckinsPerEvent.change,
+    },
+    {
+      label: "Avg Check-in Rate",
+      value: `${(guestListKpisData.avgCheckinRate.value * 100).toFixed(1)}%`,
+      change: guestListKpisData.avgCheckinRate.change,
+    },
+    ...(canViewCompanyAnalytics
+      ? [
+          {
+            label: "Avg Check-ins per Promoter",
+            value: guestListKpisData.avgCheckinsPerPromoter.value,
+            change: guestListKpisData.avgCheckinsPerPromoter.change,
+          },
+        ]
+      : []),
   ];
 
   return (
     <SectionContainer>
       <KpiGrid>
-        {guestListKpis.map(({ label, key }) => (
-          <KpiCard key={key} label={label} value="456" changeText="+5%" />
+        {kpis.map(({ label, value, change }) => (
+          <KpiCard
+            key={label}
+            label={label}
+            value={typeof value === "number" ? value.toFixed(1) : value}
+            changeText={`${change.toFixed(1)}%`}
+          />
         ))}
       </KpiGrid>
-      <BarChartContainer
-        title="Event Headcount by Gender"
-        data={data}
-        xKey="date"
-        yKey="amount"
-        barLabel="Revenue"
-        tooltipFormatter={(v) => `$${v.toFixed(2)}`}
-        valueFormatter={(v) => `$${v}`}
-      />
 
       <BarChartContainer
-        title="Promoter Leaderboard"
-        data={data}
-        xKey="date"
-        yKey="amount"
-        barLabel="Revenue"
-        tooltipFormatter={(v) => `$${v.toFixed(2)}`}
-        valueFormatter={(v) => `$${v}`}
+        title="Event Headcount by Gender"
+        data={guestListKpisData.eventCheckInData}
+        xKey="name"
+        yKey="male"
+        barKeys={["male", "female"]}
+        barLabel="Check-ins"
+        tooltipFormatter={(v) => `${v}`}
+        valueFormatter={(v) => `${v}`}
+        emptyDescription="No event check-in data available"
       />
+      {canViewCompanyAnalytics && (
+        <HorizontalBarChartContainer
+          title="Promoter Leaderboard (Check-ins)"
+          data={guestListKpisData.promoterLeaderboard}
+          xKey="name"
+          barKeys={["male", "female"]}
+          tooltipFormatter={(v) => `${v} check-ins`}
+          valueFormatter={(v) => `${v}`}
+          emptyDescription="No promoter breakdown data available during this period."
+        />
+      )}
     </SectionContainer>
   );
 };

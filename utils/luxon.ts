@@ -160,3 +160,12 @@ export function formatEventDateParts(startTime: number) {
 export function formatToEventDateTime(timestamp: number): string {
   return DateTime.fromMillis(timestamp).toFormat("EEE, MMM d • h:mm a");
 }
+
+export function formatToPstShortDate(ts: number): string {
+  return DateTime.fromMillis(ts, { zone: TIME_ZONE }).toFormat("M/d/yy");
+}
+
+// Returns a Luxon DateTime at start of day PST
+export function startOfPstDay(ts: number): DateTime {
+  return DateTime.fromMillis(ts, { zone: TIME_ZONE }).startOf("day");
+}

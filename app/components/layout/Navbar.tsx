@@ -47,7 +47,7 @@ const Navbar: React.FC = () => {
                   onClick={() => router.push("/sign-in")}
                   variant="outline"
                   size="navButton"
-                  className="text-primaryBlue rounded-[12px] border-primaryBlue text-base font-medium w-[90px] h-[42px]"
+                  className="rounded-[12px] border-primaryBlue text-base font-medium w-[90px] h-[42px]"
                 >
                   Sign in
                 </Button>

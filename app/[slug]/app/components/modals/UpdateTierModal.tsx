@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -21,8 +20,7 @@ import { toast } from "@/hooks/use-toast";
 import FullLoading from "../loading/FullLoading";
 import ErrorComponent from "../errors/ErrorComponent";
 import { DESKTOP_WIDTH } from "@/types/constants";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import FormActions from "@/components/shared/buttonContainers/FormActions";
 
 interface UpdateTierModalProps {
   isOpen: boolean;
@@ -132,21 +130,19 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
     return (
       <div
         key={option.id}
-        className={`mb-3 h-[130px] p-4 border rounded-lg cursor-pointer hover:bg-gray-100 ${
-          selectedPlan?.id === option.id
-            ? "border-customDarkBlue bg-blue-50"
-            : "border-gray-300"
+        className={`mb-3 h-[130px] bg-cardBackground p-4 border rounded-lg cursor-pointer hover:bg-cardBackgroundHover ${
+          selectedPlan?.id === option.id ? "border-customDarkBlue" : ""
         }`}
         onClick={() => setSelectedPlan(option)}
       >
         <div className="flex justify-between">
           <h3 className="text-xl font-semibold">{option.tier}</h3>
           {option.tier === currentTier && (
-            <span className="text-sm text-customDarkBlue">Current Plan</span>
+            <span className="text-sm ">Current Plan</span>
           )}
         </div>
-        <p className="text-gray-600">${option.price}/month</p>
-        <p className="text-sm text-gray-500">{option.description}</p>
+        <p className="text-grayText font-medium">${option.price}/month</p>
+        <p className="text-sm text-grayText">{option.description}</p>
         {option.tier !== currentTier && prorationDetail && (
           <div className="mt-2 text-sm">
             <p>Prorated amount: ${prorationDetail.proratedAmount}</p>
@@ -164,38 +160,17 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex">Update Plan</DialogTitle>
         </DialogHeader>
-        {renderContent()}
-        <p
-          className={`text-sm mt-1 ${
-            updateTierError ? "text-red-500" : "text-transparent"
-          }`}
-        >
-          {updateTierError || "Placeholder to maintain height"}
-        </p>
-        <DialogFooter>
-          <Button
-            disabled={isUpdateTierLoading}
-            onClick={onClose}
-            className="font-semibold w-[140px]"
-            variant="ghost"
-          >
-            Cancel
-          </Button>
-          <Button
-            className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
-            onClick={handleSubmit}
-            disabled={isUpdateTierLoading}
-          >
-            {isUpdateTierLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Updating...
-              </>
-            ) : (
-              "Update"
-            )}
-          </Button>
-        </DialogFooter>
+        <div className="mb-4">{renderContent()}</div>
+        <FormActions
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          cancelText="Cancel"
+          submitText="Update"
+          loadingText="Updating"
+          isLoading={isUpdateTierLoading}
+          isSubmitDisabled={isUpdateTierLoading}
+          error={updateTierError}
+        />
       </DialogContent>
     </Dialog>
   ) : (

@@ -1,5 +1,7 @@
 import Image from "next/image";
 import _ from "lodash";
+import { getInitial } from "@/utils/helpers";
+import InitialAvatar from "../avatars/InitialAvatar";
 
 interface ProfileBannerProps {
   displayPhoto: string | null | undefined;
@@ -23,9 +25,12 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
           />
         </div>
       ) : (
-        <div className="w-[80px] h-[80px] rounded-full bg-gray-300 flex items-center justify-center text-white text-xl font-bold">
-          {name ? _.capitalize(name[0]) : "?"}
-        </div>
+        <InitialAvatar
+          initial={getInitial(name)}
+          size={80}
+          textSize="text-xl"
+          bgColor="bg-gray-600"
+        />
       )}
       <h1 className="text-2xl font-medium">{_.capitalize(name)}</h1>
     </div>

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   BarChart,
   Bar,
@@ -14,29 +12,25 @@ import CustomCard from "../cards/CustomCard";
 import Heading2 from "../headings/h2";
 import MessageCard from "../cards/MessageCard";
 
-interface BarChartContainerProps<T> {
+interface HorizontalBarChartContainerProps<T> {
   data: T[];
   xKey: keyof T;
-  yKey: keyof T;
-  barLabel?: string;
+  barKeys: (keyof T)[];
   title: string;
   tooltipFormatter?: (value: number) => string;
   valueFormatter?: (value: number) => string;
-  barKeys: (keyof T)[];
   emptyDescription?: string;
 }
 
-const BarChartContainer = <T extends Record<string, any>>({
+const HorizontalBarChartContainer = <T extends Record<string, any>>({
   data,
   xKey,
-  yKey,
-  barLabel,
+  barKeys,
   title,
-  tooltipFormatter = (value: number) => `$${value.toFixed(2)}`,
-  valueFormatter = (value: number) => `$${value.toFixed(2)}`,
-  barKeys = [],
-  emptyDescription = "No chart data available for this period.",
-}: BarChartContainerProps<T>) => {
+  tooltipFormatter = (value: number) => `${value}`,
+  valueFormatter = (value: number) => `${value}`,
+  emptyDescription = "No data available for this time period.",
+}: HorizontalBarChartContainerProps<T>) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const CustomBar = (props: any) => {
@@ -59,37 +53,29 @@ const BarChartContainer = <T extends Record<string, any>>({
     );
   };
 
-  const getBarName = (key: string) => {
-    if (key === "male") return "Male";
-    if (key === "female") return "Female";
-    return key.charAt(0).toUpperCase() + key.slice(1);
-  };
-
-  const getBarColor = (key: string) => {
-    if (key === "male") return "#3B82F6";
-    if (key === "female") return "#EC4899";
-    return "#10B981";
-  };
-
   if (data.length === 0) {
     return <MessageCard title={title} description={emptyDescription} />;
   }
 
   return (
     <CustomCard className="p-4">
-      <Heading2>{title}</Heading2>
+      {title && <Heading2>{title}</Heading2>}
 
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data}>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 20, right: 20, left: 40, bottom: 20 }}
+        >
           <XAxis
-            dataKey={xKey as string}
-            tick={{ fontSize: 12, fill: "#f3f4f6" }}
-            interval={0}
-            minTickGap={0}
-          />
-          <YAxis
+            type="number"
             tick={{ fontSize: 12, fill: "#f3f4f6" }}
             tickFormatter={valueFormatter}
+          />
+          <YAxis
+            type="category"
+            dataKey={xKey as string}
+            tick={{ fontSize: 12, fill: "#f3f4f6" }}
           />
           <Tooltip
             contentStyle={{
@@ -109,25 +95,34 @@ const BarChartContainer = <T extends Record<string, any>>({
               paddingBottom: "14px",
             }}
           />
-          {barKeys.map((key) => {
-            const keyStr = String(key);
-            return (
-              <Bar
-                key={keyStr}
-                dataKey={keyStr}
-                name={getBarName(keyStr)}
-                fill={getBarColor(keyStr)}
-                shape={<CustomBar />}
-                barSize={30}
-                isAnimationActive={false}
-                activeBar={false}
-              />
-            );
-          })}
+          {barKeys.map((key) => (
+            <Bar
+              key={String(key)}
+              dataKey={key as string}
+              name={
+                key === "male"
+                  ? "Male"
+                  : key === "female"
+                    ? "Female"
+                    : String(key)
+              }
+              fill={
+                key === "male"
+                  ? "#3B82F6"
+                  : key === "female"
+                    ? "#EC4899"
+                    : "#10B981"
+              }
+              shape={<CustomBar />}
+              barSize={24}
+              isAnimationActive={false}
+              activeBar={false}
+            />
+          ))}
         </BarChart>
       </ResponsiveContainer>
     </CustomCard>
   );
 };
 
-export default BarChartContainer;
+export default HorizontalBarChartContainer;

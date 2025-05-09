@@ -790,10 +790,35 @@ export interface GetTotalRevenueByOrganizationSuccess {
 }
 
 export interface GetTotalRevenueByOrganizationData {
-  totalRevenue: number;
-  totalTicketsSold: number;
-  averageDailyRevenue: number;
-  averageDailyTicketsSold: number;
+  totalRevenue: {
+    value: number;
+    change: number;
+  };
+  averageDailyRevenue: {
+    value: number;
+    change: number;
+  };
+  totalTicketsSold: {
+    value: number;
+    change: number;
+  };
+  averageDailyTicketsSold: {
+    value: number;
+    change: number;
+  };
+  revenueByDay: {
+    date: string;
+    revenue: number;
+  }[];
+  revenueByEvent: {
+    name: string;
+    revenue: number;
+  }[];
+  promoterBreakdown: {
+    name: string;
+    male: number;
+    female: number;
+  }[];
 }
 
 export type GetGuestListKpisResponse = GetGuestListKpisSuccess | ErrorResponse;
@@ -804,10 +829,32 @@ export interface GetGuestListKpisSuccess {
 }
 
 export interface GetGuestListKpisData {
-  avgRsvpPerEvent: number;
-  avgCheckinsPerEvent: number;
-  avgCheckinRate: number;
-  avgCheckinsPerPromoter: number;
+  avgRsvpPerEvent: {
+    value: number;
+    change: number;
+  };
+  avgCheckinsPerEvent: {
+    value: number;
+    change: number;
+  };
+  avgCheckinRate: {
+    value: number;
+    change: number;
+  };
+  avgCheckinsPerPromoter: {
+    value: number;
+    change: number;
+  };
+  eventCheckInData: {
+    name: string;
+    male: number;
+    female: number;
+  }[];
+  promoterLeaderboard: {
+    name: string;
+    male: number;
+    female: number;
+  }[];
 }
 
 export type FindUserByIdResponse = FindUserByIdSuccess | ErrorResponse;
@@ -896,12 +943,28 @@ export interface GetPromoterTicketKpisSuccess {
 }
 
 export interface GetPromoterTicketKpisData {
-  maleCount: number;
-  femaleCount: number;
-  avgMalePerDay: number;
-  avgFemalePerDay: number;
+  totalMale: {
+    value: number;
+    change: number;
+  };
+  totalFemale: {
+    value: number;
+    change: number;
+  };
+  avgMalePerDay: {
+    value: number;
+    change: number;
+  };
+  avgFemalePerDay: {
+    value: number;
+    change: number;
+  };
+  dailyTicketSales: {
+    date: string;
+    male: number;
+    female: number;
+  }[];
 }
-
 export type GetOrganizationByClerkUserIdResponse =
   | GetOrganizationByClerkUserIdSuccess
   | ErrorResponse;

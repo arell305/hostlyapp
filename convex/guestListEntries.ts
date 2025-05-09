@@ -11,6 +11,7 @@ import {
   CheckInGuestEntryResponse,
   DeleteGuestListEntryResponse,
   GetEventWithGuestListsResponse,
+  GetGuestListKpisData,
   GetGuestListKpisResponse,
   GetGuestsGroupedByPromoterResponse,
   GetPromoterGuestStatsResponse,
@@ -32,6 +33,7 @@ import {
   GuestListEntrySchema,
   GuestListEntryWithPromoter,
 } from "@/types/schemas-types";
+import { computeKpis, getPercentageChange } from "./backendUtils/kpiHelper";
 
 export const getEventWithGuestLists = query({
   args: { eventId: v.id("events") },
@@ -600,62 +602,145 @@ export const getGuestListKpis = query({
         .withIndex("by_organizationId", (q) =>
           q.eq("organizationId", organizationId)
         )
+        .filter((q) => q.eq(q.field("isActive"), true))
         .collect();
 
-      const filteredEvents = events.filter(
+      const currentEvents = events.filter(
         (event) =>
           event.startTime >= fromTimestamp && event.startTime <= toTimestamp
       );
 
-      const eventIds = filteredEvents.map((e) => e._id);
+      const prevFrom = fromTimestamp - (toTimestamp - fromTimestamp);
+      const prevTo = fromTimestamp;
 
-      let guestListEntries = await ctx.db
+      const previousEvents = events.filter(
+        (event) => event.startTime >= prevFrom && event.startTime < prevTo
+      );
+
+      const currentEventIds = currentEvents.map((e) => e._id);
+      const previousEventIds = previousEvents.map((e) => e._id);
+
+      const allEntries = await ctx.db
         .query("guestListEntries")
-        .filter((q) =>
-          q.or(...eventIds.map((id) => q.eq(q.field("eventId"), id)))
-        )
         .filter((q) => q.eq(q.field("isActive"), true))
         .collect();
 
+      let currentEntries = allEntries.filter((entry) =>
+        currentEventIds.includes(entry.eventId)
+      );
+
+      let previousEntries = allEntries.filter((entry) =>
+        previousEventIds.includes(entry.eventId)
+      );
+
       if (identity.role === UserRole.Promoter) {
-        guestListEntries = guestListEntries.filter(
-          (entry) => entry.userPromoterId.toString() === user._id
+        currentEntries = currentEntries.filter(
+          (entry) => entry.userPromoterId === user._id
+        );
+        previousEntries = previousEntries.filter(
+          (entry) => entry.userPromoterId === user._id
         );
       }
 
-      let totalRsvps = guestListEntries.length;
-      let totalCheckins = guestListEntries.filter((e) => e.attended).length;
-
-      const promoterSet = new Set(
-        guestListEntries.map((e) => e.userPromoterId.toString())
+      const currentPromoterSet = new Set(
+        currentEntries.map((e) => e.userPromoterId.toString())
       );
 
-      const relevantEventCount =
+      const previousPromoterSet = new Set(
+        previousEntries.map((e) => e.userPromoterId.toString())
+      );
+
+      const currentKpis = computeKpis(
+        currentEntries,
         identity.role === UserRole.Promoter
-          ? new Set(guestListEntries.map((e) => e.eventId.toString())).size
-          : filteredEvents.length;
+          ? new Set(currentEntries.map((e) => e.eventId.toString())).size
+          : currentEvents.length,
+        currentPromoterSet
+      );
 
-      const avgRsvpPerEvent = relevantEventCount
-        ? totalRsvps / relevantEventCount
-        : 0;
+      const previousKpis = computeKpis(
+        previousEntries,
+        identity.role === UserRole.Promoter
+          ? new Set(previousEntries.map((e) => e.eventId.toString())).size
+          : previousEvents.length,
+        previousPromoterSet
+      );
 
-      const avgCheckinsPerEvent = relevantEventCount
-        ? totalCheckins / relevantEventCount
-        : 0;
+      const eventCheckInData = currentEvents.map((event) => {
+        const entries = currentEntries.filter((e) => e.eventId === event._id);
+        return {
+          name: event.name,
+          male: entries.reduce(
+            (sum, e) => sum + (e.attended ? e.malesInGroup || 0 : 0),
+            0
+          ),
+          female: entries.reduce(
+            (sum, e) => sum + (e.attended ? e.femalesInGroup || 0 : 0),
+            0
+          ),
+        };
+      });
 
-      const avgCheckinRate = totalRsvps ? totalCheckins / totalRsvps : 0;
+      const promoterLeaderboard = await Promise.all(
+        Array.from(
+          new Set(currentEntries.map((e) => e.userPromoterId.toString()))
+        ).map(async (promoterIdStr) => {
+          const promoterId = promoterIdStr as Id<"users">;
+          const promoter = await ctx.db.get(promoterId);
+          const entries = currentEntries.filter(
+            (e) => e.userPromoterId === promoterId && e.attended
+          );
 
-      const avgCheckinsPerPromoter = promoterSet.size
-        ? totalCheckins / promoterSet.size
-        : 0;
+          const male = entries.reduce(
+            (sum, e) => sum + (e.malesInGroup || 0),
+            0
+          );
+          const female = entries.reduce(
+            (sum, e) => sum + (e.femalesInGroup || 0),
+            0
+          );
+
+          return {
+            name: promoter?.name || "Unknown",
+            male,
+            female,
+          };
+        })
+      );
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          avgRsvpPerEvent,
-          avgCheckinsPerEvent,
-          avgCheckinRate,
-          avgCheckinsPerPromoter,
+          avgRsvpPerEvent: {
+            value: currentKpis.avgRsvpPerEvent,
+            change: getPercentageChange(
+              currentKpis.avgRsvpPerEvent,
+              previousKpis.avgRsvpPerEvent
+            ),
+          },
+          avgCheckinsPerEvent: {
+            value: currentKpis.avgCheckinsPerEvent,
+            change: getPercentageChange(
+              currentKpis.avgCheckinsPerEvent,
+              previousKpis.avgCheckinsPerEvent
+            ),
+          },
+          avgCheckinRate: {
+            value: currentKpis.avgCheckinRate,
+            change: getPercentageChange(
+              currentKpis.avgCheckinRate,
+              previousKpis.avgCheckinRate
+            ),
+          },
+          avgCheckinsPerPromoter: {
+            value: currentKpis.avgCheckinsPerPromoter,
+            change: getPercentageChange(
+              currentKpis.avgCheckinsPerPromoter,
+              previousKpis.avgCheckinsPerPromoter
+            ),
+          },
+          eventCheckInData,
+          promoterLeaderboard,
         },
       };
     } catch (error) {

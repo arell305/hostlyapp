@@ -8,7 +8,6 @@ import CustomCard from "@/components/shared/cards/CustomCard";
 import MemberCard from "../MemberCard";
 import { UserSchema } from "@/types/schemas-types";
 import { sortUsersByName } from "../../../../../utils/helpers";
-import EmptyList from "@/components/shared/EmptyList";
 
 interface DeletedMembersSectionProps {
   organization: OrganizationSchema;
@@ -31,9 +30,12 @@ const DeletedMembersSection = ({
 
   const companyUsers: UserSchema[] = sortUsersByName(result.data.users);
 
+  if (companyUsers.length === 0) {
+    return <p>No deleted members</p>;
+  }
+
   return (
     <CustomCard className="p-0">
-      <EmptyList items={companyUsers} message="No deleted members" />
       {companyUsers.map((member) => (
         <MemberCard
           key={member.clerkUserId}

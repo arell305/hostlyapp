@@ -34,6 +34,8 @@ import {
 } from "./backendUtils/validation";
 import { handleError, isUserInCompanyOfEvent } from "./backendUtils/helper";
 import { DateTime } from "luxon";
+import { formatToPstShortDate } from "@/utils/luxon";
+import { startOfPstDay } from "@/utils/luxon";
 
 export const insertTicketsSold = action({
   args: {
@@ -367,7 +369,6 @@ export const getPromoterTicketKpis = query({
           .unique()
       );
 
-      // Get events in organization within date range
       const events = await ctx.db
         .query("events")
         .withIndex("by_organizationId", (q) =>
@@ -375,47 +376,114 @@ export const getPromoterTicketKpis = query({
         )
         .collect();
 
-      const filteredEventIds = events
-        .filter(
-          (event) =>
-            event.startTime >= fromTimestamp && event.startTime <= toTimestamp
-        )
-        .map((e) => e._id);
+      const getTicketsForRange = async (from: number, to: number) => {
+        const filteredEventIds = events
+          .filter((event) => event.startTime >= from && event.startTime <= to)
+          .map((e) => e._id);
 
-      // Get tickets for each filtered event for this promoter
-      const ticketsArrays = await Promise.all(
-        filteredEventIds.map((eventId) =>
-          ctx.db
-            .query("tickets")
-            .withIndex("by_eventId_and_promoterUserId", (q) =>
-              q.eq("eventId", eventId).eq("promoterUserId", user._id)
-            )
-            .collect()
-        )
+        const ticketsArrays = await Promise.all(
+          filteredEventIds.map((eventId) =>
+            ctx.db
+              .query("tickets")
+              .withIndex("by_eventId_and_promoterUserId", (q) =>
+                q.eq("eventId", eventId).eq("promoterUserId", user._id)
+              )
+              .collect()
+          )
+        );
+
+        return ticketsArrays.flat();
+      };
+
+      const currentTickets = await getTicketsForRange(
+        fromTimestamp,
+        toTimestamp
+      );
+      const previousFrom = fromTimestamp - (toTimestamp - fromTimestamp);
+      const previousTickets = await getTicketsForRange(
+        previousFrom,
+        fromTimestamp
       );
 
-      const allTickets = ticketsArrays.flat();
+      const countByGender = (tickets: any[]) => ({
+        maleCount: tickets.filter((t) => t.gender === Gender.Male).length,
+        femaleCount: tickets.filter((t) => t.gender === Gender.Female).length,
+      });
 
-      const maleCount = allTickets.filter(
-        (t) => t.gender === Gender.Male
-      ).length;
-      const femaleCount = allTickets.filter(
-        (t) => t.gender === Gender.Female
-      ).length;
+      const currentStats = countByGender(currentTickets);
+      const previousStats = countByGender(previousTickets);
+
+      const getChange = (current: number, previous: number) => {
+        if (previous === 0) return current === 0 ? 0 : 100;
+        return ((current - previous) / previous) * 100;
+      };
+
+      const generateDateMap = (from: number, to: number) => {
+        const days: Record<string, { male: number; female: number }> = {};
+        let cursor = startOfPstDay(from);
+        const end = startOfPstDay(to);
+
+        while (cursor <= end) {
+          const key = formatToPstShortDate(cursor.toMillis());
+          days[key] = { male: 0, female: 0 };
+          cursor = cursor.plus({ days: 1 });
+        }
+
+        return days;
+      };
+
+      const dailyCounts = generateDateMap(fromTimestamp, toTimestamp);
+
+      for (const ticket of currentTickets) {
+        const dateKey = formatToPstShortDate(
+          startOfPstDay(ticket._creationTime).toMillis()
+        );
+        if (dateKey && dailyCounts[dateKey]) {
+          if (ticket.gender === Gender.Male) dailyCounts[dateKey].male += 1;
+          if (ticket.gender === Gender.Female) dailyCounts[dateKey].female += 1;
+        }
+      }
+
+      const dailyTicketSales = Object.entries(dailyCounts).map(
+        ([date, { male, female }]) => ({
+          date,
+          male,
+          female,
+        })
+      );
 
       const dayCount =
         Math.ceil((toTimestamp - fromTimestamp) / (1000 * 60 * 60 * 24)) || 1;
 
-      const avgMalePerDay = maleCount / dayCount;
-      const avgFemalePerDay = femaleCount / dayCount;
-
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          maleCount,
-          femaleCount,
-          avgMalePerDay,
-          avgFemalePerDay,
+          totalMale: {
+            value: currentStats.maleCount,
+            change: getChange(currentStats.maleCount, previousStats.maleCount),
+          },
+          totalFemale: {
+            value: currentStats.femaleCount,
+            change: getChange(
+              currentStats.femaleCount,
+              previousStats.femaleCount
+            ),
+          },
+          avgMalePerDay: {
+            value: currentStats.maleCount / dayCount,
+            change: getChange(
+              currentStats.maleCount / dayCount,
+              previousStats.maleCount / dayCount
+            ),
+          },
+          avgFemalePerDay: {
+            value: currentStats.femaleCount / dayCount,
+            change: getChange(
+              currentStats.femaleCount / dayCount,
+              previousStats.femaleCount / dayCount
+            ),
+          },
+          dailyTicketSales,
         },
       };
     } catch (error) {

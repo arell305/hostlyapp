@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import { Save, Loader2 } from "lucide-react";
-
+import _ from "lodash";
 interface EditableInputFieldProps {
   label: string;
   name: string;
@@ -65,7 +65,9 @@ const EditableInputField: React.FC<EditableInputFieldProps> = ({
           />
         </div>
       ) : (
-        <p className="text-xl font-semibold mt-.5">{value || "Not Set"}</p>
+        <p className="text-xl font-semibold mt-.5">
+          {_.capitalize(value) || "Not Set"}
+        </p>
       )}
     </div>
   );

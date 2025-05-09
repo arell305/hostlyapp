@@ -1,10 +1,11 @@
 import React from "react";
 import { GetPromoterTicketKpisData } from "@/types/convex-types";
-import { promoterTicketsKpis } from "@/types/constants";
 import KpiCard from "@/components/shared/KpiCard";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import KpiGrid from "@/components/shared/containers/KpiGrid";
 import BarChartContainer from "@/components/shared/analytics/BarChart";
+import { UserCheck } from "lucide-react";
+import { Users } from "lucide-react";
 
 interface PromoterTicketAnalyticsContentProps {
   promoterTicketData: GetPromoterTicketKpisData;
@@ -23,48 +24,58 @@ const PromoterTicketAnalyticsContent = ({
     }
     return value.toLocaleString();
   };
-  const data = [
-    { date: "2025-04-01", amount: 320 },
-    { date: "2025-04-02", amount: 450 },
-    { date: "2025-04-03", amount: 600 },
-    { date: "2025-04-04", amount: 750 },
-    { date: "2025-04-05", amount: 900 },
-    { date: "2025-04-06", amount: 1050 },
-    { date: "2025-04-07", amount: 1200 },
-    { date: "2025-04-08", amount: 1350 },
-    { date: "2025-04-01", amount: 320 },
-    { date: "2025-04-02", amount: 450 },
-    { date: "2025-04-03", amount: 600 },
-    { date: "2025-04-04", amount: 750 },
-    { date: "2025-04-05", amount: 900 },
-    { date: "2025-04-06", amount: 1050 },
-    { date: "2025-04-07", amount: 1200 },
-    { date: "2025-04-08", amount: 1350 },
+
+  const promoterTicketsKpis = [
+    {
+      label: "Females / Day",
+      key: "avgFemalesPerDay",
+      icon: Users,
+      value: promoterTicketData.avgFemalePerDay.value,
+      change: promoterTicketData.avgFemalePerDay.change,
+    },
+    {
+      label: "Males / Day",
+      key: "avgMalesPerDay",
+      icon: UserCheck,
+      value: promoterTicketData.avgMalePerDay.value,
+      change: promoterTicketData.avgMalePerDay.change,
+    },
+    {
+      label: "Total Females",
+      key: "totalFemales",
+      icon: Users,
+      value: promoterTicketData.totalFemale.value,
+      change: promoterTicketData.totalFemale.change,
+    },
+    {
+      label: "Total Males",
+      key: "totalMales",
+      icon: Users,
+      value: promoterTicketData.totalMale.value,
+      change: promoterTicketData.totalMale.change,
+    },
   ];
+
   return (
     <SectionContainer>
       <KpiGrid>
-        {promoterTicketsKpis.map(({ label, key, icon }) => (
+        {promoterTicketsKpis.map(({ label, value, change, icon }) => (
           <KpiCard
-            key={key}
+            key={label}
             label={label}
-            value={formatValue(
-              key,
-              promoterTicketData[key as keyof typeof promoterTicketData] ?? 0
-            )}
-            changeText="+10%" // Placeholder – replace with real logic if needed
+            value={typeof value === "number" ? value.toFixed(1) : value}
+            changeText={`${change.toFixed(1)}%`}
             icon={React.createElement(icon, { className: "w-5 h-5" })}
           />
         ))}
       </KpiGrid>
       <BarChartContainer
-        title="Total Revenue"
-        data={data}
+        title="Ticket Sales"
+        data={promoterTicketData.dailyTicketSales}
         xKey="date"
-        yKey="amount"
-        barLabel="Revenue"
-        tooltipFormatter={(v) => `$${v.toFixed(2)}`}
-        valueFormatter={(v) => `$${v}`}
+        yKey="male"
+        barKeys={["male", "female"]}
+        barLabel="Ticket Sales"
       />
     </SectionContainer>
   );

@@ -9,10 +9,8 @@ import PresetRangeDropdown from "@/components/shared/containers/date-filters/Pre
 import SingleDatePickerModal from "@/components/shared/containers/date-filters/DateRange";
 import { PresetOption } from "@/types/constants";
 import { getDateRangeFromPreset } from "../../../../utils/luxon";
-
 import { Id } from "../../../../convex/_generated/dataModel";
-import { DateRange } from "react-day-picker";
-import TicketAnalyticsContent from "./sections/TicketAnalyticsPage";
+import TicketAnalyticsPage from "./sections/TicketAnalyticsPage";
 import GuestListAnalyticsPage from "./sections/GuestListAnalyticsPage";
 
 const AnalyticsContent = ({
@@ -66,16 +64,6 @@ const AnalyticsContent = ({
     }
   };
 
-  const handleDateRangeChange = (range: DateRange) => {
-    setStartDate(range.from ?? null);
-    setEndDate(range.to ?? null);
-    setDateRange({
-      from: range.from,
-      to: range.to || undefined,
-    });
-    setPreset("Custom");
-  };
-
   return (
     <section>
       <PageHeading
@@ -123,21 +111,18 @@ const AnalyticsContent = ({
       </div>
 
       {selectedTab === "tickets" && (
-        <TicketAnalyticsContent
+        <TicketAnalyticsPage
           organizationId={organizationId}
           dateRange={dateRange}
           canViewPromoter={canViewPromoter}
           canViewCompanyAnalytics={canViewCompanyAnalytics}
         />
-        // <TicketAnalyticsSection
-        //   organizationId={organizationId}
-        //   dateRange={dateRange}
-        // />
       )}
       {selectedTab === "guestlist" && hasGuestListAccess && (
         <GuestListAnalyticsPage
           organizationId={organizationId}
           dateRange={dateRange}
+          canViewCompanyAnalytics={canViewCompanyAnalytics}
         />
       )}
     </section>

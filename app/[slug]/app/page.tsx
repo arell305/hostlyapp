@@ -2,7 +2,6 @@
 import { useUser } from "@clerk/nextjs";
 import FullLoading from "./components/loading/FullLoading";
 import ErrorComponent from "./components/errors/ErrorComponent";
-import { SubscriptionTier } from "@/types/enums";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import HomeContent from "./HomeContent";
 import { canCreateEvent } from "../../../utils/permissions";
@@ -45,15 +44,12 @@ const HomePage: React.FC = () => {
   const canCreateEvents = canCreateEvent(orgRole);
 
   const showStripeNotification = !connectedAccountEnabled && canCreateEvents;
-  const showPlusTierData =
-    subscription.subscriptionTier === SubscriptionTier.PLUS && canCreateEvents;
+
   return (
     <HomeContent
       organization={organization}
       canCreateEvents={canCreateEvents}
-      showPlusTierData={showPlusTierData}
       showStripeNotification={showStripeNotification}
-      subscription={subscription}
       handleAddEventClick={handleAddEventClick}
       handleEventClick={handleEventClick}
     />

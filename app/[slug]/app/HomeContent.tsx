@@ -9,7 +9,6 @@ import { Notification } from "./components/ui/Notification";
 import FullLoading from "./components/loading/FullLoading";
 import ErrorComponent from "./components/errors/ErrorComponent";
 import { DateTime } from "luxon";
-import PlusTierData from "./components/PlusTierData";
 import { ResponseStatus } from "@/types/enums";
 import SelectedDateEvents from "./components/calendar/SelectedDateEvents";
 import { OrganizationSchema, CalendarValue } from "@/types/types";
@@ -30,9 +29,7 @@ const today = getCurrentDate();
 interface HomeContentProps {
   organization: OrganizationSchema;
   canCreateEvents: boolean;
-  showPlusTierData: boolean;
   showStripeNotification: boolean;
-  subscription: SubscriptionSchema;
   handleAddEventClick: () => void;
   handleEventClick: (eventId: string) => void;
 }
@@ -40,9 +37,7 @@ interface HomeContentProps {
 const HomeContent: React.FC<HomeContentProps> = ({
   organization,
   canCreateEvents,
-  showPlusTierData,
   showStripeNotification,
-  subscription,
   handleAddEventClick,
   handleEventClick,
 }) => {
@@ -136,8 +131,6 @@ const HomeContent: React.FC<HomeContentProps> = ({
         events={selectedEvents}
         handleEventClick={handleEventClick}
       />
-
-      {showPlusTierData && <PlusTierData subscription={subscription} />}
     </div>
   );
 };

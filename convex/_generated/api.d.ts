@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as backendUtils_clerkWebhooks from "../backendUtils/clerkWebhooks.js";
 import type * as backendUtils_helper from "../backendUtils/helper.js";
+import type * as backendUtils_kpiHelper from "../backendUtils/kpiHelper.js";
 import type * as backendUtils_pdfMonkeyWebhooks from "../backendUtils/pdfMonkeyWebhooks.js";
 import type * as backendUtils_stripe from "../backendUtils/stripe.js";
 import type * as backendUtils_stripeConnect from "../backendUtils/stripeConnect.js";
@@ -53,6 +54,7 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   "backendUtils/clerkWebhooks": typeof backendUtils_clerkWebhooks;
   "backendUtils/helper": typeof backendUtils_helper;
+  "backendUtils/kpiHelper": typeof backendUtils_kpiHelper;
   "backendUtils/pdfMonkeyWebhooks": typeof backendUtils_pdfMonkeyWebhooks;
   "backendUtils/stripe": typeof backendUtils_stripe;
   "backendUtils/stripeConnect": typeof backendUtils_stripeConnect;

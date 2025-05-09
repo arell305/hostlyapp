@@ -6,9 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RiImageAddFill } from "react-icons/ri";
 import Loading from "@/[slug]/app/components/loading/Loading";
+import { getInitial } from "@/utils/helpers";
+import InitialAvatar from "../avatars/InitialAvatar";
 
 interface EditableImageProps {
   displayImage: string | null | undefined;
+  companyName?: string | null;
   isEditing: boolean;
   canEdit: boolean;
   isLoading: boolean;
@@ -17,6 +20,7 @@ interface EditableImageProps {
 
 const EditableImage: React.FC<EditableImageProps> = ({
   displayImage,
+  companyName = "",
   isEditing,
   canEdit,
   isLoading,
@@ -31,7 +35,7 @@ const EditableImage: React.FC<EditableImageProps> = ({
             alt="Image"
             fill
             sizes="200px"
-            className="rounded-md object-cover"
+            className="rounded-full object-cover"
           />
           {canEdit && isEditing && (
             <Label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer rounded-md">
@@ -50,9 +54,16 @@ const EditableImage: React.FC<EditableImageProps> = ({
           )}
         </div>
       ) : (
-        <div className="relative w-[100px] h-[100px] border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center">
+        <div>
+          <InitialAvatar
+            initial={getInitial(companyName)}
+            size={140}
+            textSize="text-4xl"
+            bgColor="bg-gray-600"
+          />
+
           {canEdit && isEditing && (
-            <Label className="block w-full h-full cursor-pointer">
+            <Label className="absolute inset-0 z-20 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer rounded-full">
               <Input
                 type="file"
                 accept="image/*"
@@ -62,7 +73,7 @@ const EditableImage: React.FC<EditableImageProps> = ({
               {isLoading ? (
                 <Loading />
               ) : (
-                <RiImageAddFill className="text-4xl text-gray-500" />
+                <RiImageAddFill className="text-4xl text-white" />
               )}
             </Label>
           )}

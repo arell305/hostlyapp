@@ -20,7 +20,7 @@ const IconButton = ({
       {...props}
       disabled={disabled}
       className={cn(
-        "p-1.5 rounded-full transition",
+        "p-1.5 rounded-full transition cursor-pointer",
         variant === "default" &&
           "bg-transparent hover:bg-cardBackgroundHover border ",
         variant === "outline" &&

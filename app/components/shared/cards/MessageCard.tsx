@@ -19,7 +19,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
 }) => {
   return (
     <CustomCard className={`p-4 ${className} w-[600px]`}>
-      <h1 className="text-2xl font-semibold">{title}</h1>
+      <h2 className="text-xl font-semibold">{title}</h2>
       <p className="text-grayText mt-2">{description}</p>
       {buttonLabel && onButtonClick && (
         <div className="mt-8 flex justify-center">

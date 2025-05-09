@@ -1,4 +1,3 @@
-import { QueryState } from "@/types/enums";
 import { handleQueryState } from "@/utils/handleQueryState";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
@@ -7,6 +6,7 @@ import React from "react";
 import { DateRange } from "react-day-picker";
 import TicketAnalyticsContent from "./TicketAnalyticsContent";
 import PromoterTicketAnalyticsContent from "./PromoterTicketAnalyticsContent";
+import { QueryState } from "@/types/enums";
 
 interface TicketAnalyticsPageProps {
   organizationId: Id<"organizations">;
