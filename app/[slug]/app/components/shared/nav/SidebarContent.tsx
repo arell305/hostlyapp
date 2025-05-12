@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   Calendar,
   Users,
@@ -22,16 +23,19 @@ import Logo from "@/components/shared/Logo";
 import _ from "lodash";
 
 type SidebarContentProps = {
+  onNavigate?: () => void;
   slug: string;
   orgRole: string;
-  handleNavigate: (path: string) => void;
 };
 
-const SidebarContent = ({
-  slug,
-  orgRole,
-  handleNavigate,
-}: SidebarContentProps) => {
+const SidebarContent = ({ onNavigate, slug, orgRole }: SidebarContentProps) => {
+  const router = useRouter();
+
+  const handleNavigate = (path: string) => {
+    router.push(path);
+    onNavigate?.();
+  };
+
   const isAdminButton = isAdmin(orgRole);
   const isManagerButton = isManager(orgRole);
   const isAdminOrHostlyAdminButton = isAdminOrHostlyAdmin(orgRole);
@@ -54,7 +58,7 @@ const SidebarContent = ({
             <Button
               variant="sidebar"
               size="sidebar"
-              onClick={() => handleNavigate(`/admin/app/companies`)}
+              onClick={() => handleNavigate(`/${slug}/app/companies`)}
             >
               <Building size={20} />
               Companies
@@ -62,7 +66,7 @@ const SidebarContent = ({
             <Button
               variant="sidebar"
               size="sidebar"
-              onClick={() => handleNavigate(`/admin/app/team`)}
+              onClick={() => handleNavigate(`/${slug}/app/team`)}
             >
               <Users size={20} />
               Admin Members
