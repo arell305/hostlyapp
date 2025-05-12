@@ -14,6 +14,7 @@ function Confirmation() {
         description="Your order was successful, and we're excited to have you onboard! You'll receive an email shortly with everything you need to get started with our app."
         buttonLabel="Return Home"
         onButtonClick={() => router.push("/")}
+        className="max-w-[700px]"
       />
     </StaticPageContainer>
   );

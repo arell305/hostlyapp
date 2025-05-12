@@ -51,3 +51,7 @@ export const isAnalyticsUser = (role?: string): boolean => {
 export const isPromoter = (role?: string): boolean => {
   return role === UserRole.Promoter;
 };
+
+export const isAdminOrg = (slug: string | undefined | null): boolean => {
+  return slug?.toLowerCase() === "admin";
+};

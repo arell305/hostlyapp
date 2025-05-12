@@ -1,53 +1,62 @@
 import { useQuery } from "convex/react";
-import { Id } from "../../../../../convex/_generated/dataModel";
 import Image from "next/image";
 import { api } from "../../../../../convex/_generated/api";
-import SkeletonMemberCard from "../loading/MemberCardSkeleton";
-import {
-  SubscriptionStatus,
-  subscriptionStatusMap,
-  SubscriptionTier,
-} from "@/types/enums";
+
+import ClickableRow from "@/components/shared/cards/ClickableRow";
+import { capitalizeWords, getInitial } from "@/utils/helpers";
+import { OrganizationDetails } from "@/types/types";
+import InitialAvatar from "@/components/shared/avatars/InitialAvatar";
+import { SubscriptionStatus, subscriptionStatusMap } from "@/types/enums";
 
 interface CompanyCardProps {
-  photoStorageId: Id<"_storage"> | null;
-  companyName: string;
-  status: SubscriptionStatus;
-  tier: SubscriptionTier;
+  company: OrganizationDetails;
+  handleCompanyClick: () => void;
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({
-  photoStorageId,
-  companyName,
-  status,
-  tier,
+  company,
+  handleCompanyClick,
 }) => {
-  const displayCompanyPhoto = useQuery(api.photo.getFileUrl, {
-    storageId: photoStorageId,
-  });
+  const { subscriptionTier, subscriptionStatus, photoStorageId, name } =
+    company;
+  const displayCompanyPhoto = useQuery(
+    api.photo.getFileUrl,
+    photoStorageId
+      ? {
+          storageId: photoStorageId,
+        }
+      : "skip"
+  );
 
-  if (displayCompanyPhoto === undefined) {
-    return <SkeletonMemberCard />;
-  }
   return (
-    <div className="border-b border-gray-300 p-4 w-full hover:bg-gray-100 cursor-pointer hover:rounded-md">
+    <ClickableRow onClick={handleCompanyClick}>
       <div className="flex items-center justify-between">
-        <div className="flex items-center">
+        {displayCompanyPhoto ? (
           <Image
-            src={displayCompanyPhoto || "https://via.placeholder.com/50"}
-            alt={`${companyName} Avatar`}
-            className="w-16 h-16 \ rounded-md"
+            src={displayCompanyPhoto}
+            alt={`${name} Avatar`}
+            className="w-16 h-16 rounded-md"
+            width={64}
+            height={64}
           />
-          <div className="ml-4">
-            <h3 className="text-lg font-medium font-raleway">{companyName}</h3>
-            <span className="border border-altGray text-altBlack rounded-3xl px-3 py-1 text-xs">
-              {subscriptionStatusMap[status]}
-            </span>
-          </div>
+        ) : (
+          <InitialAvatar
+            initial={getInitial(name)}
+            size={64}
+            textSize="text-xl"
+            bgColor="bg-gray-600"
+          />
+        )}
+        <div className="ml-4">
+          <h2 className="text-lg font-semibold">{`${capitalizeWords(name)}`}</h2>
+
+          <p className="text-grayText">{subscriptionTier}</p>
         </div>
-        <div className=" text-altBlack">{tier}</div>
       </div>
-    </div>
+      <div className="relative">
+        {subscriptionStatus && subscriptionStatusMap[subscriptionStatus]}
+      </div>
+    </ClickableRow>
   );
 };
 

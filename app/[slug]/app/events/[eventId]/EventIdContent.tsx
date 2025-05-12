@@ -126,6 +126,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
         canEditEvent={canEditEvent}
         handleAddGuestList={handleAddGuestList}
         isGuestListOpen={isGuestListOpen}
+        guestListInfo={data.guestListInfo}
       />
       {isEditing ? (
         <EventForm
@@ -139,6 +140,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           isStripeEnabled={isStripeEnabled}
           isUpdateEventLoading={isUpdateEventLoading}
           subscription={subscription}
+          organizationId={data.event.organizationId}
         />
       ) : (
         <>
@@ -153,6 +155,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
               isPromoter={canUploadGuest}
               ticketInfo={data.ticketInfo}
               eventId={data.event._id}
+              canEditEvent={canEditEvent}
             />
           )}
 

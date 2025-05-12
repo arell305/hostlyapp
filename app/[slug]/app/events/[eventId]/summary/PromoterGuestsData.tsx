@@ -2,6 +2,8 @@ import React from "react";
 import { PromoterGuestStatsData } from "@/types/convex-types";
 import CheckInProgressBar from "@/components/shared/analytics/CheckInProgressBar";
 import CustomCard from "@/components/shared/cards/CustomCard";
+import EmptyStateCard from "../../components/EmptyStateCard";
+import { BarChart } from "lucide-react";
 interface PromoterGuestsListDataProps {
   guestListData: PromoterGuestStatsData;
 }
@@ -9,6 +11,13 @@ interface PromoterGuestsListDataProps {
 const PromoterGuestsListData: React.FC<PromoterGuestsListDataProps> = ({
   guestListData,
 }) => {
+  if (!guestListData)
+    return (
+      <EmptyStateCard
+        message="There is no data available."
+        icon={<BarChart className="text-2xl" />}
+      />
+    );
   const { totalMales, totalFemales, totalCheckedIn, totalRSVPs, promoterName } =
     guestListData;
 

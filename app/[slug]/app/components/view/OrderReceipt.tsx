@@ -1,3 +1,4 @@
+import CustomCard from "@/components/shared/cards/CustomCard";
 import { Button } from "@/components/ui/button";
 
 interface OrderReceiptProps {
@@ -5,10 +6,10 @@ interface OrderReceiptProps {
 }
 
 const OrderReceipt: React.FC<OrderReceiptProps> = ({ onBrowseMoreEvents }) => (
-  <div className="flex flex-col bg-white rounded border border-altGray w-[95%] mx-auto shadow mb-4 py-3 px-7">
-    <div className="mt-4 ">
+  <CustomCard className="py-3 px-7 space-y-4 w-[95%] mx-auto ">
+    <div className="">
       <h2 className="mb-2 text-2xl font-bold ">Success!</h2>
-      <div className="mt-1 mb-4">
+      <div className="mt-1 ">
         <p className="text-sm 3">
           You will an email with your tickets. Thank you for your purchase!
         </p>
@@ -20,7 +21,7 @@ const OrderReceipt: React.FC<OrderReceiptProps> = ({ onBrowseMoreEvents }) => (
         Browse More Events
       </Button>
     </div>
-  </div>
+  </CustomCard>
 );
 
 export default OrderReceipt;

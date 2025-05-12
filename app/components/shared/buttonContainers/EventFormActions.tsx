@@ -26,7 +26,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
     <>
       {saveError && <p className="text-red-500 pl-4">{saveError}</p>}
       <div
-        className={`px-4 mt-12 flex ${
+        className={`w-full px-4 mt-12 flex justify-center ${
           isEdit
             ? "flex-col gap-y-3 mb-12 md:flex-row md:gap-x-10"
             : "flex-row gap-x-6 mb-6"
@@ -39,7 +39,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
           disabled={isLoading}
           size={isEdit ? "tripleButtons" : "doubelButtons"}
           variant="secondary"
-          className="w-full md:w-[140px]"
+          className="w-full md:w-[200px]"
         >
           {isEdit ? "Cancel Editing" : "Cancel"}
         </Button>
@@ -50,7 +50,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
           disabled={isLoading || isUpdateLoading}
           size={isEdit ? "tripleButtons" : "doubelButtons"}
           variant="default"
-          className="w-full md:w-[140px]"
+          className="w-full md:w-[200px]"
         >
           {isLoading || isUpdateLoading ? (
             <>
@@ -66,7 +66,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
 
         {/* Delete Button */}
         {isEdit && onDelete && (
-          <div className="w-full md:w-[140px]">
+          <div className="w-full md:w-[200px]">
             <Button
               type="button"
               onClick={onDelete}

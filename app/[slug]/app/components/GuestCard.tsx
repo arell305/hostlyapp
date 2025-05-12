@@ -80,17 +80,12 @@ const GuestCard: React.FC<GuestCardProps> = ({
         </div>
       </div>
       {guest.attended && guest.checkInTime && (
-        <div className="flex items-center justify-center flex-col w-[40px]">
-          <>
-            <FaCheckCircle
-              className=" text-primaryBlue text-center"
-              size={33}
-            />
-            <p className="text-[10px] text-gray-500">
-              {" "}
-              {formatArrivalTime(guest.checkInTime)}
-            </p>
-          </>
+        <div className="flex items-center justify-center flex-col gap-y-1 w-[40px]">
+          <FaCheckCircle className=" text-primaryBlue text-center" size={33} />
+          <p className="text-xs text-gray-Text">
+            {" "}
+            {formatArrivalTime(guest.checkInTime)}
+          </p>
         </div>
       )}
       {canUpdateGuestName && (

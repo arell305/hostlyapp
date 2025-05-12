@@ -15,7 +15,7 @@ const StaticPageContainer: React.FC<StaticPageContainerProps> = ({
   return (
     <div
       className={cn(
-        "flex justify-center items-center bg-backgroundBlack min-h-[60vh] overflow-hidden",
+        "flex justify-center items-center bg-backgroundBlack min-h-screen overflow-hidden",
         className
       )}
     >

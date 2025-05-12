@@ -18,14 +18,14 @@ const ToggleSectionCard: React.FC<ToggleSectionCardProps> = ({
 }) => {
   return (
     <div
-      className={`max-w-[505px] mt-12 border-b pb-2 mb-6 pt-2 cursor-pointer rounded hover:bg-cardBackgroundHover  ${className}`}
+      className={`border-b pb-2 mb-6 pt-2 cursor-pointer hover:rounded-md hover:bg-cardBackgroundHover  ${className}`}
       onClick={onToggle}
     >
       <div className="flex justify-between items-center px-2">
-        <h2 className="text-lg">
+        <h3 className="">
           {label}
           {subtitle && <span className="text-sm pl-1">{subtitle}</span>}
-        </h2>
+        </h3>
         {isActive ? (
           <PiMinus className="text-2xl" />
         ) : (

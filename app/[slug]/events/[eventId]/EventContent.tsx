@@ -29,6 +29,8 @@ import { Button } from "@/components/ui/button";
 import { TicketSoldCounts } from "@/types/types";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import EmptyList from "@/components/shared/EmptyList";
+import type { Appearance } from "@stripe/stripe-js";
+
 interface EventContentProps {
   isStripeEnabled: boolean;
   connectedAccountStripeId: string | null;
@@ -73,6 +75,15 @@ const EventContent: React.FC<EventContentProps> = ({
     shouldValidate ? { name: promoCode, eventId: eventData._id } : "skip"
   );
   const createPaymentIntent = useAction(api.stripe.createPaymentIntent);
+
+  const appearance: Appearance = {
+    theme: "night",
+    variables: {
+      colorPrimary: "#315DDF",
+      colorBackground: "#1a1a1a",
+      colorText: "#ffffff",
+    },
+  };
 
   const isTicketsSalesOpen = isTicketSalesOpen(ticketInfoData);
 
@@ -168,9 +179,11 @@ const EventContent: React.FC<EventContentProps> = ({
     clientSecret && !paymentSuccess && isTicketsSalesOpen;
 
   return (
-    <SectionContainer className="flex flex-col md:flex-row ">
-      <DetailsView eventData={eventData} ticketInfoData={ticketInfoData} />
-      <div className="flex flex-col space-y-4">
+    <SectionContainer className="flex flex-col  w-full gap-x-10">
+      <SectionContainer className="flex flex-col w-full gap-x-10 mb-10">
+        <DetailsView eventData={eventData} ticketInfoData={ticketInfoData} />
+      </SectionContainer>
+      <SectionContainer className="flex flex-col  w-full  ">
         <About description={eventData.description} />
         {paymentSuccess && (
           <OrderReceipt onBrowseMoreEvents={onBrowseMoreEvents} />
@@ -178,7 +191,7 @@ const EventContent: React.FC<EventContentProps> = ({
         {!isTicketsSalesOpen && <EmptyList message="Ticket sales are closed" />}
 
         {shouldShowTicketPurchase && (
-          <div className="flex flex-col bg-white rounded border border-altGray shadow mx-auto w-[95%]">
+          <div className="flex flex-col rounded border  shadow mx-auto w-[95%]">
             {!shouldShowStripeForm && (
               <div className="py-3 px-7 pb-10">
                 <h2 className="text-2xl font-bold mb-2 text-start">Tickets</h2>
@@ -224,7 +237,10 @@ const EventContent: React.FC<EventContentProps> = ({
                       ← Back to ticket selection
                     </Button>
 
-                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                    <Elements
+                      stripe={stripePromise}
+                      options={{ clientSecret, appearance }}
+                    >
                       <TicketPaymentForm
                         setPaymentSuccess={setPaymentSuccess}
                       />
@@ -258,7 +274,7 @@ const EventContent: React.FC<EventContentProps> = ({
             )}
           </div>
         )}
-      </div>
+      </SectionContainer>
     </SectionContainer>
   );
 };

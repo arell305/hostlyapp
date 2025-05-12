@@ -31,7 +31,7 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
         <Input
           id="promo-code"
           type="text"
-          placeholder="Enter any promo code"
+          placeholder="Promo code"
           value={promoCode}
           onChange={(e) => {
             setPromoCode(e.target.value);
@@ -44,9 +44,7 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
         <Button
           disabled={isApplyPromoCodeLoading || isPromoApplied}
           variant="secondary"
-          className={`w-1/4 rounded-lg h-9 text-base ${
-            isPromoApplied ? "border-b border-customDarkBlue" : ""
-          }`}
+          className={`w-1/4 rounded-lg h-9 text-base underline `}
           onClick={onApplyPromo}
         >
           {isPromoApplied

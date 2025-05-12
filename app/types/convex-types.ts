@@ -975,7 +975,7 @@ export interface GetOrganizationByClerkUserIdSuccess {
 }
 
 export interface GetOrganizationByClerkUserIdData {
-  organization: OrganizationSchema;
+  organization: OrganizationSchema | null;
 }
 
 export type DeleteGuestListEntryResponse =

@@ -8,6 +8,7 @@ import DeletedMembersSection from "./section/DeletedMembersSection";
 import PendingMembersSection from "./section/PendingMembersSection";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { isAdminOrg } from "@/utils/permissions";
 
 interface TeamContentProps {
   canManageTeam: boolean;
@@ -24,7 +25,7 @@ const TeamContent = ({
     "active" | "pending" | "deleted"
   >("active");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
-
+  const isAdminSlug = isAdminOrg(organization.slug);
   return (
     <div className="space-y-6">
       <SectionHeaderWithAction
@@ -79,6 +80,7 @@ const TeamContent = ({
         onOpenChange={setIsInviteModalOpen}
         clerkOrganizationId={organization.clerkOrganizationId}
         canManageTeam={canManageTeam}
+        isAdminSlug={isAdminSlug}
       />
     </div>
   );

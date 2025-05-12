@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { UserWithPromoCode } from "@/types/types";
-import { UserRole } from "@/types/enums";
+import { roleMap, UserRole } from "@/types/enums";
 import { useUpdateUser } from "../hooks/useUpdateUser";
 import { useState } from "react";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
@@ -12,6 +12,7 @@ import EditToggleButton from "@/components/shared/buttonContainers/EditToggleBut
 import ButtonEndContainer from "@/components/shared/buttonContainers/ButtonEndContainer";
 import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
 import ProfileHeader from "@/components/shared/headings/ProfileHeader";
+import _ from "lodash";
 
 interface UserIdContentProps {
   userData: UserWithPromoCode;
@@ -61,6 +62,11 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
     });
   };
 
+  const canEditOrDelete =
+    canEditUsers &&
+    userData.role !== UserRole.Admin &&
+    userData.role !== UserRole.Hostly_Admin;
+
   return (
     <section>
       <CustomCard>
@@ -73,17 +79,16 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
           >
             Back
           </Button>
-          {canEditUsers && (
-            <EditToggleButton
-              isEditing={isEditing}
-              onToggle={() => setIsEditing((prev) => !prev)}
-            />
-          )}
         </NavButtonsContainer>
         <ProfileHeader imageUrl={userData.imageUrl} name={userData.name} />
         <StaticField label="Email" value={userData.email} />
-        {userData.role === UserRole.Admin ? (
-          <StaticField label="Role" value="Admin" />
+        {[UserRole.Admin, UserRole.Hostly_Admin, UserRole.Moderator].includes(
+          userData.role as UserRole
+        ) ? (
+          <StaticField
+            label="Role"
+            value={roleMap[userData.role as UserRole] ?? "Not Set"}
+          />
         ) : (
           <EditableSelectField
             label="Role"
@@ -128,7 +133,7 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
           }}
         />
       </CustomCard>
-      {canEditUsers && (
+      {canEditOrDelete && (
         <ButtonEndContainer>
           {userData.isActive ? (
             <Button

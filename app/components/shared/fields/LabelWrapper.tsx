@@ -8,7 +8,7 @@ const LabelWrapper: React.FC<LabelWrapperProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`space-y-1 flex flex-col ${className}`}>{children}</div>
+    <div className={`space-y-2 flex flex-col ${className}`}>{children}</div>
   );
 };
 

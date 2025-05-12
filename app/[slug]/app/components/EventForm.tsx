@@ -298,7 +298,11 @@ const EventForm: React.FC<EventFormProps> = ({
   const priceRegex = /^\d*\.?\d{0,2}$/;
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log("handleSubmit");
+
     e.preventDefault();
+    console.log("handleSubmit 2");
+
     const validationErrors = validateEventForm({
       eventName,
       photoStorageId,
@@ -316,11 +320,13 @@ const EventForm: React.FC<EventFormProps> = ({
       checkInCloseTime,
       organizationId,
     });
-
+    console.log("handleSubmit 3");
+    console.log(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
+    console.log("handleSubmit 4");
 
     setIsLoading(true);
     try {
@@ -393,7 +399,7 @@ const EventForm: React.FC<EventFormProps> = ({
           value={eventName}
           onChange={(e) => setEventName(e.target.value)}
           error={errors.eventName}
-          className="w-full max-w-[500px] mb-6 px-4"
+          className="w-full  "
         />
         <LabeledTextAreaField
           name="description"
@@ -402,7 +408,7 @@ const EventForm: React.FC<EventFormProps> = ({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add a description for your event."
           rows={6}
-          className="w-full max-w-[500px]"
+          className="w-full "
         />
         <LabeledAddressAutoComplete
           label="Address*"
@@ -495,7 +501,7 @@ const EventForm: React.FC<EventFormProps> = ({
                 }
               }}
               error={errors.maleTicketPrice}
-              className="w-full max-w-[500px]"
+              className="w-full"
               min="0"
             />
             <LabeledInputField
@@ -511,7 +517,7 @@ const EventForm: React.FC<EventFormProps> = ({
                 }
               }}
               error={errors.femaleTicketPrice}
-              className="w-full max-w-[500px]"
+              className="w-full "
               min="0"
             />
 
@@ -523,7 +529,7 @@ const EventForm: React.FC<EventFormProps> = ({
               value={maleTicketCapacity}
               onChange={(e) => setMaleTicketCapacity(e.target.value)}
               error={errors.maleTicketCapacity}
-              className="w-full max-w-[500px]"
+              className="w-full "
               min={0}
             />
 
@@ -535,7 +541,7 @@ const EventForm: React.FC<EventFormProps> = ({
               value={femaleTicketCapacity}
               onChange={(e) => setFemaleTicketCapacity(e.target.value)}
               error={errors.femaleTicketCapacity}
-              className="w-full max-w-[500px]"
+              className="w-full "
               min={0}
             />
 

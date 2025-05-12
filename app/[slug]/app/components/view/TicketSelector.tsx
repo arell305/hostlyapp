@@ -1,4 +1,4 @@
-import { CiCircleMinus, CiCirclePlus } from "react-icons/ci";
+import CountInputField from "@/components/shared/fields/CountInputField";
 import { formatCurrency } from "../../../../../utils/helpers";
 
 interface TicketSelectorProps {
@@ -21,30 +21,24 @@ const TicketSelector: React.FC<TicketSelectorProps> = ({
   const isSoldOut = soldCount >= capacity;
 
   return (
-    <div className="flex justify-between border-b border-altGray py-2">
+    <div className="flex justify-between  py-2 items-center">
       <div>
-        <h3 className="font-semibold font-raleway">{label} Tickets</h3>
+        <h3 className="font-semibold ">{label} Tickets</h3>
         {isSoldOut ? (
           <p className="text-sm font-medium text-red-500 mt-1">Sold Out</p>
         ) : (
-          <>
-            <p className="text-sm text-altBlack">{formatCurrency(price)}</p>
-          </>
+          <p className="text-sm">{formatCurrency(price)}</p>
         )}
       </div>
 
       {!isSoldOut && (
-        <div className="flex items-center gap-2">
-          <CiCircleMinus
-            className="text-3xl hover:cursor-pointer"
-            onClick={() => setCount(Math.max(0, count - 1))}
-          />
-          <p className="text-xl w-8 text-center">{count}</p>
-          <CiCirclePlus
-            className="text-3xl hover:cursor-pointer"
-            onClick={() => setCount(count + 1)}
-          />
-        </div>
+        <CountInputField
+          label=""
+          value={count}
+          onChange={(newVal) =>
+            setCount(Math.min(newVal, capacity - soldCount))
+          }
+        />
       )}
     </div>
   );

@@ -12,6 +12,7 @@ interface SummaryPageProps {
   ticketInfo?: TicketInfoSchema | null;
   isPromoter: boolean;
   eventId: Id<"events">;
+  canEditEvent: boolean;
 }
 
 const SummaryPage: React.FC<SummaryPageProps> = ({
@@ -19,6 +20,7 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
   eventId,
   guestListInfo,
   ticketInfo,
+  canEditEvent,
 }) => {
   const responsePromoterGuestStats = useQuery(
     api.guestListEntries.getPromoterGuestStats,
@@ -62,6 +64,7 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
   return (
     <SummaryContent
       isPromoter={isPromoter}
+      canEditEvent={canEditEvent}
       guestListInfo={guestListInfo}
       ticketInfo={ticketInfo}
       promoterGuestStatsData={promoterGuestStatsData}

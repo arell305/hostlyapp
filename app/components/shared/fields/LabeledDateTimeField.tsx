@@ -28,14 +28,14 @@ const LabeledDateTimeField: React.FC<LabeledDateTimeFieldProps> = ({
   return (
     <LabelWrapper>
       <Label htmlFor={name}>{label}</Label>
-      <div className="relative w-full max-w-[500px]">
+      <div className="relative w-full ">
         <Input
           id={name}
           name={name}
           type="datetime-local"
           value={value}
           onChange={onChange}
-          className={`h-10 ${isEmpty && isIOS ? "text-transparent" : ""} ${
+          className={` h-10 ${isEmpty && isIOS ? "text-transparent" : ""} ${
             error ? "border-red-500" : ""
           } ${className}`}
         />

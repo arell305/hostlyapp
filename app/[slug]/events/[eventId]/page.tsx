@@ -10,9 +10,7 @@ import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import { ResponseStatus } from "@/types/enums";
 import EventContent from "./EventContent";
 import { useUser } from "@clerk/nextjs";
-import EventsPageNav from "@/[slug]/app/components/nav/EventsPageNav";
 import ProfileBanner from "@/components/shared/company/ProfileBanner";
-import SectionContainer from "@/components/shared/containers/SectionContainer";
 import { ArrowLeft } from "lucide-react";
 import HomeNav from "@/[slug]/app/components/nav/HomeNav";
 
@@ -71,7 +69,7 @@ const EventPage = () => {
         <div className="px-4 mt-2">
           <button
             onClick={handleBrowseMoreEvents}
-            className="text-sm text-primaryBlue flex items-center gap-1 hover:underline"
+            className="text-sm  flex items-center gap-1 hover:underline"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Events

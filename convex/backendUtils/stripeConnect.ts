@@ -117,6 +117,10 @@ export async function createStripeConnectedAccount({
       metadata: {
         customerId,
       },
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
     });
 
     return account;

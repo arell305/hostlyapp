@@ -101,7 +101,7 @@ const CreateCompanyContent = ({
       });
       setTimeout(() => {
         navigateToApp(response.slug);
-      }, 300);
+      }, 1000);
     }
   };
   return (

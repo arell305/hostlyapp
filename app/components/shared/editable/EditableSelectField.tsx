@@ -58,7 +58,7 @@ const EditableSelectField: React.FC<EditableSelectFieldProps> = ({
             <p
               className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
             >
-              {error || "Placeholder to maintain height"}
+              {error}
             </p>
           </div>
           <IconButton

@@ -30,11 +30,11 @@ const EventPreview: React.FC<EventPreviewProps> = ({
   const isSalesOpen = isTicketSalesOpen(ticketInfo);
   return (
     <CustomCard
-      className=" hover:shadow-glow-white transition duration-200 p-4 cursor-pointer"
+      className=" hover:shadow-glow-white transition duration-200 p-4 cursor-pointer "
       onClick={() => handleNavigateEvent(eventData._id)}
     >
       <div
-        className={`w-full md:w-[220px] shadow-md rounded-md transition duration-200 bg-cardBackground `}
+        className={`w-[220px] md:w-[180px] shadow-md rounded-md transition duration-200 bg-cardBackground `}
       >
         <div className="relative rounded-md w-full aspect-[4/5] overflow-hidden">
           {isSalesOpen && (

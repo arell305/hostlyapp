@@ -557,6 +557,13 @@ export const getTicketSalesByPromoterWithDetails = query({
 
       for (const ticket of ticketsToUse) {
         const promoterId = ticket.promoterUserId;
+
+        if (ticket.gender === Gender.Male) {
+          totalMales += 1;
+        } else if (ticket.gender === Gender.Female) {
+          totalFemales += 1;
+        }
+
         if (!promoterId) continue;
 
         const existing = grouped.get(promoterId) ?? {
@@ -566,12 +573,10 @@ export const getTicketSalesByPromoterWithDetails = query({
           femaleCount: 0,
         };
 
-        if (ticket.gender === "male") {
+        if (ticket.gender === Gender.Male) {
           existing.maleCount += 1;
-          totalMales += 1;
-        } else if (ticket.gender === "female") {
+        } else if (ticket.gender === Gender.Female) {
           existing.femaleCount += 1;
-          totalFemales += 1;
         }
 
         grouped.set(promoterId, existing);
@@ -586,7 +591,7 @@ export const getTicketSalesByPromoterWithDetails = query({
         const group = grouped.get(u._id);
         if (group) group.promoterName = u.name ?? "Unknown";
       });
-
+      console.log("ticket totals", totalMales, totalFemales);
       return {
         status: ResponseStatus.SUCCESS,
         data: {
@@ -594,12 +599,10 @@ export const getTicketSalesByPromoterWithDetails = query({
             (a, b) =>
               b.maleCount + b.femaleCount - (a.maleCount + a.femaleCount)
           ),
-          ticketTotals: isManager
-            ? {
-                maleCount: totalMales,
-                femaleCount: totalFemales,
-              }
-            : null,
+          ticketTotals: {
+            maleCount: totalMales,
+            femaleCount: totalFemales,
+          },
         },
       };
     } catch (error) {

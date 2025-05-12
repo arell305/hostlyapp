@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { RiImageAddFill } from "react-icons/ri";
-
+import IconButton from "../buttonContainers/IconButton";
+import { X } from "lucide-react";
 interface ImageUploadFieldProps {
   label: string;
   id: string;
@@ -34,33 +35,21 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       <div className="relative w-64 h-64 mt-2">
         {imageUrl ? (
           <>
-            <div className="w-full h-full rounded-md overflow-hidden">
+            <div className="w-full h-full rounded-full overflow-hidden">
               <Image
                 src={imageUrl}
                 alt="Preview"
                 layout="fill"
                 objectFit="cover"
-                className="rounded-md"
+                className="rounded-full"
               />
             </div>
-            <button
+            <IconButton
+              icon={<X size={20} />}
               onClick={onRemove}
-              className="absolute -top-2 -right-2 bg-white border rounded-full p-1 shadow-lg z-10 hover:bg-gray-200"
+              className="absolute -top-2 -right-2 border rounded-full p-1 shadow-lg z-10 "
               type="button"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-3 w-3 text-grayText"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
+            />
           </>
         ) : (
           <div className="relative w-full h-full group">
@@ -71,7 +60,7 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
               onChange={onChange}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
-            <div className="w-full h-full border-2 border-dashed  rounded-md flex items-center justify-center transition-colors duration-200 group-hover:bg-cardBackgroundHover">
+            <div className="w-full h-full border-2 border-dashed  rounded-full flex items-center justify-center transition-colors duration-200 group-hover:bg-cardBackgroundHover">
               {isUploading ? (
                 <Loading />
               ) : (

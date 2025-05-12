@@ -133,6 +133,7 @@ export const handleAccountUpdated = async (
   account: Stripe.Account
 ) => {
   try {
+    console.log("account", account);
     const status = getStripeAccountStatus(account);
 
     ctx.runMutation(

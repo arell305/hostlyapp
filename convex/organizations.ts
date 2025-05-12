@@ -218,9 +218,11 @@ export const getOrganizationByClerkUserId = query({
           .unique()
       );
 
-      const organization = validateOrganization(
-        await ctx.db.get(user.organizationId)
-      );
+      let organization: OrganizationSchema | null = null;
+
+      if (user.organizationId) {
+        organization = await ctx.db.get(user.organizationId);
+      }
 
       return {
         status: ResponseStatus.SUCCESS,

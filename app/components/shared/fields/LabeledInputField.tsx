@@ -31,7 +31,7 @@ const LabeledInputField: React.FC<LabeledInputFieldProps> = ({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`${error ? "border-red-500" : ""} ${className}`}
+        className={` ${error ? "border-red-500" : ""} ${className}`}
         {...rest} // Allow additional input props like min, max, step, etc.
       />
       <p className={`text-sm ${error ? "text-red-500" : "text-transparent"}`}>

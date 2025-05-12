@@ -19,9 +19,9 @@ const EventSummaryInfo: React.FC<EventSummaryInfoProps> = ({
     <div className="space-y-1 mt-1">
       <p className="">{_.capitalize(name)}</p>
       <p className="text-sm ">{formatToEventDateTime(startTime)}</p>
-      <p className="flex items-center space-x-1 text-sm  truncate">
-        <LuMapPin className="w-4 h-4" />
-        <span>{getTextBeforeComma(address)}</span>
+      <p className="flex items-center space-x-1 text-sm">
+        <LuMapPin className="w-4 h-4 shrink-0" />
+        <span className="truncate">{getTextBeforeComma(address)}</span>
       </p>
     </div>
   );

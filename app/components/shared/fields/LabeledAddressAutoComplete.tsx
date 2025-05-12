@@ -21,7 +21,7 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
   error,
 }) => {
   return (
-    <LabelWrapper className="relative max-w-[500px]">
+    <LabelWrapper className="relative ">
       <Label htmlFor="address" className="font-semibold">
         {label}
       </Label>
@@ -39,7 +39,6 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
               border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`,
               backgroundColor: "transparent",
 
-              maxWidth: "500px",
               borderRadius: "6px",
               padding: "0",
               paddingLeft: "8px",
@@ -60,7 +59,7 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
             }),
             placeholder: (provided) => ({
               ...provided,
-              color: "#9CA3AF",
+              color: "#A2A5AD",
               paddingLeft: "0",
             }),
             singleValue: (provided) => ({

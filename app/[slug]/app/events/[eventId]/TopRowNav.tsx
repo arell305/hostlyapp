@@ -1,4 +1,4 @@
-import { EventSchema } from "@/types/schemas-types";
+import { EventSchema, GuestListInfoSchema } from "@/types/schemas-types";
 import { Home, Plus } from "lucide-react";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import EditToggleButton from "@/components/shared/buttonContainers/EditToggleButton";
@@ -15,6 +15,7 @@ interface TopRowNavProps {
   canEditEvent: boolean;
   handleAddGuestList: () => void;
   isGuestListOpen: boolean;
+  guestListInfo?: GuestListInfoSchema | null;
 }
 
 const TopRowNav: React.FC<TopRowNavProps> = ({
@@ -27,6 +28,7 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
   canUploadGuest,
   canEditEvent,
   handleAddGuestList,
+  guestListInfo,
 }) => {
   return (
     <TopBarContainer>
@@ -50,6 +52,7 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
           />
         )}
         {canUploadGuest &&
+          guestListInfo &&
           (isGuestListOpen ? (
             <IconButton
               icon={<Plus size={20} />}
@@ -58,7 +61,9 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
               disabled={!isGuestListOpen}
             />
           ) : (
-            <span className="text-sm text-muted-foreground">Closed</span>
+            <span className="text-sm text-muted-foreground">
+              Guest List Closed
+            </span>
           ))}
       </div>
     </TopBarContainer>

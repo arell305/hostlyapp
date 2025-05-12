@@ -15,18 +15,18 @@ interface ResponsiveInviteUserProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   clerkOrganizationId: string;
-  canManageTeam: boolean;
+  isAdminSlug: boolean;
 }
 
 const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
   isOpen,
   onOpenChange,
   clerkOrganizationId,
-  canManageTeam,
+  isAdminSlug,
 }) => {
   const [inviteEmail, setInviteEmail] = useState<string>("");
   const [inviteRole, setInviteRole] = useState<UserRole>(
-    canManageTeam ? UserRole.Promoter : UserRole.Hostly_Moderator
+    isAdminSlug ? UserRole.Hostly_Moderator : UserRole.Promoter
   );
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   const [formErrors, setFormErrors] = useState<{
@@ -48,9 +48,7 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
   const resetState = () => {
     setError(null);
     setInviteEmail("");
-    setInviteRole(
-      canManageTeam ? UserRole.Hostly_Moderator : UserRole.Promoter
-    );
+    setInviteRole(isAdminSlug ? UserRole.Hostly_Moderator : UserRole.Promoter);
   };
 
   const handleClose = () => {
@@ -100,7 +98,7 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
           setInviteRole(value as UserRole);
           setFormErrors((prev) => ({ ...prev, role: undefined }));
         }}
-        options={(!canManageTeam
+        options={(isAdminSlug
           ? [UserRole.Hostly_Moderator]
           : changeableRoles
         ).map((role) => ({

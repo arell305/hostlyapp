@@ -18,10 +18,6 @@ const StripeContent = ({
 }: {
   connectedAccount: ConnectedAccountsSchema | undefined;
 }) => {
-  const showOnboardingLink =
-    !connectedAccount ||
-    connectedAccount.status === StripeAccountStatus.NOT_ONBOARDED;
-
   const {
     getOnboardingLink,
     isLoading: onboardingLoading,
@@ -51,16 +47,30 @@ const StripeContent = ({
   const statusToDisplay =
     connectedAccount?.status || StripeAccountStatus.NOT_ONBOARDED;
 
+  const showOnboardingLink =
+    !connectedAccount ||
+    connectedAccount.status === StripeAccountStatus.NOT_ONBOARDED;
+
   return (
     <section>
       <SectionHeaderWithAction
         title="Stripe"
         actions={
-          <Button size="nav" onClick={handleDashboardClick}>
-            {dashboardLoading ? "Loading..." : "Open Stripe"}
-          </Button>
+          showOnboardingLink ? (
+            <Button size="nav" onClick={handleOnboardingClick}>
+              {onboardingLoading ? "Loading..." : "Onboard"}
+            </Button>
+          ) : (
+            <Button size="nav" onClick={handleDashboardClick}>
+              {dashboardLoading ? "Loading..." : "Open Stripe"}
+            </Button>
+          )
         }
       />
+      {onboardingLinkError && (
+        <p className="text-red-500">{onboardingLinkError}</p>
+      )}
+      {dashboardError && <p className="text-red-500">{dashboardError}</p>}
       <CustomCard className="p-0">
         <StaticField label="Status" value={statusToDisplay} />
       </CustomCard>

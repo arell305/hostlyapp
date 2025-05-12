@@ -7,7 +7,8 @@ import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
-import { ResponseStatus } from "@/types/enums";
+import { ResponseStatus, UserRole } from "@/types/enums";
+import ErrorPage from "@/[slug]/app/components/errors/ErrorPage";
 
 const RedirectingPage = () => {
   const router = useRouter();
@@ -27,6 +28,7 @@ const RedirectingPage = () => {
       console.log("userLoaded", userLoaded);
       console.log("organizationLoaded", organizationLoaded);
       console.log("organizationResponse", organizationResponse);
+      const orgRole = user?.publicMetadata.role as string;
       if (!userLoaded || !organizationLoaded) {
         return;
       }
@@ -48,8 +50,21 @@ const RedirectingPage = () => {
 
       const { organization: orgData } = organizationResponse.data;
 
+      if (!orgData) {
+        router.push("/create-company");
+        return;
+      }
+
       if (!orgData.isActive) {
         router.push("/unauthorized");
+        return;
+      }
+
+      if (
+        orgRole === UserRole.Hostly_Admin ||
+        orgRole === UserRole.Hostly_Moderator
+      ) {
+        router.push(`${orgData.slug}/app/companies`);
         return;
       }
 
@@ -74,9 +89,7 @@ const RedirectingPage = () => {
   ]);
 
   if (error) {
-    return (
-      <ErrorComponent message="User has no org memberships or session failed." />
-    );
+    return <ErrorPage />;
   }
 
   return <FullLoading />;

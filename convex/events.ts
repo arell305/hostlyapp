@@ -38,7 +38,11 @@ import {
 import { getCurrentTime } from "../utils/luxon";
 import { internal } from "./_generated/api";
 import { requireAuthenticatedUser } from "../utils/auth";
-import { validateEvent, validateOrganization } from "./backendUtils/validation";
+import {
+  validateEvent,
+  validateOrganization,
+  validateUser,
+} from "./backendUtils/validation";
 import {
   getTicketSoldCounts,
   handleError,
@@ -527,26 +531,13 @@ export const getEventsWithTickets = internalQuery({
         if (!promoterPromoCode) {
           throw new Error(ShowErrorMessages.INVALID_PROMO_CODE);
         }
+        const user: UserSchema | null = validateUser(
+          await ctx.db.get(promoterPromoCode.promoterUserId),
+          true,
+          false,
+          true
+        );
 
-        const user: UserSchema | null = await ctx.db
-          .query("users")
-          .withIndex("by_clerkUserId", (q) =>
-            q.eq("clerkUserId", promoterPromoCode.promoterUserId)
-          )
-          .unique();
-
-        if (!user) {
-          throw new Error(ErrorMessages.USER_NOT_FOUND);
-        }
-        if (!user.organizationId) {
-          throw new Error(ErrorMessages.USER_NO_COMPANY);
-        }
-        if (!user.isActive) {
-          throw new Error(ErrorMessages.USER_INACTIVE);
-        }
-        if (!user.clerkUserId) {
-          throw new Error(ErrorMessages.USER_INACTIVE);
-        }
         if (event.organizationId !== user.organizationId) {
           throw new Error(ShowErrorMessages.INVALID_PROMO_CODE);
         }

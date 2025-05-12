@@ -2,17 +2,15 @@ import React from "react";
 import { MdOutlineCalendarToday } from "react-icons/md";
 import { FiClock } from "react-icons/fi";
 import { LuMapPin } from "react-icons/lu";
-import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import EventFormSkeleton from "../loading/EventFormSkeleton";
 import { formatTime, formatDateMDY } from "../../../../../utils/luxon";
 import { EventSchema, TicketInfoSchema } from "@/types/schemas-types";
-import _ from "lodash";
-import Image from "next/image";
+import { isTicketSalesOpen } from "@/lib/frontendHelper";
+import CustomCard from "@/components/shared/cards/CustomCard";
+import EventImagePreview from "./EventImagePreview";
+import EventTitle from "./EventTitle";
+import SectionContainer from "@/components/shared/containers/SectionContainer";
 import IconTextRow from "../../components/ui/IconTextRow";
 import AddressTextRow from "../../components/ui/AddressTextRow";
-import { Badge } from "@/components/ui/badge";
-import { isTicketSalesOpen } from "@/lib/frontendHelper";
 
 interface DetailsViewProps {
   eventData: EventSchema;
@@ -23,11 +21,6 @@ const DetailsView: React.FC<DetailsViewProps> = ({
   eventData,
   ticketInfoData,
 }) => {
-  const displayEventPhoto = useQuery(
-    api.photo.getFileUrl,
-    eventData.photo ? { storageId: eventData.photo } : "skip"
-  );
-
   const handleAddressClick = () => {
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventData.address)}`;
     window.open(googleMapsUrl, "_blank");
@@ -36,51 +29,35 @@ const DetailsView: React.FC<DetailsViewProps> = ({
   const isSalesOpen = isTicketSalesOpen(ticketInfoData);
 
   return (
-    <div className="flex flex-col w-[350px] mx-auto  ">
-      {displayEventPhoto ? (
-        <div className="relative w-full max-w-[375px]   aspect-[4/5]">
-          <Image
-            src={displayEventPhoto}
-            alt="Company Avatar"
-            fill
-            className="object-cover md:rounded-md"
-          />
-        </div>
-      ) : (
-        <EventFormSkeleton />
-      )}
-      <div
-        className={`flex items-center justify-between pb-2 pt-4 ${displayEventPhoto ? "mb-2" : ""}`}
-      >
-        <h2 className={` font-bold text-6xl pl-3 `}>
-          {_.capitalize(eventData.name)}
-        </h2>
-        {isSalesOpen && (
-          <Badge
-            variant="secondary"
-            className="bg-blue-100 text-blue-800 hover:bg-blue-100 mr-4"
-          >
-            Tickets On Sale
-          </Badge>
-        )}
+    <div className="flex flex-col md:flex-row gap-x-10 w-[95%] max-w-5xl mx-auto">
+      {/* Image Column */}
+      <div className="w-full md:w-2/5">
+        <EventImagePreview storageId={eventData.photo} />
       </div>
-      <div className="">
-        <IconTextRow
-          icon={<MdOutlineCalendarToday />}
-          text={
-            eventData.startTime ? formatDateMDY(eventData.startTime) : "TBD"
-          }
-        />
-        <IconTextRow
-          icon={<FiClock />}
-          text={`${formatTime(eventData.startTime)} - ${formatTime(eventData.endTime)}`}
-        />
-        <AddressTextRow
-          icon={<LuMapPin />}
-          text={eventData.address}
-          isLastItem={true}
-          onClick={handleAddressClick}
-        />
+
+      {/* Info Column */}
+      <div className="w-full md:w-3/5 flex flex-col justify-between">
+        <EventTitle title={eventData.name} />
+        <CustomCard className="mt-4 md:mt-0">
+          <IconTextRow
+            icon={<MdOutlineCalendarToday />}
+            text={
+              eventData.startTime ? formatDateMDY(eventData.startTime) : "TBD"
+            }
+          />
+          <IconTextRow
+            icon={<FiClock />}
+            text={`${formatTime(eventData.startTime)} - ${formatTime(
+              eventData.endTime
+            )}`}
+          />
+          <AddressTextRow
+            icon={<LuMapPin />}
+            text={eventData.address}
+            isLastItem={true}
+            onClick={handleAddressClick}
+          />
+        </CustomCard>
       </div>
     </div>
   );

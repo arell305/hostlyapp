@@ -15,6 +15,7 @@ import {
 import PromoterGuestsListData from "./PromoterGuestsData";
 import PromoterTicketData from "./PromoterTicketData";
 import EmptyList from "@/components/shared/EmptyList";
+import { TicketIcon } from "lucide-react";
 
 interface SummaryContentProps {
   guestListInfo?: GuestListInfoSchema | null;
@@ -25,6 +26,7 @@ interface SummaryContentProps {
     checkInData?: CheckInData;
   } | null;
   ticketSalesByPromoterData: GetTicketSalesByPromoterData | null;
+  canEditEvent: boolean;
 }
 
 const SummaryContent: React.FC<SummaryContentProps> = ({
@@ -33,6 +35,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
   guestListInfo,
   ticketInfo,
   ticketSalesByPromoterData,
+  canEditEvent,
 }) => {
   let isGuestListOpen: boolean = false;
   if (guestListInfo) {
@@ -43,6 +46,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
   if (guestListInfo) {
     isCheckInOpen = !isPast(guestListInfo.checkInCloseTime);
   }
+
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -52,6 +56,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
             <TicketTimeCard
               ticketTotals={ticketSalesByPromoterData?.ticketTotals}
               ticketInfo={ticketInfo}
+              canEditEvent={canEditEvent}
             />
             {isPromoter && (
               <PromoterTicketData
@@ -83,7 +88,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
           </>
         ) : (
           <EmptyStateCard
-            message="There is no guest list option for this event"
+            message="There is no guest list option for this event."
             icon={<LuClipboardList className="text-2xl" />}
           />
         )}
@@ -100,18 +105,21 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
       {ticketInfo && !isPromoter && ticketSalesByPromoterData && (
         <div>
           <h2 className="mb-1">Promoter Ticket Sales</h2>
-          <EmptyList
-            items={ticketSalesByPromoterData.tickets}
-            message="No promoter ticket sales found"
-          />
-          <div className="flex flex-col gap-2">
-            {ticketSalesByPromoterData.tickets.map((ticket) => (
-              <PromoterTicketData
-                promoterTicketData={ticket}
-                key={ticket.promoterId}
-              />
-            ))}
-          </div>
+          {ticketSalesByPromoterData.tickets.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {ticketSalesByPromoterData.tickets.map((ticket) => (
+                <PromoterTicketData
+                  promoterTicketData={ticket}
+                  key={ticket.promoterId}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyStateCard
+              message="No promoter ticket sales data for this event."
+              icon={<TicketIcon className="text-2xl" />}
+            />
+          )}
         </div>
       )}
 
@@ -119,16 +127,21 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
         <div>
           <h2 className="mb-1">Promoter Guest List Summary</h2>
           <div className="flex flex-col gap-2">
-            <EmptyList
-              items={promoterGuestStatsData.promoterGuestStats}
-              message="No promoter guests found"
-            />
-            {promoterGuestStatsData.promoterGuestStats.map((promoter) => (
-              <PromoterGuestsListData
-                guestListData={promoter}
-                key={promoter.promoterId}
+            {promoterGuestStatsData.promoterGuestStats.length > 0 ? (
+              <>
+                {promoterGuestStatsData.promoterGuestStats.map((promoter) => (
+                  <PromoterGuestsListData
+                    guestListData={promoter}
+                    key={promoter.promoterId}
+                  />
+                ))}
+              </>
+            ) : (
+              <EmptyStateCard
+                message="No promoter guests data found for this event."
+                icon={<LuClipboardList className="text-2xl" />}
               />
-            ))}
+            )}
           </div>
         </div>
       )}

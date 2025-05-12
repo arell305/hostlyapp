@@ -1,41 +1,43 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import CompanyCard from "../components/cards/CompanyCard";
 import { OrganizationDetails } from "@/types/types";
 import { SubscriptionStatus, SubscriptionTier } from "@/types/enums";
+import CustomCard from "@/components/shared/cards/CustomCard";
+import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
+import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
+import SectionContainer from "@/components/shared/containers/SectionContainer";
 
 interface CompaniesContentProps {
   organizations: OrganizationDetails[];
-  onCompanyClick?: (slug: string) => void;
+  onCompanyClick: (slug: string) => void;
 }
 
 const CompaniesContent: React.FC<CompaniesContentProps> = ({
   organizations,
   onCompanyClick,
 }) => {
+  const [selectedTab, setSelectedTab] = useState<
+    "active" | "trial" | "deleted"
+  >("active");
+
   return (
-    <div className="justify-center max-w-3xl mx-auto mt-1.5 md:min-h-[300px]">
-      <h1 className="text-3xl md:text-4xl mt-2 font-bold mb-2 w-full px-4">
-        Companies
-      </h1>
-      <div className="flex flex-col flex-wrap w-full">
+    <SectionContainer>
+      <SectionHeaderWithAction title="Companies" />
+
+      <CustomCard>
         {organizations
           .filter((company) => company.slug !== "admin")
           .map((company) => (
-            <div
+            <CompanyCard
               key={company.organizationId}
-              className="cursor-pointer"
-              onClick={() => onCompanyClick?.(company.slug)}
-            >
-              <CompanyCard
-                photoStorageId={company.photoStorageId}
-                companyName={company.name}
-                status={company.subscriptionStatus as SubscriptionStatus}
-                tier={company.subscriptionTier as SubscriptionTier}
-              />
-            </div>
+              company={company}
+              handleCompanyClick={() => onCompanyClick(company.slug)}
+            />
           ))}
-      </div>
-    </div>
+      </CustomCard>
+    </SectionContainer>
   );
 };
 

@@ -59,7 +59,7 @@ const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({
     return <div>Loading payment form...</div>;
   }
   return (
-    <form onSubmit={handlePayment} className="mx-auto bg-white">
+    <form onSubmit={handlePayment} className="mx-auto ">
       <PaymentElement />
       <Button
         type="submit"
