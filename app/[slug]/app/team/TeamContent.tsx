@@ -79,7 +79,6 @@ const TeamContent = ({
         isOpen={isInviteModalOpen}
         onOpenChange={setIsInviteModalOpen}
         clerkOrganizationId={organization.clerkOrganizationId}
-        canManageTeam={canManageTeam}
         isAdminSlug={isAdminSlug}
       />
     </div>
