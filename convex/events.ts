@@ -289,7 +289,8 @@ export const updateEvent = action({
           ctx,
           validatedOrganization,
           eventId,
-          guestListData
+          guestListData,
+          identity.id as string
         );
 
       await ctx.runMutation(internal.events.internalUpdateEvent, {
