@@ -56,7 +56,7 @@ interface EventFormProps {
   submitError?: string | null;
   handleBuyCredit: () => void;
   isCompanyAdmin: boolean;
-  availableCredits: number;
+  availableCredits?: number;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -75,7 +75,7 @@ const EventForm: React.FC<EventFormProps> = ({
   submitError,
   handleBuyCredit,
   isCompanyAdmin,
-  availableCredits,
+  availableCredits = 0,
 }) => {
   // Text fields
   const [eventName, setEventName] = useState(initialEventData?.name || "");

@@ -41,7 +41,7 @@ interface EventIdContentProps {
   handleAddGuestList: () => void;
   handleBuyCredit: () => void;
   isCompanyAdmin: boolean;
-  availableCredits: number;
+  availableCredits?: number;
 }
 
 const EventIdContent: React.FC<EventIdContentProps> = ({
