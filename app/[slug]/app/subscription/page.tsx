@@ -21,6 +21,7 @@ const SubscriptionPage = () => {
     organizationContextLoading,
     organizationContextError,
     subscription,
+    availableCredits,
   } = useContextOrganization();
 
   const customerDetails = useQuery(
@@ -60,6 +61,7 @@ const SubscriptionPage = () => {
       customer={customer}
       subscription={subscription}
       canEditSettings={canEditSettings}
+      availableCredits={availableCredits}
     />
   );
 };

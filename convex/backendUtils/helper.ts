@@ -81,7 +81,8 @@ export async function handleGuestListData(
   guestListData: {
     guestListCloseTime: number;
     checkInCloseTime: number;
-  }
+  },
+  clerkUserId: string
 ): Promise<Id<"guestListInfo">> {
   const subscription = validateSubscription(
     await ctx.runQuery(
@@ -90,12 +91,55 @@ export async function handleGuestListData(
     )
   );
 
+  const availableGuestListCredits = await ctx.runQuery(
+    internal.organizationCredits.getAvailableGuestListCreditsInternal,
+    { organizationId: organization._id }
+  );
+
   if (subscription.subscriptionTier === SubscriptionTier.STANDARD) {
-    throw new Error(ShowErrorMessages.FORBIDDEN_TIER);
+    if (Number(availableGuestListCredits) >= 0) {
+      const [guestListInfoId, _] = await Promise.all([
+        ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
+          eventId,
+          guestListCloseTime: guestListData.guestListCloseTime,
+          checkInCloseTime: guestListData.checkInCloseTime,
+        }),
+        await ctx.runMutation(
+          internal.guestListCreditTransactions.useGuestListCredit,
+          {
+            organizationId: organization._id,
+            clerkUserId,
+            eventId,
+          }
+        ),
+      ]);
+      return guestListInfoId;
+    } else {
+      throw new Error(ShowErrorMessages.GUEST_LIST_LIMIT_REACHED);
+    }
   }
 
   if (subscription.guestListEventsCount >= PLUS_GUEST_LIST_LIMIT) {
-    throw new Error(ShowErrorMessages.FORBIDDEN_TIER);
+    if (Number(availableGuestListCredits) >= 0) {
+      const [guestListInfoId, _] = await Promise.all([
+        ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
+          eventId,
+          guestListCloseTime: guestListData.guestListCloseTime,
+          checkInCloseTime: guestListData.checkInCloseTime,
+        }),
+        await ctx.runMutation(
+          internal.guestListCreditTransactions.useGuestListCredit,
+          {
+            organizationId: organization._id,
+            clerkUserId,
+            eventId,
+          }
+        ),
+      ]);
+      return guestListInfoId;
+    } else {
+      throw new Error(ShowErrorMessages.GUEST_LIST_LIMIT_REACHED);
+    }
   }
 
   const [guestListInfoId, _] = await Promise.all([
@@ -239,7 +283,8 @@ export async function handleGuestListUpdateData(
   guestListData: {
     guestListCloseTime: number;
     checkInCloseTime: number;
-  } | null
+  } | null,
+  clerkUserId: string
 ): Promise<Id<"guestListInfo"> | null> {
   const existingGuestListInfo = await ctx.runQuery(
     internal.guestListInfo.getGuestListInfoByEventId,
@@ -265,14 +310,58 @@ export async function handleGuestListUpdateData(
         ...guestListData,
       });
     }
+
+    const availableGuestListCredits = await ctx.runQuery(
+      internal.organizationCredits.getAvailableGuestListCreditsInternal,
+      { organizationId: organization._id }
+    );
+
     if (subscription.subscriptionTier === SubscriptionTier.STANDARD) {
-      throw new Error(ShowErrorMessages.FORBIDDEN_TIER);
+      if (Number(availableGuestListCredits) >= 0) {
+        const [newGuestListInfoId] = await Promise.all([
+          ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
+            eventId,
+            guestListCloseTime: guestListData.guestListCloseTime,
+            checkInCloseTime: guestListData.checkInCloseTime,
+          }),
+          await ctx.runMutation(
+            internal.guestListCreditTransactions.useGuestListCredit,
+            {
+              organizationId: organization._id,
+              clerkUserId,
+              eventId,
+            }
+          ),
+        ]);
+        return newGuestListInfoId;
+      } else {
+        throw new Error(ShowErrorMessages.GUEST_LIST_LIMIT_REACHED);
+      }
     }
 
     if (subscription.guestListEventsCount >= PLUS_GUEST_LIST_LIMIT) {
-      throw new Error(ShowErrorMessages.FORBIDDEN_TIER);
+      if (Number(availableGuestListCredits) >= 0) {
+        const [newGuestListInfoId] = await Promise.all([
+          ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
+            eventId,
+            guestListCloseTime: guestListData.guestListCloseTime,
+            checkInCloseTime: guestListData.checkInCloseTime,
+          }),
+          await ctx.runMutation(
+            internal.guestListCreditTransactions.useGuestListCredit,
+            {
+              organizationId: organization._id,
+              clerkUserId,
+              eventId,
+            }
+          ),
+        ]);
+        return newGuestListInfoId;
+      } else {
+        throw new Error(ShowErrorMessages.GUEST_LIST_LIMIT_REACHED);
+      }
     }
-    // Create a new guest list and update the subscription count
+
     const [newGuestListInfoId] = await Promise.all([
       ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
         eventId,

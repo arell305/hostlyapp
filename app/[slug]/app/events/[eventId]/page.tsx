@@ -5,7 +5,7 @@ import EventIdContent from "./EventIdContent";
 import FullLoading from "../../components/loading/FullLoading";
 import ErrorComponent from "../../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
-import { isHostlyUser, isManager } from "@/utils/permissions";
+import { isAdmin, isHostlyUser, isManager } from "@/utils/permissions";
 import { isModerator, isPromoter } from "@/utils/permissions";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
@@ -25,6 +25,7 @@ export default function EventPageWrapper() {
     organizationContextError,
     connectedAccountEnabled,
     subscription,
+    availableCredits,
   } = useContextOrganization();
 
   const orgRole = user?.publicMetadata.role as string;
@@ -32,6 +33,7 @@ export default function EventPageWrapper() {
   const canUploadGuest = isPromoter(orgRole);
   const canEditEvent = isManager(orgRole);
   const isAppAdmin = isHostlyUser(orgRole);
+  const isCompanyAdmin = isAdmin(orgRole);
 
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
 
@@ -44,6 +46,12 @@ export default function EventPageWrapper() {
   const handleAddGuestList = () => {
     if (organization?.slug) {
       router.push(`/${organization.slug}/app/events/${eventId}/add-guest-list`);
+    }
+  };
+
+  const handleBuyCredit = () => {
+    if (organization?.slug) {
+      router.push(`/${organization.slug}/app/subscription`);
     }
   };
 
@@ -90,7 +98,10 @@ export default function EventPageWrapper() {
       canUploadGuest={canUploadGuest}
       canEditEvent={canEditEvent}
       handleAddGuestList={handleAddGuestList}
+      handleBuyCredit={handleBuyCredit}
       data={eventData}
+      isCompanyAdmin={isCompanyAdmin}
+      availableCredits={availableCredits}
     />
   );
 }

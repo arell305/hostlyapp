@@ -14,6 +14,7 @@ import {
   UserWithOrgAndCustomerAndClerkId,
   UserWithOrgAndClerkId,
   GuestListEntrySchema,
+  OrganizationCreditSchema,
 } from "@/types/schemas-types";
 import { GuestListSchema, OrganizationSchema } from "@/types/types";
 import { DateTime } from "luxon";
@@ -250,4 +251,13 @@ export function validateGuestEntryOwnership(
     }
     throw new Error(ShowErrorMessages.FORBIDDEN_PRIVILEGES);
   }
+}
+
+export function validateOrganizationCredit(
+  organizationCredit: OrganizationCreditSchema | null
+): OrganizationCreditSchema {
+  if (!organizationCredit) {
+    throw new Error(ErrorMessages.ORGANIZATION_CREDIT_NOT_FOUND);
+  }
+  return organizationCredit;
 }

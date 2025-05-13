@@ -138,7 +138,8 @@ export const addEvent = action({
           ctx,
           organization,
           eventId,
-          guestListData
+          guestListData,
+          identity.id as string
         );
       }
 

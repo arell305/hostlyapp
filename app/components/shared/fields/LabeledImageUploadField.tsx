@@ -47,8 +47,8 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
           }`}
         >
           {isLoading ? (
-            <div className="text-gray-500 absolute inset-0 flex items-center justify-center bg-white opacity-75">
-              Loading...
+            <div className="w-full h-full border-2 border-dashed rounded-lg flex items-center justify-center">
+              <div className="h-6 w-6 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : imageUrl ? (
             <Image
@@ -70,7 +70,7 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
               e.stopPropagation();
               onRemove();
             }}
-            className="text-grayText text-3xl rounded-full p-1 cursor-pointer z-10 -ml-3 -mt-2"
+            className="text-grayText text-3xl rounded-full p-1 cursor-pointer z-10 -ml-3 -mt-4"
           />
         )}
       </div>

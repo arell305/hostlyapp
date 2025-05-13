@@ -19,7 +19,15 @@ const AddEventContent: React.FC<{
   organization: OrganizationSchema;
   subscription: SubscriptionSchema;
   connectedAccountEnabled: boolean;
-}> = ({ organization, subscription, connectedAccountEnabled }) => {
+  isCompanyAdmin: boolean;
+  availableCredits: number;
+}> = ({
+  organization,
+  subscription,
+  connectedAccountEnabled,
+  isCompanyAdmin,
+  availableCredits,
+}) => {
   const [showCancelConfirmModal, setShowCancelConfirmModal] =
     useState<boolean>(false);
   const { addEvent, isLoading, error } = useAddEvent();
@@ -49,6 +57,12 @@ const AddEventContent: React.FC<{
   const handleConfirmCancel = () => {
     setShowCancelConfirmModal(false);
     router.back();
+  };
+
+  const handleBuyCredit = () => {
+    if (organization?.slug) {
+      router.push(`/${organization.slug}/app/subscription`);
+    }
   };
 
   return (
@@ -87,6 +101,9 @@ const AddEventContent: React.FC<{
         organizationId={organization._id}
         isSubmitLoading={isLoading}
         submitError={error}
+        handleBuyCredit={handleBuyCredit}
+        isCompanyAdmin={isCompanyAdmin}
+        availableCredits={availableCredits}
       />
       <ResponsiveConfirm
         isOpen={showCancelConfirmModal}

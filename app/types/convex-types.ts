@@ -656,6 +656,7 @@ export interface GetOrganizationContextData {
   connectedAccountId: string | null;
   connectedAccountStatus: StripeAccountStatus | null;
   subscription: SubscriptionSchema;
+  availableCredits: number;
 }
 
 export type RetryInvoicePaymentResponse =
@@ -905,19 +906,6 @@ export interface CreateGuestListCreditPaymentIntentData {
   clientSecret: string;
 }
 
-export type CreateGuestListCreditResponse =
-  | CreateGuestListCreditSuccess
-  | ErrorResponse;
-
-export interface CreateGuestListCreditSuccess {
-  status: ResponseStatus.SUCCESS;
-  data: CreateGuestListCreditData;
-}
-
-export interface CreateGuestListCreditData {
-  guestListCreditId: Id<"guestListCredits">;
-}
-
 export type SendContactFormEmailResponse =
   | SendContactFormEmailSuccess
   | ErrorResponse;
@@ -1094,4 +1082,17 @@ export interface TicketSalesGroup {
 export interface TicketTotals {
   maleCount: number;
   femaleCount: number;
+}
+
+export type GetAvailableGuestListCreditsResponse =
+  | GetAvailableGuestListCreditsSuccess
+  | ErrorResponse;
+
+export interface GetAvailableGuestListCreditsSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetAvailableGuestListCreditsData;
+}
+
+export interface GetAvailableGuestListCreditsData {
+  availableCredits: number;
 }

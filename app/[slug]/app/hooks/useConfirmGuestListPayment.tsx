@@ -1,26 +1,22 @@
+"use client";
+
 import { useStripe, useElements } from "@stripe/react-stripe-js";
-import { useMutation } from "convex/react";
 import { useState } from "react";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
-import Stripe from "stripe";
+
+interface ConfirmGuestListPaymentOptions {
+  clientSecret: string;
+}
 
 export function useConfirmGuestListPayment() {
   const stripe = useStripe();
   const elements = useElements();
-
-  const createGuestListCredit = useMutation(
-    api.guestListCredits.createGuestListCredit
-  );
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const confirmPayment = async ({
     clientSecret,
-  }: {
-    clientSecret: string;
-  }): Promise<boolean> => {
+  }: ConfirmGuestListPaymentOptions): Promise<boolean> => {
     setLoading(true);
     setError(null);
 
@@ -31,55 +27,30 @@ export function useConfirmGuestListPayment() {
     }
 
     try {
-      const confirmResult = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: elements.getElement("card")!,
+      const result = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.location.href, // optional, safe fallback
         },
+        redirect: "if_required",
       });
 
-      if (confirmResult.error) {
-        setError(confirmResult.error.message || "Payment confirmation failed.");
-        setLoading(false);
+      if (result.error) {
+        setError(result.error.message || "Payment confirmation failed.");
         return false;
       }
 
-      if (confirmResult.paymentIntent?.status !== "succeeded") {
+      const paymentIntent = result.paymentIntent;
+
+      if (!paymentIntent || paymentIntent.status !== "succeeded") {
         setError("Payment not successful.");
-        setLoading(false);
-        return false;
-      }
-
-      const paymentIntent =
-        confirmResult.paymentIntent as Stripe.PaymentIntent & {
-          metadata: {
-            organizationId: string;
-            userId: string;
-            credits: string;
-          };
-        };
-
-      // Step 3: Create Guest List Credits
-      const createCreditResult = await createGuestListCredit({
-        organizationId: paymentIntent.metadata
-          .organizationId as Id<"organizations">,
-        userId: paymentIntent.metadata.userId as Id<"users">,
-        creditsAdded: parseInt(paymentIntent.metadata.credits),
-        amountPaid: confirmResult.paymentIntent.amount,
-        stripePaymentIntentId: confirmResult.paymentIntent.id,
-      });
-
-      if (createCreditResult.status !== "success") {
-        setError(
-          createCreditResult.error || "Failed to grant guest list credits."
-        );
-        setLoading(false);
         return false;
       }
 
       return true;
-    } catch (error) {
-      console.error(error);
-      setError("An error occurred.");
+    } catch (err) {
+      console.error("Stripe confirmPayment error:", err);
+      setError("An unexpected error occurred while processing payment.");
       return false;
     } finally {
       setLoading(false);

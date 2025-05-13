@@ -222,6 +222,7 @@ export enum ErrorMessages {
   STRIPE_ATTACH_PAYMENT = "Stripe error attaching payment method",
   STRIPE_DEFAULT_PAYMENT = "Stripe error setting default payment",
   STRIPE_CREATE_SUBSCRIPTION = "Stripe error creating subscription",
+  STRIPE_PAYMENT_INTENT_SUCCEEDED = "Stripe error handling payment_intent.succeeded",
   SUBSCRIPTION_DB_CREATE = "DB error creating subscription",
   SUBSCRIPTION_DB_QUERY = "DB query subscription by customer id",
   SUBSCRIPTION_DB_UPDATE = "DB error updating subscription",
@@ -269,6 +270,10 @@ export enum ErrorMessages {
   CONNECTED_ACCOUNT_DB_DELETE = "DB error deleting connected account",
   CONNECTED_ACCOUNT_DB_QUERY = "DB error querying connected account",
   STRIPE_CONNECTED_ONBOARDING_LINK = "Stripe error creating onboarding link",
+  GUEST_LIST_CREDIT_TRANSACTION_CREATE_ERROR = "DB error creating guest list credit transaction",
+  ORGANIZATION_CREDITS_DB_QUERY = "DB error querying guest list credits",
+  ORGANIZATION_CREDIT_NOT_FOUND = "Guest list credit not found",
+  ORGANIZATION_CREDIT_DB_USE = "DB error using guest list credit",
 }
 
 export enum ShowErrorMessages {
@@ -294,6 +299,7 @@ export enum ShowErrorMessages {
   USER_NOT_FOUND = "User not found",
   GUEST_INACTIVE = "Guest is inactive",
   GUEST_DOES_NOT_BELONG_TO_PROMOTER = "Guest does not belong to promoter",
+  NOT_ENOUGH_GUEST_LIST_CREDITS = "Not enough guest list credits available.",
 }
 
 export enum FrontendErrorMessages {

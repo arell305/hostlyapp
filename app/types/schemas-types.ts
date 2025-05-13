@@ -195,3 +195,12 @@ export interface GuestListEntrySchema {
 export interface GuestListEntryWithPromoter extends GuestListEntrySchema {
   promoterName: string;
 }
+
+export interface OrganizationCreditSchema {
+  _id: Id<"organizationCredits">;
+  _creationTime: number;
+  organizationId: Id<"organizations">;
+  totalCredits: number;
+  creditsUsed: number;
+  lastUpdated: number;
+}

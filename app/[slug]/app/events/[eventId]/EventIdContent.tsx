@@ -39,6 +39,9 @@ interface EventIdContentProps {
   canUploadGuest: boolean;
   canEditEvent: boolean;
   handleAddGuestList: () => void;
+  handleBuyCredit: () => void;
+  isCompanyAdmin: boolean;
+  availableCredits: number;
 }
 
 const EventIdContent: React.FC<EventIdContentProps> = ({
@@ -51,6 +54,9 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   canUploadGuest,
   canEditEvent,
   handleAddGuestList,
+  handleBuyCredit,
+  isCompanyAdmin,
+  availableCredits,
 }) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showConfirmCancelEdit, setShowConfirmCancelEdit] =
@@ -141,6 +147,9 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           isUpdateEventLoading={isUpdateEventLoading}
           subscription={subscription}
           organizationId={data.event.organizationId}
+          handleBuyCredit={handleBuyCredit}
+          isCompanyAdmin={isCompanyAdmin}
+          availableCredits={availableCredits}
         />
       ) : (
         <>

@@ -249,13 +249,24 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_stripeCustomerId", ["stripeCustomerId"])
     .index("by_stripeAccountId", ["stripeAccountId"]),
-  guestListCredits: defineTable({
+  guestListCreditTransactions: defineTable({
     organizationId: v.id("organizations"),
     userId: v.id("users"),
-    amountPaid: v.number(),
-    creditsAdded: v.number(),
-    stripePaymentIntentId: v.string(),
+    type: v.union(
+      v.literal("added"), // when credits are purchased or gifted
+      v.literal("used") // when a guest list is created
+    ),
+    credits: v.number(),
+    amountPaid: v.optional(v.number()), // only for "added"
+    stripePaymentIntentId: v.optional(v.string()), // only for "added"
+    eventId: v.optional(v.id("events")), // only for "used"
   })
     .index("by_organizationId", ["organizationId"])
     .index("by_userId", ["userId"]),
+  organizationCredits: defineTable({
+    organizationId: v.id("organizations"),
+    totalCredits: v.number(), // all added
+    creditsUsed: v.number(), // cumulative total used
+    lastUpdated: v.number(), // for cache validation or auditing
+  }).index("by_organizationId", ["organizationId"]),
 });

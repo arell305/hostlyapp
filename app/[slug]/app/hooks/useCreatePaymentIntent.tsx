@@ -14,7 +14,7 @@ interface UseCreateGuestListPaymentIntent {
 
 export function useCreateGuestListPaymentIntent(): UseCreateGuestListPaymentIntent {
   const createPaymentIntentAction = useAction(
-    api.guestListCredits.createGuestListCreditPaymentIntent
+    api.guestListCreditTransactions.createGuestListCreditPaymentIntent
   );
 
   const [loading, setLoading] = useState<boolean>(false);

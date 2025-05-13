@@ -418,6 +418,18 @@ export const getOrganizationContext = query({
           .first()
       );
 
+      const guestListCreditBalance = await ctx.db
+        .query("organizationCredits")
+        .withIndex("by_organizationId", (q) =>
+          q.eq("organizationId", organization._id)
+        )
+        .unique();
+
+      const availableCredits = guestListCreditBalance
+        ? guestListCreditBalance.totalCredits -
+          guestListCreditBalance.creditsUsed
+        : 0;
+
       const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
         .query("connectedAccounts")
         .withIndex("by_customerId", (q) => q.eq("customerId", customerId))
@@ -434,6 +446,7 @@ export const getOrganizationContext = query({
             ? connectedAccount.status
             : null,
           subscription: subscription,
+          availableCredits,
         },
       };
     } catch (error) {

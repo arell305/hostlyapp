@@ -33,6 +33,7 @@ import LabeledImageUploadField from "@/components/shared/fields/LabeledImageUplo
 import EventFormActions from "@/components/shared/buttonContainers/EventFormActions";
 import ToggleSectionCard from "@/components/shared/toggle/ToggleSectionCard";
 import { validateEventForm } from "../../../../utils/form-validation/validateEventForm";
+import { Button } from "@/components/ui/button";
 
 interface EventFormProps {
   initialEventData?: EventSchema;
@@ -53,6 +54,9 @@ interface EventFormProps {
   organizationId?: Id<"organizations">;
   isSubmitLoading?: boolean;
   submitError?: string | null;
+  handleBuyCredit: () => void;
+  isCompanyAdmin: boolean;
+  availableCredits: number;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -69,6 +73,9 @@ const EventForm: React.FC<EventFormProps> = ({
   organizationId,
   isSubmitLoading,
   submitError,
+  handleBuyCredit,
+  isCompanyAdmin,
+  availableCredits,
 }) => {
   // Text fields
   const [eventName, setEventName] = useState(initialEventData?.name || "");
@@ -187,7 +194,8 @@ const EventForm: React.FC<EventFormProps> = ({
 
   const guestListLimitReached =
     subscription.subscriptionTier === SubscriptionTier.PLUS &&
-    subscription.guestListEventsCount === PLUS_GUEST_LIST_LIMIT;
+    subscription.guestListEventsCount === PLUS_GUEST_LIST_LIMIT &&
+    availableCredits <= 0;
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
@@ -320,8 +328,6 @@ const EventForm: React.FC<EventFormProps> = ({
       checkInCloseTime,
       organizationId,
     });
-    console.log("handleSubmit 3");
-    console.log(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -443,13 +449,21 @@ const EventForm: React.FC<EventFormProps> = ({
                 ? handleRemoveGuestList()
                 : setIsGuestListSelected(true)
             }
-            subtitle={`(${subscription.guestListEventsCount}/${PLUS_GUEST_LIST_LIMIT} guest list events this)`}
+            subtitle={`(${subscription.guestListEventsCount}/${PLUS_GUEST_LIST_LIMIT} events this cycle | ${availableCredits} credits available)`}
           />
         )}
 
         {isGuestListSelected &&
           (guestListLimitReached ? (
-            <p className="text-red-500 px-4">Guest list limit reached</p>
+            <div className="flex flex-col space-y-2 mb-4 px-4">
+              <p className="text-red-500  ">Guest list limit reached.</p>
+
+              {isCompanyAdmin && (
+                <Button variant="nav" className="" onClick={handleBuyCredit}>
+                  Buy Credit
+                </Button>
+              )}
+            </div>
           ) : (
             <>
               <LabeledDateTimeField

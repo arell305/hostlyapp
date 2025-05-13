@@ -19,6 +19,7 @@ type OrganizationContextType = {
   organizationContextLoading: boolean;
   organizationContextError: string | null;
   refetchOrganization: () => void;
+  availableCredits?: number;
 };
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(
@@ -38,7 +39,6 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
     api.organizations.getOrganizationContext,
     queryKey ? { slug: queryKey } : "skip"
   );
-  console.log("response", response);
   // Re-fetch when slug changes
   useEffect(() => {
     if (cleanSlug && cleanSlug !== queryKey) {
@@ -71,6 +71,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
                 organizationContextLoading: false,
                 organizationContextError: null,
                 refetchOrganization: () => setQueryKey(cleanSlug),
+                availableCredits: response.data.availableCredits,
               }
       }
     >

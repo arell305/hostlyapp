@@ -6,6 +6,8 @@ import FullLoading from "../components/loading/FullLoading";
 import ErrorComponent from "../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import AddEventContent from "./AddEventContent";
+import { useUser } from "@clerk/nextjs";
+import { isAdmin } from "@/utils/permissions";
 
 const AddEventPage: FC = () => {
   const {
@@ -13,9 +15,19 @@ const AddEventPage: FC = () => {
     organizationContextError,
     subscription,
     connectedAccountEnabled,
+    availableCredits,
   } = useContextOrganization();
+  const { user } = useUser();
+  const orgRole = user?.publicMetadata.role as string;
+  const isCompanyAdmin = isAdmin(orgRole);
 
-  if (!subscription || connectedAccountEnabled === undefined || !organization) {
+  if (
+    !subscription ||
+    connectedAccountEnabled === undefined ||
+    !organization ||
+    !user ||
+    availableCredits === undefined
+  ) {
     return <FullLoading />;
   }
 
@@ -28,6 +40,8 @@ const AddEventPage: FC = () => {
       organization={organization}
       subscription={subscription}
       connectedAccountEnabled={connectedAccountEnabled}
+      isCompanyAdmin={isCompanyAdmin}
+      availableCredits={availableCredits}
     />
   );
 };

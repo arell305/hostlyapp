@@ -29,12 +29,14 @@ interface SubscriptionContentProps {
   customer: CustomerSchema;
   subscription: SubscriptionSchema;
   canEditSettings: boolean;
+  availableCredits: number;
 }
 
 const SubscriptionContent = ({
   customer,
   subscription,
   canEditSettings,
+  availableCredits,
 }: SubscriptionContentProps) => {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   // Cancel Subscription
@@ -132,7 +134,7 @@ const SubscriptionContent = ({
         {showGuestEventsCredit && (
           <ClickableField
             label="Guest Events Credit"
-            value="3 Credits"
+            value={`${availableCredits} Credits`}
             onClick={() => setShowGuestListCheckout(true)}
             actionIcon={<Plus className="text-2xl" />}
           />

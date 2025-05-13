@@ -8,6 +8,7 @@ import {
 } from "@/types/enums";
 import { getPaymentMethodDetails } from "./stripe";
 import { getSubscriptionTierFromPrice } from "../stripe";
+import { Id } from "../_generated/dataModel";
 
 export const handleInvoicePaymentSucceeded = async (
   ctx: GenericActionCtx<any>,
@@ -214,5 +215,33 @@ export const handleCustomerUpdated = async (
   } catch (error) {
     console.error("Error handling customer updated event:", error);
     throw new Error(ErrorMessages.STRIPE_CUSOMTER_UPDATED);
+  }
+};
+
+export const handleStripePaymentIntentSucceeded = async (
+  ctx: GenericActionCtx<any>,
+  paymentIntent: Stripe.PaymentIntent
+) => {
+  try {
+    const metadata = paymentIntent.metadata;
+    const organizationId = metadata.organizationId;
+    const userId = metadata.userId;
+    const credits = metadata.credits;
+    const amountPaid = paymentIntent.amount;
+    const stripePaymentIntentId = paymentIntent.id;
+
+    await ctx.runMutation(
+      internal.guestListCreditTransactions.createGuestListCredit,
+      {
+        organizationId: organizationId as Id<"organizations">,
+        userId: userId as Id<"users">,
+        credits: parseInt(credits),
+        amountPaid,
+        stripePaymentIntentId,
+      }
+    );
+  } catch (error) {
+    console.error("Error handling payment intent succeeded event:", error);
+    throw new Error(ErrorMessages.STRIPE_PAYMENT_INTENT_SUCCEEDED);
   }
 };

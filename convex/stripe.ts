@@ -63,6 +63,7 @@ import {
   handleAccountUpdated,
   handleCustomerUpdated,
   handleInvoicePaymentSucceeded,
+  handleStripePaymentIntentSucceeded,
   handleSubscriptionDeleted,
   handleSubscriptionUpdated,
 } from "./backendUtils/stripeWebhooks";
@@ -721,7 +722,7 @@ export const fulfill = internalAction({
           await handleAccountUpdated(ctx, event.data.object);
           break;
         case "payment_intent.succeeded":
-          const paymentIntent = event.data.object;
+          await handleStripePaymentIntentSucceeded(ctx, event.data.object);
           break;
 
         default:
