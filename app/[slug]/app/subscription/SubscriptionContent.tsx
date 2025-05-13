@@ -29,7 +29,7 @@ interface SubscriptionContentProps {
   customer: CustomerSchema;
   subscription: SubscriptionSchema;
   canEditSettings: boolean;
-  availableCredits: number;
+  availableCredits?: number;
 }
 
 const SubscriptionContent = ({
@@ -134,7 +134,7 @@ const SubscriptionContent = ({
         {showGuestEventsCredit && (
           <ClickableField
             label="Guest Events Credit"
-            value={`${availableCredits} Credits`}
+            value={`${availableCredits ?? 0} Credits`}
             onClick={() => setShowGuestListCheckout(true)}
             actionIcon={<Plus className="text-2xl" />}
           />
