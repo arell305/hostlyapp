@@ -8,6 +8,7 @@ import { QueryState } from "@/types/enums";
 import AddGuestListContent from "./AddGuestListContent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
+import NProgress from "nprogress";
 
 const AddGuestListPage: React.FC = () => {
   const params = useParams();
@@ -31,6 +32,7 @@ const AddGuestListPage: React.FC = () => {
 
   const handleNavigateHome = () => {
     if (organization?.slug) {
+      NProgress.start();
       router.push(`/${organization.slug}/app/`);
     }
   };

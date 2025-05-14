@@ -1,14 +1,13 @@
 // utils/handleQueryState.tsx
 import React, { ReactElement } from "react";
 import { QueryState, ResponseStatus } from "@/types/enums";
-import Loading from "@/[slug]/app/components/loading/Loading";
 import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
 import { Skeleton } from "@/components/ui/skeleton";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import { UserResource } from "@clerk/types";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
 import router from "next/router";
-
+import NProgress from "nprogress";
 export interface QuerySuccess<T> {
   status: ResponseStatus.SUCCESS;
   data: T;
@@ -51,6 +50,7 @@ export function handleQueryState<T>(
           description={queryResult.error || "An error occurred."}
           buttonLabel="Go to Home"
           onButtonClick={() => {
+            NProgress.start();
             router.push("/");
           }}
         />

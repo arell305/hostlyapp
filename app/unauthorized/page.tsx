@@ -1,6 +1,7 @@
 "use client";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
 import { useRouter } from "next/navigation";
+import NProgress from "nprogress";
 
 export default function UnauthorizedPage() {
   const router = useRouter();
@@ -10,7 +11,10 @@ export default function UnauthorizedPage() {
       title="Access Denied"
       description="You do not have permission to view this page."
       buttonLabel="Go Home"
-      onButtonClick={() => router.push("/")}
+      onButtonClick={() => {
+        NProgress.start();
+        router.push("/");
+      }}
     />
   );
 }

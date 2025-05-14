@@ -7,7 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import CompanyEventsContent from "./app/components/CompanyEventsContent";
 import FullLoading from "./app/components/loading/FullLoading";
 import ErrorComponent from "./app/components/errors/ErrorComponent";
-
+import NProgress from "nprogress";
 const CompanyEvents = () => {
   const {
     name,
@@ -21,10 +21,12 @@ const CompanyEvents = () => {
   const pathname = usePathname();
 
   const handleNavigateHome = () => {
+    NProgress.start();
     router.push("/");
   };
 
   const handleNavigateEvent = (eventId: string) => {
+    NProgress.start();
     router.push(`${pathname}/events/${eventId}`);
   };
 

@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser, useOrganizationList, useOrganization } from "@clerk/nextjs";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
-import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import { ResponseStatus, UserRole } from "@/types/enums";
 import ErrorPage from "@/[slug]/app/components/errors/ErrorPage";
-
+import NProgress from "nprogress";
 const RedirectingPage = () => {
   const router = useRouter();
   const { user, isLoaded: userLoaded } = useUser();
@@ -34,6 +33,7 @@ const RedirectingPage = () => {
       }
 
       if (!user) {
+        NProgress.start();
         router.push("/sign-in");
         return;
       }
@@ -51,11 +51,13 @@ const RedirectingPage = () => {
       const { organization: orgData } = organizationResponse.data;
 
       if (!orgData) {
+        NProgress.start();
         router.push("/create-company");
         return;
       }
 
       if (!orgData.isActive) {
+        NProgress.start();
         router.push("/unauthorized");
         return;
       }
@@ -69,11 +71,13 @@ const RedirectingPage = () => {
       }
 
       if (organization) {
+        NProgress.start();
         router.push(`/${orgData.slug}/app`);
         return;
       }
 
       await setActive({ organization: orgData.clerkOrganizationId });
+      NProgress.start();
       router.push(`/${orgData.slug}/app`);
     };
 

@@ -2,6 +2,7 @@
 import MessageCard from "@/components/shared/cards/MessageCard";
 import StaticPageContainer from "@/components/shared/containers/StaticPageContainer";
 import { useRouter } from "next/navigation";
+import NProgress from "nprogress";
 
 interface ErrorPageProps {
   title?: string;
@@ -20,7 +21,10 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
         title={title}
         description={description}
         buttonLabel="Return Home"
-        onButtonClick={() => router.push("/")}
+        onButtonClick={() => {
+          NProgress.start();
+          router.push("/");
+        }}
         className="max-w-[700px]"
       />
     </StaticPageContainer>

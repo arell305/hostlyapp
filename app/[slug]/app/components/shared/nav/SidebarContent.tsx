@@ -20,8 +20,8 @@ import {
   isManager,
 } from "../../../../../../utils/permissions";
 import Logo from "@/components/shared/Logo";
+import NProgress from "nprogress";
 import _ from "lodash";
-
 type SidebarContentProps = {
   onNavigate?: () => void;
   slug: string;
@@ -31,7 +31,8 @@ type SidebarContentProps = {
 const SidebarContent = ({ onNavigate, slug, orgRole }: SidebarContentProps) => {
   const router = useRouter();
 
-  const handleNavigate = (path: string) => {
+  const handleNavigate = async (path: string) => {
+    NProgress.start();
     router.push(path);
     onNavigate?.();
   };

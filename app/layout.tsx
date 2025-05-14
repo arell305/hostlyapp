@@ -3,9 +3,10 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { TITLE, DESC, META_DESC, WEBSITE } from "./types/constants";
 import { Providers } from "./providers";
-import React from "react";
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Settings } from "luxon";
+import RouteChangeProgress from "./components/layout/Nprogress";
 
 Settings.defaultZone = "America/Los_Angeles";
 
@@ -48,7 +49,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <RouteChangeProgress />
+          {children}
+        </Providers>
         <Toaster />
       </body>
     </html>

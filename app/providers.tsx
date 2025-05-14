@@ -23,38 +23,6 @@ if (!clerkPublishableKey) {
 
 const convex = new ConvexReactClient(convexUrl);
 
-const appearance = {
-  baseTheme: "",
-  // variables: {
-  //   colorBackground: "#0F0F13",
-  //   colorText: "#F9FAFA",
-  //   colorPrimary: "#315DDF",
-  //   colorTextSecondary: "#F9FAFA",
-  //   borderRadius: "8px",
-  // },
-  // elements: {
-  //   card: "bg-cardBackground text-whiteText shadow-xl shadow-[0_0_15px_rgba(255,255,255,0.25)] ring-1 ring-white/10",
-  //   headerTitle: "text-whiteText",
-  //   headerSubtitle: "text-grayText",
-  //   socialButtonsBlockButton:
-  //     "bg-cardBackgroundHover text-whiteText border border-primaryBlue hover:bg-borderGray",
-  //   socialButtonsBlockButtonText: "text-whiteText font-medium",
-  //   formFieldInput: "bg-gray-800 text-white",
-  //   userButtonPopoverNavigationAction: "text-whiteText",
-  //   userButtonPopoverActionButton:
-  //     "text-white hover:text-white font-semibold hover:bg-cardBackgroundHover transition",
-  //   userButtonPopoverCard:
-  //     "bg-cardBackground text-white shadow-white-glow ring-1 ring-white/10",
-  //   userButtonPopoverActionButton__divider: "border-t border-white/10",
-  //   userButtonPopoverActions:
-  //     "divide-y divide-white/10 border-t border-white/10",
-  //   userButtonPopoverHeader: "border-b border-white/10 pb-3 mb-2",
-  //   primaryButton: "bg-primaryBlue ",
-  //   dividerText: "text-white",
-  //   dividerLine: "bg-white/20",
-  // },
-};
-
 export function Providers({ children }: PropsWithChildren) {
   return (
     <ClerkProvider

@@ -7,6 +7,7 @@ import HomeContent from "./HomeContent";
 import { canCreateEvent } from "../../../utils/permissions";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
+import NProgress from "nprogress";
 
 const HomePage: React.FC = () => {
   const { user } = useUser();
@@ -33,10 +34,12 @@ const HomePage: React.FC = () => {
   }
 
   const handleAddEventClick = () => {
+    NProgress.start();
     router.push(`${pathname}/add-event`);
   };
 
   const handleEventClick = (eventId: string) => {
+    NProgress.start();
     router.push(`${pathname}/events/${eventId}`);
   };
 

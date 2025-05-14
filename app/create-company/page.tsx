@@ -4,6 +4,7 @@ import CreateCompanyContent from "./CreateCompanyContent";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import { useRouter } from "next/navigation";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
+import NProgress from "nprogress";
 
 const CreateCompanyPage = () => {
   const { organization, loaded, setActive } = useClerk();
@@ -11,10 +12,12 @@ const CreateCompanyPage = () => {
   const router = useRouter();
 
   const navigateToApp = (slug: string) => {
+    NProgress.start();
     router.push(`/${slug}/app`);
   };
 
   const navigateToHome = () => {
+    NProgress.start();
     router.push("/");
   };
 

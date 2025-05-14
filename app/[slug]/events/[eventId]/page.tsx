@@ -13,7 +13,7 @@ import { useUser } from "@clerk/nextjs";
 import ProfileBanner from "@/components/shared/company/ProfileBanner";
 import { ArrowLeft } from "lucide-react";
 import HomeNav from "@/[slug]/app/components/nav/HomeNav";
-
+import NProgress from "nprogress";
 const EventPage = () => {
   const { name, photo, isStripeEnabled, connectedAccountStripeId } =
     useContextPublicOrganization();
@@ -35,6 +35,7 @@ const EventPage = () => {
   const handleBrowseMoreEvents = () => {
     const slug = pathname.split("/")[1];
     const newUrl = `/${slug}`;
+    NProgress.start();
     router.push(newUrl);
   };
 

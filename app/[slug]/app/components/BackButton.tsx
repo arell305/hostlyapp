@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
+import NProgress from "nprogress";
 
 interface BackButtonProps {
   text?: string;
@@ -15,6 +16,7 @@ const BackButton: React.FC<BackButtonProps> = ({
 
   const handleBackClick = () => {
     if (targetRoute) {
+      NProgress.start();
       router.push(targetRoute); // Navigate to the specified route
     } else {
       router.back(); // Default to going back

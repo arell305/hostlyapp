@@ -1,5 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
+import NProgress from "nprogress";
+
 const plans = [
   {
     name: "Standard",
@@ -53,6 +55,7 @@ const Pricing = () => {
   const router = useRouter();
 
   const handleClick = () => {
+    NProgress.start();
     router.push("/sign-up");
   };
 

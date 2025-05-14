@@ -4,6 +4,7 @@ import { SignedIn, SignedOut, SignOutButton, useAuth } from "@clerk/nextjs";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import Logo from "../shared/Logo";
+import NProgress from "nprogress";
 
 const Navbar: React.FC = () => {
   const router = useRouter();
@@ -39,12 +40,18 @@ const Navbar: React.FC = () => {
                 <Button
                   type="button"
                   size="navButton"
-                  onClick={() => router.push("/sign-up")}
+                  onClick={() => {
+                    NProgress.start();
+                    router.push("/sign-up");
+                  }}
                 >
                   Sign up
                 </Button>
                 <Button
-                  onClick={() => router.push("/sign-in")}
+                  onClick={() => {
+                    NProgress.start();
+                    router.push("/sign-in");
+                  }}
                   variant="outline"
                   size="navButton"
                   className="rounded-[12px] border-primaryBlue text-base font-medium w-[90px] h-[42px]"

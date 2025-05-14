@@ -9,7 +9,7 @@ import { useReactivateSubscription } from "../hooks/useReactivateSubscription";
 import { useValidatePromoCode } from "../hooks/useValidatePromoCode";
 import { UserResource } from "@clerk/types";
 import { pricingOptions } from "../../../../constants/pricingOptions";
-
+import NProgress from "nprogress";
 export interface ReactivateFormProps {
   user: UserResource;
 }
@@ -81,6 +81,7 @@ const ReactivateForm: React.FC<ReactivateFormProps> = ({ user }) => {
     });
 
     if (result) {
+      NProgress.start();
       router.push(`/${slug}/admin`);
     }
   };

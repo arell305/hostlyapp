@@ -2,6 +2,7 @@
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { usePathname, useRouter } from "next/navigation";
 import { TbAlertTriangle } from "react-icons/tb";
+import NProgress from "nprogress";
 
 interface NotificationProps {
   title: string;
@@ -21,6 +22,7 @@ export function Notification({
 
   const handleClick = () => {
     if (route) {
+      NProgress.start();
       router.push(`${pathname}/${route}`);
     }
   };

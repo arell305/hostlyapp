@@ -14,6 +14,7 @@ import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
 import { useRouter } from "next/navigation";
 import { Id } from "../../../../convex/_generated/dataModel";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
+import NProgress from "nprogress";
 
 const AddEventContent: React.FC<{
   organization: OrganizationSchema;
@@ -46,6 +47,7 @@ const AddEventContent: React.FC<{
       guestListData
     );
     if (result.success) {
+      NProgress.start();
       router.push(`/${organization.slug}/app/events/${result.eventId}`);
     }
   };
@@ -61,6 +63,7 @@ const AddEventContent: React.FC<{
 
   const handleBuyCredit = () => {
     if (organization?.slug) {
+      NProgress.start();
       router.push(`/${organization.slug}/app/subscription`);
     }
   };

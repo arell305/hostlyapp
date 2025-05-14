@@ -23,6 +23,7 @@ import { CalendarSwitcher } from "./components/calendar/CalendarSwitcher";
 import { Button } from "@/components/ui/button";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import { Plus } from "lucide-react";
+import SectionContainer from "@/components/shared/containers/SectionContainer";
 
 const today = getCurrentDate();
 
@@ -89,7 +90,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
     return <ErrorComponent message={monthlyEventsData.error} />;
 
   return (
-    <div className="px-1 md:px-0 max-w-2xl min-w-[420px] mx-auto">
+    <SectionContainer>
       <SectionHeaderWithAction
         title="My Events"
         actions={
@@ -131,7 +132,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
         events={selectedEvents}
         handleEventClick={handleEventClick}
       />
-    </div>
+    </SectionContainer>
   );
 };
 

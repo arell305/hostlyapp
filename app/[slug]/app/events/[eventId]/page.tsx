@@ -14,6 +14,7 @@ import { handleQueryState } from "@/utils/handleQueryState";
 import { QueryState } from "@/types/enums";
 import { GetEventByIdData } from "@/types/convex-types";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
+import NProgress from "nprogress";
 
 export default function EventPageWrapper() {
   const { user } = useUser();
@@ -39,18 +40,21 @@ export default function EventPageWrapper() {
 
   const handleNavigateHome = () => {
     if (organization?.slug) {
+      NProgress.start();
       router.push(`/${organization.slug}/app/`);
     }
   };
 
   const handleAddGuestList = () => {
     if (organization?.slug) {
+      NProgress.start();
       router.push(`/${organization.slug}/app/events/${eventId}/add-guest-list`);
     }
   };
 
   const handleBuyCredit = () => {
     if (organization?.slug) {
+      NProgress.start();
       router.push(`/${organization.slug}/app/subscription`);
     }
   };

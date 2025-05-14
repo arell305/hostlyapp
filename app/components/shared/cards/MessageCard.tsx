@@ -18,7 +18,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
   className = "",
 }) => {
   return (
-    <CustomCard className={`p-4 ${className} w-full`}>
+    <CustomCard className={`p-4 ${className} w-full mx-2 md:mx-0  `}>
       <h2 className="text-xl font-semibold">{title}</h2>
       <p className="text-grayText mt-2">{description}</p>
       {buttonLabel && onButtonClick && (

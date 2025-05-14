@@ -19,6 +19,7 @@ import {
   createApplePaymentRequest,
   getCardPaymentMethod,
 } from "../../utils/frontend-stripe/stripeHelpers";
+import NProgress from "nprogress";
 
 const PaymentForm = () => {
   const stripe = useStripe();
@@ -101,8 +102,10 @@ const PaymentForm = () => {
 
       ev.complete(success ? "success" : "fail");
 
-      if (success) router.push("/confirmation");
-      else setError("Failed to create subscription. Please try again.");
+      if (success) {
+        NProgress.start();
+        router.push("/confirmation");
+      } else setError("Failed to create subscription. Please try again.");
     }).then((pr) => {
       if (pr) {
         setPaymentRequest(pr);
@@ -150,6 +153,7 @@ const PaymentForm = () => {
       });
 
       if (success) {
+        NProgress.start();
         router.push("/confirmation");
       } else {
         setError("Failed to create subscription. Please try again.");
