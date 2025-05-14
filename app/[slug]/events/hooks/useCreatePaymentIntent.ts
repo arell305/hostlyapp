@@ -9,6 +9,7 @@ type PaymentMetadata = {
   email: string;
   maleCount: number;
   femaleCount: number;
+  organizationId: string;
 };
 
 export const useCreatePaymentIntent = () => {
