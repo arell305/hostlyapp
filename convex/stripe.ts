@@ -661,6 +661,7 @@ export const createPaymentIntent = action({
         email: v.string(),
         maleCount: v.number(),
         femaleCount: v.number(),
+        organizationId: v.string(),
       })
     ),
   },

@@ -30,6 +30,7 @@ import { TicketSoldCounts } from "@/types/types";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import EmptyList from "@/components/shared/EmptyList";
 import type { Appearance } from "@stripe/stripe-js";
+import { stripeAppearance } from "@/utils/frontend-stripe/stripeAppearance";
 
 interface EventContentProps {
   isStripeEnabled: boolean;
@@ -75,15 +76,6 @@ const EventContent: React.FC<EventContentProps> = ({
     shouldValidate ? { name: promoCode, eventId: eventData._id } : "skip"
   );
   const createPaymentIntent = useAction(api.stripe.createPaymentIntent);
-
-  const appearance: Appearance = {
-    theme: "night",
-    variables: {
-      colorPrimary: "#315DDF",
-      colorBackground: "#1a1a1a",
-      colorText: "#ffffff",
-    },
-  };
 
   const isTicketsSalesOpen = isTicketSalesOpen(ticketInfoData);
 
@@ -154,6 +146,7 @@ const EventContent: React.FC<EventContentProps> = ({
           email: email.trim(),
           maleCount,
           femaleCount,
+          organizationId: eventData.organizationId as string,
         },
       });
       if (response.status === ResponseStatus.ERROR) {
@@ -239,7 +232,7 @@ const EventContent: React.FC<EventContentProps> = ({
 
                     <Elements
                       stripe={stripePromise}
-                      options={{ clientSecret, appearance }}
+                      options={{ clientSecret, appearance: stripeAppearance }}
                     >
                       <TicketPaymentForm
                         setPaymentSuccess={setPaymentSuccess}

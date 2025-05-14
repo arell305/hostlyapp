@@ -18,8 +18,9 @@ const CheckoutButton: React.FC<CheckoutButtonProps> = ({
         className="w-full"
         onClick={onCheckout}
         disabled={isCheckoutLoading}
+        isLoading={isCheckoutLoading}
       >
-        {isCheckoutLoading ? "Checking Out..." : "Checkout"}
+        Checkout
       </Button>
       <p
         className={`pl-4 text-sm mt-1 ${checkoutError ? "text-red-500" : "text-transparent"}`}

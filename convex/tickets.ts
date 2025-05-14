@@ -44,10 +44,36 @@ export const insertTicketsSold = action({
     email: v.string(),
     maleCount: v.number(),
     femaleCount: v.number(),
+    totalAmount: v.number(),
+    stripePaymentIntentId: v.string(),
+    organizationId: v.id("organizations"),
   },
   handler: async (ctx, args): Promise<InsertTicketSoldResponse> => {
-    const { eventId, promoCode, email, maleCount, femaleCount } = args;
+    const {
+      eventId,
+      promoCode,
+      email,
+      maleCount,
+      femaleCount,
+      totalAmount,
+      stripePaymentIntentId,
+      organizationId,
+    } = args;
     try {
+      const connectedPaymentId = await ctx.runMutation(
+        internal.connectedPayments.insertConnectedPayment,
+        {
+          eventId,
+          stripePaymentIntentId,
+          email,
+          totalAmount,
+          promoCode,
+          maleCount,
+          femaleCount,
+          organizationId,
+        }
+      );
+
       const { event, promoterUserId } = await ctx.runQuery(
         internal.events.getEventsWithTickets,
         {
@@ -65,6 +91,7 @@ export const insertTicketsSold = action({
         startTime: event.startTime,
         endTime: event.endTime,
         address: event.address,
+        connectedPaymentId,
       });
 
       for (let i = 0; i < maleCount; i++) {
@@ -107,7 +134,7 @@ export const insertTicketsSold = action({
       }
 
       await ctx.runAction(api.pdfMonkey.generatePDF, {
-        tickets,
+        tickets: tickets.map(({ connectedPaymentId, ...rest }) => rest),
         email,
       });
 

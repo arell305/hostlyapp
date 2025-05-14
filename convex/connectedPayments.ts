@@ -18,7 +18,6 @@ export const insertConnectedPayment = internalMutation({
     promoCode: v.union(v.string(), v.null()),
     maleCount: v.number(),
     femaleCount: v.number(),
-    status: v.string(),
     organizationId: v.id("organizations"),
   },
   handler: async (ctx, args): Promise<Id<"connectedPayments">> => {
@@ -30,7 +29,6 @@ export const insertConnectedPayment = internalMutation({
       promoCode,
       maleCount,
       femaleCount,
-      status,
       organizationId,
     } = args;
 
@@ -45,7 +43,6 @@ export const insertConnectedPayment = internalMutation({
           promoCode,
           maleCount,
           femaleCount,
-          status,
           organizationId,
         }
       );
@@ -97,12 +94,7 @@ export const getTotalRevenueByOrganization = query({
         from: number,
         to: number
       ) =>
-        entries.filter(
-          (p) =>
-            p.status === "succeeded" &&
-            p._creationTime >= from &&
-            p._creationTime < to
-        );
+        entries.filter((p) => p._creationTime >= from && p._creationTime < to);
 
       const current = filterPayments(payments, fromTimestamp, toTimestamp);
       const previous = filterPayments(payments, prevFrom, prevTo);

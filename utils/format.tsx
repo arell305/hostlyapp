@@ -167,3 +167,10 @@ export function formatPhoneNumber(phone: string): string {
   const line = cleaned.slice(6);
   return `(${area}) ${prefix}-${line}`;
 }
+
+export function formatCurrency(amountInCents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amountInCents / 100);
+}

@@ -96,6 +96,9 @@ export const handlePaymentIntentSucceeded = async (
       email: session.metadata.email,
       maleCount: Number(session.metadata.maleCount) || 0,
       femaleCount: Number(session.metadata.femaleCount) || 0,
+      totalAmount: Number(session.amount) || 0,
+      stripePaymentIntentId: session.id,
+      organizationId: session.metadata.organizationId as Id<"organizations">,
     });
   } catch (error) {
     console.error("Error processing handle payment Intent:", error);

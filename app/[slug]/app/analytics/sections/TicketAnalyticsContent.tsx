@@ -11,6 +11,7 @@ import { DollarSign } from "lucide-react";
 import { Ticket } from "lucide-react";
 import MessageCard from "@/components/shared/cards/MessageCard";
 import HorizontalBarChartContainer from "@/components/shared/analytics/HorizontalBarChartContainer";
+import { formatCurrencyAbbr } from "@/utils/helpers";
 
 interface TicketAnalyticsContentProps {
   revenueData: GetTotalRevenueByOrganizationData;
@@ -34,14 +35,18 @@ const TicketAnalyticsContent = ({
       label: "Total Revenue",
       key: "totalRevenue",
       icon: DollarSign,
-      value: revenueData.totalRevenue.value,
+      value: formatCurrencyAbbr(revenueData.totalRevenue.value, {
+        abbreviated: true,
+      }),
       change: revenueData.totalRevenue.change,
     },
     {
       label: "Revenue / Day",
       key: "avgDailyRevenue",
       icon: DollarSign,
-      value: revenueData.averageDailyRevenue.value,
+      value: formatCurrencyAbbr(revenueData.averageDailyRevenue.value, {
+        abbreviated: true,
+      }),
       change: revenueData.averageDailyRevenue.change,
     },
     {
@@ -116,35 +121,6 @@ const TicketAnalyticsContent = ({
         valueFormatter={(v) => `${v}`}
         emptyDescription="No promoter breakdown data available during this period."
       />
-
-      {/* <BarChartContainer
-        title="Total Revenue"
-        data={data}
-        xKey="date"
-        yKey="amount"
-        barLabel="Revenue"
-        tooltipFormatter={(v) => `$${v.toFixed(2)}`}
-        valueFormatter={(v) => `$${v}`}
-      />
-
-      <BarChartContainer
-        title="Total Revenue By Event"
-        data={data}
-        xKey="date"
-        yKey="amount"
-        barLabel="Revenue"
-        tooltipFormatter={(v) => `$${v.toFixed(2)}`}
-        valueFormatter={(v) => `$${v}`}
-      />
-      <BarChartContainer
-        title="Ticket Sales By Gender"
-        data={data}
-        xKey="date"
-        yKey="amount"
-        barLabel="Revenue"
-        tooltipFormatter={(v) => `$${v.toFixed(2)}`}
-        valueFormatter={(v) => `$${v}`}
-      /> */}
     </SectionContainer>
   );
 };

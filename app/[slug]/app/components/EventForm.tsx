@@ -10,7 +10,6 @@ import {
   TicketFormInput,
 } from "@/types/types";
 import ResponsiveConfirm from "./responsive/ResponsiveConfirm";
-import { isIOS } from "../../../../utils/helpers";
 import {
   convertToPstTimestamp,
   timestampToPstString,
@@ -34,6 +33,7 @@ import EventFormActions from "@/components/shared/buttonContainers/EventFormActi
 import ToggleSectionCard from "@/components/shared/toggle/ToggleSectionCard";
 import { validateEventForm } from "../../../../utils/form-validation/validateEventForm";
 import { Button } from "@/components/ui/button";
+import { isIOS } from "@/utils/helpers";
 
 interface EventFormProps {
   initialEventData?: EventSchema;

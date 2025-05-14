@@ -17,6 +17,7 @@ import { stripePromise } from "../../../../../utils/stripe";
 import { PaymentForm } from "./PaymentForm";
 import { Minus, Plus } from "lucide-react";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
+import { stripeAppearance } from "@/utils/frontend-stripe/stripeAppearance";
 
 interface GuestListCheckoutProps {
   open: boolean;
@@ -110,18 +111,7 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
       stripe={stripePromise}
       options={{
         clientSecret,
-        appearance: {
-          theme: "night", // <--- Dark mode built-in
-          variables: {
-            colorPrimary: "#315DDF", // Optional: Primary brand color (like indigo-600)
-            colorBackground: "#0F0F13", // Optional: Deep dark background
-            colorText: "#F9FAFA", // Optional: Light text
-            fontFamily: "Inter, sans-serif", // Match your app font
-            spacingUnit: "4px", // Smaller spacing
-            borderRadius: "8px", // Rounded inputs
-            colorTextPlaceholder: "#A2A5AD",
-          },
-        },
+        appearance: stripeAppearance,
       }}
     >
       <PaymentForm

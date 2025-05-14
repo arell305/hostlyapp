@@ -106,7 +106,7 @@ export const generatePDF = action({
         },
         body: JSON.stringify({
           document: {
-            document_template_id: "4577D5A9-27B1-416C-82C9-3EC1D4BBE634",
+            document_template_id: "8100AF29-ACA9-4F13-BBD4-2E2555689D54",
             payload: { tickets },
             meta: JSON.stringify({ email }),
             status: "pending",

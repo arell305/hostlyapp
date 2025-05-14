@@ -222,6 +222,7 @@ export default defineSchema({
     gender: v.union(v.literal(Gender.Male), v.literal(Gender.Female)),
     checkInTime: v.optional(v.number()),
     ticketUniqueId: v.string(),
+    connectedPaymentId: v.optional(v.id("connectedPayments")),
   })
     .index("by_eventId", ["eventId"])
     .index("by_ticketUniqueId", ["ticketUniqueId"])
@@ -235,7 +236,6 @@ export default defineSchema({
     promoCode: v.union(v.string(), v.null()),
     maleCount: v.number(),
     femaleCount: v.number(),
-    status: v.string(),
   })
     .index("by_organizationId", ["organizationId"])
     .index("by_eventId", ["eventId"])

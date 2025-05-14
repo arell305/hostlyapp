@@ -3,6 +3,7 @@ import { action } from "./_generated/server";
 import { ErrorMessages, ResponseStatus } from "@/types/enums";
 import { SendContactFormEmailResponse } from "@/types/convex-types";
 import { handleError } from "./backendUtils/helper";
+import { CONTACT_EMAIL } from "@/types/constants";
 
 const apiKey = process.env.SENDGRID_API_KEY;
 if (!apiKey) {
@@ -31,7 +32,7 @@ export const sendTicketEmail = action({
             },
           ],
           from: {
-            email: "david.anuson@gmail.com",
+            email: CONTACT_EMAIL,
             name: "Hostly",
           },
           subject: "Your Tickets",
@@ -51,7 +52,6 @@ export const sendTicketEmail = action({
           ],
         }),
       });
-
       if (!response.ok) {
         throw new Error(`Failed to send email: ${response.statusText}`);
       }

@@ -53,6 +53,7 @@ export interface TicketSchema {
   gender: Gender;
   checkInTime?: number;
   ticketUniqueId: string;
+  connectedPaymentId?: Id<"connectedPayments">;
   _creationTime: number;
 }
 

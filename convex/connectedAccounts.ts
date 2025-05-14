@@ -279,8 +279,6 @@ export const fulfill = internalAction({
       switch (event.type) {
         case "payment_intent.succeeded":
           await handlePaymentIntentSucceeded(ctx, event.data.object);
-          const paymentIntent = event.data.object;
-          console.log("Payment successful:", paymentIntent);
           break;
 
         default:

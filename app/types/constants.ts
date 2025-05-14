@@ -73,6 +73,6 @@ export const GUEST_LIST_CREDIT_PRICE: {
   amountInCents: number;
   creditsPerUnit: number;
 } = {
-  amountInCents: 1000, // $10.00 per credit
+  amountInCents: 2000, // $20.00 per credit
   creditsPerUnit: 1,
 };

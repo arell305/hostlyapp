@@ -73,18 +73,36 @@ export const isValidEmail = (email: string) => {
   return pattern.test(email);
 };
 
-export const formatCurrency = (amount: number): string => {
+export function isIOS(): boolean {
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+  );
+}
+
+export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   }).format(amount);
-};
+}
 
-export const isIOS = (): boolean => {
-  return (
-    /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
-  );
-};
+export function formatCurrencyAbbr(
+  amountInCents: number,
+  { abbreviated = false }: { abbreviated?: boolean } = {}
+): string {
+  const amount = amountInCents / 100;
+
+  if (abbreviated) {
+    if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
+    if (amount >= 1_000) return `$${(amount / 1_000).toFixed(1)}K`;
+    return `$${amount.toFixed(2)}`;
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
+}
 
 export const getTextBeforeComma = (text: string): string => {
   const commaIndex = text.indexOf(",");
