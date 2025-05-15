@@ -17,7 +17,7 @@ const SingleSubmitButton: React.FC<SingleSubmitButtonProps> = ({
   label = "Submit",
 }) => {
   return (
-    <div className="pt-8 my-8">
+    <div className="pt-8 my-8 ">
       <Button onClick={onClick} disabled={disabled}>
         {isLoading ? (
           <div className="flex items-center justify-center space-x-2">

@@ -50,8 +50,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} font-sans`}>
         <Providers>
-          <RouteChangeProgress />
-          {children}
+          <Suspense fallback={null}>
+            <RouteChangeProgress />
+            {children}
+          </Suspense>
         </Providers>
         <Toaster />
       </body>

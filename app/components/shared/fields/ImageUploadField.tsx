@@ -32,7 +32,7 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
         {label}
       </Label>
       <p className="text-sm text-grayText">{note}</p>
-      <div className="flex justify-center">
+      <div className="flex justify-center md:justify-start">
         <div className="relative w-64 h-64 mt-6">
           {imageUrl ? (
             <>
@@ -61,7 +61,7 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
                 onChange={onChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              <div className="w-full h-full border-2 border-dashed  rounded-full flex items-center justify-center transition-colors duration-200 group-hover:bg-cardBackgroundHover">
+              <div className="w-full h-full border-2 border-dashed bg-cardBackground rounded-full flex items-center justify-center transition-colors duration-200 group-hover:bg-cardBackgroundHover">
                 {isUploading ? (
                   <Loading />
                 ) : (

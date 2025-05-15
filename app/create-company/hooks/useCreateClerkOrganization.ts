@@ -51,5 +51,5 @@ export const useCreateClerkOrganization = () => {
     }
   };
 
-  return { createClerkOrganization, isLoading, error };
+  return { createClerkOrganization, isLoading, error, setError };
 };

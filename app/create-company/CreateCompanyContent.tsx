@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useOrganization, UserButton, useUser } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { IoBusinessOutline } from "react-icons/io5";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -8,12 +8,16 @@ import _ from "lodash";
 import { Id } from "../../convex/_generated/dataModel";
 import { useCompressAndUploadImage } from "./hooks/useCompressAndUploadImage";
 import { useCreateClerkOrganization } from "./hooks/useCreateClerkOrganization";
-import type { SignedInSessionResource } from "@clerk/types";
+import type {
+  OrganizationResource,
+  SignedInSessionResource,
+} from "@clerk/types";
 import LabeledInputField from "@/components/shared/fields/LabeledInputField";
 import LabelWrapper from "@/components/shared/fields/LabelWrapper";
 import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
 import ImageUploadField from "@/components/shared/fields/ImageUploadField";
 import { validateCompanyForm } from "../../utils/form-validation/validateCreateCompany";
+import NProgress from "nprogress";
 
 type ErrorState = {
   companyName: string | null;
@@ -24,15 +28,15 @@ type CreateCompanyContentProps = {
   setActive: (active: { session: string; organization: string }) => void;
   session: SignedInSessionResource;
   navigateToApp: (slug: string) => void;
+  organization: OrganizationResource | null;
 };
 
 const CreateCompanyContent = ({
   setActive,
   session,
   navigateToApp,
+  organization,
 }: CreateCompanyContentProps) => {
-  const { user } = useUser();
-  const { organization } = useOrganization();
   const [companyName, setCompanyName] = useState<string>("");
   const [promoDiscountAmount, setPromoDiscountAmount] = useState<string>("");
 
@@ -47,6 +51,7 @@ const CreateCompanyContent = ({
     createClerkOrganization,
     isLoading,
     error: clerkOrganizationError,
+    setError: setClerkOrganizationError,
   } = useCreateClerkOrganization();
   const {
     compressAndUploadImage,
@@ -74,6 +79,11 @@ const CreateCompanyContent = ({
   };
 
   const handleSubmit = async () => {
+    setClerkOrganizationError(null);
+    if (organization) {
+      setClerkOrganizationError("Organization already exists");
+      return;
+    }
     const {
       errors: formErrors,
       isValid,
@@ -95,13 +105,14 @@ const CreateCompanyContent = ({
 
     if (response) {
       const newOrganizationId = response.clerkOrganizationId;
+      NProgress.start();
       setActive({
         session: session.id,
         organization: newOrganizationId,
       });
       setTimeout(() => {
         navigateToApp(response.slug);
-      }, 1000);
+      }, 4000);
     }
   };
   return (
