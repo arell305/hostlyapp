@@ -38,7 +38,6 @@ const CompanyEvents = () => {
   if (publicOrganizationContextError) {
     return <ErrorComponent message={publicOrganizationContextError} />;
   }
-
   if (
     !organizationId ||
     user === undefined ||

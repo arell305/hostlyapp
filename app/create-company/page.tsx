@@ -11,7 +11,7 @@ const CreateCompanyPage = () => {
   const router = useRouter();
 
   const navigateToApp = (slug: string) => {
-    router.push(`/${slug}/app`);
+    router.push(`/redirecting`);
   };
 
   const navigateToHome = () => {

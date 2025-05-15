@@ -55,6 +55,7 @@ export interface TicketSchema {
   ticketUniqueId: string;
   connectedPaymentId?: Id<"connectedPayments">;
   _creationTime: number;
+  organizationId: Id<"organizations">;
 }
 
 export interface CustomerTicket extends TicketSchema {

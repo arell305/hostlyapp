@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { ticketKpis } from "@/types/constants";
 import KpiGrid from "@/components/shared/containers/KpiGrid";
 import KpiCard from "@/components/shared/KpiCard";
 import BarChartContainer from "@/components/shared/analytics/BarChart";
@@ -9,7 +8,6 @@ import SectionContainer from "@/components/shared/containers/SectionContainer";
 import { GetTotalRevenueByOrganizationData } from "@/types/convex-types";
 import { DollarSign } from "lucide-react";
 import { Ticket } from "lucide-react";
-import MessageCard from "@/components/shared/cards/MessageCard";
 import HorizontalBarChartContainer from "@/components/shared/analytics/HorizontalBarChartContainer";
 import { formatCurrencyAbbr } from "@/utils/helpers";
 

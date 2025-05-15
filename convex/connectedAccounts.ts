@@ -28,6 +28,7 @@ import {
 import { stripe } from "./backendUtils/stripe";
 import { requireAuthenticatedUser } from "../utils/auth";
 import {
+  handleConnectedAccountUpdated,
   handlePaymentIntentSucceeded,
   verifyStripeConnectedWebhook,
 } from "./backendUtils/stripeConnect";
@@ -279,6 +280,9 @@ export const fulfill = internalAction({
       switch (event.type) {
         case "payment_intent.succeeded":
           await handlePaymentIntentSucceeded(ctx, event.data.object);
+          break;
+        case "account.updated":
+          await handleConnectedAccountUpdated(ctx, event.data.object);
           break;
 
         default:

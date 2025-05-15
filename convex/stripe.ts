@@ -704,7 +704,9 @@ export const fulfill = internalAction({
   args: { signature: v.string(), payload: v.string() },
   handler: async (ctx, { signature, payload }): Promise<WebhookResponse> => {
     try {
+      console.log("incoming webhook");
       const event = await verifyStripeWebhook(payload, signature);
+      console.log("event", event);
       switch (event.type) {
         case "invoice.payment_succeeded":
           await handleInvoicePaymentSucceeded(ctx, event.data.object);

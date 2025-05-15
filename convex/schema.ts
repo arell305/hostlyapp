@@ -216,6 +216,7 @@ export default defineSchema({
     tickets: v.array(v.id("tickets")),
   }).index("by_ticketInfoId", ["ticketInfoId"]),
   tickets: defineTable({
+    organizationId: v.id("organizations"),
     eventId: v.id("events"),
     promoterUserId: v.union(v.id("users"), v.null()),
     email: v.string(),
@@ -224,6 +225,7 @@ export default defineSchema({
     ticketUniqueId: v.string(),
     connectedPaymentId: v.optional(v.id("connectedPayments")),
   })
+    .index("by_organizationId", ["organizationId"])
     .index("by_eventId", ["eventId"])
     .index("by_ticketUniqueId", ["ticketUniqueId"])
     .index("by_eventId_and_promoterUserId", ["eventId", "promoterUserId"]),

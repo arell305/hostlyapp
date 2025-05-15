@@ -24,7 +24,6 @@ import {
 } from "@/types/convex-types";
 import { nanoid } from "nanoid";
 import { api, internal } from "./_generated/api";
-import { generatePDF } from "../utils/pdf";
 import { requireAuthenticatedUser } from "../utils/auth";
 import {
   validateEvent,
@@ -92,6 +91,7 @@ export const insertTicketsSold = action({
         endTime: event.endTime,
         address: event.address,
         connectedPaymentId,
+        organizationId,
       });
 
       for (let i = 0; i < maleCount; i++) {
@@ -102,6 +102,7 @@ export const insertTicketsSold = action({
           email,
           gender: Gender.Male,
           ticketUniqueId,
+          organizationId,
         };
         const ticketId = await ctx.runMutation(internal.tickets.insertTicket, {
           ticketInput,
@@ -121,6 +122,7 @@ export const insertTicketsSold = action({
           email,
           gender: Gender.Female,
           ticketUniqueId,
+          organizationId,
         };
 
         const ticketId = await ctx.runMutation(internal.tickets.insertTicket, {
@@ -134,7 +136,9 @@ export const insertTicketsSold = action({
       }
 
       await ctx.runAction(api.pdfMonkey.generatePDF, {
-        tickets: tickets.map(({ connectedPaymentId, ...rest }) => rest),
+        tickets: tickets.map(
+          ({ connectedPaymentId, organizationId, ...rest }) => rest
+        ),
         email,
       });
 

@@ -342,6 +342,7 @@ export interface TicketInput {
   email: string;
   gender: Gender;
   ticketUniqueId: string;
+  organizationId: Id<"organizations">;
 }
 
 export interface SubscriptionBillingCycle {

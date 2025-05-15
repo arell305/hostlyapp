@@ -2,8 +2,9 @@ import { ErrorMessages } from "@/types/enums";
 import { stripe } from "./stripe";
 import Stripe from "stripe";
 import { GenericActionCtx } from "convex/server";
-import { api } from "../_generated/api";
+import { api, internal } from "../_generated/api";
 import { Id } from "../_generated/dataModel";
+import { getStripeAccountStatus } from "./stripeWebhooks";
 
 // export async function createStripeConnectedAccount(
 //   email: string,
@@ -132,3 +133,25 @@ export async function createStripeConnectedAccount({
     throw new Error(ErrorMessages.STRIPE_CONNECT_CREATE_ERROR);
   }
 }
+
+export const handleConnectedAccountUpdated = async (
+  ctx: GenericActionCtx<any>,
+  account: Stripe.Account
+) => {
+  try {
+    console.log("handle connected account updated");
+    console.log("account", account);
+    const status = getStripeAccountStatus(account);
+
+    ctx.runMutation(
+      internal.connectedAccounts.updateConnectedAccountByStripeId,
+      {
+        stripeAccountId: account.id,
+        status,
+      }
+    );
+  } catch (error) {
+    console.error("Error handling account.updated event:", error);
+    throw new Error(ErrorMessages.STRIPE_ACCOUNT_UPDATED);
+  }
+};

@@ -162,16 +162,19 @@ export const getTotalRevenueByOrganization = query({
           revenue,
         }));
 
-      const allTickets = await ctx.db.query("tickets").collect();
+      const allTickets = await ctx.db
+        .query("tickets")
+        .withIndex("by_organizationId", (q) =>
+          q.eq("organizationId", organizationId)
+        )
+        .collect();
 
       const filteredTickets = allTickets.filter(
         (t) =>
-          t &&
           t._creationTime >= fromTimestamp &&
           t._creationTime <= toTimestamp &&
           t.promoterUserId !== null
       );
-
       const promoterTicketMap: Record<
         string,
         { male: number; female: number }
