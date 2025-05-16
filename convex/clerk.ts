@@ -53,6 +53,20 @@ import {
   validateUser,
 } from "./backendUtils/validation";
 
+/*
+  Clerk Webhook Event Order (Accepting Organization Invitation):
+
+  1. user.created
+     - Triggered if the invited user did not already have a Clerk account.
+
+  2. organizationInvitation.accepted
+     - Fired when the user accepts the org invite (after signing up or signing in).
+
+  3. user.updated
+     - Fired after the user is linked to the organization and 
+       their organizationMemberships are updated.
+*/
+
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
   handler: async (ctx, args): Promise<WebhookResponse> => {

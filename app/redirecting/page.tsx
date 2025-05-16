@@ -66,7 +66,9 @@ const RedirectingPage = () => {
       if (!organization || organization.id !== orgData.clerkOrganizationId) {
         console.log("setting active org");
         await setActive({ organization: orgData.clerkOrganizationId });
-        window.location.reload();
+        setTimeout(() => {
+          router.refresh(); // or: window.location.reload();
+        }, 1000);
       }
 
       NProgress.start();
