@@ -10,6 +10,7 @@ import { stripePromise } from "../../../../../utils/stripe";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -128,6 +129,9 @@ const PaymentForm: React.FC<ResponsivePaymentProps> = ({
       <DialogContent className="w-[90vw] md:min-w-0 rounded-xl">
         <DialogHeader>
           <DialogTitle className="flex">Update Payment</DialogTitle>
+          <DialogDescription>
+            Update the payment information for your subscription.
+          </DialogDescription>
         </DialogHeader>
         {CardInput}
         <FormActions

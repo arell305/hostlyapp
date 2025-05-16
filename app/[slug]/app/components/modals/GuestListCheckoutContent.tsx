@@ -4,10 +4,17 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Elements } from "@stripe/react-stripe-js";
 import { DESKTOP_WIDTH, GUEST_LIST_CREDIT_PRICE } from "@/types/constants";
 import useMediaQuery from "@/hooks/useMediaQuery";
@@ -132,6 +139,11 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
           <DialogTitle>
             {step === 1 ? "Select Quantity" : "Purchase Guest List Credits"}
           </DialogTitle>
+          <DialogDescription>
+            {step === 1
+              ? "Select the number of guest list credits you want to purchase."
+              : "Enter your payment information to purchase guest list credits."}
+          </DialogDescription>
         </DialogHeader>
         {Content}
       </DialogContent>
@@ -139,11 +151,16 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
   ) : (
     <Drawer open={open} onOpenChange={handleClose}>
       <DrawerContent className="max-w-md mx-auto pb-8">
-        <DialogHeader>
-          <DialogTitle>
+        <DrawerHeader>
+          <DrawerTitle>
             {step === 1 ? "Select Quantity" : "Purchase Guest List Credits"}
-          </DialogTitle>
-        </DialogHeader>
+          </DrawerTitle>
+          <DrawerDescription>
+            {step === 1
+              ? "Select the number of guest list credits you want to purchase."
+              : "Enter your payment information to purchase guest list credits."}
+          </DrawerDescription>
+        </DrawerHeader>
         <div className="px-4">{Content}</div>
       </DrawerContent>
     </Drawer>

@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 
@@ -24,6 +25,7 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ open, onClose }) => {
           <div className="p-6 border-b">
             <DialogHeader>
               <DialogTitle>Privacy Policy</DialogTitle>
+              <DialogDescription>Hostly's Privacy Policy.</DialogDescription>
             </DialogHeader>
           </div>
 

@@ -142,6 +142,7 @@ export async function clerkInviteUserToOrganization(
   email: string,
   role: string
 ): Promise<OrganizationInvitation> {
+  const baseUrl = getBaseUrl();
   try {
     const response = await fetch(
       `https://api.clerk.com/v1/organizations/${clerkOrgId}/invitations`,
@@ -157,6 +158,7 @@ export async function clerkInviteUserToOrganization(
           public_metadata: {
             role,
           },
+          redirect_url: `${baseUrl}/accept-invite`,
         }),
       }
     );

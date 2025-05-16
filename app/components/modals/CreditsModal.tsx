@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 
@@ -23,6 +24,7 @@ const CreditsModal: React.FC<CreditsModalProps> = ({ open, onClose }) => {
           <div className="p-6 border-b">
             <DialogHeader>
               <DialogTitle>Credits</DialogTitle>
+              <DialogDescription>Credits for Hostly.</DialogDescription>
             </DialogHeader>
           </div>
 

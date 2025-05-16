@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 
@@ -31,6 +32,11 @@ const TermsModal: React.FC<TermsModalProps> = ({ open, onClose }) => {
           <div className=" border-b">
             <DialogHeader>
               <DialogTitle>{TITLE}</DialogTitle>
+              <DialogDescription>
+                These Terms and Conditions govern your use of our ticketing
+                platform, including purchasing, selling, and attending events
+                through our services.
+              </DialogDescription>
             </DialogHeader>
           </div>
 

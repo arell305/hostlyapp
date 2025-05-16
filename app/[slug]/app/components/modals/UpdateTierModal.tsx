@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -159,6 +160,9 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
       <DialogContent className="w-[90vw] md:min-w-0 rounded-xl">
         <DialogHeader>
           <DialogTitle className="flex">Update Plan</DialogTitle>
+          <DialogDescription>
+            Update your subscription to a new plan.
+          </DialogDescription>
         </DialogHeader>
         <div className="mb-4">{renderContent()}</div>
         <FormActions

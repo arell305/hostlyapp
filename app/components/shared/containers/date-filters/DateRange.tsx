@@ -3,10 +3,15 @@
 import React, { useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -17,6 +22,7 @@ import useMediaQuery from "@/hooks/useMediaQuery";
 import { getShortWeekdayFormatter } from "../../../../../utils/calendar";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
+import { capitalize } from "lodash";
 
 interface DatePickerProps {
   type: "start" | "end";
@@ -81,7 +87,12 @@ export default function SingleDatePickerModal({
         <Drawer open={modalOpen} onOpenChange={setModalOpen}>
           <DrawerContent className="p-4 flex justify-center items-center mb-4">
             <DrawerHeader>
-              <DrawerTitle className="py-4 ">Select {title}</DrawerTitle>
+              <DrawerTitle className="py-4 ">
+                Select {capitalize(type)} date
+              </DrawerTitle>
+              <DrawerDescription>
+                Select the {capitalize(type)} date.
+              </DrawerDescription>
             </DrawerHeader>
             {calendarUI}
           </DrawerContent>
@@ -89,7 +100,12 @@ export default function SingleDatePickerModal({
       ) : (
         <Dialog open={modalOpen} onOpenChange={setModalOpen}>
           <DialogContent className="p-6 flex justify-center items-center">
-            <DialogTitle className="py-2"> Select {title}</DialogTitle>
+            <DialogTitle className="py-2">
+              Select {capitalize(type)} date
+            </DialogTitle>
+            <DialogDescription>
+              Select the {capitalize(type)} date.{" "}
+            </DialogDescription>
             {calendarUI}
           </DialogContent>
         </Dialog>

@@ -2,8 +2,18 @@ import React, { useEffect, useState } from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { DESKTOP_WIDTH } from "@/types/constants";
 import { changeableRoles, roleMap, UserRole } from "@/types/enums";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { useInviteUser } from "../../team/hooks/useInviteUser";
 import FormContainer from "@/components/shared/containers/FormContainer";
 import LabeledInputField from "@/components/shared/fields/LabeledInputField";
@@ -124,6 +134,9 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogTitle>Invite User</DialogTitle>
+        <DialogDescription>
+          Invite a user to your organization
+        </DialogDescription>
         {formContent}
       </DialogContent>
     </Dialog>
@@ -131,6 +144,9 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
     <Drawer open={isOpen} onOpenChange={handleClose}>
       <DrawerContent className="h-[100svh] flex flex-col overscroll-contain">
         <DrawerTitle>Invite User</DrawerTitle>
+        <DrawerDescription>
+          Invite a user to your organization
+        </DrawerDescription>
         {formContent}
       </DrawerContent>
     </Drawer>

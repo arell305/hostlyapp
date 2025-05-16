@@ -40,9 +40,6 @@ export default clerkMiddleware(
     const userRole = sessionClaims?.userRole;
     const orgId = sessionClaims?.orgId;
 
-    console.log("Resolved orgId:", orgId);
-    console.log("sessionClaims", sessionClaims);
-    console.log("userRole", userRole);
     if (path.startsWith("/favicon_io")) {
       return NextResponse.next();
     }
@@ -59,10 +56,7 @@ export default clerkMiddleware(
     }
 
     if (isHostlyAdminProtected(req)) {
-      console.log("isHostlyAdminProtected");
-      console.log("userRole in protected route", userRole);
       const preventAccess = !isHostlyUser(userRole);
-      console.log("preventAccess", preventAccess);
       if (preventAccess) {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       } else {
@@ -135,9 +129,7 @@ export default clerkMiddleware(
       if (!userId) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
       }
-      console.log("orgId later", orgId);
       if (!orgId) {
-        console.log("orgId not found");
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
       const organization = await convex.query(
