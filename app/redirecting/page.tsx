@@ -74,6 +74,7 @@ const RedirectingPage = () => {
         orgRole === UserRole.Hostly_Admin ||
         orgRole === UserRole.Hostly_Moderator
       ) {
+        console.log("pushing to companies");
         router.push(`/${orgData.slug}/app/companies`);
       } else {
         router.push(`/${orgData.slug}/app`);
