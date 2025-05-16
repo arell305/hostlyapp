@@ -36,8 +36,9 @@ export default clerkMiddleware(
       process.env.NEXT_PUBLIC_CONVEX_URL || ""
     );
 
-    const { userId, sessionClaims, orgId } = await auth();
+    const { userId, sessionClaims } = await auth();
     const userRole = sessionClaims?.userRole;
+    const orgId = sessionClaims?.org_id;
     console.log("sessionClaims", sessionClaims);
     console.log("userRole", userRole);
     if (path.startsWith("/favicon_io")) {
