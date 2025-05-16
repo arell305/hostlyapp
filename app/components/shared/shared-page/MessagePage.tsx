@@ -28,7 +28,7 @@ const MessagePage: React.FC<MessagePageProps> = ({
         description={description}
         buttonLabel={buttonLabel}
         onButtonClick={onButtonClick}
-        className={cardClassName}
+        className={`mx-2 max-w-[700px] w-full ${cardClassName}`}
       />
     </StaticPageContainer>
   );

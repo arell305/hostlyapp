@@ -28,6 +28,7 @@ const RedirectingPage = () => {
       console.log("organizationLoaded", organizationLoaded);
       console.log("organizationResponse", organizationResponse);
       const orgRole = user?.publicMetadata.role as string;
+      console.log("orgRole", orgRole);
       if (!userLoaded || !organizationLoaded) {
         return;
       }
