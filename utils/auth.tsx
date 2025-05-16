@@ -12,6 +12,7 @@ export async function requireAuthenticatedUser(
   }
 
   const userRole = identity.role as UserRole;
+  console.log("userRole in requireAuthenticatedUser", userRole);
 
   if (requiredRoles && !requiredRoles.includes(userRole)) {
     throw new Error(ErrorMessages.FORBIDDEN_PERMISSION);
