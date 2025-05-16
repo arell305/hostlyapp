@@ -9,6 +9,7 @@ import { useQuery } from "convex/react";
 import { ResponseStatus, UserRole } from "@/types/enums";
 import ErrorPage from "@/[slug]/app/components/errors/ErrorPage";
 import NProgress from "nprogress";
+
 const RedirectingPage = () => {
   const router = useRouter();
   const { user, isLoaded: userLoaded } = useUser();
@@ -27,21 +28,15 @@ const RedirectingPage = () => {
       console.log("userLoaded", userLoaded);
       console.log("organizationLoaded", organizationLoaded);
       console.log("organizationResponse", organizationResponse);
-      const orgRole = user?.publicMetadata.role as string;
-      console.log("orgRole", orgRole);
-      if (!userLoaded || !organizationLoaded) {
-        return;
-      }
 
+      if (!userLoaded || !organizationLoaded) return;
       if (!user) {
         NProgress.start();
         router.push("/sign-in");
         return;
       }
 
-      if (!organizationResponse || !setActive) {
-        return;
-      }
+      if (!organizationResponse || !setActive) return;
 
       if (organizationResponse.status === ResponseStatus.ERROR) {
         console.error(organizationResponse.error);
@@ -50,6 +45,7 @@ const RedirectingPage = () => {
       }
 
       const { organization: orgData } = organizationResponse.data;
+      const orgRole = user?.publicMetadata.role as string;
 
       if (!orgData) {
         NProgress.start();
@@ -63,23 +59,25 @@ const RedirectingPage = () => {
         return;
       }
 
+      console.log("Clerk active org ID:", organization?.id);
+      console.log("Target org ID:", orgData.clerkOrganizationId);
+
+      // Ensure the correct organization is active
+      if (!organization || organization.id !== orgData.clerkOrganizationId) {
+        await setActive({ organization: orgData.clerkOrganizationId });
+      }
+
+      NProgress.start();
+
+      // Redirect based on role
       if (
         orgRole === UserRole.Hostly_Admin ||
         orgRole === UserRole.Hostly_Moderator
       ) {
-        router.push(`${orgData.slug}/app/companies`);
-        return;
-      }
-
-      if (organization) {
-        NProgress.start();
+        router.push(`/${orgData.slug}/app/companies`);
+      } else {
         router.push(`/${orgData.slug}/app`);
-        return;
       }
-
-      await setActive({ organization: orgData.clerkOrganizationId });
-      NProgress.start();
-      router.push(`/${orgData.slug}/app`);
     };
 
     redirect();
