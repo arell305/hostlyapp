@@ -77,11 +77,7 @@ export default clerkMiddleware(
     }
 
     if (path === "/") {
-      if (userId && !orgId) {
-        return NextResponse.redirect(new URL("/create-company", req.url));
-      }
-
-      if (userId && orgId) {
+      if (userId) {
         return NextResponse.redirect(new URL("/redirecting", req.url));
 
         // console.log("middlware orgId", orgId);
