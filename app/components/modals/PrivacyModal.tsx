@@ -25,7 +25,9 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ open, onClose }) => {
           <div className="p-6 border-b">
             <DialogHeader>
               <DialogTitle>Privacy Policy</DialogTitle>
-              <DialogDescription>Hostly's Privacy Policy.</DialogDescription>
+              <DialogDescription>
+                Hostly&apos;s Privacy Policy.
+              </DialogDescription>
             </DialogHeader>
           </div>
 
