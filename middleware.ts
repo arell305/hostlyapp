@@ -132,7 +132,7 @@ export default clerkMiddleware(
       if (!userId) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
       }
-
+      console.log("orgId", orgId);
       if (!orgId) {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
@@ -182,7 +182,7 @@ export default clerkMiddleware(
       if (organization.slug === slug) {
         return NextResponse.next();
       }
-
+      console.log("userSchema.role", userSchema.role);
       if (
         userSchema.role === UserRole.Hostly_Admin ||
         userSchema.role === UserRole.Hostly_Moderator
