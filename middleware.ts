@@ -38,7 +38,9 @@ export default clerkMiddleware(
 
     const { userId, sessionClaims } = await auth();
     const userRole = sessionClaims?.userRole;
-    const orgId = sessionClaims?.org_id;
+    const orgId = sessionClaims?.orgId;
+
+    console.log("Resolved orgId:", orgId);
     console.log("sessionClaims", sessionClaims);
     console.log("userRole", userRole);
     if (path.startsWith("/favicon_io")) {
@@ -133,8 +135,9 @@ export default clerkMiddleware(
       if (!userId) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
       }
-      console.log("orgId", orgId);
+      console.log("orgId later", orgId);
       if (!orgId) {
+        console.log("orgId not found");
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
       const organization = await convex.query(
