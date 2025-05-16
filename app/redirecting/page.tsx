@@ -64,7 +64,9 @@ const RedirectingPage = () => {
 
       // Ensure the correct organization is active
       if (!organization || organization.id !== orgData.clerkOrganizationId) {
+        console.log("setting active org");
         await setActive({ organization: orgData.clerkOrganizationId });
+        window.location.reload();
       }
 
       NProgress.start();
@@ -74,7 +76,6 @@ const RedirectingPage = () => {
         orgRole === UserRole.Hostly_Admin ||
         orgRole === UserRole.Hostly_Moderator
       ) {
-        console.log("pushing to companies");
         router.push(`/${orgData.slug}/app/companies`);
       } else {
         router.push(`/${orgData.slug}/app`);
