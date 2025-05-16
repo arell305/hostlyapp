@@ -5,6 +5,7 @@ if (!process.env.CLERK_ISSUER_DOMAIN) {
 export default {
   providers: [
     {
+      provider: "clerk",
       domain: process.env.CLERK_ISSUER_DOMAIN,
       applicationID: "convex",
     },
