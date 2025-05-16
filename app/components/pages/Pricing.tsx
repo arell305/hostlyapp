@@ -103,7 +103,7 @@ const Pricing = () => {
             </ul>
             <button
               onClick={handleClick}
-              className="mt-auto bg-primaryBlue text-white px-6 py-2 rounded-[20px] font-semibold hover:bg-black transition"
+              className="mt-auto bg-primaryBlue text-white px-6 py-2 rounded-[20px] font-semibold hover:bg-primaryBlue/80 transition"
             >
               Get Started
             </button>
