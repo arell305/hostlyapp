@@ -53,11 +53,11 @@ const RedirectingPage = () => {
         return;
       }
 
-      if (!orgData.isActive) {
-        NProgress.start();
-        router.push("/unauthorized");
-        return;
-      }
+      // if (!orgData.isActive) {
+      //   NProgress.start();
+      //   router.push("/unauthorized");
+      //   return;
+      // }
 
       console.log("Clerk active org ID:", organization?.id);
       console.log("Target org ID:", orgData.clerkOrganizationId);
