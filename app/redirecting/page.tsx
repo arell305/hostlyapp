@@ -16,6 +16,7 @@ const RedirectingPage = () => {
   const { setActive } = useOrganizationList();
   const { organization, isLoaded: organizationLoaded } = useOrganization();
   const [error, setError] = useState(false);
+  const [hasSetActive, setHasSetActive] = useState(false);
 
   const organizationResponse = useQuery(
     api.organizations.getOrganizationByClerkUserId,
@@ -24,12 +25,8 @@ const RedirectingPage = () => {
 
   useEffect(() => {
     const redirect = async () => {
-      console.log("user", user);
-      console.log("userLoaded", userLoaded);
-      console.log("organizationLoaded", organizationLoaded);
-      console.log("organizationResponse", organizationResponse);
-
       if (!userLoaded || !organizationLoaded) return;
+
       if (!user) {
         NProgress.start();
         router.push("/sign-in");
@@ -47,33 +44,29 @@ const RedirectingPage = () => {
       const { organization: orgData } = organizationResponse.data;
       const orgRole = user?.publicMetadata.role as string;
 
+      if (!orgData && !organization) {
+        return;
+      }
+
       if (!orgData) {
         NProgress.start();
         router.push("/create-company");
         return;
       }
 
-      // if (!orgData.isActive) {
-      //   NProgress.start();
-      //   router.push("/unauthorized");
-      //   return;
-      // }
-
-      console.log("Clerk active org ID:", organization?.id);
-      console.log("Target org ID:", orgData.clerkOrganizationId);
-
-      // Ensure the correct organization is active
       if (!organization || organization.id !== orgData.clerkOrganizationId) {
-        console.log("setting active org");
-        await setActive({ organization: orgData.clerkOrganizationId });
-        setTimeout(() => {
-          router.refresh(); // or: window.location.reload();
-        }, 1000);
+        if (!hasSetActive) {
+          setHasSetActive(true);
+          await setActive({ organization: orgData.clerkOrganizationId });
+          setTimeout(() => {
+            router.refresh(); // or window.location.reload();
+          }, 500);
+        }
+        return;
       }
 
       NProgress.start();
 
-      // Redirect based on role
       if (
         orgRole === UserRole.Hostly_Admin ||
         orgRole === UserRole.Hostly_Moderator
@@ -93,6 +86,7 @@ const RedirectingPage = () => {
     setActive,
     organization,
     router,
+    hasSetActive,
   ]);
 
   if (error) {

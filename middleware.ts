@@ -178,7 +178,6 @@ export default clerkMiddleware(
       if (organization.slug === slug) {
         return NextResponse.next();
       }
-      console.log("userSchema.role", userSchema.role);
       if (
         userSchema.role === UserRole.Hostly_Admin ||
         userSchema.role === UserRole.Hostly_Moderator
