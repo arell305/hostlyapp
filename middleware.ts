@@ -62,6 +62,8 @@ export default clerkMiddleware(
       console.log("preventAccess", preventAccess);
       if (preventAccess) {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
+      } else {
+        return NextResponse.next();
       }
     }
 
