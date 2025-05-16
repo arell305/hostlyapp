@@ -56,7 +56,10 @@ export default clerkMiddleware(
     }
 
     if (isHostlyAdminProtected(req)) {
+      console.log("isHostlyAdminProtected");
+      console.log("userRole in protected route", userRole);
       const preventAccess = !isHostlyUser(userRole);
+      console.log("preventAccess", preventAccess);
       if (preventAccess) {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
