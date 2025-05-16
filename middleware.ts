@@ -38,7 +38,8 @@ export default clerkMiddleware(
 
     const { userId, sessionClaims, orgId } = await auth();
     const userRole = sessionClaims?.userRole;
-
+    console.log("sessionClaims", sessionClaims);
+    console.log("userRole", userRole);
     if (path.startsWith("/favicon_io")) {
       return NextResponse.next();
     }
