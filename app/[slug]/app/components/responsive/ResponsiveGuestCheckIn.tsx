@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import useMediaQuery from "@/hooks/useMediaQuery";
-import { GuestCheckIn } from "@/types/types";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";

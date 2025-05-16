@@ -82,16 +82,9 @@ const EditingUserModal: React.FC<EditingUserModalProps> = ({
           <Button
             className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
             onClick={onSaveRole}
-            disabled={isLoading}
+            isLoading={isLoading}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Updating...
-              </>
-            ) : (
-              "Update"
-            )}
+            Update
           </Button>
         </DialogFooter>
       </DialogContent>

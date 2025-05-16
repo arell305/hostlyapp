@@ -108,15 +108,9 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
               className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
               onClick={handleSave}
               disabled={isLoading}
+              isLoading={isLoading}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save"
-              )}
+              Save
             </Button>
           </div>
         </DialogContent>
@@ -168,15 +162,9 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
               className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
               onClick={handleSave}
               disabled={isLoading}
+              isLoading={isLoading}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save"
-              )}
+              Save
             </Button>
           </div>
         </div>

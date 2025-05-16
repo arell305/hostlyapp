@@ -8,7 +8,6 @@ import CustomCard from "@/components/shared/cards/CustomCard";
 import NavButtonsContainer from "@/components/shared/containers/NavButtonsContainer";
 import StaticField from "@/components/shared/fields/StaticField";
 import EditableSelectField from "@/components/shared/editable/EditableSelectField";
-import EditToggleButton from "@/components/shared/buttonContainers/EditToggleButton";
 import ButtonEndContainer from "@/components/shared/buttonContainers/ButtonEndContainer";
 import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
 import ProfileHeader from "@/components/shared/headings/ProfileHeader";

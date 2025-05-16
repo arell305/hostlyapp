@@ -68,17 +68,9 @@ const EditPromoDiscountModal: React.FC<EditPromoDiscountModalProps> = ({
           <Button
             className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
             onClick={onUpdatePromoDiscount}
-            disabled={isLoading}
+            isLoading={isLoading}
           >
-            {" "}
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save"
-            )}
+            Save
           </Button>
         </div>
       </DialogContent>

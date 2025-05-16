@@ -29,7 +29,6 @@ import { Button } from "@/components/ui/button";
 import { TicketSoldCounts } from "@/types/types";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import EmptyList from "@/components/shared/EmptyList";
-import type { Appearance } from "@stripe/stripe-js";
 import { stripeAppearance } from "@/utils/frontend-stripe/stripeAppearance";
 
 interface EventContentProps {

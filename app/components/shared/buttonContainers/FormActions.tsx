@@ -46,15 +46,9 @@ const FormActions: React.FC<FormActionsProps> = ({
           onClick={onSubmit}
           disabled={isSubmitDisabled || isLoading}
           size="modal"
+          isLoading={isLoading}
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="animate-spin h-4 w-4 mr-2" />
-              {loadingText}...
-            </>
-          ) : (
-            submitText
-          )}
+          {submitText}
         </Button>
       </div>
       <p

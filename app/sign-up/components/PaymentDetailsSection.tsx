@@ -56,7 +56,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
     <>
       <Label>Card Details</Label>
       <div
-        className={`p-2 border mb-6 mt-1 text-white ${
+        className={`p-2 border mb-6 mt-1 text-white rounded-md ${
           cardError ? "border-red-500" : focused ? "border-primaryBlue" : ""
         }`}
       >

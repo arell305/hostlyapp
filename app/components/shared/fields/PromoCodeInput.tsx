@@ -41,8 +41,9 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
           type="button"
           className="ml-4 bg-cardBackgroundHover"
           disabled={isLoading || disabled}
+          isLoading={isLoading}
         >
-          {isLoading ? "Applying..." : "Apply"}
+          Apply
         </Button>
       </div>
       {error && <p className="text-red-600 text-sm mt-1">{error}</p>}

@@ -84,7 +84,7 @@ const BarChartContainer = <T extends Record<string, any>>({
           <XAxis
             dataKey={xKey as string}
             tick={{ fontSize: 12, fill: "#f3f4f6" }}
-            interval={0}
+            interval="preserveStartEnd"
             minTickGap={0}
           />
           <YAxis

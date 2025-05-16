@@ -65,8 +65,9 @@ const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({
         type="submit"
         disabled={isProcessing || !stripe}
         className="mt-8 mb-4"
+        isLoading={isProcessing}
       >
-        {isProcessing ? "Processing..." : "Pay Now"}
+        Pay Now
       </Button>
       {errorMessage && <div className="text-red-500">{errorMessage}</div>}
     </form>

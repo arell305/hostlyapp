@@ -1,10 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  ConnectAccountOnboarding,
-  ConnectComponentsProvider,
-} from "@stripe/react-connect-js";
 import { StripeAccountStatus } from "@/types/enums";
 import { ConnectedAccountsSchema } from "@/types/schemas-types";
 import { useShowOnboardingLink } from "./hooks/useShowOnboardingLink";
@@ -57,12 +52,20 @@ const StripeContent = ({
         title="Stripe"
         actions={
           showOnboardingLink ? (
-            <Button size="nav" onClick={handleOnboardingClick}>
-              {onboardingLoading ? "Loading..." : "Onboard"}
+            <Button
+              size="nav"
+              onClick={handleOnboardingClick}
+              isLoading={onboardingLoading}
+            >
+              Onboard
             </Button>
           ) : (
-            <Button size="nav" onClick={handleDashboardClick}>
-              {dashboardLoading ? "Loading..." : "Open Stripe"}
+            <Button
+              size="nav"
+              onClick={handleDashboardClick}
+              isLoading={dashboardLoading}
+            >
+              Open Stripe{" "}
             </Button>
           )
         }

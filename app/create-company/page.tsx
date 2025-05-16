@@ -22,17 +22,6 @@ const CreateCompanyPage = () => {
     return <FullLoading />;
   }
 
-  if (organization) {
-    return (
-      <MessagePage
-        title="Organization already created"
-        description="Please go to the home page to continue"
-        buttonLabel="Home"
-        onButtonClick={navigateToHome}
-      />
-    );
-  }
-
   if (!session) {
     return (
       <MessagePage

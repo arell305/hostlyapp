@@ -42,16 +42,12 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
           error={promoCodeError}
         />
         <Button
-          disabled={isApplyPromoCodeLoading || isPromoApplied}
           variant="secondary"
           className={`w-1/4 rounded-lg h-9 text-base underline `}
           onClick={onApplyPromo}
+          isLoading={isApplyPromoCodeLoading}
         >
-          {isPromoApplied
-            ? "Applied ✓"
-            : isApplyPromoCodeLoading
-              ? "Applying..."
-              : "Apply"}
+          {isPromoApplied ? "Applied ✓" : "Apply"}
         </Button>
       </div>
 

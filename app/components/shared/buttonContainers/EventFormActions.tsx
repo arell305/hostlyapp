@@ -51,17 +51,9 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
           size={isEdit ? "tripleButtons" : "doubelButtons"}
           variant="default"
           className="w-full md:w-[200px]"
+          isLoading={isLoading || isUpdateLoading}
         >
-          {isLoading || isUpdateLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : isEdit ? (
-            "Update Event"
-          ) : (
-            "Create"
-          )}
+          {isEdit ? "Update Event" : "Create"}
         </Button>
 
         {/* Delete Button */}
@@ -73,9 +65,9 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
               size="tripleButtons"
               variant="secondary"
               className="w-full border-red-700 text-red-700"
-              disabled={isDeleteLoading}
+              isLoading={isDeleteLoading}
             >
-              {isDeleteLoading ? "Deleting..." : "Delete Event"}
+              Delete Event
             </Button>
             {deleteError && (
               <p className="text-red-500 text-sm mt-1">{deleteError}</p>

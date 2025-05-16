@@ -118,8 +118,8 @@ const ReactivateForm: React.FC<ReactivateFormProps> = ({ user }) => {
         <CardElement options={{ style: { base: { fontSize: "16px" } } }} />
         {cardError && <p className="text-red-500">{cardError}</p>}
         {error && <p className="text-red-500">{error}</p>}
-        <Button type="submit" disabled={loading}>
-          {loading ? "Processing..." : "Subscribe"}
+        <Button type="submit" isLoading={loading}>
+          Subscribe
         </Button>
       </form>
     </main>

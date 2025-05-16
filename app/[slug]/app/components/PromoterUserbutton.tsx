@@ -1,4 +1,3 @@
-// components/PromoterUserButton.tsx
 import React, { useState, useCallback, useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { FaEdit } from "react-icons/fa";

@@ -73,17 +73,9 @@ const TeamNameDrawer: React.FC<TeamNameDrawerProps> = ({
               onClick={onUpdateTeamName}
               disabled={isLoading}
               asChild
+              isLoading={isLoading}
             >
-              <span>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save"
-                )}
-              </span>
+              Save
             </Button>
           </div>
         </DrawerFooter>

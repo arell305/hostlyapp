@@ -111,7 +111,7 @@ const CreateCompanyContent = ({
         organization: newOrganizationId,
       });
       setTimeout(() => {
-        navigateToApp(response.slug);
+        window.location.href = `/redirecting`;
       }, 4000);
     }
   };

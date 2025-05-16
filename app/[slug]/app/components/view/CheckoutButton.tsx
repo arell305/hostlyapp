@@ -17,7 +17,6 @@ const CheckoutButton: React.FC<CheckoutButtonProps> = ({
       <Button
         className="w-full"
         onClick={onCheckout}
-        disabled={isCheckoutLoading}
         isLoading={isCheckoutLoading}
       >
         Checkout
