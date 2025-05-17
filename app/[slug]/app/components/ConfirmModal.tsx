@@ -44,7 +44,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[90vw] md:min-w-0 rounded-xl">
-        <DialogHeader>
+        <DialogHeader className="mb-6">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{message}</DialogDescription>
         </DialogHeader>

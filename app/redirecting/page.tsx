@@ -53,14 +53,16 @@ const RedirectingPage = () => {
       const { organization: orgData } = organizationResponse.data;
       const orgRole = user?.publicMetadata.role as string;
 
-      if (!orgData && pollCount < 4) {
+      if (!orgData && pollCount < 6) {
         setTimeout(() => setPollCount((c) => c + 1), 500);
         return;
       }
 
       if (!orgData) {
-        NProgress.start();
-        router.push("/create-company");
+        if (orgRole === UserRole.Hostly_Admin) {
+          NProgress.start();
+          router.push("/create-company");
+        }
         return;
       }
 
