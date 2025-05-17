@@ -9,14 +9,14 @@ interface EventListProps {
   events: EventSchema[];
   emptyText?: string;
   className?: string;
-  handleEventClick: (eventId: string) => void;
+  pathname: string;
 }
 
 const EventList: React.FC<EventListProps> = ({
   events,
   emptyText = "No events for the selected date.",
   className = "",
-  handleEventClick,
+  pathname,
 }) => {
   if (events.length === 0) {
     return <EmptyList message={emptyText} />;
@@ -27,11 +27,7 @@ const EventList: React.FC<EventListProps> = ({
       className={`py-2 flex flex-wrap justify-center gap-x-4 gap-y-3 px-4 ${className}`}
     >
       {events.map((event) => (
-        <EventItem
-          key={event._id}
-          event={event}
-          handleEventClick={handleEventClick}
-        />
+        <EventItem key={event._id} event={event} pathname={pathname} />
       ))}
     </div>
   );

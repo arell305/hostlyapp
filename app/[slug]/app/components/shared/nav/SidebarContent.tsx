@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   Calendar,
   Users,
@@ -11,7 +10,6 @@ import {
   Banknote,
   Building,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   isAdmin,
   isAdminOrHostlyAdmin,
@@ -20,8 +18,9 @@ import {
   isManager,
 } from "../../../../../../utils/permissions";
 import Logo from "@/components/shared/Logo";
-import NProgress from "nprogress";
 import _ from "lodash";
+import NavLink from "./NavLink";
+
 type SidebarContentProps = {
   onNavigate?: () => void;
   slug: string;
@@ -29,14 +28,6 @@ type SidebarContentProps = {
 };
 
 const SidebarContent = ({ onNavigate, slug, orgRole }: SidebarContentProps) => {
-  const router = useRouter();
-
-  const handleNavigate = async (path: string) => {
-    NProgress.start();
-    router.push(path);
-    onNavigate?.();
-  };
-
   const isAdminButton = isAdmin(orgRole);
   const isManagerButton = isManager(orgRole);
   const isAdminOrHostlyAdminButton = isAdminOrHostlyAdmin(orgRole);
@@ -56,26 +47,18 @@ const SidebarContent = ({ onNavigate, slug, orgRole }: SidebarContentProps) => {
         {/* Only for hostly users */}
         {isHostlyUserButton && (
           <div className="border-b-2">
-            <Button
-              variant="sidebar"
-              size="sidebar"
-              onClick={() => handleNavigate(`/${slug}/app/companies`)}
-            >
+            <NavLink href={`/${slug}/app/companies`} onNavigate={onNavigate}>
               <Building size={20} />
               Companies
-            </Button>
-            <Button
-              variant="sidebar"
-              size="sidebar"
-              onClick={() => handleNavigate(`/${slug}/app/team`)}
-            >
+            </NavLink>
+
+            <NavLink href={`/${slug}/app/team`} onNavigate={onNavigate}>
               <Users size={20} />
               Admin Members
-            </Button>
+            </NavLink>
           </div>
         )}
 
-        {/* All other role-based buttons unless hidden */}
         {!shouldHideMainButtons && (
           <>
             {isHostlyUserButton && (
@@ -83,73 +66,54 @@ const SidebarContent = ({ onNavigate, slug, orgRole }: SidebarContentProps) => {
                 {_.toUpper(slug)}
               </p>
             )}
-            <Button
-              variant="sidebar"
-              size="sidebar"
-              onClick={() => handleNavigate(`/${slug}/app`)}
-            >
+
+            <NavLink href={`/${slug}/app`} onNavigate={onNavigate}>
               <Home size={20} />
               Home
-            </Button>
-            <Button
-              variant="sidebar"
-              size="sidebar"
-              onClick={() => handleNavigate(`/${slug}`)}
-            >
+            </NavLink>
+
+            <NavLink href={`/${slug}`} onNavigate={onNavigate}>
               <Calendar size={20} />
               Customer Calendar
-            </Button>
-            <Button
-              variant="sidebar"
-              size="sidebar"
-              onClick={() => handleNavigate(`/${slug}/app/team`)}
-            >
+            </NavLink>
+
+            <NavLink href={`/${slug}/app/team`} onNavigate={onNavigate}>
               <Users size={20} />
               Team Members
-            </Button>
+            </NavLink>
 
             {isAnalyticsUserButton && (
-              <Button
-                variant="sidebar"
-                size="sidebar"
-                onClick={() => handleNavigate(`/${slug}/app/analytics`)}
-              >
+              <NavLink href={`/${slug}/app/analytics`} onNavigate={onNavigate}>
                 <BarChart size={20} />
                 Analytics
-              </Button>
+              </NavLink>
             )}
 
             {isManagerButton && (
-              <Button
-                variant="sidebar"
-                size="sidebar"
-                onClick={() => handleNavigate(`/${slug}/app/company-settings`)}
+              <NavLink
+                href={`/${slug}/app/company-settings`}
+                onNavigate={onNavigate}
               >
                 <Settings size={20} />
                 Company Settings
-              </Button>
+              </NavLink>
             )}
 
             {isAdminButton && (
-              <Button
-                variant="sidebar"
-                size="sidebar"
-                onClick={() => handleNavigate(`/${slug}/app/stripe`)}
-              >
+              <NavLink href={`/${slug}/app/stripe`} onNavigate={onNavigate}>
                 <Banknote size={20} />
                 Stripe
-              </Button>
+              </NavLink>
             )}
 
             {isAdminOrHostlyAdminButton && (
-              <Button
-                variant="sidebar"
-                size="sidebar"
-                onClick={() => handleNavigate(`/${slug}/app/subscription`)}
+              <NavLink
+                href={`/${slug}/app/subscription`}
+                onNavigate={onNavigate}
               >
                 <CreditCard size={20} />
                 Subscription
-              </Button>
+              </NavLink>
             )}
           </>
         )}

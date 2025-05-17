@@ -4,7 +4,7 @@ import "react-calendar/dist/Calendar.css";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getCurrentDate } from "../../../utils/luxon";
-import { EventSchema, SubscriptionSchema } from "@/types/schemas-types";
+import { EventSchema } from "@/types/schemas-types";
 import { Notification } from "./components/ui/Notification";
 import FullLoading from "./components/loading/FullLoading";
 import ErrorComponent from "./components/errors/ErrorComponent";
@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import { Plus } from "lucide-react";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
+import Link from "next/link";
+import NProgress from "nprogress";
 
 const today = getCurrentDate();
 
@@ -31,16 +33,14 @@ interface HomeContentProps {
   organization: OrganizationSchema;
   canCreateEvents: boolean;
   showStripeNotification: boolean;
-  handleAddEventClick: () => void;
-  handleEventClick: (eventId: string) => void;
+  pathname: string;
 }
 
 const HomeContent: React.FC<HomeContentProps> = ({
   organization,
   canCreateEvents,
   showStripeNotification,
-  handleAddEventClick,
-  handleEventClick,
+  pathname,
 }) => {
   const [date, setDate] = useState(() => today);
   const [isWeekView, setIsWeekView] = useState(true);
@@ -95,10 +95,15 @@ const HomeContent: React.FC<HomeContentProps> = ({
         title="My Events"
         actions={
           canCreateEvents && (
-            <Button onClick={handleAddEventClick} size="heading">
-              <Plus size={20} />
-              <span>Add Event</span>
-            </Button>
+            <Link
+              href={`${pathname}/add-event`}
+              onClick={() => NProgress.start()}
+            >
+              <Button size="heading">
+                <Plus size={20} />
+                <span>Add Event</span>
+              </Button>
+            </Link>
           )
         }
       />
@@ -130,7 +135,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
       <SelectedDateEvents
         date={date}
         events={selectedEvents}
-        handleEventClick={handleEventClick}
+        pathname={pathname}
       />
     </SectionContainer>
   );

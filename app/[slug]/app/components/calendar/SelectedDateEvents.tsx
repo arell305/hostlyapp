@@ -6,13 +6,13 @@ import EventList from "../events/EventList";
 interface SelectedDateEventsProps {
   date: Date;
   events: EventSchema[];
-  handleEventClick: (eventId: string) => void;
+  pathname: string;
 }
 
 const SelectedDateEvents: React.FC<SelectedDateEventsProps> = ({
   date,
   events,
-  handleEventClick,
+  pathname,
 }) => {
   return (
     <div className="mt-1 mb-5">
@@ -24,7 +24,7 @@ const SelectedDateEvents: React.FC<SelectedDateEventsProps> = ({
           events={events}
           emptyText="No upcoming events found."
           className=""
-          handleEventClick={handleEventClick}
+          pathname={pathname}
         />
       </div>
     </div>
