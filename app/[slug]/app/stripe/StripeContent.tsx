@@ -27,7 +27,7 @@ const StripeContent = ({
   const handleOnboardingClick = async () => {
     const url = await getOnboardingLink();
     if (url) {
-      window.open(url, "_blank");
+      window.location.href = url;
     }
   };
 
@@ -35,7 +35,7 @@ const StripeContent = ({
     const url = await getDashboardLink();
 
     if (url) {
-      window.open(url, "_blank");
+      window.location.href = url;
     }
   };
 
