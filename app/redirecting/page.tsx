@@ -59,7 +59,7 @@ const RedirectingPage = () => {
       }
 
       if (!orgData) {
-        if (orgRole === UserRole.Hostly_Admin) {
+        if (orgRole === UserRole.Admin) {
           NProgress.start();
           router.push("/create-company");
         }
