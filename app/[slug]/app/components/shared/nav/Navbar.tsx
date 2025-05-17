@@ -37,7 +37,7 @@ const Navbar = ({
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full h-14 bg-cardBackground flex items-center justify-between px-4 z-40 shadow-md border-b transition-transform duration-300 ${
+      className={`fixed top-0 left-0 w-full h-14 md:h-16 bg-cardBackground flex items-center justify-between px-4 z-40 shadow-md border-b transition-transform duration-300 ${
         showNavbar ? "translate-y-0" : "-translate-y-full"
       }`}
     >

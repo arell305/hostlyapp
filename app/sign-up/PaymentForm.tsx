@@ -20,6 +20,7 @@ import {
   getCardPaymentMethod,
 } from "../../utils/frontend-stripe/stripeHelpers";
 import NProgress from "nprogress";
+import { StripeCardElementChangeEvent } from "@stripe/stripe-js";
 
 const PaymentForm = () => {
   const stripe = useStripe();
@@ -42,6 +43,7 @@ const PaymentForm = () => {
     null
   );
   const [canMakePayment, setCanMakePayment] = useState<boolean>(false);
+  const [isCardComplete, setIsCardComplete] = useState<boolean>(false);
   const [promoState, setPromoState] = useState({
     discount: 0,
     promoCode: "",
@@ -72,6 +74,11 @@ const PaymentForm = () => {
     } else {
       setPromoCodeError("Invalid promo code.");
     }
+  };
+
+  const handleCardChange = (event: StripeCardElementChangeEvent) => {
+    setIsCardComplete(event.complete);
+    setCardError(!!event.error);
   };
 
   useEffect(() => {
@@ -159,6 +166,7 @@ const PaymentForm = () => {
         setError("Failed to create subscription. Please try again.");
       }
     } catch (err: any) {
+      setIsLoading(true);
       setError(err.message);
     }
   };
@@ -219,10 +227,12 @@ const PaymentForm = () => {
           focused={focused}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          onCardChange={(e) => setCardError(!!e.error)}
+          onCardChange={handleCardChange}
           onApplePayClick={() => paymentRequest?.show()}
           paymentRequest={paymentRequest}
           handleSubmit={handleSubmit}
+          isCardComplete={isCardComplete}
+          email={email}
         />
       </form>
     </main>

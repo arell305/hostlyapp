@@ -17,6 +17,8 @@ interface PaymentDetailsSectionProps {
   onApplePayClick: () => void;
   paymentRequest: PaymentRequest | null;
   handleSubmit: (e: React.FormEvent) => void;
+  isCardComplete: boolean;
+  email: string;
 }
 
 const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
@@ -32,6 +34,8 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
   onApplePayClick,
   paymentRequest,
   handleSubmit,
+  isCardComplete,
+  email,
 }) => {
   if (method === "apple") {
     return (
@@ -81,7 +85,9 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
         isLoading={isLoading}
         error={error}
         onClick={handleSubmit}
-        disabled={!stripeReady || isLoading}
+        disabled={
+          !stripeReady || isLoading || !isCardComplete || email.trim() === ""
+        }
         label="Subscribe"
       />
     </>
