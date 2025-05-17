@@ -25,6 +25,14 @@ const RedirectingPage = () => {
 
   useEffect(() => {
     const redirect = async () => {
+      console.log("user", user);
+      console.log("userLoaded", userLoaded);
+      console.log("organizationLoaded", organizationLoaded);
+      console.log("organizationResponse", organizationResponse);
+      console.log("setActive", setActive);
+      console.log("organization", organization);
+      console.log("hasSetActive", hasSetActive);
+
       if (!userLoaded || !organizationLoaded) return;
 
       if (!user) {
@@ -43,10 +51,6 @@ const RedirectingPage = () => {
 
       const { organization: orgData } = organizationResponse.data;
       const orgRole = user?.publicMetadata.role as string;
-
-      if (!orgData && !organization) {
-        return;
-      }
 
       if (!orgData) {
         NProgress.start();
