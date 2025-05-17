@@ -15,8 +15,9 @@ const RedirectingPage = () => {
   const { user, isLoaded: userLoaded } = useUser();
   const { setActive } = useOrganizationList();
   const { organization, isLoaded: organizationLoaded } = useOrganization();
-  const [error, setError] = useState(false);
-  const [hasSetActive, setHasSetActive] = useState(false);
+  const [error, setError] = useState<boolean>(false);
+  const [hasSetActive, setHasSetActive] = useState<boolean>(false);
+  const [pollCount, setPollCount] = useState<number>(0);
 
   const organizationResponse = useQuery(
     api.organizations.getOrganizationByClerkUserId,
@@ -51,6 +52,11 @@ const RedirectingPage = () => {
 
       const { organization: orgData } = organizationResponse.data;
       const orgRole = user?.publicMetadata.role as string;
+
+      if (!orgData && pollCount < 4) {
+        setTimeout(() => setPollCount((c) => c + 1), 500);
+        return;
+      }
 
       if (!orgData) {
         NProgress.start();
