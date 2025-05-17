@@ -97,6 +97,7 @@ const RedirectingPage = () => {
     organization,
     router,
     hasSetActive,
+    pollCount,
   ]);
 
   if (error) {
