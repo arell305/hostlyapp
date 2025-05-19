@@ -10,42 +10,46 @@ import { ResponseStatus, UserRole } from "@/types/enums";
 import ErrorPage from "@/[slug]/app/components/errors/ErrorPage";
 import NProgress from "nprogress";
 
+const MAX_POLLS = 6;
+const POLL_INTERVAL = 500; // ms
+const MAX_WAIT_TIME = 10000; // 10 seconds
+
 const RedirectingPage = () => {
   const router = useRouter();
   const { user, isLoaded: userLoaded } = useUser();
   const { setActive } = useOrganizationList();
   const { organization, isLoaded: organizationLoaded } = useOrganization();
-  const [error, setError] = useState<boolean>(false);
-  const [hasSetActive, setHasSetActive] = useState<boolean>(false);
-  const [pollCount, setPollCount] = useState<number>(0);
 
+  const [error, setError] = useState(false);
+  const [hasSetActive, setHasSetActive] = useState(false);
+  const [pollCount, setPollCount] = useState(0);
+
+  // Skip query if user not loaded
   const organizationResponse = useQuery(
     api.organizations.getOrganizationByClerkUserId,
-    user && userLoaded ? { clerkUserId: user.id } : "skip"
+    userLoaded && user ? { clerkUserId: user.id } : "skip"
   );
+
+  // Timeout fallback (optional but robust)
+  useEffect(() => {
+    const timeout = setTimeout(() => setError(true), MAX_WAIT_TIME);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     const redirect = async () => {
-      console.log("user", user);
-      console.log("userLoaded", userLoaded);
-      console.log("organizationLoaded", organizationLoaded);
-      console.log("organizationResponse", organizationResponse);
-      console.log("setActive", setActive);
-      console.log("organization", organization);
-      console.log("hasSetActive", hasSetActive);
-
-      if (!userLoaded || !organizationLoaded) return;
-
-      if (!user) {
+      if (userLoaded && !user) {
         NProgress.start();
         router.push("/sign-in");
         return;
       }
 
-      if (!organizationResponse || !setActive) return;
+      if (!userLoaded || !organizationLoaded) return;
 
-      if (organizationResponse.status === ResponseStatus.ERROR) {
-        console.error(organizationResponse.error);
+      if (
+        !organizationResponse ||
+        organizationResponse.status === ResponseStatus.ERROR
+      ) {
         setError(true);
         return;
       }
@@ -53,32 +57,41 @@ const RedirectingPage = () => {
       const { organization: orgData } = organizationResponse.data;
       const orgRole = user?.publicMetadata.role as string;
 
-      if (!orgData && pollCount < 6) {
-        setTimeout(() => setPollCount((c) => c + 1), 500);
+      if (!orgData && pollCount < MAX_POLLS) {
+        setTimeout(() => setPollCount((c) => c + 1), POLL_INTERVAL);
+        return;
+      }
+
+      if (!orgData && pollCount >= MAX_POLLS) {
+        setError(true);
+        return;
+      }
+
+      if (!orgData && orgRole === UserRole.Admin) {
+        NProgress.start();
+        router.push("/create-company");
         return;
       }
 
       if (!orgData) {
-        if (orgRole === UserRole.Admin) {
-          NProgress.start();
-          router.push("/create-company");
-        }
+        setError(true);
         return;
       }
 
       if (!organization || organization.id !== orgData.clerkOrganizationId) {
-        if (!hasSetActive) {
+        if (!hasSetActive && setActive) {
           setHasSetActive(true);
-          await setActive({ organization: orgData.clerkOrganizationId });
-          setTimeout(() => {
-            router.refresh(); // or window.location.reload();
-          }, 500);
+          try {
+            await setActive({ organization: orgData.clerkOrganizationId });
+            router.refresh();
+          } catch (err) {
+            setError(true);
+          }
         }
         return;
       }
 
       NProgress.start();
-
       if (
         orgRole === UserRole.Hostly_Admin ||
         orgRole === UserRole.Hostly_Moderator
@@ -89,7 +102,9 @@ const RedirectingPage = () => {
       }
     };
 
-    redirect();
+    if (!error) {
+      redirect();
+    }
   }, [
     user,
     userLoaded,
@@ -100,10 +115,13 @@ const RedirectingPage = () => {
     router,
     hasSetActive,
     pollCount,
+    error, // prevent redirect after error
   ]);
 
   if (error) {
-    return <ErrorPage />;
+    return (
+      <ErrorPage description="Unable to load your company or redirect. Please try again later." />
+    );
   }
 
   return <FullLoading />;
