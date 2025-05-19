@@ -20,36 +20,40 @@ const RedirectingPage = () => {
   const { setActive, isLoaded: organizationListLoaded } = useOrganizationList();
   const { organization, isLoaded: organizationLoaded } = useOrganization();
 
-  const [error, setError] = useState(false);
+  // Change error to string | null
+  const [error, setError] = useState<string | null>(null);
   const [pollCount, setPollCount] = useState(0);
 
   // Skip query if user not loaded
   const organizationResponse = useQuery(
     api.organizations.getOrganizationByClerkUserId,
-    userLoaded && user ? { clerkUserId: user.id } : "skip"
+    user ? { clerkUserId: user.id } : "skip"
   );
 
   // Timeout fallback (optional but robust)
   useEffect(() => {
-    const timeout = setTimeout(() => setError(true), MAX_WAIT_TIME);
+    const timeout = setTimeout(
+      () => setError("Request timed out. Please try again later."),
+      MAX_WAIT_TIME
+    );
     return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
     const redirect = async () => {
-      if (userLoaded && !user) {
+      if (!userLoaded || !organizationLoaded || !organizationListLoaded) return;
+
+      if (!user) {
         NProgress.start();
         router.push("/sign-in");
         return;
       }
 
-      if (!userLoaded || !organizationLoaded || !organizationListLoaded) return;
-
       if (
         !organizationResponse ||
         organizationResponse.status === ResponseStatus.ERROR
       ) {
-        setError(true);
+        setError("Failed to load your organization. Please contact support.");
         return;
       }
 
@@ -62,7 +66,9 @@ const RedirectingPage = () => {
       }
 
       if (!orgData && pollCount >= MAX_POLLS) {
-        setError(true);
+        setError(
+          "Could not find your organization. Please check your account or contact support."
+        );
         return;
       }
 
@@ -73,7 +79,7 @@ const RedirectingPage = () => {
       }
 
       if (!orgData) {
-        setError(true);
+        setError("You do not belong to any organization.");
         return;
       }
 
@@ -82,9 +88,8 @@ const RedirectingPage = () => {
           await setActive({ organization: orgData.clerkOrganizationId });
           router.refresh();
         } catch (err) {
-          setError(true);
+          setError("Failed to set active organization. Please try again.");
         }
-
         return;
       }
 
@@ -116,9 +121,7 @@ const RedirectingPage = () => {
   ]);
 
   if (error) {
-    return (
-      <ErrorPage description="Unable to load your company or redirect. Please try again later." />
-    );
+    return <ErrorPage description={error} />;
   }
 
   return <FullLoading />;
