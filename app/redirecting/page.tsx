@@ -49,10 +49,11 @@ const RedirectingPage = () => {
         return;
       }
 
-      if (
-        !organizationResponse ||
-        organizationResponse.status === ResponseStatus.ERROR
-      ) {
+      if (organizationResponse === undefined) {
+        return;
+      }
+
+      if (organizationResponse.status === ResponseStatus.ERROR) {
         setError("Failed to load your organization. Please contact support.");
         return;
       }
