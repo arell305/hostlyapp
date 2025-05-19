@@ -17,11 +17,10 @@ const MAX_WAIT_TIME = 10000; // 10 seconds
 const RedirectingPage = () => {
   const router = useRouter();
   const { user, isLoaded: userLoaded } = useUser();
-  const { setActive } = useOrganizationList();
+  const { setActive, isLoaded: organizationListLoaded } = useOrganizationList();
   const { organization, isLoaded: organizationLoaded } = useOrganization();
 
   const [error, setError] = useState(false);
-  const [hasSetActive, setHasSetActive] = useState(false);
   const [pollCount, setPollCount] = useState(0);
 
   // Skip query if user not loaded
@@ -44,7 +43,7 @@ const RedirectingPage = () => {
         return;
       }
 
-      if (!userLoaded || !organizationLoaded) return;
+      if (!userLoaded || !organizationLoaded || !organizationListLoaded) return;
 
       if (
         !organizationResponse ||
@@ -79,15 +78,13 @@ const RedirectingPage = () => {
       }
 
       if (!organization || organization.id !== orgData.clerkOrganizationId) {
-        if (!hasSetActive && setActive) {
-          setHasSetActive(true);
-          try {
-            await setActive({ organization: orgData.clerkOrganizationId });
-            router.refresh();
-          } catch (err) {
-            setError(true);
-          }
+        try {
+          await setActive({ organization: orgData.clerkOrganizationId });
+          router.refresh();
+        } catch (err) {
+          setError(true);
         }
+
         return;
       }
 
@@ -113,9 +110,9 @@ const RedirectingPage = () => {
     setActive,
     organization,
     router,
-    hasSetActive,
     pollCount,
     error, // prevent redirect after error
+    organizationListLoaded,
   ]);
 
   if (error) {
