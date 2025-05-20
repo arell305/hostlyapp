@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { OrganizationSchema, UserSchema } from "@/types/types";
+import { OrganizationSchema } from "@/types/types";
 import ResponsiveInviteUser from "../components/responsive/ResponsiveInviteUser";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
@@ -9,25 +9,20 @@ import PendingMembersSection from "./section/PendingMembersSection";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { isAdminOrg } from "@/utils/permissions";
-
+import PageContainer from "@/components/shared/containers/PageContainer";
 interface TeamContentProps {
   canManageTeam: boolean;
   organization: OrganizationSchema;
-  handleMemberClick: (user: UserSchema) => void;
 }
 
-const TeamContent = ({
-  canManageTeam,
-  organization,
-  handleMemberClick,
-}: TeamContentProps) => {
+const TeamContent = ({ canManageTeam, organization }: TeamContentProps) => {
   const [selectedTab, setSelectedTab] = useState<
     "active" | "pending" | "deleted"
   >("active");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
   const isAdminSlug = isAdminOrg(organization.slug);
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <SectionHeaderWithAction
         title="Team Members"
         actions={
@@ -51,13 +46,7 @@ const TeamContent = ({
         />
       )}
       {selectedTab === "active" && (
-        <ActiveMembersSection
-          organization={organization}
-          handleMemberClick={(user) => {
-            // Cast user to expected type before passing to handler
-            handleMemberClick(user as UserSchema);
-          }}
-        />
+        <ActiveMembersSection organization={organization} />
       )}
       {selectedTab === "pending" && (
         <PendingMembersSection
@@ -66,13 +55,7 @@ const TeamContent = ({
         />
       )}
       {selectedTab === "deleted" && (
-        <DeletedMembersSection
-          organization={organization}
-          handleMemberClick={(user) => {
-            // Cast user to expected type before passing to handler
-            handleMemberClick(user as UserSchema);
-          }}
-        />
+        <DeletedMembersSection organization={organization} />
       )}
 
       <ResponsiveInviteUser
@@ -81,7 +64,7 @@ const TeamContent = ({
         clerkOrganizationId={organization.clerkOrganizationId}
         isAdminSlug={isAdminSlug}
       />
-    </div>
+    </PageContainer>
   );
 };
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { ResponseStatus, FrontendErrorMessages } from "@/types/enums";
-
+import { Id } from "../../../../../convex/_generated/dataModel";
 export const useRevokeInvitation = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,7 +13,8 @@ export const useRevokeInvitation = () => {
 
   const revokeInvitation = async (
     clerkOrgId: string,
-    clerkInvitationId: string
+    clerkInvitationId: string,
+    organizationId: Id<"organizations">
   ): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
@@ -22,6 +23,7 @@ export const useRevokeInvitation = () => {
       const response = await revokeOrganizationInvitation({
         clerkOrgId,
         clerkInvitationId,
+        organizationId,
       });
 
       if (response.status === ResponseStatus.SUCCESS) {

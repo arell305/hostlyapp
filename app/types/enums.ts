@@ -5,6 +5,7 @@ export enum StripeAccountStatus {
   RESTRICTED = "Restricted", // Needs more verification (e.g., missing ID)
   REJECTED = "Rejected", // Permanently rejected by Stripe
   DISABLED = "Disabled", // Manually disabled (optional for admin actions)
+  INCOMPLETE = "Incomplete", // Stripe account is incomplete
 }
 
 export enum SubscriptionStatus {
@@ -136,6 +137,7 @@ export enum ErrorMessages {
   COMPANY_DB_UPDATE_ERROR = "DB error updating company",
   COMPANY_INACTIVE = "Company is inactive",
   COMPANY_NOT_FOUND = "Company not found",
+  COMPANY_DB_QUERY_FOR_ADMIN_ERROR = "DB error querying company for admin",
   CONNECTED_ACCOUNT_INACTIVE = "Stripe Connected Account is inactive",
   CONNECTED_ACCOUNT_VERIFIED = "Stripe Connected Account is not Verified",
   CONNECTED_ACCOUNT_DEACTIVATE_ERROR = "Stripe Connected Account deactivate error",

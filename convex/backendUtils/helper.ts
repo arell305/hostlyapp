@@ -551,3 +551,27 @@ export async function validateTicketAvailability({
     throw new Error(ShowErrorMessages.NOT_ENOUGH_FEMALE_TICKETS);
   }
 }
+
+export async function getActingClerkUserId(
+  ctx: GenericActionCtx<any>,
+  identity: UserIdentity,
+  organizationId: Id<"organizations">
+): Promise<string> {
+  if (
+    identity.role === UserRole.Hostly_Admin ||
+    identity.role === UserRole.Hostly_Moderator
+  ) {
+    const adminUser = await ctx.runQuery(
+      internal.organizations.getAdminByOrganizationInternal,
+      { organizationId }
+    );
+
+    if (!adminUser) {
+      throw new Error(ErrorMessages.COMPANY_NO_ADMIN_FOUND);
+    }
+
+    return adminUser._id;
+  }
+
+  return identity.id as string;
+}

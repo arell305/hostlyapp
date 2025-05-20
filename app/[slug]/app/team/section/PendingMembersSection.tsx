@@ -4,11 +4,11 @@ import { useAction } from "convex/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
 import { OrganizationSchema, PendingInvitationUser } from "@/types/types";
-import { Skeleton } from "@/components/ui/skeleton";
 import ErrorComponent from "../../components/errors/ErrorComponent";
 import PendingUserCard from "../PendingUserCard";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import { useRevokeInvitation } from "../hooks/useRevokeInvitation";
+import MemberCardSkeleton from "../../components/loading/MemberCardSkeleton";
 
 interface PendingMembersSectionProps {
   organization: OrganizationSchema;
@@ -43,6 +43,7 @@ const PendingMembersSection = ({
     setRevokeUserId(null);
     setShowRevokeConfirm(false);
     setErrorRevoke(null);
+    fetchData();
   };
 
   const handleRevokeConfirmation = async () => {
@@ -53,7 +54,8 @@ const PendingMembersSection = ({
     try {
       const success = await revokeInvitation(
         organization.clerkOrganizationId,
-        revokeUserId
+        revokeUserId,
+        organization._id
       );
       if (success) {
         handleClose();
@@ -92,14 +94,14 @@ const PendingMembersSection = ({
   }, [organization, getPendingInvitationList, fetchData]);
 
   if (loadingMembers) {
-    return <Skeleton className="h-[100px] w-full" />;
+    return <MemberCardSkeleton />;
   }
 
   if (error) {
     return <ErrorComponent message={error} />;
   }
 
-  if (pendingUsers.length === 0) {
+  if (pendingUsers.length === 0 && !loadingMembers) {
     return <p>No pending members</p>;
   }
 
@@ -123,11 +125,13 @@ const PendingMembersSection = ({
         content="Are you sure you want to revoke this invitation? This action cannot be undone."
         confirmVariant="destructive"
         modalProps={{
-          onClose: () => setShowRevokeConfirm(false),
+          onClose: handleClose,
           onConfirm: handleRevokeConfirmation,
         }}
         drawerProps={{
-          onOpenChange: (open: boolean) => setShowRevokeConfirm(open),
+          onOpenChange: (open: boolean) => {
+            if (!open) handleClose();
+          },
           onSubmit: handleRevokeConfirmation,
         }}
         error={errorRevoke}

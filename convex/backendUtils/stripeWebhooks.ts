@@ -153,7 +153,12 @@ export const handleAccountUpdated = async (
 export const getStripeAccountStatus = (
   account: Stripe.Account
 ): StripeAccountStatus => {
-  const { charges_enabled, payouts_enabled, requirements } = account;
+  const { charges_enabled, payouts_enabled, requirements, details_submitted } =
+    account;
+
+  if (!details_submitted) {
+    return StripeAccountStatus.INCOMPLETE;
+  }
 
   if (charges_enabled && payouts_enabled) {
     return StripeAccountStatus.VERIFIED;

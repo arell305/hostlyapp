@@ -61,6 +61,15 @@ const RedirectingPage = () => {
       const { organization: orgData } = organizationResponse.data;
       const orgRole = user?.publicMetadata.role as string;
 
+      console.log("orgData", orgData);
+      console.log("orgRole", orgRole);
+
+      if (!orgData && orgRole === UserRole.Admin) {
+        NProgress.start();
+        router.push("/create-company");
+        return;
+      }
+
       if (!orgData && pollCount < MAX_POLLS) {
         setTimeout(() => setPollCount((c) => c + 1), POLL_INTERVAL);
         return;
@@ -70,12 +79,6 @@ const RedirectingPage = () => {
         setError(
           "Could not find your organization. Please check your account or contact support."
         );
-        return;
-      }
-
-      if (!orgData && orgRole === UserRole.Admin) {
-        NProgress.start();
-        router.push("/create-company");
         return;
       }
 

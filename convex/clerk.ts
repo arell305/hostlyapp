@@ -40,7 +40,11 @@ import {
   updateOrganizationLogo,
   updateOrganizationMembershipHelper,
 } from "../utils/clerk";
-import { handleError, isUserInOrganization } from "./backendUtils/helper";
+import {
+  getActingClerkUserId,
+  handleError,
+  isUserInOrganization,
+} from "./backendUtils/helper";
 import {
   handleOrganizationInvitationAccepted,
   handleUserCreated,
@@ -230,25 +234,34 @@ export const revokeOrganizationInvitation = action({
   args: {
     clerkOrgId: v.string(),
     clerkInvitationId: v.string(),
+    organizationId: v.id("organizations"),
   },
   handler: async (ctx, args): Promise<RevokeOrganizationInvitationResponse> => {
-    const { clerkOrgId, clerkInvitationId } = args;
+    const { clerkOrgId, clerkInvitationId, organizationId } = args;
     try {
-      const idenitity = await requireAuthenticatedUser(ctx, [
+      const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Admin,
         UserRole.Manager,
         UserRole.Hostly_Moderator,
         UserRole.Hostly_Admin,
       ]);
 
-      isUserInOrganization(idenitity, clerkOrgId);
-
-      await revokeOrganizationInvitationHelper(clerkInvitationId);
+      isUserInOrganization(identity, clerkOrgId);
+      const clerkUserId = await getActingClerkUserId(
+        ctx,
+        identity,
+        organizationId
+      );
+      await revokeOrganizationInvitationHelper(
+        clerkInvitationId,
+        clerkOrgId,
+        clerkUserId
+      );
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          clerkInvitationId: args.clerkInvitationId,
+          clerkInvitationId,
         },
       };
     } catch (error) {

@@ -6,9 +6,8 @@ import { api } from "../../../../convex/_generated/api";
 import { QueryState } from "@/types/enums";
 import { handleQueryState } from "../../../../utils/handleQueryState";
 import CompaniesContent from "./CompaniesContent";
-import NProgress from "nprogress";
+
 const CompaniesPage = () => {
-  const router = useRouter();
   const organizationsResponse = useQuery(api.organizations.getAllOrganizations);
   const result = handleQueryState(organizationsResponse);
 
@@ -18,17 +17,7 @@ const CompaniesPage = () => {
 
   const organizations = result.data.organizationDetails;
 
-  const handleCompanyClick = (slug: string) => {
-    NProgress.start();
-    router.push(`/${slug}/app/`);
-  };
-
-  return (
-    <CompaniesContent
-      organizations={organizations}
-      onCompanyClick={handleCompanyClick}
-    />
-  );
+  return <CompaniesContent organizations={organizations} />;
 };
 
 export default CompaniesPage;

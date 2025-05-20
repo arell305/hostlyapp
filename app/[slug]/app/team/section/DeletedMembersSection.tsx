@@ -11,11 +11,9 @@ import { sortUsersByName } from "../../../../../utils/helpers";
 
 interface DeletedMembersSectionProps {
   organization: OrganizationSchema;
-  handleMemberClick: (user: UserSchema) => void;
 }
 const DeletedMembersSection = ({
   organization,
-  handleMemberClick,
 }: DeletedMembersSectionProps) => {
   const companyUsersData = useQuery(api.organizations.getUsersByOrganization, {
     organizationId: organization._id,
@@ -40,7 +38,7 @@ const DeletedMembersSection = ({
         <MemberCard
           key={member.clerkUserId}
           user={member}
-          handleMemberClick={handleMemberClick}
+          slug={organization.slug}
         />
       ))}
     </CustomCard>

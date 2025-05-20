@@ -4,9 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 
 import { UserButton } from "@clerk/nextjs";
 import { isPromoter } from "@/utils/permissions";
-import PromoterUserButton from "../../PromoterUserbutton";
 import EditPromoCodeDialog from "../../EditPromoCodeDialog";
 import { UserWithPromoCode } from "@/types/types";
+import { User } from "lucide-react";
+import { roleMap } from "@/types/enums";
+import { UserRole } from "@/types/enums";
+import { FaEdit } from "react-icons/fa";
+import { usePathname, useRouter } from "next/navigation";
+import NProgress from "nprogress";
 
 interface NavbarActionsProps {
   orgRole: string;
@@ -14,6 +19,9 @@ interface NavbarActionsProps {
 }
 
 const NavbarActions = ({ orgRole, userData }: NavbarActionsProps) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const slug = pathname.split("/")[1];
   const [showUserButton, setShowUserButton] = useState<boolean>(false);
   const showPromoCode = isPromoter(orgRole);
   const [isPromoCodeModalOpen, setIsPromoCodeModalOpen] =
@@ -31,18 +39,37 @@ const NavbarActions = ({ orgRole, userData }: NavbarActionsProps) => {
     setIsPromoCodeModalOpen((prev) => !prev);
   }, []);
 
+  const promoCode = userData?.promoCode;
+  const promoCodeDisplay = promoCode
+    ? `Promo Code: ${promoCode}`
+    : "Add Promo Code";
+
+  const handleRoleClick = () => {
+    const slug = pathname.split("/")[1];
+    NProgress.start();
+    router.push(`/${slug}/app/team/${userData?._id}`);
+  };
+
   return (
     <div className="flex items-center space-x-3">
       <div className="h-8 w-8">
         {showUserButton ? (
-          showPromoCode ? (
-            <PromoterUserButton
-              promoCode={userData?.promoCode}
-              onEditPromoCode={togglePromoCodeModal}
-            />
-          ) : (
-            <UserButton />
-          )
+          <UserButton>
+            <UserButton.MenuItems>
+              <UserButton.Action
+                label={`Role: ${roleMap[orgRole as UserRole]}`}
+                labelIcon={<User size={16} className="text-sm" />}
+                onClick={handleRoleClick}
+              />
+              {showPromoCode && (
+                <UserButton.Action
+                  label={promoCodeDisplay}
+                  labelIcon={<FaEdit />}
+                  onClick={togglePromoCodeModal}
+                />
+              )}
+            </UserButton.MenuItems>
+          </UserButton>
         ) : (
           <div className="h-full w-full rounded-full bg-gray-700 animate-pulse" />
         )}

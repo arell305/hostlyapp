@@ -143,7 +143,7 @@ export const handleConnectedAccountUpdated = async (
     console.log("account", account);
     const status = getStripeAccountStatus(account);
 
-    ctx.runMutation(
+    await ctx.runMutation(
       internal.connectedAccounts.updateConnectedAccountByStripeId,
       {
         stripeAccountId: account.id,

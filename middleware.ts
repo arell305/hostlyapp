@@ -81,36 +81,6 @@ export default clerkMiddleware(
     if (path === "/") {
       if (userId) {
         return NextResponse.redirect(new URL("/redirecting", req.url));
-
-        // console.log("middlware orgId", orgId);
-        // try {
-        //   const organization = await convex.query(
-        //     api.organizations.getOrganizationByClerkId,
-        //     {
-        //       clerkOrganizationId: orgId,
-        //     }
-        //   );
-
-        //   // unauthorize if organization is not
-        //   if (!organization || !organization.isActive) {
-        //     return NextResponse.redirect(new URL("/unauthorized", req.url));
-        //   }
-
-        //   if (organization.slug === "admin") {
-        //     return NextResponse.redirect(
-        //       new URL(`/${organization.slug}/app/companies`, req.url)
-        //     );
-        //   }
-
-        //   if (organization) {
-        //     console.log("redirecting to", `/${organization.slug}/app`);
-        //     return NextResponse.redirect(
-        //       new URL(`/${organization.slug}/app`, req.url)
-        //     );
-        //   }
-        // } catch (error) {
-        //   console.error("Error fetching organization:", error);
-        // }
       }
     }
 

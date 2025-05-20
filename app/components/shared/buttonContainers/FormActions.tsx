@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 
 interface FormActionsProps {
   onCancel: () => void;
@@ -20,7 +19,6 @@ const FormActions: React.FC<FormActionsProps> = ({
   onSubmit,
   cancelText = "Cancel",
   submitText = "Apply",
-  loadingText = "Submitting",
   isSubmitDisabled = false,
   isLoading = false,
   cancelVariant = "secondary",
@@ -52,7 +50,7 @@ const FormActions: React.FC<FormActionsProps> = ({
         </Button>
       </div>
       <p
-        className={`text-sm text-center pt-1 ${
+        className={`text-sm text-center pt-2 ${
           error ? "text-red-500" : "text-transparent"
         }`}
       >

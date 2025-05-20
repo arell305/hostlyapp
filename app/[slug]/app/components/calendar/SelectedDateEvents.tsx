@@ -22,7 +22,7 @@ const SelectedDateEvents: React.FC<SelectedDateEventsProps> = ({
         </h3>
         <EventList
           events={events}
-          emptyText="No upcoming events found."
+          emptyText="No events found for this date."
           className=""
           pathname={pathname}
         />

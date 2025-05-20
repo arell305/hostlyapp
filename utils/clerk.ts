@@ -174,26 +174,24 @@ export async function clerkInviteUserToOrganization(
 }
 
 export async function revokeOrganizationInvitationHelper(
-  invitationId: string
+  invitationId: string,
+  clerkOrganizationId: string,
+  requestingUserId: string
 ): Promise<OrganizationInvitation> {
   try {
-    const response = await fetch(
-      `https://api.clerk.com/v1/organizations/invitations/${invitationId}/revoke`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
-        },
-      }
-    );
+    const response =
+      await clerkClient.organizations.revokeOrganizationInvitation({
+        organizationId: clerkOrganizationId,
+        invitationId,
+        requestingUserId,
+      });
 
-    if (!response.ok) {
-      throw new Error(`Failed to revoke invitation: ${await response.text()}`);
-    }
-
-    return response.json();
+    return response;
   } catch (error) {
+    console.error(
+      "Failed to revoke invitation:",
+      JSON.stringify(error, null, 2)
+    );
     console.error(ErrorMessages.CLERK_REVOKE_ERROR, error);
     throw new Error(ErrorMessages.CLERK_REVOKE_ERROR);
   }

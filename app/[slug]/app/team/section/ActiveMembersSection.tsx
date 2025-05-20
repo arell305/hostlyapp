@@ -12,12 +12,8 @@ import { UserSchema } from "@/types/schemas-types";
 
 interface ActiveMembersSectionProps {
   organization: OrganizationSchema;
-  handleMemberClick: (user: UserSchema) => void;
 }
-const ActiveMembersSection = ({
-  organization,
-  handleMemberClick,
-}: ActiveMembersSectionProps) => {
+const ActiveMembersSection = ({ organization }: ActiveMembersSectionProps) => {
   const companyUsersData = useQuery(api.organizations.getUsersByOrganization, {
     organizationId: organization._id,
     isActive: true,
@@ -37,7 +33,7 @@ const ActiveMembersSection = ({
         <MemberCard
           key={member.clerkUserId}
           user={member}
-          handleMemberClick={handleMemberClick}
+          slug={organization.slug}
         />
       ))}
     </CustomCard>

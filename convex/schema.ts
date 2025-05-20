@@ -51,7 +51,8 @@ export const StripeAccountStatusConvex = v.union(
   v.literal(StripeAccountStatus.VERIFIED),
   v.literal(StripeAccountStatus.RESTRICTED),
   v.literal(StripeAccountStatus.REJECTED),
-  v.literal(StripeAccountStatus.DISABLED)
+  v.literal(StripeAccountStatus.DISABLED),
+  v.literal(StripeAccountStatus.INCOMPLETE)
 );
 
 export const GuestListNames = v.object({
