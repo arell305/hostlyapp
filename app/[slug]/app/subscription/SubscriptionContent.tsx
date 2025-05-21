@@ -24,6 +24,7 @@ import { Plus } from "lucide-react";
 import ClickableField from "@/components/shared/fields/ClickableField";
 import { GuestListCheckout } from "../components/modals/GuestListCheckoutContent";
 import { CONTACT_EMAIL, PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
+import SectionContainer from "@/components/shared/containers/SectionContainer";
 
 interface SubscriptionContentProps {
   customer: CustomerSchema;
@@ -102,7 +103,7 @@ const SubscriptionContent = ({
     subscriptionTier === SubscriptionTier.STANDARD;
   const showGuestEventsThisCycle = subscriptionTier === SubscriptionTier.PLUS;
   return (
-    <section>
+    <SectionContainer>
       <SectionHeaderWithAction title="Subscription" />
 
       <CustomCard className="p-0">
@@ -251,7 +252,7 @@ const SubscriptionContent = ({
           )}
         </ButtonEndContainer>
       )} */}
-    </section>
+    </SectionContainer>
   );
 };
 

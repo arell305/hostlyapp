@@ -15,12 +15,12 @@ const ToggleCalendar: React.FC<ToggleCalendarProps> = ({
     <div className="flex justify-center">
       <button
         onClick={onToggle}
-        className="mt-0.5 text-grayText hover:text-whiteText transition hover:bg-cardBackgroundHover rounded"
+        className=" text-grayText hover:text-whiteText transition "
       >
         {isWeekView ? (
-          <RiArrowDownWideLine className="text-3xl" />
+          <p className="text-xs underline">Expand</p>
         ) : (
-          <RiArrowUpWideLine className="text-3xl" />
+          <p className="text-xs underline">Collapse</p>
         )}
       </button>
     </div>

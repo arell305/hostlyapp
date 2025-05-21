@@ -120,7 +120,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     : false;
 
   return (
-    <SectionContainer>
+    <div className="w-full">
       <TopRowNav
         eventData={data.event}
         isAdminOrg={isAppAdmin}
@@ -187,7 +187,6 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           )}
         </>
       )}
-
       <ResponsiveConfirm
         isOpen={showConfirmCancelEdit}
         title="Confirm Cancellation"
@@ -238,7 +237,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           onOpenChange: (open) => setShowConfirmHome(open),
         }}
       />
-    </SectionContainer>
+    </div>
   );
 };
 

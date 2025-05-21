@@ -40,7 +40,7 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
               backgroundColor: "transparent",
 
               borderRadius: "6px",
-              padding: "0",
+              // padding: "0",
               paddingLeft: "8px",
               paddingRight: "2.5rem",
               paddingTop: "4px",
@@ -54,13 +54,16 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
             input: (provided) => ({
               ...provided,
               color: "#F9FAFA",
-              paddingLeft: "0",
-              marginLeft: "0",
+              // paddingLeft: "8px",
+
+              boxSizing: "border-box",
+              WebkitAppearance: "none",
+              MozAppearance: "none",
+              appearance: "none",
             }),
             placeholder: (provided) => ({
               ...provided,
               color: "#A2A5AD",
-              paddingLeft: "0",
             }),
             singleValue: (provided) => ({
               ...provided,

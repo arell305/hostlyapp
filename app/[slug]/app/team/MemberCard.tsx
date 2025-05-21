@@ -6,6 +6,7 @@ import { UserSchema } from "@/types/schemas-types";
 import { capitalizeWords } from "@/utils/helpers";
 import ClickableRow from "@/components/shared/cards/ClickableRow";
 import Link from "next/link";
+import NProgress from "nprogress";
 
 interface MemberCardProps {
   user: UserSchema;
@@ -15,7 +16,11 @@ interface MemberCardProps {
 const MemberCard: React.FC<MemberCardProps> = ({ user, slug }) => {
   return (
     <Link href={`/${slug}/app/team/${user._id}`}>
-      <ClickableRow>
+      <ClickableRow
+        onClick={() => {
+          NProgress.start();
+        }}
+      >
         {" "}
         <div className="flex items-center justify-between">
           <Image

@@ -24,7 +24,7 @@ const ToggleSectionCard: React.FC<ToggleSectionCardProps> = ({
       <div className="flex justify-between items-center px-2">
         <h3 className="">
           {label}
-          {subtitle && <span className="text-sm pl-1">{subtitle}</span>}
+          {subtitle && <p className="text-sm text-grayText">{subtitle}</p>}
         </h3>
         {isActive ? (
           <PiMinus className="text-2xl" />

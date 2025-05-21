@@ -150,7 +150,10 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
     </Dialog>
   ) : (
     <Drawer open={open} onOpenChange={handleClose}>
-      <DrawerContent className="max-w-md mx-auto pb-8">
+      <DrawerContent
+        scrollContent
+        className="max-w-md mx-auto pb-8 h-[100dvh] flex flex-col"
+      >
         <DrawerHeader>
           <DrawerTitle>
             {step === 1 ? "Select Quantity" : "Purchase Guest List Credits"}
@@ -161,7 +164,7 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
               : "Enter your payment information to purchase guest list credits."}
           </DrawerDescription>
         </DrawerHeader>
-        <div className="px-4">{Content}</div>
+        <div className="flex-1 overflow-y-auto px-4">{Content}</div>
       </DrawerContent>
     </Drawer>
   );

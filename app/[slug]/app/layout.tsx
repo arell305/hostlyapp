@@ -35,7 +35,7 @@ const CompanyLayout: React.FC<{ children: React.ReactNode }> = ({
   const canCheckInTickets = isModerator(orgRole);
   const userData = userFromDb?.data?.user;
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-[100dvh] overflow-hidden">
       <Sidebar slug={cleanSlug} orgRole={orgRole} />
       <div className="flex-1 lg:ml-64">
         <Navbar slug={cleanSlug} orgRole={orgRole} userData={userData} />

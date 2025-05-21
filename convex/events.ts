@@ -437,6 +437,7 @@ export const getEventsByMonth = query({
         .filter((q) => q.eq(q.field("organizationId"), organization._id))
         .filter((q) => q.gte(q.field("startTime"), startDate.toMillis()))
         .filter((q) => q.lte(q.field("startTime"), endDate.toMillis()))
+        .filter((q) => q.eq(q.field("isActive"), true))
         .collect();
 
       return {

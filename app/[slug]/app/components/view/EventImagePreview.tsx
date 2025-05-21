@@ -1,9 +1,9 @@
 import { useQuery } from "convex/react";
 import Image from "next/image";
-import React from "react";
-import EventFormSkeleton from "../loading/EventFormSkeleton";
+import React, { useState } from "react";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
+import clsx from "clsx";
 
 interface EventImagePreviewProps {
   storageId?: Id<"_storage"> | null;
@@ -22,19 +22,26 @@ const EventImagePreview: React.FC<EventImagePreviewProps> = ({
     api.photo.getFileUrl,
     storageId ? { storageId } : "skip"
   );
-
-  if (!fileUrl || typeof fileUrl !== "string") {
-    return <EventFormSkeleton />;
-  }
+  const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <div className={`relative w-full ${aspectRatio}`}>
-      <Image
-        src={fileUrl}
-        alt={alt}
-        fill
-        className={`object-cover rounded-md ${className}`}
-      />
+    <div className={clsx("relative w-full", aspectRatio)}>
+      {(!fileUrl || isLoading) && (
+        <div className="absolute inset-0 bg-gray-500 animate-pulse rounded-md" />
+      )}
+      {fileUrl && (
+        <Image
+          src={fileUrl}
+          alt={alt}
+          fill
+          onLoadingComplete={() => setIsLoading(false)}
+          className={clsx(
+            "object-cover rounded-md transition-opacity duration-300",
+            isLoading ? "opacity-0" : "opacity-100",
+            className
+          )}
+        />
+      )}
     </div>
   );
 };

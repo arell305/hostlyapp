@@ -40,7 +40,7 @@ const LabeledDateTimeField: React.FC<LabeledDateTimeFieldProps> = ({
           } ${className}`}
         />
         {isEmpty && isIOS && (
-          <span className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+          <span className="pl-2 absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
             {placeholder}
           </span>
         )}

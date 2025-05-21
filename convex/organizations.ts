@@ -553,3 +553,25 @@ export const updateOrganizationById = internalMutation({
     }
   },
 });
+
+export const getAdminByOrganizationInternal = internalQuery({
+  args: {
+    organizationId: v.id("organizations"),
+  },
+  handler: async (ctx, args): Promise<UserSchema | null> => {
+    try {
+      const adminUser = await ctx.db
+        .query("users")
+        .withIndex("by_organizationId", (q) =>
+          q.eq("organizationId", args.organizationId)
+        )
+        .filter((q) => q.eq(q.field("role"), UserRole.Admin))
+        .first();
+
+      return adminUser;
+    } catch (error) {
+      console.error(ErrorMessages.COMPANY_DB_QUERY_FOR_ADMIN_ERROR, error);
+      throw new Error(ErrorMessages.COMPANY_DB_QUERY_FOR_ADMIN_ERROR);
+    }
+  },
+});

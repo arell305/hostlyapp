@@ -24,10 +24,11 @@ const EventItem: React.FC<EventItemProps> = ({
     <Link
       href={`${pathname}/events/${event._id}`}
       onClick={() => NProgress.start()}
+      className="w-full"
     >
       <div
         className={cn(
-          "relative flex  border w-full cursor-pointer rounded-md  transition-shadow duration-200 hover:shadow-glow-white",
+          "relative flex  border cursor-pointer rounded-md  transition-shadow duration-200 hover:shadow-glow-white",
           className
         )}
       >

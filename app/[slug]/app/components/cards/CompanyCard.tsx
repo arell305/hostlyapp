@@ -7,6 +7,7 @@ import { OrganizationDetails } from "@/types/types";
 import InitialAvatar from "@/components/shared/avatars/InitialAvatar";
 import { subscriptionStatusMap } from "@/types/enums";
 import Link from "next/link";
+import NProgress from "nprogress";
 
 interface CompanyCardProps {
   company: OrganizationDetails;
@@ -26,7 +27,11 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
 
   return (
     <Link href={`/${company.slug}/app/`}>
-      <ClickableRow>
+      <ClickableRow
+        onClick={() => {
+          NProgress.start();
+        }}
+      >
         <div className="flex items-center justify-between">
           {displayCompanyPhoto ? (
             <Image

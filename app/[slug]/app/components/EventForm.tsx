@@ -34,6 +34,8 @@ import ToggleSectionCard from "@/components/shared/toggle/ToggleSectionCard";
 import { validateEventForm } from "../../../../utils/form-validation/validateEventForm";
 import { Button } from "@/components/ui/button";
 import { isIOS } from "@/utils/helpers";
+import { usePathname, useRouter } from "next/navigation";
+import NProgress from "nprogress";
 
 interface EventFormProps {
   initialEventData?: EventSchema;
@@ -77,6 +79,9 @@ const EventForm: React.FC<EventFormProps> = ({
   isCompanyAdmin,
   availableCredits = 0,
 }) => {
+  const [isDeleted, setIsDeleted] = useState<boolean>(false);
+  const router = useRouter();
+  const pathname = usePathname();
   // Text fields
   const [eventName, setEventName] = useState(initialEventData?.name || "");
   const [description, setDescription] = useState(
@@ -278,7 +283,10 @@ const EventForm: React.FC<EventFormProps> = ({
     if (initialEventData) {
       const success = await cancelEvent(initialEventData._id);
       if (success) {
-        setShowConfirmModal(false);
+        setIsDeleted(true); // Hide UI immediately
+        const slug = pathname.split("/")[1];
+        NProgress.start();
+        router.push(`/${slug}/app`);
       }
     }
   };
@@ -380,6 +388,9 @@ const EventForm: React.FC<EventFormProps> = ({
   };
 
   const isIOSDevice = isIOS();
+
+  if (isDeleted) return null;
+
   return (
     <>
       {isCalendarOpen && (
@@ -388,7 +399,7 @@ const EventForm: React.FC<EventFormProps> = ({
           onClick={() => setIsCalendarOpen(false)} // Close on clicking outside
         ></div>
       )}
-      <form onSubmit={handleSubmit} className=" py-4 max-w-2xl">
+      <form onSubmit={handleSubmit} className=" py-4 w-full">
         <LabeledImageUploadField
           id="photo"
           label="Event Photo*"

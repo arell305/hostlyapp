@@ -10,7 +10,9 @@ const SectionContainer: React.FC<SectionContainerProps> = ({
   className = "",
 }) => {
   return (
-    <section className={`flex flex-col gap-4 ${className}`}>{children}</section>
+    <section className={`flex flex-col gap-4 pb-10 ${className}`}>
+      {children}
+    </section>
   );
 };
 
