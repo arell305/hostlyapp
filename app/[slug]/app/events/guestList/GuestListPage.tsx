@@ -7,6 +7,7 @@ import PromoterGuestListContent from "./PromoterGuestListContent";
 import ModeratorGuestListContent from "./ModeratorGuestListContent";
 import { GuestListInfoSchema } from "@/types/schemas-types";
 import { isPast } from "@/utils/luxon";
+import SubPageContainer from "@/components/shared/containers/SubPageContainer";
 
 interface GuestListPageProps {
   eventId: Id<"events">;
@@ -39,10 +40,9 @@ const GuestListPage: React.FC<GuestListPageProps> = ({
   }
 
   const guestListData = resultGuestList.data.guests;
-  console.log("guestListData", guestListData);
 
   return (
-    <>
+    <SubPageContainer>
       {canUploadGuest ? (
         <PromoterGuestListContent
           guestListData={guestListData}
@@ -55,7 +55,7 @@ const GuestListPage: React.FC<GuestListPageProps> = ({
           canCheckInGuests={canCheckInGuests}
         />
       )}
-    </>
+    </SubPageContainer>
   );
 };
 

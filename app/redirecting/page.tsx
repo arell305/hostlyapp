@@ -90,7 +90,9 @@ const RedirectingPage = () => {
       if (!organization || organization.id !== orgData.clerkOrganizationId) {
         try {
           await setActive({ organization: orgData.clerkOrganizationId });
-          router.refresh();
+          setTimeout(() => {
+            router.refresh();
+          }, 200); // 200ms delay to allow Clerk context to update
         } catch (err) {
           setError("Failed to set active organization. Please try again.");
         }

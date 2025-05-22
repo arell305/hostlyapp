@@ -16,6 +16,7 @@ import PromoterGuestsListData from "./PromoterGuestsData";
 import PromoterTicketData from "./PromoterTicketData";
 import EmptyList from "@/components/shared/EmptyList";
 import { TicketIcon } from "lucide-react";
+import SubPageContainer from "@/components/shared/containers/SubPageContainer";
 
 interface SummaryContentProps {
   guestListInfo?: GuestListInfoSchema | null;
@@ -48,7 +49,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <SubPageContainer className="flex flex-col gap-8">
       <div>
         <h2 className="mb-1">Tickets</h2>
         {ticketInfo && ticketSalesByPromoterData ? (
@@ -145,7 +146,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </SubPageContainer>
   );
 };
 

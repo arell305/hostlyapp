@@ -64,7 +64,8 @@ export const getEventWithGuestLists = query({
 
       let guestEntriesQuery = ctx.db
         .query("guestListEntries")
-        .filter((q) => q.eq(q.field("eventId"), eventId));
+        .filter((q) => q.eq(q.field("eventId"), eventId))
+        .filter((q) => q.eq(q.field("isActive"), true));
 
       if (user.role === UserRole.Promoter) {
         guestEntriesQuery = guestEntriesQuery.filter((q) =>

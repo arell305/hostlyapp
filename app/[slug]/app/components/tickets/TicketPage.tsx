@@ -5,6 +5,7 @@ import { Id } from "convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import React from "react";
 import TicketContent from "./TicketContent";
+import SubPageContainer from "@/components/shared/containers/SubPageContainer";
 
 interface TicketPageProps {
   eventId: Id<"events">;
@@ -29,10 +30,12 @@ const TicketPage: React.FC<TicketPageProps> = ({
     return resultTicketSalesByPromoter.element;
   }
   return (
-    <TicketContent
-      tickets={resultTicketSalesByPromoter.data?.tickets}
-      canCheckInGuests={canCheckInGuests}
-    />
+    <SubPageContainer>
+      <TicketContent
+        tickets={resultTicketSalesByPromoter.data?.tickets}
+        canCheckInGuests={canCheckInGuests}
+      />
+    </SubPageContainer>
   );
 };
 

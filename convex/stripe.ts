@@ -669,7 +669,7 @@ export const createPaymentIntent = action({
     const { totalAmount, stripeAccountId, metadata } = args;
 
     try {
-      validateTicketAvailability({
+      await validateTicketAvailability({
         ctx,
         eventId: metadata?.eventId as Id<"events">,
         requestedMaleCount: metadata?.maleCount as number,
