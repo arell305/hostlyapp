@@ -431,7 +431,6 @@ const EventForm: React.FC<EventFormProps> = ({
           label="Address*"
           address={address}
           onSelect={handleSelect}
-          onClear={clearInput}
           value={value}
           error={errors.address}
         />
