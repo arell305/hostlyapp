@@ -1,5 +1,6 @@
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
+import FieldErrorMessage from "../error/FieldErrorMessage";
 import LabelWrapper from "./LabelWrapper";
 
 interface LabeledInputFieldProps
@@ -8,6 +9,7 @@ interface LabeledInputFieldProps
   error?: string | null;
   className?: string;
   name: string;
+  type?: string;
 }
 
 const LabeledInputField: React.FC<LabeledInputFieldProps> = ({
@@ -34,9 +36,7 @@ const LabeledInputField: React.FC<LabeledInputFieldProps> = ({
         className={` ${error ? "border-red-500" : ""} ${className}`}
         {...rest} // Allow additional input props like min, max, step, etc.
       />
-      <p className={`text-sm ${error ? "text-red-500" : "text-transparent"}`}>
-        {error || "Placeholder to maintain height"}
-      </p>
+      <FieldErrorMessage error={error} />
     </LabelWrapper>
   );
 };

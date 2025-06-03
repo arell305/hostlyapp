@@ -7,7 +7,6 @@ interface LabeledAddressAutoCompleteProps {
   label: string;
   address: string;
   onSelect: (value: any) => void;
-  onClear: () => void;
   value: any;
   error?: string | null;
 }
@@ -16,7 +15,6 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
   label,
   address,
   onSelect,
-  onClear,
   value,
   error,
 }) => {
@@ -98,15 +96,7 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
           },
         }}
       />
-      {value && (
-        <button
-          type="button"
-          onClick={onClear}
-          className="absolute right-2 top-[45%] transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-200"
-        >
-          <FaTimes size={16} />
-        </button>
-      )}
+
       <p
         className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
       >

@@ -10,7 +10,7 @@ interface EventGridProps {
 const EventGrid: React.FC<EventGridProps> = ({ children, className = "" }) => {
   return (
     <div
-      className={`w-full grid grid-cols-1 md:grid-cols-3  gap-y-8 justify-items-center ${className}`}
+      className={`w-full grid grid-cols-1 md:grid-cols-3  gap-y-8 gap-x-4 justify-items-center ${className}`}
     >
       {children}
     </div>

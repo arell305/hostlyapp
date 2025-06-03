@@ -15,7 +15,7 @@ const CustomCard: React.FC<CustomCardProps> = ({
   return (
     <div
       className={cn(
-        "rounded-md border  bg-cardBackground flex flex-col ",
+        "rounded-md border  bg-cardBackground flex flex-col w-[90%] md:w-full",
         className
       )}
       onClick={onClick}

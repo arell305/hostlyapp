@@ -21,7 +21,6 @@ interface NavbarActionsProps {
 const NavbarActions = ({ orgRole, userData }: NavbarActionsProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  const slug = pathname.split("/")[1];
   const [showUserButton, setShowUserButton] = useState<boolean>(false);
   const showPromoCode = isPromoter(orgRole);
   const [isPromoCodeModalOpen, setIsPromoCodeModalOpen] =

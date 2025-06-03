@@ -9,6 +9,7 @@ import { useQuery } from "convex/react";
 import { ResponseStatus, UserRole } from "@/types/enums";
 import ErrorPage from "@/[slug]/app/components/errors/ErrorPage";
 import NProgress from "nprogress";
+import { RedirectToSignIn } from "@clerk/nextjs";
 
 const MAX_POLLS = 6;
 const POLL_INTERVAL = 500; // ms
@@ -43,10 +44,8 @@ const RedirectingPage = () => {
     const redirect = async () => {
       if (!userLoaded || !organizationLoaded || !organizationListLoaded) return;
 
-      if (!user) {
-        NProgress.start();
-        router.push("/sign-in");
-        return;
+      if (userLoaded && !user) {
+        return <RedirectToSignIn />;
       }
 
       if (organizationResponse === undefined) {

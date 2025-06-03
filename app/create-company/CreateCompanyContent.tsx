@@ -18,6 +18,7 @@ import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmi
 import ImageUploadField from "@/components/shared/fields/ImageUploadField";
 import { validateCompanyForm } from "../../utils/form-validation/validateCreateCompany";
 import NProgress from "nprogress";
+import { isValidDollarAmount } from "@/lib/frontendHelper";
 
 type ErrorState = {
   companyName: string | null;
@@ -135,7 +136,7 @@ const CreateCompanyContent = ({
               setErrors((prev) => ({ ...prev, companyName: null }));
               setCompanyName(e.target.value);
             }}
-            error={errors.companyName || undefined}
+            error={errors.companyName}
           />
           <LabeledInputField
             name="promoDiscountAmount"
@@ -144,10 +145,15 @@ const CreateCompanyContent = ({
             placeholder="Enter Promo Discount Amount"
             value={promoDiscountAmount}
             onChange={(e) => {
-              setErrors((prev) => ({ ...prev, promoDiscount: null }));
-              setPromoDiscountAmount(e.target.value);
+              const value = e.target.value;
+              if (isValidDollarAmount(value)) {
+                setPromoDiscountAmount(value);
+                setErrors((prev) => ({ ...prev, promoDiscount: null }));
+              }
             }}
-            error={errors.promoDiscount || undefined}
+            error={errors.promoDiscount}
+            min={0}
+            step={0.01}
           />
           <ImageUploadField
             label="Company Photo"

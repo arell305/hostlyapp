@@ -52,3 +52,7 @@ export const isTicketSalesOpen = (
   }
   return isAfterNowInPacificTime(ticketInfoData.ticketSalesEndTime);
 };
+
+export function isValidDollarAmount(value: string): boolean {
+  return value === "" || /^\d*\.?\d{0,2}$/.test(value);
+}

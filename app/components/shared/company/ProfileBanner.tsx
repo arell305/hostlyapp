@@ -13,7 +13,7 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
   name,
 }) => {
   return (
-    <div className="flex items-center gap-4 px-4 py-6">
+    <div className="flex items-center gap-4 px-4 pt-4 pb-2">
       {displayPhoto ? (
         <div className="relative w-[80px] h-[80px]">
           <Image
