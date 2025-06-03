@@ -76,3 +76,5 @@ export const GUEST_LIST_CREDIT_PRICE: {
   amountInCents: 2000, // $20.00 per credit
   creditsPerUnit: 1,
 };
+
+export const priceRegex = /^\d*\.?\d{0,2}$/;

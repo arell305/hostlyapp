@@ -10,6 +10,7 @@ import { useValidatePromoCode } from "../hooks/useValidatePromoCode";
 import { UserResource } from "@clerk/types";
 import { pricingOptions } from "../../../../constants/pricingOptions";
 import NProgress from "nprogress";
+
 export interface ReactivateFormProps {
   user: UserResource;
 }

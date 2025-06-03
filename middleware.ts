@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import type { NextFetchEvent } from "next/server";
-import { api } from "./convex/_generated/api";
-import { ConvexHttpClient } from "convex/browser";
-import { UserRole } from "@/types/enums";
 import {
   isAdmin,
   isAdminOrHostlyAdmin,
@@ -32,9 +29,6 @@ export default clerkMiddleware(
 
     const searchParams = req.nextUrl.searchParams.toString();
     const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
-    const convex = new ConvexHttpClient(
-      process.env.NEXT_PUBLIC_CONVEX_URL || ""
-    );
 
     const { userId, sessionClaims } = await auth();
     const userRole = sessionClaims?.userRole;
@@ -102,60 +96,60 @@ export default clerkMiddleware(
       if (!orgId) {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
-      const organization = await convex.query(
-        api.organizations.getOrganizationByClerkId,
-        {
-          clerkOrganizationId: orgId,
-        }
-      );
+      // const organization = await convex.query(
+      //   api.organizations.getOrganizationByClerkId,
+      //   {
+      //     clerkOrganizationId: orgId,
+      //   }
+      // );
 
-      if (!organization) {
-        return NextResponse.redirect(new URL("/unauthorized", req.url));
-      }
+      // if (!organization) {
+      //   return NextResponse.redirect(new URL("/unauthorized", req.url));
+      // }
 
-      const userSchema = await convex.query(api.users.publicfindUserByClerkId, {
-        clerkUserId: userId,
-      });
+      // const userSchema = await convex.query(api.users.publicfindUserByClerkId, {
+      //   clerkUserId: userId,
+      // });
 
-      if (!userSchema) {
-        return NextResponse.redirect(new URL("/unauthorized", req.url));
-      }
+      // if (!userSchema) {
+      //   return NextResponse.redirect(new URL("/unauthorized", req.url));
+      // }
 
-      if (!userSchema.isActive) {
-        if (!url.pathname.includes("account-not-found")) {
-          return NextResponse.redirect(
-            new URL(`/${slug}/app/account-not-found`, req.url)
-          );
-        }
-      }
+      // if (!userSchema.isActive) {
+      //   if (!url.pathname.includes("account-not-found")) {
+      //     return NextResponse.redirect(
+      //       new URL(`/${slug}/app/account-not-found`, req.url)
+      //     );
+      //   }
+      // }
 
-      if (!organization.isActive && userSchema.role === UserRole.Admin) {
-        if (!url.pathname.includes("reactivate")) {
-          return NextResponse.redirect(
-            new URL(`/${slug}/app/reactivate`, req.url)
-          );
-        }
-      }
+      // if (!organization.isActive && userSchema.role === UserRole.Admin) {
+      //   if (!url.pathname.includes("reactivate")) {
+      //     return NextResponse.redirect(
+      //       new URL(`/${slug}/app/reactivate`, req.url)
+      //     );
+      //   }
+      // }
 
-      if (!organization.isActive && userSchema.role !== UserRole.Admin) {
-        if (!url.pathname.includes("deactivated")) {
-          return NextResponse.redirect(
-            new URL(`/${slug}/app/deactivated`, req.url)
-          );
-        }
-      }
+      // if (!organization.isActive && userSchema.role !== UserRole.Admin) {
+      //   if (!url.pathname.includes("deactivated")) {
+      //     return NextResponse.redirect(
+      //       new URL(`/${slug}/app/deactivated`, req.url)
+      //     );
+      //   }
+      // }
 
-      if (organization.slug === slug) {
-        return NextResponse.next();
-      }
-      if (
-        userSchema.role === UserRole.Hostly_Admin ||
-        userSchema.role === UserRole.Hostly_Moderator
-      ) {
-        return NextResponse.next();
-      }
+      // if (organization.slug === slug) {
+      //   return NextResponse.next();
+      // }
+      // if (
+      //   userSchema.role === UserRole.Hostly_Admin ||
+      //   userSchema.role === UserRole.Hostly_Moderator
+      // ) {
+      //   return NextResponse.next();
+      // }
 
-      return NextResponse.redirect(new URL("/unauthorized", req.url));
+      //   return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
     return NextResponse.next();

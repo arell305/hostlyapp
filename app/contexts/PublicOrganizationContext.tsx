@@ -8,6 +8,7 @@ import { useUser } from "@clerk/nextjs";
 import type { UserResource } from "@clerk/types";
 import { Id } from "../../convex/_generated/dataModel";
 import { EventSchema } from "@/types/schemas-types";
+
 type PublicOrganizationContextType = {
   name: string;
   photo: Id<"_storage"> | null;

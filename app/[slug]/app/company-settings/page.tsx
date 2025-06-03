@@ -5,19 +5,18 @@ import ErrorComponent from "../components/errors/ErrorComponent";
 import FullLoading from "../components/loading/FullLoading";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import CompanySettingsContent from "./CompanySettingsContent";
-import { useUser } from "@clerk/nextjs";
 import { isManager } from "../../../../utils/permissions";
 
 const CompanySettings = () => {
-  const { organization, organizationContextError } = useContextOrganization();
-  const { user } = useUser();
+  const { organization, organizationContextError, orgRole } =
+    useContextOrganization();
 
   const displayCompanyPhoto = useQuery(
     api.photo.getFileUrl,
     organization?.photo ? { storageId: organization.photo } : "skip"
   );
 
-  if (!user || !organization) {
+  if (!organization) {
     return <FullLoading />;
   }
 
@@ -25,7 +24,6 @@ const CompanySettings = () => {
     return <ErrorComponent message={organizationContextError} />;
   }
 
-  const orgRole = user?.publicMetadata.role as string;
   const canEditSettings = isManager(orgRole);
 
   return (

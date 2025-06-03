@@ -17,7 +17,6 @@ import MessagePage from "@/components/shared/shared-page/MessagePage";
 import NProgress from "nprogress";
 
 export default function EventPageWrapper() {
-  const { user } = useUser();
   const params = useParams();
   const router = useRouter();
   const eventId = params.eventId as Id<"events">;
@@ -27,9 +26,9 @@ export default function EventPageWrapper() {
     connectedAccountEnabled,
     subscription,
     availableCredits,
+    orgRole,
   } = useContextOrganization();
 
-  const orgRole = user?.publicMetadata.role as string;
   const canCheckInGuests = isModerator(orgRole);
   const canUploadGuest = isPromoter(orgRole);
   const canEditEvent = isManager(orgRole);
@@ -65,7 +64,6 @@ export default function EventPageWrapper() {
     !organization ||
     !subscription ||
     connectedAccountEnabled === undefined ||
-    !user ||
     eventResult.type === QueryState.Loading
   ) {
     return <FullLoading />;

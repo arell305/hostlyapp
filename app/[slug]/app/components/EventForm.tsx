@@ -22,7 +22,7 @@ import {
 } from "@/types/schemas-types";
 import { SubscriptionTier } from "@/types/enums";
 import { compressAndUploadImage } from "../../../../utils/image";
-import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
+import { PLUS_GUEST_LIST_LIMIT, priceRegex } from "@/types/constants";
 import { useCancelEvent } from "../events/hooks/useCancelEvent";
 import LabeledInputField from "@/components/shared/fields/LabeledInputField";
 import LabeledTextAreaField from "@/components/shared/fields/LabeledTextAreaField";
@@ -311,13 +311,8 @@ const EventForm: React.FC<EventFormProps> = ({
     setShowConfirmModal(true);
   };
 
-  const priceRegex = /^\d*\.?\d{0,2}$/;
-
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("handleSubmit");
-
     e.preventDefault();
-    console.log("handleSubmit 2");
 
     const validationErrors = validateEventForm({
       eventName,
@@ -340,7 +335,6 @@ const EventForm: React.FC<EventFormProps> = ({
       setErrors(validationErrors);
       return;
     }
-    console.log("handleSubmit 4");
 
     setIsLoading(true);
     try {
@@ -388,6 +382,22 @@ const EventForm: React.FC<EventFormProps> = ({
   };
 
   const isIOSDevice = isIOS();
+
+  const isSubmitDisabled =
+    !eventName.trim() ||
+    !startTime ||
+    !endTime ||
+    !photoStorageId ||
+    !address.trim() ||
+    (isTicketsSelected &&
+      (!maleTicketPrice ||
+        !femaleTicketPrice ||
+        !maleTicketCapacity ||
+        !femaleTicketCapacity ||
+        !ticketSalesEndTime)) ||
+    (isGuestListSelected && (!guestListCloseTime || !checkInCloseTime)) ||
+    isLoading || // optional: prevent double submit
+    isSubmitLoading;
 
   if (isDeleted) return null;
 
@@ -588,6 +598,7 @@ const EventForm: React.FC<EventFormProps> = ({
           deleteError={deleteError}
           onCancel={() => onCancelEdit?.()}
           onDelete={handleDeleteEvent}
+          isSubmitDisabled={isSubmitDisabled}
         />
         <ResponsiveConfirm
           isOpen={showConfirmModal}

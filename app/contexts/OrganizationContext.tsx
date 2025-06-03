@@ -6,11 +6,14 @@ import {
   ErrorMessages,
   StripeAccountStatus,
   ResponseStatus,
+  UserRole,
 } from "@/types/enums";
 import { useParams } from "next/navigation";
 import { OrganizationSchema } from "@/types/types";
 import { SubscriptionSchema } from "@/types/schemas-types";
-
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { UserResource } from "@clerk/types";
 type OrganizationContextType = {
   organization?: OrganizationSchema;
   connectedAccountId?: string | null;
@@ -18,8 +21,9 @@ type OrganizationContextType = {
   subscription?: SubscriptionSchema;
   organizationContextLoading: boolean;
   organizationContextError: string | null;
-  refetchOrganization: () => void;
   availableCredits?: number;
+  user?: UserResource | null;
+  orgRole?: UserRole;
 };
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(
@@ -30,21 +34,48 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { slug } = useParams();
+  const router = useRouter();
+  const { user, isLoaded } = useUser();
   const cleanSlug =
     typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
 
-  const [queryKey, setQueryKey] = useState<string>(cleanSlug);
+  const orgRole = user?.publicMetadata.role as UserRole;
+  const isHostlyModerator =
+    orgRole === UserRole.Hostly_Moderator || orgRole === UserRole.Hostly_Admin;
 
   const response = useQuery(
     api.organizations.getOrganizationContext,
-    queryKey ? { slug: queryKey } : "skip"
+    cleanSlug ? { slug: cleanSlug } : "skip"
   );
+
   // Re-fetch when slug changes
   useEffect(() => {
-    if (cleanSlug && cleanSlug !== queryKey) {
-      setQueryKey(cleanSlug);
+    if (!response || !response.data) return;
+
+    if (isLoaded && !user) {
+      router.push("/sign-in");
+      return;
     }
-  }, [cleanSlug, queryKey]);
+
+    const org = response.data.organization;
+    if (!org) {
+      router.push("/unauthorized");
+      return;
+    }
+
+    if (org.slug !== cleanSlug && !isHostlyModerator) {
+      router.push("/unauthorized");
+      return;
+    }
+
+    if (!org.isActive) {
+      if (orgRole === UserRole.Admin) {
+        router.push(`/${cleanSlug}/app/reactivate`);
+      } else {
+        router.push(`/${cleanSlug}/app/deactivated`);
+      }
+    }
+  }, [response, cleanSlug, isHostlyModerator, orgRole, isLoaded, user]);
 
   return (
     <OrganizationContext.Provider
@@ -53,13 +84,11 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
           ? {
               organizationContextLoading: true,
               organizationContextError: null,
-              refetchOrganization: () => setQueryKey(cleanSlug),
             }
           : response.status === ResponseStatus.ERROR
             ? {
                 organizationContextLoading: false,
                 organizationContextError: response.error,
-                refetchOrganization: () => setQueryKey(cleanSlug),
               }
             : {
                 organization: response.data.organization,
@@ -70,8 +99,9 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
                 subscription: response.data.subscription,
                 organizationContextLoading: false,
                 organizationContextError: null,
-                refetchOrganization: () => setQueryKey(cleanSlug),
                 availableCredits: response.data.availableCredits,
+                user,
+                orgRole,
               }
       }
     >

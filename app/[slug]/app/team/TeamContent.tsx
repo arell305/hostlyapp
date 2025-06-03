@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { isAdminOrg } from "@/utils/permissions";
 import PageContainer from "@/components/shared/containers/PageContainer";
+
 interface TeamContentProps {
   canManageTeam: boolean;
   organization: OrganizationSchema;

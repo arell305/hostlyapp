@@ -6,14 +6,12 @@ import FullLoading from "../components/loading/FullLoading";
 import { isManager } from "@/utils/permissions";
 
 const TeamPage = () => {
-  const { user } = useUser();
-  const { organization } = useContextOrganization();
+  const { organization, orgRole } = useContextOrganization();
 
-  if (!user || !organization) {
+  if (!organization) {
     return <FullLoading />;
   }
 
-  const orgRole = user?.publicMetadata.role as string;
   const canManageTeam = isManager(orgRole);
 
   return (

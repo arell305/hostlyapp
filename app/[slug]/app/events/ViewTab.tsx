@@ -4,6 +4,7 @@ import TicketView from "../components/view/Tickets";
 import DetailsView from "../components/view/DetailsView";
 import { EventSchema, TicketInfoSchema } from "@/types/schemas-types";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
+
 interface ViewTabProps {
   eventData: EventSchema;
   ticketData?: TicketInfoSchema | null;

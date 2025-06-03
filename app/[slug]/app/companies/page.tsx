@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { useRouter } from "next/navigation";
 import { api } from "../../../../convex/_generated/api";
 import { QueryState } from "@/types/enums";
 import { handleQueryState } from "../../../../utils/handleQueryState";

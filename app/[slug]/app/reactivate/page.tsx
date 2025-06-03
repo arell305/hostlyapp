@@ -3,14 +3,18 @@ import React from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import ReactivateForm from "./ReactivateForm";
 import { stripePromise } from "../../../../utils/stripe";
-import { useClerk } from "@clerk/nextjs";
+import { RedirectToSignIn, useClerk } from "@clerk/nextjs";
 import FullLoading from "../components/loading/FullLoading";
 
 const ReactivatePage = () => {
   const { user } = useClerk();
 
-  if (!user) {
+  if (user === undefined) {
     return <FullLoading />;
+  }
+
+  if (user === null) {
+    return <RedirectToSignIn />;
   }
 
   return (

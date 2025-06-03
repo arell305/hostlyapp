@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 
 interface EventFormActionsProps {
   isEdit: boolean;
@@ -10,6 +9,7 @@ interface EventFormActionsProps {
   deleteError?: string | null;
   onCancel: () => void;
   onDelete?: () => void;
+  isSubmitDisabled?: boolean;
 }
 
 const EventFormActions: React.FC<EventFormActionsProps> = ({
@@ -21,6 +21,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
   deleteError,
   onCancel,
   onDelete,
+  isSubmitDisabled,
 }) => {
   return (
     <>
@@ -39,7 +40,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
           disabled={isLoading}
           size={isEdit ? "tripleButtons" : "doubelButtons"}
           variant="secondary"
-          className="w-full md:w-[200px]"
+          className="w-full "
         >
           {isEdit ? "Cancel Editing" : "Cancel"}
         </Button>
@@ -47,10 +48,10 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
         {/* Submit Button (uses form submit context) */}
         <Button
           type="submit"
-          disabled={isLoading || isUpdateLoading}
+          disabled={isLoading || isUpdateLoading || isSubmitDisabled}
           size={isEdit ? "tripleButtons" : "doubelButtons"}
           variant="default"
-          className="w-full md:w-[200px]"
+          className="w-full "
           isLoading={isLoading || isUpdateLoading}
         >
           {isEdit ? "Update Event" : "Create"}
@@ -58,7 +59,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
 
         {/* Delete Button */}
         {isEdit && onDelete && (
-          <div className="w-full md:w-[200px]">
+          <div className="w-full ">
             <Button
               type="button"
               onClick={onDelete}

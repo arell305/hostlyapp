@@ -4,6 +4,7 @@ import IconButton from "@/components/shared/buttonContainers/IconButton";
 import EditToggleButton from "@/components/shared/buttonContainers/EditToggleButton";
 import TopBarContainer from "@/components/shared/containers/TopBarContainer";
 import CenteredTitle from "@/components/shared/headings/CenteredTitle";
+
 interface TopRowNavProps {
   eventData: EventSchema;
   isAdminOrg: boolean;

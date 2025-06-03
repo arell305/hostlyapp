@@ -9,8 +9,6 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 
 const HomePage: React.FC = () => {
-  const { user } = useUser();
-  const router = useRouter();
   const pathname = usePathname();
 
   const {
@@ -18,12 +16,12 @@ const HomePage: React.FC = () => {
     organizationContextError,
     connectedAccountEnabled,
     subscription,
+    orgRole,
   } = useContextOrganization();
   if (
     subscription === undefined ||
     organization === undefined ||
-    connectedAccountEnabled === undefined ||
-    !user
+    connectedAccountEnabled === undefined
   ) {
     return <FullLoading />;
   }
@@ -32,7 +30,6 @@ const HomePage: React.FC = () => {
     return <ErrorComponent message={organizationContextError} />;
   }
 
-  const orgRole = user?.publicMetadata.role as string;
   const canCreateEvents = canCreateEvent(orgRole);
 
   const showStripeNotification = !connectedAccountEnabled && canCreateEvents;

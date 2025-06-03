@@ -10,6 +10,8 @@ import { isModerator } from "@/utils/permissions";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import Navbar from "./components/shared/nav/Navbar";
+import { ResponseStatus } from "@/types/enums";
+import ErrorComponent from "./components/errors/ErrorComponent";
 const CompanyLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -29,6 +31,14 @@ const CompanyLayout: React.FC<{ children: React.ReactNode }> = ({
 
   if (!slug || !user || !userFromDb) {
     return <FullLoading />;
+  }
+
+  if (userFromDb.status === ResponseStatus.ERROR) {
+    return <ErrorComponent message={userFromDb.error} />;
+  }
+
+  if (!userFromDb.data.user.isActive) {
+    return <ErrorComponent message="Your account is not active" />;
   }
 
   const orgRole = user.publicMetadata.role as string;
