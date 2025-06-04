@@ -57,7 +57,6 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         onSubmit={handleSubmit}
         cancelText="Cancel"
         submitText={`Pay $${totalAmount.toFixed(2)}`}
-        loadingText="Processing"
         isSubmitDisabled={loading}
         isLoading={loading}
         error={error}
