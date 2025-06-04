@@ -54,7 +54,6 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           onSubmit={onConfirm}
           cancelText={cancelText}
           submitText={confirmText}
-          loadingText="Loading"
           isLoading={isLoading}
           error={error}
           cancelVariant="secondary"

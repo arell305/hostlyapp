@@ -75,7 +75,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
         router.push(`/${cleanSlug}/app/deactivated`);
       }
     }
-  }, [response, cleanSlug, isHostlyModerator, orgRole, isLoaded, user]);
+  }, [response, cleanSlug, isHostlyModerator, orgRole, isLoaded, user, router]);
 
   return (
     <OrganizationContext.Provider
