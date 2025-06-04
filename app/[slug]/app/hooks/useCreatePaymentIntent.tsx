@@ -30,7 +30,7 @@ export function useCreateGuestListPaymentIntent(): UseCreateGuestListPaymentInte
 
     try {
       const result = await createPaymentIntentAction({ quantity });
-
+      console.log("result payment intent", result);
       if (result.status === ResponseStatus.ERROR) {
         setError(result.error || "Failed to create payment intent.");
         return null;

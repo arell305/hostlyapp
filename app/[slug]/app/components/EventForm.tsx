@@ -192,9 +192,11 @@ const EventForm: React.FC<EventFormProps> = ({
   } = useCancelEvent();
 
   const guestListLimitReached =
-    subscription.subscriptionTier === SubscriptionTier.PLUS &&
-    subscription.guestListEventsCount === PLUS_GUEST_LIST_LIMIT &&
-    availableCredits <= 0;
+    (subscription.subscriptionTier === SubscriptionTier.PLUS &&
+      subscription.guestListEventsCount === PLUS_GUEST_LIST_LIMIT &&
+      availableCredits <= 0) ||
+    (subscription.subscriptionTier === SubscriptionTier.STANDARD &&
+      availableCredits <= 0);
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
@@ -483,7 +485,12 @@ const EventForm: React.FC<EventFormProps> = ({
               <p className="text-red-500  ">Guest list limit reached.</p>
 
               {isCompanyAdmin && (
-                <Button variant="nav" className="" onClick={handleBuyCredit}>
+                <Button
+                  type="button"
+                  variant="nav"
+                  className=""
+                  onClick={handleBuyCredit}
+                >
                   Buy Credit
                 </Button>
               )}

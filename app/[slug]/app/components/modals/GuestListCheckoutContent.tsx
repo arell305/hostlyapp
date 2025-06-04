@@ -65,6 +65,7 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
 
   const handleContinue = async () => {
     const clientSecret = await createPaymentIntent({ quantity });
+    console.log("clientSecret", clientSecret);
 
     if (clientSecret) {
       setClientSecret(clientSecret);
