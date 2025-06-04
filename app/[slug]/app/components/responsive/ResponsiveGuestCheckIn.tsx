@@ -83,7 +83,6 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
             submitText="Save"
             submitVariant="default"
             error={error}
-            loadingText="Saving..."
             isSubmitDisabled={isLoading}
           />
         </DialogContent>

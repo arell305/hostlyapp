@@ -139,7 +139,6 @@ const PaymentForm: React.FC<ResponsivePaymentProps> = ({
           onSubmit={handleEditPayment}
           cancelText="Cancel"
           submitText="Save"
-          loadingText="Saving"
           isLoading={isEditPaymentLoading}
           isSubmitDisabled={isEditPaymentLoading}
           error={editPaymentError}

@@ -123,7 +123,6 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
         onCancel={handleClose}
         onSubmit={handleSave}
         isLoading={isLoading}
-        loadingText="Inviting"
         submitText="Invite"
         error={error}
       />

@@ -170,7 +170,6 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
           onSubmit={handleSubmit}
           cancelText="Cancel"
           submitText="Update"
-          loadingText="Updating"
           isLoading={isUpdateTierLoading}
           isSubmitDisabled={isUpdateTierLoading}
           error={updateTierError}
