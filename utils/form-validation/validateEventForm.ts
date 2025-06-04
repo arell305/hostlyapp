@@ -63,7 +63,7 @@ export function validateEventForm({
     errors.endTime = "End time must be after the start time.";
   }
 
-  if (!address.trim() || !address) {
+  if (!address?.trim() || !address) {
     errors.address = "Address must be filled.";
   }
 
