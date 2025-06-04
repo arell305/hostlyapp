@@ -90,7 +90,6 @@ const ResponsiveEditGuestName: React.FC<ResponsiveEditGuestNameProps> = ({
             onSubmit={onSaveGuestName}
             cancelText="Cancel"
             submitText="Save"
-            loadingText="Saving"
             isLoading={isLoading}
             error={error}
           />
