@@ -1,7 +1,9 @@
+import React, { useRef, useEffect } from "react";
 import { Label } from "../../ui/label";
+import FieldErrorMessage from "../error/FieldErrorMessage";
 import LabelWrapper from "./LabelWrapper";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
-import { FaTimes } from "react-icons/fa";
+import { X } from "lucide-react";
 
 interface LabeledAddressAutoCompleteProps {
   label: string;
@@ -9,7 +11,47 @@ interface LabeledAddressAutoCompleteProps {
   onSelect: (value: any) => void;
   value: any;
   error?: string | null;
+  clearInput: () => void;
 }
+
+const AutoResizingTextArea: React.FC<{
+  value: string;
+  onClear: () => void;
+}> = ({ value, onClear }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
+
+  return (
+    <div className="relative">
+      <textarea
+        ref={textareaRef}
+        value={value}
+        readOnly
+        rows={1}
+        className="w-full resize-none bg-transparent text-white border border-[#1B1C20] rounded-md px-2 pr-8 py-2 font-normal leading-snug"
+        style={{
+          overflow: "hidden",
+          lineHeight: "1.4",
+          fontFamily: "inherit",
+        }}
+      />
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label="Clear address"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none"
+      >
+        <X size={18} />
+      </button>
+    </div>
+  );
+};
 
 const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
   label,
@@ -17,91 +59,94 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
   onSelect,
   value,
   error,
+  clearInput,
 }) => {
   return (
-    <LabelWrapper className="relative ">
+    <LabelWrapper className="relative">
       <Label htmlFor="address" className="font-semibold">
         {label}
       </Label>
-      <GooglePlacesAutocomplete
-        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-        selectProps={{
-          className: "ios-input-fix",
-          onChange: onSelect,
-          defaultInputValue: address,
-          placeholder: "Enter an address",
-          styles: {
-            container: (provided) => ({ ...provided }),
-            control: (provided, state) => ({
-              ...provided,
-              border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`,
-              backgroundColor: "transparent",
 
-              borderRadius: "6px",
-              // padding: "0",
-              paddingLeft: "8px",
-              paddingRight: "2.5rem",
-              paddingTop: "4px",
-              paddingBottom: "4px",
-              minHeight: "auto",
-              height: "auto",
-              "&:hover": {
-                border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`, // <-- force hover to match normal
+      {address ? (
+        <AutoResizingTextArea value={address} onClear={clearInput} />
+      ) : (
+        <GooglePlacesAutocomplete
+          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+          selectProps={{
+            classNamePrefix: "address",
+            onChange: onSelect,
+            defaultInputValue: address,
+            placeholder: "Enter an address",
+            styles: {
+              container: (provided) => ({ ...provided }),
+              control: (provided, state) => ({
+                ...provided,
+                border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`,
+                backgroundColor: "transparent",
+                borderRadius: "6px",
+                paddingLeft: "2px",
+                paddingRight: "2.5rem",
+                paddingTop: "4px",
+                paddingBottom: "4px",
+                minHeight: "auto",
+                height: "auto",
+                "&:hover": {
+                  border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`,
+                },
+              }),
+              input: (provided) => {
+                return {
+                  ...provided,
+                  color: "#F9FAFA",
+                  boxSizing: "border-box",
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                  appearance: "none",
+                };
               },
-            }),
-            input: (provided) => ({
-              ...provided,
-              color: "#F9FAFA",
-              // paddingLeft: "8px",
+              placeholder: (provided) => {
+                return {
+                  ...provided,
+                  color: "#A2A5AD",
+                };
+              },
+              singleValue: (provided) => ({
+                ...provided,
+                color: "#F9FAFA",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+              }),
+              noOptionsMessage: (provided) => ({
+                ...provided,
+                backgroundColor: "#0F0F13",
+                color: "#9CA3AF",
+                padding: "8px 12px",
+              }),
+              dropdownIndicator: (provided) => ({
+                ...provided,
+                display: "none",
+              }),
+              menu: (provided) => ({
+                ...provided,
+                backgroundColor: "#0F0F13",
+                border: "none",
+                boxShadow: "none",
+                zIndex: 9999,
+              }),
+              menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
+              option: (provided, state) => ({
+                ...provided,
+                backgroundColor: state.isFocused ? "#1f2937" : "#0F0F13",
+                color: "#F9FAFA",
+                paddingLeft: "10px",
+              }),
+            },
+          }}
+        />
+      )}
 
-              boxSizing: "border-box",
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              appearance: "none",
-            }),
-            placeholder: (provided) => ({
-              ...provided,
-              color: "#A2A5AD",
-            }),
-            singleValue: (provided) => ({
-              ...provided,
-              color: "#F9FAFA",
-              overflow: "hidden",
-              whiteSpace: "nowrap", // <-- important
-              textOverflow: "ellipsis",
-            }),
-            noOptionsMessage: (provided) => ({
-              ...provided,
-              backgroundColor: "#0F0F13", // match dropdown background
-              color: "#9CA3AF", // gray-400 text color
-              padding: "8px 12px",
-            }),
-            dropdownIndicator: (provided) => ({ ...provided, display: "none" }),
-            menu: (provided) => ({
-              ...provided,
-              backgroundColor: "#0F0F13", // dark background for menu dropdown
-              border: "none", // remove white border if any
-              boxShadow: "none", // optional: remove default shadow
-              zIndex: 9999,
-            }),
-            menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
-            option: (provided, state) => ({
-              ...provided,
-              backgroundColor: state.isFocused
-                ? "#1f2937" // <-- background when hovering (example dark gray)
-                : "#0F0F13", // <-- normal background
-              color: "#F9FAFA", // <-- text color
-              paddingLeft: "10px",
-            }),
-          },
-        }}
-      />
-
-      <p
-        className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
-      >
-        {error || "Placeholder to maintain height"}
-      </p>
+      <FieldErrorMessage error={error} />
     </LabelWrapper>
   );
 };

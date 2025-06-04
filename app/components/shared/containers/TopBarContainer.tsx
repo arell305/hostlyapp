@@ -15,7 +15,7 @@ const TopBarContainer: React.FC<TopBarContainerProps> = ({
   return (
     <div
       className={cn(
-        "relative flex items-center justify-between pt-4 px-3 md:px-0 mb-4",
+        "relative flex items-center justify-between pt-4 px-0 mb-4",
         className
       )}
     >

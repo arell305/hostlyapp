@@ -24,7 +24,7 @@ const EventList: React.FC<EventListProps> = ({
 
   return (
     <div
-      className={`py-2 flex flex-wrap justify-center gap-x-4 gap-y-3 px-4 ${className}`}
+      className={`py-2 flex flex-wrap justify-center gap-x-4 gap-y-3  ${className}`}
     >
       {events.map((event) => (
         <EventItem key={event._id} event={event} pathname={pathname} />

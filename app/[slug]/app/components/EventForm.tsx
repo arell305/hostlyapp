@@ -87,7 +87,7 @@ const EventForm: React.FC<EventFormProps> = ({
   const [description, setDescription] = useState(
     initialEventData?.description || ""
   );
-  const [address, setAddress] = useState(initialEventData?.address || "");
+  const [address, setAddress] = useState(initialEventData?.address);
 
   // Date/times
   const [startTime, setStartTime] = useState<number | null>(
@@ -175,9 +175,7 @@ const EventForm: React.FC<EventFormProps> = ({
   };
   const clearInput = () => {
     setValue(null);
-    if (value) {
-      setAddress(value.label);
-    }
+    setAddress("");
   };
 
   const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
@@ -192,10 +190,6 @@ const EventForm: React.FC<EventFormProps> = ({
     error: deleteError,
     setError: setDeleteError,
   } = useCancelEvent();
-
-  const canAddGuestListOption =
-    subscription.subscriptionTier === SubscriptionTier.ELITE ||
-    subscription.subscriptionTier === SubscriptionTier.PLUS;
 
   const guestListLimitReached =
     subscription.subscriptionTier === SubscriptionTier.PLUS &&
@@ -344,7 +338,7 @@ const EventForm: React.FC<EventFormProps> = ({
         startTime: startTime!,
         endTime: endTime!,
         photo: photoStorageId!,
-        address: address.trim(),
+        address: address?.trim() ?? "",
       };
 
       const ticketData: TicketFormInput | null = isTicketsSelected
@@ -388,6 +382,7 @@ const EventForm: React.FC<EventFormProps> = ({
     !startTime ||
     !endTime ||
     !photoStorageId ||
+    !address ||
     !address.trim() ||
     (isTicketsSelected &&
       (!maleTicketPrice ||
@@ -398,6 +393,15 @@ const EventForm: React.FC<EventFormProps> = ({
     (isGuestListSelected && (!guestListCloseTime || !checkInCloseTime)) ||
     isLoading || // optional: prevent double submit
     isSubmitLoading;
+
+  const creditLabel = availableCredits === 1 ? "credit" : "credits";
+
+  const guestListSubtitle =
+    subscription.subscriptionTier === SubscriptionTier.PLUS
+      ? `(${subscription.guestListEventsCount}/${PLUS_GUEST_LIST_LIMIT} events this cycle | ${availableCredits} ${creditLabel} available)`
+      : subscription.subscriptionTier === SubscriptionTier.STANDARD
+        ? `${availableCredits} ${creditLabel} available`
+        : undefined;
 
   if (isDeleted) return null;
 
@@ -439,10 +443,11 @@ const EventForm: React.FC<EventFormProps> = ({
         />
         <LabeledAddressAutoComplete
           label="Address*"
-          address={address}
+          address={address || ""}
           onSelect={handleSelect}
           value={value}
           error={errors.address}
+          clearInput={clearInput}
         />
         <LabeledDateTimeField
           name="startTime"
@@ -460,18 +465,17 @@ const EventForm: React.FC<EventFormProps> = ({
           error={errors.endTime}
           isIOS={isIOSDevice}
         />
-        {canAddGuestListOption && (
-          <ToggleSectionCard
-            label="GUEST LIST OPTION"
-            isActive={isGuestListSelected}
-            onToggle={() =>
-              isGuestListSelected
-                ? handleRemoveGuestList()
-                : setIsGuestListSelected(true)
-            }
-            subtitle={`(${subscription.guestListEventsCount}/${PLUS_GUEST_LIST_LIMIT} events this cycle | ${availableCredits} credits available)`}
-          />
-        )}
+
+        <ToggleSectionCard
+          label="GUEST LIST OPTION"
+          isActive={isGuestListSelected}
+          onToggle={() =>
+            isGuestListSelected
+              ? handleRemoveGuestList()
+              : setIsGuestListSelected(true)
+          }
+          subtitle={guestListSubtitle}
+        />
 
         {isGuestListSelected &&
           (guestListLimitReached ? (

@@ -12,6 +12,7 @@ import { useQuery } from "convex/react";
 import Navbar from "./components/shared/nav/Navbar";
 import { ResponseStatus } from "@/types/enums";
 import ErrorComponent from "./components/errors/ErrorComponent";
+
 const CompanyLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {

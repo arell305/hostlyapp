@@ -81,7 +81,6 @@ const AddGuestListPage: React.FC<AddGuestListContentProps> = ({
         isLoading={isLoading}
         error={error}
         submitText="Add Guests"
-        loadingText="Adding"
       />
     </SectionContainer>
   );

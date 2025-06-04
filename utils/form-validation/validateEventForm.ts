@@ -8,7 +8,7 @@ interface ValidateEventFormParams {
   photoStorageId: string | null;
   startTime: number | null;
   endTime: number | null;
-  address: string;
+  address?: string;
   isTicketsSelected: boolean;
   maleTicketPrice: string;
   femaleTicketPrice: string;
@@ -63,7 +63,7 @@ export function validateEventForm({
     errors.endTime = "End time must be after the start time.";
   }
 
-  if (!address.trim()) {
+  if (!address.trim() || !address) {
     errors.address = "Address must be filled.";
   }
 

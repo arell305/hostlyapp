@@ -1,12 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import FieldErrorMessage from "../error/FieldErrorMessage";
 
 interface FormActionsProps {
   onCancel: () => void;
   onSubmit: () => void;
   cancelText?: string;
   submitText?: string;
-  loadingText?: string;
   isSubmitDisabled?: boolean;
   isLoading?: boolean;
   cancelVariant?: "default" | "secondary" | "destructive" | "outline";
@@ -49,13 +49,7 @@ const FormActions: React.FC<FormActionsProps> = ({
           {submitText}
         </Button>
       </div>
-      <p
-        className={`text-sm text-center pt-2 ${
-          error ? "text-red-500" : "text-transparent"
-        }`}
-      >
-        {error || "Placeholder to maintain height"}
-      </p>
+      <FieldErrorMessage error={error} />
     </div>
   );
 };
