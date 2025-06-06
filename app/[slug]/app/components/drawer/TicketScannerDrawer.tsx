@@ -23,12 +23,18 @@ const TicketScannerModal = ({
 
     try {
       const qrData = detectedCodes[0].rawValue;
-      const parsedData = JSON.parse(qrData);
+      let ticketId: string | undefined;
 
-      if (parsedData?.ticketUniqueId) {
-        const response = await checkInTicket({
-          ticketUniqueId: parsedData.ticketUniqueId,
-        });
+      try {
+        const parsedData = JSON.parse(qrData);
+        ticketId = parsedData?.ticketUniqueId;
+      } catch {
+        // fallback if it's a plain string
+        ticketId = qrData;
+      }
+
+      if (ticketId) {
+        const response = await checkInTicket({ ticketUniqueId: ticketId });
 
         if (response.status === ResponseStatus.SUCCESS) {
           setCheckInStatus("✅ Check-in successful!");
