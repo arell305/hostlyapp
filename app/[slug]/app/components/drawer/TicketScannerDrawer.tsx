@@ -76,7 +76,7 @@ const TicketScannerModal = ({
           />
         </div>
         {checkInStatus && (
-          <p className="text-center text-lg font-semibold mt-4 text-gray-700">
+          <p className="text-center text-lg font-semibold mt-4 text-white">
             {checkInStatus}
           </p>
         )}
