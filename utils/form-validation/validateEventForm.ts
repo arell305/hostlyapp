@@ -1,4 +1,3 @@
-import { DateTime } from "luxon";
 import { formatName } from "../format";
 import { FrontendErrorMessages } from "@/types/enums";
 import { isValidPhoneNumber } from "../frontend-validation";
@@ -41,7 +40,6 @@ export function validateEventForm({
   organizationId,
 }: ValidateEventFormParams): ValidationErrors {
   const errors: ValidationErrors = {};
-  const now = DateTime.now().toMillis();
 
   if (!eventName.trim()) {
     errors.eventName = "Name must be filled.";
@@ -53,8 +51,6 @@ export function validateEventForm({
 
   if (!startTime || isNaN(startTime)) {
     errors.startTime = "Start time must be selected.";
-  } else if (startTime < now) {
-    errors.startTime = "Start time must be in the future.";
   }
 
   if (!endTime || isNaN(endTime)) {

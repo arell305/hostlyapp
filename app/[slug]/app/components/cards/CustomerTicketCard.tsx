@@ -3,7 +3,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { CustomerTicket } from "@/types/schemas-types";
 import { QRCodeCanvas } from "qrcode.react";
 import _ from "lodash";
-import { Badge } from "@/components/ui/badge";
 import { MdOutlineCalendarToday } from "react-icons/md";
 import { FiClock } from "react-icons/fi";
 import { LuMapPin } from "react-icons/lu";

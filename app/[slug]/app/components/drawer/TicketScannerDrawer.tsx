@@ -39,6 +39,7 @@ const TicketScannerModal = ({
         setCheckInStatus("❌ Invalid QR code format");
       }
     } catch (error) {
+      console.error(error);
       setCheckInStatus("❌ Error parsing QR code");
     }
   };

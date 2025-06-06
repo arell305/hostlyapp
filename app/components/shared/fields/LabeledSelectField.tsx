@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
+import FieldErrorMessage from "../error/FieldErrorMessage";
 import LabelWrapper from "./LabelWrapper";
 
 interface LabeledSelectFieldProps {
@@ -28,24 +29,24 @@ const LabeledSelectField: React.FC<LabeledSelectFieldProps> = ({
   className = "",
 }) => {
   return (
-    <LabelWrapper>
-      <Label>{label}</Label>
-      <Select onValueChange={onChange} value={value}>
-        <SelectTrigger className={`w-full ${error ? "border-red-500" : ""}`}>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <p className={`text-sm ${error ? "text-red-500" : "text-transparent"}`}>
-        {error || "Placeholder to maintain height"}
-      </p>
-    </LabelWrapper>
+    <div>
+      <LabelWrapper>
+        <Label>{label}</Label>
+        <Select onValueChange={onChange} value={value}>
+          <SelectTrigger className={`w-full ${error ? "border-red-500" : ""}`}>
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </LabelWrapper>
+      <FieldErrorMessage error={error} />
+    </div>
   );
 };
 

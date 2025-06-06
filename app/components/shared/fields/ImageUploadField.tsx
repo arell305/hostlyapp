@@ -5,6 +5,7 @@ import Image from "next/image";
 import { RiImageAddFill } from "react-icons/ri";
 import IconButton from "../buttonContainers/IconButton";
 import { X } from "lucide-react";
+import FieldErrorMessage from "../error/FieldErrorMessage";
 interface ImageUploadFieldProps {
   label: string;
   id: string;
@@ -68,11 +69,7 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
                   <RiImageAddFill className="text-4xl text-grayText" />
                 )}
               </div>
-              <p
-                className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
-              >
-                {error || "Placeholder to maintain height"}
-              </p>
+              <FieldErrorMessage error={error} />
             </div>
           )}
         </div>

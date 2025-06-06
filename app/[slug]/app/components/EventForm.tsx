@@ -430,15 +430,21 @@ const EventForm: React.FC<EventFormProps> = ({
           label="Name*"
           placeholder="Enter event name"
           value={eventName}
-          onChange={(e) => setEventName(e.target.value)}
+          onChange={(e) => {
+            setEventName(e.target.value);
+            setErrors((prev) => ({ ...prev, eventName: undefined }));
+          }}
           error={errors.eventName}
-          className="w-full  "
         />
+
         <LabeledTextAreaField
           name="description"
           label="Description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            setErrors((prev) => ({ ...prev, description: undefined }));
+          }}
           placeholder="Add a description for your event."
           rows={6}
           className="w-full "
@@ -455,7 +461,10 @@ const EventForm: React.FC<EventFormProps> = ({
           name="startTime"
           label="Starts*"
           value={timestampToPstString(startTime)}
-          onChange={(e) => handleDateTimeChange(e, setStartTime)}
+          onChange={(e) => {
+            handleDateTimeChange(e, setStartTime);
+            setErrors((prev) => ({ ...prev, startTime: undefined }));
+          }}
           error={errors.startTime}
           isIOS={isIOSDevice}
         />
@@ -463,7 +472,10 @@ const EventForm: React.FC<EventFormProps> = ({
           name="endTime"
           label="Ends*"
           value={timestampToPstString(endTime)}
-          onChange={(e) => handleDateTimeChange(e, setEndTime)}
+          onChange={(e) => {
+            handleDateTimeChange(e, setEndTime);
+            setErrors((prev) => ({ ...prev, endTime: undefined }));
+          }}
           error={errors.endTime}
           isIOS={isIOSDevice}
         />
@@ -501,7 +513,13 @@ const EventForm: React.FC<EventFormProps> = ({
                 name="guestListCloseTime"
                 label="Guest List Upload Close Time*"
                 value={timestampToPstString(guestListCloseTime)}
-                onChange={(e) => handleDateTimeChange(e, setGuestListCloseTime)}
+                onChange={(e) => {
+                  handleDateTimeChange(e, setGuestListCloseTime);
+                  setErrors((prev) => ({
+                    ...prev,
+                    guestListCloseTime: undefined,
+                  }));
+                }}
                 error={errors.guestListCloseTime}
                 isIOS={isIOSDevice}
               />
@@ -509,7 +527,13 @@ const EventForm: React.FC<EventFormProps> = ({
                 name="checkInCloseTime"
                 label="Check In Close Time*"
                 value={timestampToPstString(checkInCloseTime)}
-                onChange={(e) => handleDateTimeChange(e, setCheckInCloseTime)}
+                onChange={(e) => {
+                  handleDateTimeChange(e, setCheckInCloseTime);
+                  setErrors((prev) => ({
+                    ...prev,
+                    checkInCloseTime: undefined,
+                  }));
+                }}
                 error={errors.checkInCloseTime}
                 isIOS={isIOSDevice}
               />
@@ -543,6 +567,10 @@ const EventForm: React.FC<EventFormProps> = ({
                 const value = e.target.value;
                 if (priceRegex.test(value) || value === "") {
                   setMaleTicketPrice(value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    maleTicketPrice: undefined,
+                  }));
                 }
               }}
               error={errors.maleTicketPrice}
@@ -559,6 +587,10 @@ const EventForm: React.FC<EventFormProps> = ({
                 const value = e.target.value;
                 if (priceRegex.test(value) || value === "") {
                   setFemaleTicketPrice(value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    femaleTicketPrice: undefined,
+                  }));
                 }
               }}
               error={errors.femaleTicketPrice}
@@ -572,7 +604,16 @@ const EventForm: React.FC<EventFormProps> = ({
               type="number"
               placeholder="Enter male ticket capacity"
               value={maleTicketCapacity}
-              onChange={(e) => setMaleTicketCapacity(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "" || parseInt(value) >= 0) {
+                  setMaleTicketCapacity(value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    maleTicketCapacity: undefined,
+                  }));
+                }
+              }}
               error={errors.maleTicketCapacity}
               className="w-full "
               min={0}
@@ -584,7 +625,16 @@ const EventForm: React.FC<EventFormProps> = ({
               type="number"
               placeholder="Enter female ticket capacity"
               value={femaleTicketCapacity}
-              onChange={(e) => setFemaleTicketCapacity(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "" || parseInt(value) >= 0) {
+                  setFemaleTicketCapacity(value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    femaleTicketCapacity: undefined,
+                  }));
+                }
+              }}
               error={errors.femaleTicketCapacity}
               className="w-full "
               min={0}
@@ -594,7 +644,13 @@ const EventForm: React.FC<EventFormProps> = ({
               name="ticketSalesEndTime"
               label="Ticket Sales End Time*"
               value={timestampToPstString(ticketSalesEndTime)}
-              onChange={(e) => handleDateTimeChange(e, setTicketSalesEndTime)}
+              onChange={(e) => {
+                handleDateTimeChange(e, setTicketSalesEndTime);
+                setErrors((prev) => ({
+                  ...prev,
+                  ticketSalesEndTime: undefined,
+                }));
+              }}
               error={errors.ticketSalesEndTime}
               isIOS={isIOSDevice}
             />

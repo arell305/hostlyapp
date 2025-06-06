@@ -1,5 +1,6 @@
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
+import FieldErrorMessage from "../error/FieldErrorMessage";
 import LabelWrapper from "./LabelWrapper";
 
 interface LabeledDateTimeFieldProps {
@@ -26,29 +27,29 @@ const LabeledDateTimeField: React.FC<LabeledDateTimeFieldProps> = ({
   const isEmpty = !value;
 
   return (
-    <LabelWrapper>
-      <Label htmlFor={name}>{label}</Label>
-      <div className="relative w-full ">
-        <Input
-          id={name}
-          name={name}
-          type="datetime-local"
-          value={value}
-          onChange={onChange}
-          className={` h-10 ${isEmpty && isIOS ? "text-transparent" : ""} ${
-            error ? "border-red-500" : ""
-          } ${className}`}
-        />
-        {isEmpty && isIOS && (
-          <span className="pl-2 absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-            {placeholder}
-          </span>
-        )}
-      </div>
-      <p className={`text-sm ${error ? "text-red-500" : "text-transparent"}`}>
-        {error || "Placeholder to maintain height"}
-      </p>
-    </LabelWrapper>
+    <div>
+      <LabelWrapper>
+        <Label htmlFor={name}>{label}</Label>
+        <div className="relative w-full ">
+          <Input
+            id={name}
+            name={name}
+            type="datetime-local"
+            value={value}
+            onChange={onChange}
+            className={` h-10 ${isEmpty && isIOS ? "text-transparent" : ""} ${
+              error ? "border-red-500" : ""
+            } ${className}`}
+          />
+          {isEmpty && isIOS && (
+            <span className="pl-2 absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+              {placeholder}
+            </span>
+          )}
+        </div>
+      </LabelWrapper>
+      <FieldErrorMessage error={error} />
+    </div>
   );
 };
 

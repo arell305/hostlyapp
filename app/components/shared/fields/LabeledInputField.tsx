@@ -24,20 +24,22 @@ const LabeledInputField: React.FC<LabeledInputFieldProps> = ({
   ...rest
 }) => {
   return (
-    <LabelWrapper>
-      <Label htmlFor={name}>{label}</Label>
-      <Input
-        id={name}
-        name={name}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        className={` ${error ? "border-red-500" : ""} ${className}`}
-        {...rest} // Allow additional input props like min, max, step, etc.
-      />
+    <div>
+      <LabelWrapper>
+        <Label htmlFor={name}>{label}</Label>
+        <Input
+          id={name}
+          name={name}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          className={` ${error ? "border-red-500" : ""} ${className}`}
+          {...rest} // Allow additional input props like min, max, step, etc.
+        />
+      </LabelWrapper>
       <FieldErrorMessage error={error} />
-    </LabelWrapper>
+    </div>
   );
 };
 

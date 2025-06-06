@@ -62,92 +62,93 @@ const LabeledAddressAutoComplete: React.FC<LabeledAddressAutoCompleteProps> = ({
   clearInput,
 }) => {
   return (
-    <LabelWrapper className="relative">
-      <Label htmlFor="address" className="font-semibold">
-        {label}
-      </Label>
+    <div>
+      <LabelWrapper className="relative">
+        <Label htmlFor="address" className="font-semibold">
+          {label}
+        </Label>
 
-      {address ? (
-        <AutoResizingTextArea value={address} onClear={clearInput} />
-      ) : (
-        <GooglePlacesAutocomplete
-          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-          selectProps={{
-            classNamePrefix: "address",
-            onChange: onSelect,
-            defaultInputValue: address,
-            placeholder: "Enter an address",
-            styles: {
-              container: (provided) => ({ ...provided }),
-              control: (provided, state) => ({
-                ...provided,
-                border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`,
-                backgroundColor: "transparent",
-                borderRadius: "6px",
-                paddingLeft: "2px",
-                paddingRight: "2.5rem",
-                paddingTop: "4px",
-                paddingBottom: "4px",
-                minHeight: "auto",
-                height: "auto",
-                "&:hover": {
+        {address ? (
+          <AutoResizingTextArea value={address} onClear={clearInput} />
+        ) : (
+          <GooglePlacesAutocomplete
+            apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+            selectProps={{
+              classNamePrefix: "address",
+              onChange: onSelect,
+              defaultInputValue: address,
+              placeholder: "Enter an address",
+              styles: {
+                container: (provided) => ({ ...provided }),
+                control: (provided, state) => ({
+                  ...provided,
                   border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`,
+                  backgroundColor: "transparent",
+                  borderRadius: "6px",
+                  paddingLeft: "2px",
+                  paddingRight: "2.5rem",
+                  paddingTop: "4px",
+                  paddingBottom: "4px",
+                  minHeight: "auto",
+                  height: "auto",
+                  "&:hover": {
+                    border: `1px solid ${state.isFocused ? "#324E78" : "#1B1C20"}`,
+                  },
+                }),
+                input: (provided) => {
+                  return {
+                    ...provided,
+                    color: "#F9FAFA",
+                    boxSizing: "border-box",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                    appearance: "none",
+                  };
                 },
-              }),
-              input: (provided) => {
-                return {
+                placeholder: (provided) => {
+                  return {
+                    ...provided,
+                    color: "#A2A5AD",
+                  };
+                },
+                singleValue: (provided) => ({
                   ...provided,
                   color: "#F9FAFA",
-                  boxSizing: "border-box",
-                  WebkitAppearance: "none",
-                  MozAppearance: "none",
-                  appearance: "none",
-                };
-              },
-              placeholder: (provided) => {
-                return {
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  textOverflow: "ellipsis",
+                }),
+                noOptionsMessage: (provided) => ({
                   ...provided,
-                  color: "#A2A5AD",
-                };
+                  backgroundColor: "#0F0F13",
+                  color: "#9CA3AF",
+                  padding: "8px 12px",
+                }),
+                dropdownIndicator: (provided) => ({
+                  ...provided,
+                  display: "none",
+                }),
+                menu: (provided) => ({
+                  ...provided,
+                  backgroundColor: "#0F0F13",
+                  border: "none",
+                  boxShadow: "none",
+                  zIndex: 9999,
+                }),
+                menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
+                option: (provided, state) => ({
+                  ...provided,
+                  backgroundColor: state.isFocused ? "#1f2937" : "#0F0F13",
+                  color: "#F9FAFA",
+                  paddingLeft: "10px",
+                }),
               },
-              singleValue: (provided) => ({
-                ...provided,
-                color: "#F9FAFA",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                textOverflow: "ellipsis",
-              }),
-              noOptionsMessage: (provided) => ({
-                ...provided,
-                backgroundColor: "#0F0F13",
-                color: "#9CA3AF",
-                padding: "8px 12px",
-              }),
-              dropdownIndicator: (provided) => ({
-                ...provided,
-                display: "none",
-              }),
-              menu: (provided) => ({
-                ...provided,
-                backgroundColor: "#0F0F13",
-                border: "none",
-                boxShadow: "none",
-                zIndex: 9999,
-              }),
-              menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
-              option: (provided, state) => ({
-                ...provided,
-                backgroundColor: state.isFocused ? "#1f2937" : "#0F0F13",
-                color: "#F9FAFA",
-                paddingLeft: "10px",
-              }),
-            },
-          }}
-        />
-      )}
-
+            }}
+          />
+        )}
+      </LabelWrapper>
       <FieldErrorMessage error={error} />
-    </LabelWrapper>
+    </div>
   );
 };
 

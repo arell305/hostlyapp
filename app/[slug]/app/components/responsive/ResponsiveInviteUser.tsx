@@ -86,6 +86,8 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
     }
   };
 
+  const isDisabled = inviteEmail.trim() === "";
+
   const formContent = (
     <FormContainer>
       <LabeledInputField
@@ -125,6 +127,7 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
         isLoading={isLoading}
         submitText="Invite"
         error={error}
+        isSubmitDisabled={isDisabled}
       />
     </FormContainer>
   );

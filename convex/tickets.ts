@@ -277,6 +277,8 @@ export const checkInTicket = mutation({
         checkInTime: DateTime.now().toMillis(),
       });
 
+      console.log("Ticket checked in:", ticket._id);
+
       return {
         status: ResponseStatus.SUCCESS,
         data: { ticketId: ticket._id },
