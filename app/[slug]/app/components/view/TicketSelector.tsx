@@ -1,43 +1,46 @@
 import CountInputField from "@/components/shared/fields/CountInputField";
 import { formatCurrency } from "../../../../../utils/helpers";
+import { EventTicketTypesSchema } from "@/types/schemas-types";
+import { isAfterNowInPacificTime } from "@/utils/luxon";
 
 interface TicketSelectorProps {
-  label: string;
+  ticketType: EventTicketTypesSchema;
   count: number;
-  setCount: (count: number) => void;
-  price: number;
-  capacity: number;
   soldCount: number;
+  setCount: (count: number) => void;
 }
 
 const TicketSelector: React.FC<TicketSelectorProps> = ({
-  label,
+  ticketType,
   count,
-  setCount,
-  price,
-  capacity,
   soldCount,
+  setCount,
 }) => {
-  const isSoldOut = soldCount >= capacity;
+  const { name, price, capacity, ticketSalesEndTime } = ticketType;
+  const remaining = capacity - soldCount;
+  const isSoldOut = remaining <= 0;
+  const isTicketSalesEnded = !isAfterNowInPacificTime(ticketSalesEndTime);
 
   return (
-    <div className="flex justify-between  py-2 items-center">
+    <div className="flex justify-between items-center py-3 border-b">
       <div>
-        <h3 className="font-semibold ">{label} Tickets</h3>
-        {isSoldOut ? (
-          <p className="text-sm font-medium text-red-500 mt-1">Sold Out</p>
-        ) : (
-          <p className="text-sm">{formatCurrency(price)}</p>
-        )}
+        <h3 className="font-semibold text-base">{name} Ticket</h3>
+        <p className="text-sm text-gray-500">
+          {isTicketSalesEnded ? (
+            <span className="text-red-500 font-medium">Ticket sales ended</span>
+          ) : isSoldOut ? (
+            <span className="text-red-500 font-medium">Sold Out</span>
+          ) : (
+            `${formatCurrency(price)}`
+          )}
+        </p>
       </div>
 
-      {!isSoldOut && (
+      {!isTicketSalesEnded && !isSoldOut && (
         <CountInputField
           label=""
           value={count}
-          onChange={(newVal) =>
-            setCount(Math.min(newVal, capacity - soldCount))
-          }
+          onChange={(newVal) => setCount(Math.min(newVal, remaining))}
         />
       )}
     </div>

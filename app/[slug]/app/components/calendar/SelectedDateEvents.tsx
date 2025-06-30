@@ -1,11 +1,11 @@
 import React from "react";
-import { EventSchema } from "@/types/schemas-types";
 import { formatLongDate } from "../../../../../utils/luxon";
 import EventList from "../events/EventList";
+import { EventWithExtras } from "@/types/convex-types";
 
 interface SelectedDateEventsProps {
   date: Date;
-  events: EventSchema[];
+  events: EventWithExtras[];
   pathname: string;
 }
 

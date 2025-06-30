@@ -1,18 +1,27 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { GuestListInfoSchema } from "@/types/schemas-types";
-import { ErrorMessages } from "@/types/enums";
+import {
+  ErrorMessages,
+  ResponseStatus,
+  ShowErrorMessages,
+} from "@/types/enums";
+import { PublicGetGuestListInfoByEventIdResponse } from "@/types/convex-types";
+import { handleError } from "./backendUtils/helper";
+import { validateGuestListInfo } from "./backendUtils/validation";
 
 export const createGuestListInfo = internalMutation({
   args: {
     eventId: v.id("events"),
     guestListCloseTime: v.number(),
     checkInCloseTime: v.number(),
+    guestListRules: v.string(),
   },
   handler: async (ctx, args): Promise<Id<"guestListInfo">> => {
     try {
-      const { eventId, guestListCloseTime, checkInCloseTime } = args;
+      const { eventId, guestListCloseTime, checkInCloseTime, guestListRules } =
+        args;
 
       const guestListInfoId: Id<"guestListInfo"> = await ctx.db.insert(
         "guestListInfo",
@@ -20,10 +29,9 @@ export const createGuestListInfo = internalMutation({
           eventId,
           guestListCloseTime,
           checkInCloseTime,
+          guestListRules,
         }
       );
-
-      await ctx.db.patch(eventId, { guestListInfoId });
 
       return guestListInfoId;
     } catch (error) {
@@ -69,6 +77,34 @@ export const updateGuestListInfo = internalMutation({
     } catch (error) {
       console.error("Error updating guest list info:", error);
       throw new Error(ErrorMessages.GUEST_LIST_INFO_DB_UPDATE);
+    }
+  },
+});
+
+export const publicGetGuestListInfoByEventId = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<PublicGetGuestListInfoByEventIdResponse> => {
+    try {
+      const guestListInfo = validateGuestListInfo(
+        await ctx.db
+          .query("guestListInfo")
+          .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+          .first()
+      );
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          guestListInfo,
+        },
+      };
+    } catch (error) {
+      return handleError(error);
     }
   },
 });

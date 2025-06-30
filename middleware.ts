@@ -96,60 +96,6 @@ export default clerkMiddleware(
       if (!orgId) {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
-      // const organization = await convex.query(
-      //   api.organizations.getOrganizationByClerkId,
-      //   {
-      //     clerkOrganizationId: orgId,
-      //   }
-      // );
-
-      // if (!organization) {
-      //   return NextResponse.redirect(new URL("/unauthorized", req.url));
-      // }
-
-      // const userSchema = await convex.query(api.users.publicfindUserByClerkId, {
-      //   clerkUserId: userId,
-      // });
-
-      // if (!userSchema) {
-      //   return NextResponse.redirect(new URL("/unauthorized", req.url));
-      // }
-
-      // if (!userSchema.isActive) {
-      //   if (!url.pathname.includes("account-not-found")) {
-      //     return NextResponse.redirect(
-      //       new URL(`/${slug}/app/account-not-found`, req.url)
-      //     );
-      //   }
-      // }
-
-      // if (!organization.isActive && userSchema.role === UserRole.Admin) {
-      //   if (!url.pathname.includes("reactivate")) {
-      //     return NextResponse.redirect(
-      //       new URL(`/${slug}/app/reactivate`, req.url)
-      //     );
-      //   }
-      // }
-
-      // if (!organization.isActive && userSchema.role !== UserRole.Admin) {
-      //   if (!url.pathname.includes("deactivated")) {
-      //     return NextResponse.redirect(
-      //       new URL(`/${slug}/app/deactivated`, req.url)
-      //     );
-      //   }
-      // }
-
-      // if (organization.slug === slug) {
-      //   return NextResponse.next();
-      // }
-      // if (
-      //   userSchema.role === UserRole.Hostly_Admin ||
-      //   userSchema.role === UserRole.Hostly_Moderator
-      // ) {
-      //   return NextResponse.next();
-      // }
-
-      //   return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
     return NextResponse.next();

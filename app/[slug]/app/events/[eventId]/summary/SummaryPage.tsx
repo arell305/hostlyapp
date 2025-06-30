@@ -1,4 +1,7 @@
-import { GuestListInfoSchema, TicketInfoSchema } from "@/types/schemas-types";
+import {
+  EventTicketTypesSchema,
+  GuestListInfoSchema,
+} from "@/types/schemas-types";
 import React from "react";
 import { Id } from "../../../../../../convex/_generated/dataModel";
 import { api } from "../../../../../../convex/_generated/api";
@@ -9,7 +12,7 @@ import SummaryContent from "./SummaryContent";
 
 interface SummaryPageProps {
   guestListInfo?: GuestListInfoSchema | null;
-  ticketInfo?: TicketInfoSchema | null;
+  ticketInfo?: EventTicketTypesSchema[] | null;
   isPromoter: boolean;
   eventId: Id<"events">;
   canEditEvent: boolean;
@@ -22,6 +25,7 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
   ticketInfo,
   canEditEvent,
 }) => {
+  const hasTicket = ticketInfo && ticketInfo.length > 0;
   const responsePromoterGuestStats = useQuery(
     api.guestListEntries.getPromoterGuestStats,
     !guestListInfo ? "skip" : { eventId }
@@ -29,7 +33,7 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
 
   const responseTicketSalesByPromoter = useQuery(
     api.tickets.getTicketSalesByPromoterWithDetails,
-    !ticketInfo ? "skip" : { eventId }
+    !hasTicket ? "skip" : { eventId }
   );
 
   const resultPromoterGuestStats = handleQueryState(responsePromoterGuestStats);
@@ -45,7 +49,7 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
   }
 
   if (
-    ticketInfo &&
+    hasTicket &&
     (resultTicketSalesByPromoter.type === QueryState.Loading ||
       resultTicketSalesByPromoter.type === QueryState.Error)
   ) {
@@ -69,6 +73,7 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
       ticketInfo={ticketInfo}
       promoterGuestStatsData={promoterGuestStatsData}
       ticketSalesByPromoterData={ticketSalesByPromoterData}
+      eventId={eventId}
     />
   );
 };

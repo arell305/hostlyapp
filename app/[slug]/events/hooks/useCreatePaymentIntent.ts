@@ -7,9 +7,11 @@ type PaymentMetadata = {
   eventId: string;
   promoCode?: string;
   email: string;
-  maleCount: number;
-  femaleCount: number;
   organizationId: string;
+  ticketTypes: {
+    eventTicketTypeId: string;
+    quantity: number;
+  }[];
 };
 
 export const useCreatePaymentIntent = () => {
@@ -50,5 +52,5 @@ export const useCreatePaymentIntent = () => {
     }
   };
 
-  return { createPaymentIntent, clientSecret, isLoading, error };
+  return { createPaymentIntent, clientSecret, isLoading, error, setError };
 };

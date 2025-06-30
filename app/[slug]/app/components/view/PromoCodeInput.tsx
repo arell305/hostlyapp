@@ -1,26 +1,62 @@
+"use client";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import FieldErrorMessage from "@/components/shared/error/FieldErrorMessage";
+import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
+import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
+import { api } from "convex/_generated/api";
 
-interface PromoCodeInputProps {
-  promoCode: string;
-  setPromoCode: (code: string) => void;
-  promoCodeError: string | null;
-  setPromoCodeError: (error: string | null) => void;
-  isApplyPromoCodeLoading: boolean;
-  isPromoApplied: boolean;
-  onApplyPromo: () => void;
-}
+const PromoCodeInput: React.FC<{ eventId: string }> = ({ eventId }) => {
+  const {
+    promoCode,
+    setPromoCode,
+    promoCodeError,
+    setPromoCodeError,
+    isPromoApplied,
+    setIsPromoApplied,
+    validationResult,
+    setValidationResult,
+  } = useEventCheckout();
 
-const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
-  promoCode,
-  setPromoCode,
-  promoCodeError,
-  setPromoCodeError,
-  isApplyPromoCodeLoading,
-  isPromoApplied,
-  onApplyPromo,
-}) => {
+  const [shouldValidate, setShouldValidate] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validatePromoQuery = useQuery(
+    api.promoterPromoCode.validatePromoterPromoCode,
+    shouldValidate ? { name: promoCode, eventId } : "skip"
+  );
+
+  useEffect(() => {
+    if (!shouldValidate) return;
+
+    setIsLoading(true);
+
+    if (validatePromoQuery === undefined) return;
+
+    if (validatePromoQuery.status === ResponseStatus.ERROR) {
+      setPromoCodeError(validatePromoQuery.error);
+      setIsPromoApplied(false);
+    } else {
+      setValidationResult(validatePromoQuery.data.promoterPromoCode);
+      setIsPromoApplied(true);
+    }
+
+    setIsLoading(false);
+    setShouldValidate(false);
+  }, [shouldValidate, validatePromoQuery]);
+
+  const handleApplyPromo = () => {
+    if (!promoCode) {
+      setPromoCodeError(FrontendErrorMessages.PROMO_CODE_REQUIRED);
+      return;
+    }
+    setShouldValidate(true);
+  };
+
   return (
     <div className="w-full">
       <Label htmlFor="promo-code" className="mb-1 block">
@@ -43,21 +79,15 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
         />
         <Button
           variant="secondary"
-          className={`w-1/4 rounded-lg h-9 text-base underline `}
-          onClick={onApplyPromo}
-          isLoading={isApplyPromoCodeLoading}
+          className="w-1/4 rounded-lg h-9 text-base underline"
+          onClick={handleApplyPromo}
+          isLoading={isLoading}
         >
           {isPromoApplied ? "Applied ✓" : "Apply"}
         </Button>
       </div>
 
-      <p
-        className={`text-xs mt-1 ${
-          promoCodeError ? "text-red-500" : "text-transparent"
-        }`}
-      >
-        {promoCodeError || "Placeholder to maintain height"}
-      </p>
+      <FieldErrorMessage error={promoCodeError} />
     </div>
   );
 };

@@ -1,9 +1,11 @@
 "use client";
 
-import { FiClock } from "react-icons/fi";
+import { FiClock, FiLink } from "react-icons/fi";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import StaticField from "@/components/shared/fields/StaticField";
 import { Badge } from "@/components/ui/badge";
+import { usePathname } from "next/navigation";
+import { Id } from "convex/_generated/dataModel";
 
 interface GuestListTimeCardProps {
   isCheckInOpen: boolean;
@@ -11,6 +13,7 @@ interface GuestListTimeCardProps {
   formattedCheckInEndTime: string;
   className?: string;
   isGuestListOpen: boolean;
+  eventId: Id<"events">;
 }
 
 const GuestListTimeCard: React.FC<GuestListTimeCardProps> = ({
@@ -19,7 +22,12 @@ const GuestListTimeCard: React.FC<GuestListTimeCardProps> = ({
   formattedCheckInEndTime,
   className,
   isGuestListOpen,
+  eventId,
 }) => {
+  const pathname = usePathname();
+  const slug = pathname.split("/")[1]; // Extract "vest" from "/vest/app/events/..."
+
+  const guestListUrl = `${window.location.origin}/${slug}/events/${eventId}/guestlist`;
   return (
     <CustomCard className={className}>
       <StaticField
@@ -45,6 +53,12 @@ const GuestListTimeCard: React.FC<GuestListTimeCardProps> = ({
             <Badge variant="destructive">Closed</Badge>
           )
         }
+      />
+      <StaticField
+        label="Company Guest List Link"
+        value={guestListUrl}
+        link={guestListUrl}
+        icon={<FiLink className="text-xl" />}
       />
     </CustomCard>
   );

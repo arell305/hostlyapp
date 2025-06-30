@@ -148,8 +148,6 @@ export default defineSchema({
     photo: v.id("_storage"),
     address: v.string(),
     isActive: v.boolean(),
-    ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
-    guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
   })
     .index("by_organizationId", ["organizationId"])
     .index("by_organizationId_and_startTime", ["organizationId", "startTime"])
@@ -157,7 +155,7 @@ export default defineSchema({
 
   guestListEntries: defineTable({
     eventId: v.id("events"),
-    userPromoterId: v.id("users"),
+    userPromoterId: v.optional(v.id("users")),
     name: v.string(),
     checkInTime: v.optional(v.number()),
     malesInGroup: v.optional(v.number()),
@@ -187,28 +185,23 @@ export default defineSchema({
     .index("by_eventId", ["eventId"])
     .index("by_promoter", ["promoterUserId"])
     .index("by_promoCode_and_event", ["promoCodeId", "eventId"]),
-  ticketInfo: defineTable({
+
+  eventTicketTypes: defineTable({
     eventId: v.id("events"),
-    ticketSalesEndTime: v.number(),
+    name: v.string(),
+    price: v.number(),
+    capacity: v.number(),
     stripeProductId: v.string(),
-    ticketTypes: v.object({
-      male: v.object({
-        price: v.number(),
-        capacity: v.number(),
-        stripePriceId: v.string(),
-      }),
-      female: v.object({
-        price: v.number(),
-        capacity: v.number(),
-        stripePriceId: v.string(),
-      }),
-    }),
+    stripePriceId: v.string(),
+    ticketSalesEndTime: v.number(),
+    isActive: v.boolean(),
   }).index("by_eventId", ["eventId"]),
 
   guestListInfo: defineTable({
     eventId: v.id("events"),
     guestListCloseTime: v.number(),
     checkInCloseTime: v.number(),
+    guestListRules: v.string(),
   }).index("by_eventId", ["eventId"]),
   ticketPurchase: defineTable({
     email: v.string(),
@@ -219,9 +212,9 @@ export default defineSchema({
   tickets: defineTable({
     organizationId: v.id("organizations"),
     eventId: v.id("events"),
+    eventTicketTypeId: v.id("eventTicketTypes"),
     promoterUserId: v.union(v.id("users"), v.null()),
     email: v.string(),
-    gender: v.union(v.literal(Gender.Male), v.literal(Gender.Female)),
     checkInTime: v.optional(v.number()),
     ticketUniqueId: v.string(),
     connectedPaymentId: v.optional(v.id("connectedPayments")),
@@ -237,8 +230,12 @@ export default defineSchema({
     email: v.string(),
     totalAmount: v.number(),
     promoCode: v.union(v.string(), v.null()),
-    maleCount: v.number(),
-    femaleCount: v.number(),
+    ticketCounts: v.array(
+      v.object({
+        eventTicketTypeId: v.id("eventTicketTypes"),
+        quantity: v.number(),
+      })
+    ),
   })
     .index("by_organizationId", ["organizationId"])
     .index("by_eventId", ["eventId"])

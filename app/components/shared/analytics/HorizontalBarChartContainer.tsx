@@ -15,7 +15,7 @@ import MessageCard from "../cards/MessageCard";
 interface HorizontalBarChartContainerProps<T> {
   data: T[];
   xKey: keyof T;
-  barKeys: (keyof T)[];
+  barKeys: string[];
   title: string;
   tooltipFormatter?: (value: number) => string;
   valueFormatter?: (value: number) => string;

@@ -4,7 +4,7 @@ import CustomCard from "@/components/shared/cards/CustomCard";
 import NProgress from "nprogress";
 
 interface ErrorComponentProps {
-  message?: string;
+  message?: string | null;
 }
 
 const ErrorComponent: React.FC<ErrorComponentProps> = ({

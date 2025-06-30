@@ -64,18 +64,6 @@ export interface QueryResponse {
   error?: string | null;
 }
 
-export interface TicketInfo {
-  _id: Id<"ticketInfo">;
-  eventId: Id<"events">;
-  maleTicketPrice: number;
-  femaleTicketPrice: number;
-  maleTicketCapacity: number;
-  femaleTicketCapacity: number;
-  ticketSalesEndTime: number;
-}
-
-export type TicketInfoWithoutEventId = Omit<TicketInfo, "eventId">;
-
 export interface GuestListInfo {
   eventId: Id<"events">;
   guestListCloseTime: number;
@@ -223,17 +211,10 @@ export interface EventFormInput {
   address: string;
 }
 
-export interface TicketFormInput {
-  maleTicketPrice: number;
-  femaleTicketPrice: number;
-  maleTicketCapacity: number;
-  femaleTicketCapacity: number;
-  ticketSalesEndTime: number;
-}
-
 export interface GuestListFormInput {
   guestListCloseTime: number;
   checkInCloseTime: number;
+  guestListRules: string;
 }
 
 export interface UpdateListEventCountResponse {
@@ -244,27 +225,6 @@ export interface UpdateListEventCountResponse {
 
 export interface UpdateGuestListEventCountData {
   remaingEvents: number;
-}
-
-export interface UpdateTicketInfoResponse {
-  status: ResponseStatus;
-  data: UpdateTicketInfoData | null;
-  error?: string | null;
-}
-
-export interface UpdateTicketInfoData {
-  ticketInfoId: Id<"ticketInfo">;
-}
-
-export interface UpdateEventFields {
-  name?: string;
-  description?: string | null;
-  startTime?: string;
-  endTime?: string;
-  photo?: Id<"_storage"> | null;
-  ticketInfoId?: Id<"ticketInfo"> | null;
-  guestListInfoId?: Id<"guestListInfo"> | null;
-  venue?: VenueSchema;
 }
 
 export interface CancelEventResponse {
@@ -340,9 +300,9 @@ export interface TicketInput {
   eventId: Id<"events">;
   promoterUserId: Id<"users"> | null;
   email: string;
-  gender: Gender;
   ticketUniqueId: string;
   organizationId: Id<"organizations">;
+  eventTicketTypeId: Id<"eventTicketTypes">;
 }
 
 export interface SubscriptionBillingCycle {
@@ -420,11 +380,6 @@ export interface OrganizationPublic {
   events: EventSchema[];
 }
 
-export type TicketSoldCounts = {
-  male: number;
-  female: number;
-};
-
 export interface GuestEntry {
   name: string;
   phoneNumber?: string;
@@ -441,3 +396,24 @@ export interface PromoterGuestSummary {
   totalAttended: number;
   totalGuests: number;
 }
+
+export interface TicketSoldCountByType {
+  eventTicketTypeId: Id<"eventTicketTypes">;
+  name: string;
+  count: number;
+}
+
+export interface TicketType {
+  name: string;
+  price: number;
+  capacity: number;
+  ticketSalesEndTime: number;
+}
+
+export type TicketTypeForm = {
+  name: string;
+  price: string;
+  capacity: string;
+  ticketSalesEndTime: number | null;
+  showCustomInput?: boolean; // Optional for backward compatibility
+};

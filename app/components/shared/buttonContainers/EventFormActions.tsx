@@ -10,6 +10,7 @@ interface EventFormActionsProps {
   onCancel: () => void;
   onDelete?: () => void;
   isSubmitDisabled?: boolean;
+  onSubmit: () => void;
 }
 
 const EventFormActions: React.FC<EventFormActionsProps> = ({
@@ -22,6 +23,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
   onCancel,
   onDelete,
   isSubmitDisabled,
+  onSubmit,
 }) => {
   return (
     <>
@@ -47,7 +49,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
 
         {/* Submit Button (uses form submit context) */}
         <Button
-          type="submit"
+          onClick={onSubmit}
           disabled={isLoading || isUpdateLoading || isSubmitDisabled}
           size={isEdit ? "tripleButtons" : "doubelButtons"}
           variant="default"

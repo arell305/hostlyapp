@@ -6,11 +6,7 @@ import {
   internalMutation,
   internalQuery,
 } from "./_generated/server";
-import {
-  CancelEventResponse,
-  OrganizationSchema,
-  TicketSoldCounts,
-} from "@/types/types";
+import { CancelEventResponse, OrganizationSchema } from "@/types/types";
 import {
   ErrorMessages,
   ShowErrorMessages,
@@ -29,11 +25,10 @@ import {
 import { TIME_ZONE } from "@/types/constants";
 import {
   EventSchema,
+  EventTicketTypesSchema,
   GuestListInfoSchema,
   PromoterPromoCodeSchema,
-  TicketInfoSchema,
   UserSchema,
-  EventWithTicketInfo,
 } from "@/types/schemas-types";
 import { getCurrentTime } from "../utils/luxon";
 import { internal } from "./_generated/api";
@@ -50,6 +45,7 @@ import {
   handleGuestListUpdateData,
   handleTicketData,
   handleTicketUpdateData,
+  hasTicketDataChanged,
   isUserInOrganization,
   performAddEventCleanup,
 } from "./backendUtils/helper";
@@ -64,20 +60,19 @@ export const addEvent = action({
     endTime: v.number(),
     photo: v.id("_storage"),
     address: v.string(),
-    ticketData: v.union(
+    ticketData: v.array(
       v.object({
-        maleTicketPrice: v.number(),
-        femaleTicketPrice: v.number(),
-        maleTicketCapacity: v.number(),
-        femaleTicketCapacity: v.number(),
+        name: v.string(),
+        price: v.number(),
+        capacity: v.number(),
         ticketSalesEndTime: v.number(),
-      }),
-      v.null()
+      })
     ),
     guestListData: v.union(
       v.object({
         guestListCloseTime: v.number(),
         checkInCloseTime: v.number(),
+        guestListRules: v.string(),
       }),
       v.null()
     ),
@@ -96,9 +91,8 @@ export const addEvent = action({
     } = args;
 
     let eventId: Id<"events"> | null = null;
-    let ticketInfoId: Id<"ticketInfo"> | null = null;
     let guestListInfoId: Id<"guestListInfo"> | null = null;
-    let stripeProductId: string | null = null;
+    let eventTicketTypesIds: Id<"eventTicketTypes">[] = [];
 
     try {
       const identity = await requireAuthenticatedUser(ctx, [
@@ -124,8 +118,8 @@ export const addEvent = action({
         address,
       });
 
-      if (ticketData) {
-        ticketInfoId = await handleTicketData(
+      if (ticketData.length > 0) {
+        eventTicketTypesIds = await handleTicketData(
           ctx,
           eventId,
           ticketData,
@@ -145,10 +139,10 @@ export const addEvent = action({
 
       return {
         status: ResponseStatus.SUCCESS,
-        data: { eventId, ticketInfoId, guestListInfoId },
+        data: { eventId, guestListInfoId },
       };
     } catch (error) {
-      await performAddEventCleanup(ctx, eventId, ticketInfoId, stripeProductId);
+      await performAddEventCleanup(ctx, eventId, eventTicketTypesIds);
 
       return handleError(error);
     }
@@ -164,36 +158,25 @@ export const getEventById = query({
         throw new Error(ShowErrorMessages.EVENT_NOT_FOUND);
       }
 
-      const event: EventSchema | null = await ctx.db.get(normalizedId);
-      if (!event) {
-        throw new Error(ErrorMessages.EVENT_NOT_FOUND);
-      }
-      let ticketInfo: TicketInfoSchema | null = null;
-      let ticketSoldCounts: TicketSoldCounts | null = null;
+      const event = validateEvent(await ctx.db.get(normalizedId));
 
-      if (event.ticketInfoId) {
-        ticketInfo = await ctx.db
-          .query("ticketInfo")
-          .filter((q) => q.eq(q.field("eventId"), event._id))
-          .first();
+      const { ticketSoldCounts, ticketTypes } = await getTicketSoldCounts(
+        ctx,
+        event._id
+      );
 
-        ticketSoldCounts = await getTicketSoldCounts(ctx, event._id);
-      }
+      const guestListInfo: GuestListInfoSchema | null = await ctx.db
+        .query("guestListInfo")
+        .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+        .first();
 
-      let guestListInfo: GuestListInfoSchema | null = null;
-      if (event.guestListInfoId) {
-        guestListInfo = await ctx.db
-          .query("guestListInfo")
-          .filter((q) => q.eq(q.field("eventId"), event._id))
-          .first();
-      }
       const identity = await ctx.auth.getUserIdentity();
       if (!identity) {
         return {
           status: ResponseStatus.SUCCESS,
           data: {
             event,
-            ticketInfo,
+            ticketTypes,
             ticketSoldCounts,
           },
         };
@@ -205,7 +188,7 @@ export const getEventById = query({
         status: ResponseStatus.SUCCESS,
         data: {
           event,
-          ticketInfo,
+          ticketTypes,
           guestListInfo,
           ticketSoldCounts,
         },
@@ -226,20 +209,21 @@ export const updateEvent = action({
     endTime: v.optional(v.number()),
     photo: v.optional(v.id("_storage")),
     address: v.optional(v.string()),
-    ticketData: v.union(
+    ticketData: v.array(
       v.object({
-        maleTicketPrice: v.number(),
-        femaleTicketPrice: v.number(),
-        maleTicketCapacity: v.number(),
-        femaleTicketCapacity: v.number(),
+        name: v.string(),
+        price: v.number(),
+        capacity: v.number(),
+        stripeProductId: v.string(),
+        stripePriceId: v.string(),
         ticketSalesEndTime: v.number(),
-      }),
-      v.null()
+      })
     ),
     guestListData: v.union(
       v.object({
         guestListCloseTime: v.number(),
         checkInCloseTime: v.number(),
+        guestListRules: v.string(),
       }),
       v.null()
     ),
@@ -277,13 +261,23 @@ export const updateEvent = action({
 
       isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
 
-      const ticketInfoId: Id<"ticketInfo"> | null =
+      const existingEventTicketTypes = await ctx.runQuery(
+        internal.eventTicketTypes.internalGetEventTicketTypesByEventId,
+        {
+          eventId,
+        }
+      );
+
+      if (hasTicketDataChanged(existingEventTicketTypes, ticketData)) {
         await handleTicketUpdateData(
           ctx,
           eventId,
           ticketData,
-          validatedOrganization
+          validatedOrganization,
+          existingEventTicketTypes
         );
+      }
+
       const guestListInfoId: Id<"guestListInfo"> | null =
         await handleGuestListUpdateData(
           ctx,
@@ -301,15 +295,12 @@ export const updateEvent = action({
         endTime,
         photo,
         address,
-        ticketInfoId: ticketData ? ticketInfoId : null,
-        guestListInfoId: guestListData ? guestListInfoId : null,
       });
 
       return {
         status: ResponseStatus.SUCCESS,
         data: {
           eventId,
-          ticketInfoId,
           guestListInfoId,
         },
       };
@@ -355,55 +346,6 @@ export const cancelEvent = mutation({
   },
 });
 
-export const getEventsByOrganizationPublic = query({
-  args: {
-    organizationId: v.id("organizations"),
-    paginationOpts: paginationOptsValidator,
-  },
-  handler: async (
-    ctx,
-    args
-  ): Promise<PaginationResult<EventWithTicketInfo>> => {
-    const organization = await ctx.db.get(args.organizationId);
-
-    if (!organization) {
-      return {
-        page: [],
-        isDone: true,
-        continueCursor: "",
-      };
-    }
-
-    const currenTime = getCurrentTime();
-
-    const { page, continueCursor, isDone } = await ctx.db
-      .query("events")
-      .withIndex("by_organizationId_and_startTime", (q) =>
-        q.eq("organizationId", args.organizationId)
-      )
-      .filter((q) => q.gt(q.field("endTime"), currenTime))
-      .order("asc")
-      .paginate(args.paginationOpts);
-
-    const eventsWithTicketInfo = await Promise.all(
-      page.map(async (event) => {
-        if (!event.ticketInfoId) {
-          return { ...event, ticketInfo: null };
-        }
-
-        const ticketInfo = await ctx.db.get(event.ticketInfoId);
-        return { ...event, ticketInfo };
-      })
-    );
-
-    return {
-      page: eventsWithTicketInfo,
-      continueCursor,
-      isDone,
-    };
-  },
-});
-
 export const getEventsByMonth = query({
   args: {
     organizationId: v.id("organizations"),
@@ -425,14 +367,13 @@ export const getEventsByMonth = query({
 
     try {
       const identity = await requireAuthenticatedUser(ctx);
-
       const organization = validateOrganization(
         await ctx.db.get(organizationId)
       );
-
       isUserInOrganization(identity, organization.clerkOrganizationId);
 
-      const events: EventSchema[] = await ctx.db
+      // Step 1: Fetch events
+      const events = await ctx.db
         .query("events")
         .filter((q) => q.eq(q.field("organizationId"), organization._id))
         .filter((q) => q.gte(q.field("startTime"), startDate.toMillis()))
@@ -440,10 +381,34 @@ export const getEventsByMonth = query({
         .filter((q) => q.eq(q.field("isActive"), true))
         .collect();
 
+      // Step 2: For each event, fetch guestListInfo and ticketTypes
+      const eventData: (EventSchema & {
+        guestListInfo: GuestListInfoSchema | null;
+        ticketTypes: EventTicketTypesSchema[];
+      })[] = await Promise.all(
+        events.map(async (event) => {
+          const [guestListInfo] = await ctx.db
+            .query("guestListInfo")
+            .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+            .collect();
+
+          const ticketTypes = await ctx.db
+            .query("eventTicketTypes")
+            .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+            .collect();
+
+          return {
+            ...event,
+            guestListInfo: guestListInfo || null,
+            ticketTypes,
+          };
+        })
+      );
+
       return {
         status: ResponseStatus.SUCCESS,
         data: {
-          eventData: events,
+          eventData,
         },
       };
     } catch (error) {
@@ -492,8 +457,6 @@ export const internalUpdateEvent = internalMutation({
     endTime: v.optional(v.number()),
     photo: v.optional(v.id("_storage")),
     address: v.optional(v.string()),
-    ticketInfoId: v.optional(v.union(v.id("ticketInfo"), v.null())),
-    guestListInfoId: v.optional(v.union(v.id("guestListInfo"), v.null())),
   },
   handler: async (ctx, args): Promise<Id<"events">> => {
     const { eventId, ...updateFields } = args;

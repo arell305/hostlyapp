@@ -659,29 +659,55 @@ export const createPaymentIntent = action({
         eventId: v.string(),
         promoCode: v.optional(v.string()),
         email: v.string(),
-        maleCount: v.number(),
-        femaleCount: v.number(),
         organizationId: v.string(),
+        ticketTypes: v.array(
+          v.object({
+            eventTicketTypeId: v.string(),
+            quantity: v.number(),
+          })
+        ),
       })
     ),
   },
-  handler: async (ctx, args): Promise<CreatePaymentIntentResponse> => {
+  handler: async (ctx, args) => {
     const { totalAmount, stripeAccountId, metadata } = args;
 
     try {
+      // Validate ticket availability
       await validateTicketAvailability({
         ctx,
         eventId: metadata?.eventId as Id<"events">,
-        requestedMaleCount: metadata?.maleCount as number,
-        requestedFemaleCount: metadata?.femaleCount as number,
+        requestedTicketTypes:
+          metadata?.ticketTypes.map((t) => ({
+            eventTicketTypeId: t.eventTicketTypeId as Id<"eventTicketTypes">,
+            quantity: t.quantity,
+          })) ?? [],
       });
 
+      // Flatten metadata for Stripe
+      const flatMetadata: Record<string, string> = {
+        eventId: metadata?.eventId ?? "",
+        email: metadata?.email ?? "",
+        organizationId: metadata?.organizationId ?? "",
+      };
+
+      if (metadata?.promoCode) {
+        flatMetadata.promoCode = metadata.promoCode;
+      }
+
+      if (metadata?.ticketTypes) {
+        flatMetadata.ticketCounts = JSON.stringify(metadata.ticketTypes);
+      }
+
+      console.log("metadata", metadata);
+
+      // Create payment intent with Stripe
       const paymentIntent = await stripe.paymentIntents.create(
         {
           amount: Math.round(totalAmount * 100),
           currency: USD_CURRENCY,
           automatic_payment_methods: { enabled: true },
-          metadata: metadata,
+          metadata: flatMetadata,
         },
         { stripeAccount: stripeAccountId }
       );
@@ -689,6 +715,8 @@ export const createPaymentIntent = action({
       if (!paymentIntent.client_secret) {
         throw new Error(ErrorMessages.PAYMENT_INTENT_FAILED);
       }
+
+      console.log("paymentIntent", paymentIntent);
 
       return {
         status: ResponseStatus.SUCCESS,

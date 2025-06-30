@@ -1,97 +1,112 @@
 import { formatName } from "../format";
 import { FrontendErrorMessages } from "@/types/enums";
 import { isValidPhoneNumber } from "../frontend-validation";
+import { TicketTypeForm } from "@/types/types";
+
+export type TicketFieldError = {
+  name?: string;
+  price?: string;
+  capacity?: string;
+  ticketSalesEndTime?: string;
+};
+
+export type EventFormErrors = {
+  eventName?: string;
+  startTime?: string;
+  endTime?: string;
+  address?: string;
+  photo?: string;
+  guestListCloseTime?: string;
+  checkInCloseTime?: string;
+  organizationId?: string;
+  ticketFieldErrors?: TicketFieldError[];
+};
 
 interface ValidateEventFormParams {
   eventName: string;
   photoStorageId: string | null;
   startTime: number | null;
   endTime: number | null;
-  address?: string;
+  address: string;
   isTicketsSelected: boolean;
-  maleTicketPrice: string;
-  femaleTicketPrice: string;
-  maleTicketCapacity: string;
-  femaleTicketCapacity: string;
-  ticketSalesEndTime: number | null;
+  ticketTypes: TicketTypeForm[];
   isGuestListSelected: boolean;
   guestListCloseTime: number | null;
   checkInCloseTime: number | null;
-  organizationId?: string | null;
+  organizationId?: string;
 }
 
-type ValidationErrors = Record<string, string>;
+export function validateEventForm(
+  params: ValidateEventFormParams
+): EventFormErrors {
+  const errors: EventFormErrors = {};
+  const ticketFieldErrors: TicketFieldError[] = [];
 
-export function validateEventForm({
-  eventName,
-  photoStorageId,
-  startTime,
-  endTime,
-  address,
-  isTicketsSelected,
-  maleTicketPrice,
-  femaleTicketPrice,
-  maleTicketCapacity,
-  femaleTicketCapacity,
-  ticketSalesEndTime,
-  isGuestListSelected,
-  guestListCloseTime,
-  checkInCloseTime,
-  organizationId,
-}: ValidateEventFormParams): ValidationErrors {
-  const errors: ValidationErrors = {};
-
-  if (!eventName.trim()) {
+  if (!params.eventName.trim()) {
     errors.eventName = "Name must be filled.";
   }
 
-  if (!photoStorageId) {
+  if (!params.photoStorageId) {
     errors.photo = "Event photo is required.";
   }
 
-  if (!startTime || isNaN(startTime)) {
+  if (!params.startTime || isNaN(params.startTime)) {
     errors.startTime = "Start time must be selected.";
   }
 
-  if (!endTime || isNaN(endTime)) {
+  if (!params.endTime || isNaN(params.endTime)) {
     errors.endTime = "End time must be selected.";
-  } else if (startTime && endTime <= startTime) {
+  } else if (params.startTime && params.endTime <= params.startTime) {
     errors.endTime = "End time must be after the start time.";
   }
 
-  if (!address?.trim() || !address) {
+  if (!params.address?.trim()) {
     errors.address = "Address must be filled.";
   }
 
-  if (isTicketsSelected) {
-    if (!maleTicketPrice.trim() || parseFloat(maleTicketPrice) < 0) {
-      errors.maleTicketPrice = "Male ticket price must be valid.";
-    }
-    if (!femaleTicketPrice.trim() || parseFloat(femaleTicketPrice) < 0) {
-      errors.femaleTicketPrice = "Female ticket price must be valid.";
-    }
-    if (!maleTicketCapacity.trim() || parseInt(maleTicketCapacity) < 0) {
-      errors.maleTicketCapacity = "Male ticket capacity must be valid.";
-    }
-    if (!femaleTicketCapacity.trim() || parseInt(femaleTicketCapacity) < 0) {
-      errors.femaleTicketCapacity = "Female ticket capacity must be valid.";
-    }
-    if (!ticketSalesEndTime || isNaN(ticketSalesEndTime)) {
-      errors.ticketSalesEndTime = "Ticket sales end time must be selected.";
+  if (params.isTicketsSelected) {
+    params.ticketTypes.forEach((type) => {
+      const ticketError: TicketFieldError = {};
+      if (!type.name.trim()) {
+        ticketError.name = "Ticket name is required.";
+      }
+      if (!type.price || Number(type.price) < 0) {
+        ticketError.price = "Ticket price must be valid.";
+      }
+      if (!type.capacity || Number(type.capacity) < 0) {
+        ticketError.capacity = "Capacity must be valid.";
+      }
+      if (
+        !type.ticketSalesEndTime ||
+        isNaN(new Date(type.ticketSalesEndTime).getTime())
+      ) {
+        ticketError.ticketSalesEndTime = "Sales end time must be valid.";
+      }
+
+      ticketFieldErrors.push(ticketError);
+    });
+
+    const hasTicketErrors = ticketFieldErrors.some(
+      (e) => Object.keys(e).length > 0
+    );
+
+    if (hasTicketErrors) {
+      errors.ticketFieldErrors = ticketFieldErrors;
     }
   }
 
-  if (isGuestListSelected) {
-    if (!guestListCloseTime || isNaN(guestListCloseTime)) {
+  if (params.isGuestListSelected) {
+    if (!params.guestListCloseTime || isNaN(params.guestListCloseTime)) {
       errors.guestListCloseTime = "Guest list close time must be selected.";
     }
-    if (!checkInCloseTime || isNaN(checkInCloseTime)) {
+
+    if (!params.checkInCloseTime || isNaN(params.checkInCloseTime)) {
       errors.checkInCloseTime = "Check-in close time must be selected.";
     }
   }
 
-  if (!organizationId) {
-    errors.general = "Organization ID is missing.";
+  if (!params.organizationId) {
+    errors.organizationId = "Organization ID is missing.";
   }
 
   return errors;
@@ -144,3 +159,10 @@ export function validateGuestEditInput({
     noChanges,
   };
 }
+
+export type TicketFieldErrors = {
+  name?: string;
+  price?: string;
+  capacity?: string;
+  ticketSalesEndTime?: string;
+};

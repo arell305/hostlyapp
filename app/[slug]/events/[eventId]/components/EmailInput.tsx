@@ -1,20 +1,14 @@
+"use client";
+
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import FieldErrorMessage from "@/components/shared/error/FieldErrorMessage";
 
-interface EmailInputProps {
-  email: string;
-  setEmail: (email: string) => void;
-  emailError: string | null;
-  setEmailError: (error: string | null) => void;
-}
+const EmailInput: React.FC = () => {
+  const { email, setEmail, emailError, setEmailError } = useEventCheckout();
 
-const EmailInput: React.FC<EmailInputProps> = ({
-  email,
-  setEmail,
-  emailError,
-  setEmailError,
-}) => {
   return (
     <div className="mt-4">
       <Label>Email Address</Label>
@@ -29,11 +23,7 @@ const EmailInput: React.FC<EmailInputProps> = ({
         }}
         required
       />
-      <p
-        className={`text-xs my-1 ${emailError ? "text-red-500" : "text-transparent"}`}
-      >
-        {emailError || "Placeholder to maintain height"}
-      </p>
+      <FieldErrorMessage error={emailError} />
     </div>
   );
 };

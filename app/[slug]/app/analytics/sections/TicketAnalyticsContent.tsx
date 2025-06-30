@@ -112,9 +112,18 @@ const TicketAnalyticsContent = ({
 
       <HorizontalBarChartContainer
         title="Promoter Leaderboard (Tickets Sold)"
-        data={revenueData.promoterBreakdown}
+        data={revenueData.promoterBreakdown.map((p) => ({
+          name: p.name,
+          ...Object.fromEntries(p.sales.map((s) => [s.name, s.count])),
+        }))}
         xKey="name"
-        barKeys={["male", "female"]}
+        barKeys={Array.from(
+          new Set(
+            revenueData.promoterBreakdown.flatMap((p) =>
+              p.sales.map((s) => s.name)
+            )
+          )
+        )}
         tooltipFormatter={(v) => `${v} tickets`}
         valueFormatter={(v) => `${v}`}
         emptyDescription="No promoter breakdown data available during this period."

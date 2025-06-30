@@ -1,4 +1,4 @@
-import { FrontendErrorMessages } from "@/types/enums";
+  import { FrontendErrorMessages } from "@/types/enums";
 import { Stripe, StripeElements } from "@stripe/stripe-js";
 import { CardElement } from "@stripe/react-stripe-js";
 

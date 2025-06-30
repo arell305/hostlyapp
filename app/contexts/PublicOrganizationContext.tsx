@@ -18,6 +18,7 @@ type PublicOrganizationContextType = {
   user?: UserResource | null;
   organizationId?: Id<"organizations">;
   events: EventSchema[];
+  displayCompanyPhoto: string | null;
 };
 
 const PublicOrganizationContext = createContext<
@@ -37,6 +38,13 @@ export const PublicOrganizationProvider: React.FC<{
     cleanSlug ? { slug: cleanSlug } : "skip"
   );
 
+  const displayCompanyPhoto = useQuery(
+    api.photo.getFileUrl,
+    response?.data?.organizationPublic?.photo
+      ? { storageId: response?.data?.organizationPublic?.photo }
+      : "skip"
+  );
+
   const organizationData = response?.data?.organizationPublic;
 
   const contextValue: PublicOrganizationContextType = {
@@ -52,6 +60,7 @@ export const PublicOrganizationProvider: React.FC<{
         : null,
     user,
     events: organizationData?.events || [],
+    displayCompanyPhoto: displayCompanyPhoto || null,
   };
 
   return (

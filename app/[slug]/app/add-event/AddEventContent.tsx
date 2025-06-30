@@ -3,18 +3,18 @@ import {
   EventFormInput,
   GuestListFormInput,
   OrganizationSchema,
-  TicketFormInput,
+  TicketType,
 } from "@/types/types";
 import { SubscriptionSchema } from "@/types/schemas-types";
 import { useAddEvent } from "./hooks/useAddEvent";
 import { Button } from "@/components/ui/button";
 import { Notification } from "../components/ui/Notification";
-import EventForm from "../components/EventForm";
 import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
 import { useRouter } from "next/navigation";
 import { Id } from "../../../../convex/_generated/dataModel";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import NProgress from "nprogress";
+import EventFormWrapper from "../components/eventForm/EventFormWrapper";
 
 const AddEventContent: React.FC<{
   organization: OrganizationSchema;
@@ -37,7 +37,7 @@ const AddEventContent: React.FC<{
   const handleSubmit = async (
     organizationId: Id<"organizations">,
     eventData: EventFormInput,
-    ticketData: TicketFormInput | null,
+    ticketData: TicketType[],
     guestListData: GuestListFormInput | null
   ) => {
     const result = await addEvent(
@@ -94,7 +94,7 @@ const AddEventContent: React.FC<{
         </div>
       )}
 
-      <EventForm
+      <EventFormWrapper
         isStripeEnabled={connectedAccountEnabled}
         onSubmit={handleSubmit}
         isEdit={false}

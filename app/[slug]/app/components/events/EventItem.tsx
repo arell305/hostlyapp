@@ -1,12 +1,12 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { EventSchema } from "@/types/schemas-types";
-import { formatEventDateParts } from "@/utils/luxon";
 import Link from "next/link";
 import NProgress from "nprogress";
+import { formatEventDateParts } from "@/utils/luxon";
+import { EventWithExtras } from "@/types/convex-types";
 
 interface EventItemProps {
-  event: EventSchema;
+  event: EventWithExtras;
   className?: string;
   pathname: string;
 }
@@ -18,7 +18,7 @@ const EventItem: React.FC<EventItemProps> = ({
 }) => {
   const { month, day, time } = formatEventDateParts(event.startTime);
 
-  const hasExtras = event.ticketInfoId || event.guestListInfoId;
+  const hasExtras = event.ticketTypes.length > 0 || !!event.guestListInfo;
 
   return (
     <Link
@@ -28,15 +28,15 @@ const EventItem: React.FC<EventItemProps> = ({
     >
       <div
         className={cn(
-          "relative flex  border cursor-pointer rounded-md  transition-shadow duration-200 hover:shadow-glow-white",
+          "relative flex border cursor-pointer rounded-md transition-shadow duration-200 hover:shadow-glow-white",
           className
         )}
       >
         {hasExtras && (
           <div className="absolute top-2 right-2 bg-cardBackgroundHover text-white text-xs px-2 py-1 rounded font-semibold shadow">
-            {event.ticketInfoId && event.guestListInfoId
+            {event.ticketTypes.length > 0 && event.guestListInfo
               ? "Tickets + Guest List"
-              : event.ticketInfoId
+              : event.ticketTypes.length > 0
                 ? "Tickets"
                 : "Guest List"}
           </div>

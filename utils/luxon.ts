@@ -169,3 +169,13 @@ export function formatToPstShortDate(ts: number): string {
 export function startOfPstDay(ts: number): DateTime {
   return DateTime.fromMillis(ts, { zone: TIME_ZONE }).startOf("day");
 }
+
+export function formatToDateTimeLocalPST(ms: number | null): string {
+  return ms
+    ? DateTime.fromMillis(ms).setZone(TIME_ZONE).toFormat("yyyy-MM-dd'T'HH:mm")
+    : "";
+}
+
+export function parseDateTimeLocalToTimestampPST(val: string): number | null {
+  return val ? DateTime.fromISO(val, { zone: TIME_ZONE }).toMillis() : null;
+}

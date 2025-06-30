@@ -7,6 +7,7 @@ import {
 import { mutation, query } from "./_generated/server";
 import {
   AddGuestListEntryResponse,
+  AddPublicGuestListEntryResponse,
   CheckInData,
   CheckInGuestEntryResponse,
   DeleteGuestListEntryResponse,
@@ -24,6 +25,7 @@ import {
   validateEvent,
   validateGuestEntry,
   validateGuestEntryOwnership,
+  validateGuestListInfo,
   validateOrganization,
   validateUser,
 } from "./backendUtils/validation";
@@ -77,7 +79,11 @@ export const getEventWithGuestLists = query({
         await guestEntriesQuery.collect();
 
       const promoterIds: Id<"users">[] = Array.from(
-        new Set(guestEntries.map((g) => g.userPromoterId))
+        new Set(
+          guestEntries
+            .map((g) => g.userPromoterId)
+            .filter((id): id is Id<"users"> => id !== undefined)
+        )
       );
 
       const promoters: Promoter[] = await Promise.all(
@@ -97,7 +103,9 @@ export const getEventWithGuestLists = query({
       const allGuests: GuestListEntryWithPromoter[] = guestEntries.map(
         (entry) => ({
           ...entry,
-          promoterName: promoterMap.get(entry.userPromoterId) || "Unknown",
+          promoterName: entry.userPromoterId
+            ? promoterMap.get(entry.userPromoterId) || "Company"
+            : "Company",
         })
       );
 
@@ -742,6 +750,48 @@ export const getGuestListKpis = query({
           },
           eventCheckInData,
           promoterLeaderboard,
+        },
+      };
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+});
+
+export const addPublicGuestListEntry = mutation({
+  args: {
+    name: v.string(),
+    phoneNumber: v.string(),
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args): Promise<AddPublicGuestListEntryResponse> => {
+    const { name, phoneNumber, eventId } = args;
+
+    try {
+      validateEvent(await ctx.db.get(eventId));
+      const guestListInfo = validateGuestListInfo(
+        await ctx.db
+          .query("guestListInfo")
+          .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+          .first()
+      );
+
+      const isGuestListOpen = guestListInfo.guestListCloseTime > Date.now();
+      if (!isGuestListOpen) {
+        throw new Error(ShowErrorMessages.GUEST_LIST_CLOSED);
+      }
+
+      const guestEntryId = await ctx.db.insert("guestListEntries", {
+        name,
+        phoneNumber,
+        eventId,
+        isActive: true,
+      });
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          guestEntryId,
         },
       };
     } catch (error) {

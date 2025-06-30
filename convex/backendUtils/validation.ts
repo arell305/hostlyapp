@@ -4,7 +4,6 @@ import {
   CustomerSchema,
   EventSchema,
   SubscriptionSchema,
-  TicketInfoSchema,
   UserSchema,
   TicketSchema,
   UserWithOrganizationId,
@@ -15,6 +14,8 @@ import {
   UserWithOrgAndClerkId,
   GuestListEntrySchema,
   OrganizationCreditSchema,
+  GuestListInfoSchema,
+  EventTicketTypesSchema,
 } from "@/types/schemas-types";
 import { GuestListSchema, OrganizationSchema } from "@/types/types";
 import { DateTime } from "luxon";
@@ -181,15 +182,6 @@ export function validateSubscription(
   return subscription;
 }
 
-export function validateTicketInfo(
-  ticketInfo: TicketInfoSchema | null
-): TicketInfoSchema {
-  if (!ticketInfo) {
-    throw new Error(ErrorMessages.TICKET_INFO_NOT_FOUND);
-  }
-  return ticketInfo;
-}
-
 export const validateTicket = (ticket: TicketSchema | null): TicketSchema => {
   if (!ticket) {
     throw new Error(ShowErrorMessages.TICKET_NOT_FOUND);
@@ -261,3 +253,21 @@ export function validateOrganizationCredit(
   }
   return organizationCredit;
 }
+
+export const validateGuestListInfo = (
+  guestListInfo: GuestListInfoSchema | null
+): GuestListInfoSchema => {
+  if (!guestListInfo) {
+    throw new Error(ShowErrorMessages.GUEST_LIST_NOT_FOUND);
+  }
+  return guestListInfo;
+};
+
+export const validateEventTicketType = (
+  eventTicketType: EventTicketTypesSchema | null
+): EventTicketTypesSchema => {
+  if (!eventTicketType) {
+    throw new Error(ErrorMessages.EVENT_TICKET_TYPE_NOT_FOUND);
+  }
+  return eventTicketType;
+};

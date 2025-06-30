@@ -87,11 +87,9 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatCurrencyAbbr(
-  amountInCents: number,
+  amount: number,
   { abbreviated = false }: { abbreviated?: boolean } = {}
 ): string {
-  const amount = amountInCents / 100;
-
   if (abbreviated) {
     if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
     if (amount >= 1_000) return `$${(amount / 1_000).toFixed(1)}K`;

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useEventCheckout } from "@/contexts/EventCheckoutContext";
 import {
   useStripe,
   useElements,
@@ -8,13 +9,10 @@ import {
 } from "@stripe/react-stripe-js";
 import { useState, FormEvent } from "react";
 
-interface TicketPaymentFormProps {
-  setPaymentSuccess: (arg0: boolean) => void;
-}
+interface TicketPaymentFormProps {}
 
-const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({
-  setPaymentSuccess,
-}) => {
+const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({}) => {
+  const { setPaymentSuccess } = useEventCheckout();
   const stripe = useStripe();
   const elements = useElements();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

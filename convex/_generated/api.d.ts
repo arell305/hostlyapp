@@ -25,6 +25,7 @@ import type * as clerk from "../clerk.js";
 import type * as connectedAccounts from "../connectedAccounts.js";
 import type * as connectedPayments from "../connectedPayments.js";
 import type * as customers from "../customers.js";
+import type * as eventTicketTypes from "../eventTicketTypes.js";
 import type * as events from "../events.js";
 import type * as guestListCreditTransactions from "../guestListCreditTransactions.js";
 import type * as guestListEntries from "../guestListEntries.js";
@@ -40,7 +41,6 @@ import type * as sendgrid from "../sendgrid.js";
 import type * as stripe from "../stripe.js";
 import type * as stripeConnectedCustomers from "../stripeConnectedCustomers.js";
 import type * as subscription from "../subscription.js";
-import type * as ticketInfo from "../ticketInfo.js";
 import type * as tickets from "../tickets.js";
 import type * as users from "../users.js";
 
@@ -65,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   connectedAccounts: typeof connectedAccounts;
   connectedPayments: typeof connectedPayments;
   customers: typeof customers;
+  eventTicketTypes: typeof eventTicketTypes;
   events: typeof events;
   guestListCreditTransactions: typeof guestListCreditTransactions;
   guestListEntries: typeof guestListEntries;
@@ -80,7 +81,6 @@ declare const fullApi: ApiFromModules<{
   stripe: typeof stripe;
   stripeConnectedCustomers: typeof stripeConnectedCustomers;
   subscription: typeof subscription;
-  ticketInfo: typeof ticketInfo;
   tickets: typeof tickets;
   users: typeof users;
 }>;

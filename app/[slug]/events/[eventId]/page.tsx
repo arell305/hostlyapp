@@ -8,12 +8,12 @@ import { Stripe, loadStripe } from "@stripe/stripe-js";
 import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import { ResponseStatus } from "@/types/enums";
-import EventContent from "./EventContent";
 import { useUser } from "@clerk/nextjs";
 import ProfileBanner from "@/components/shared/company/ProfileBanner";
 import { ArrowLeft } from "lucide-react";
 import HomeNav from "@/[slug]/app/components/nav/HomeNav";
 import NProgress from "nprogress";
+import EventContentWrapper from "./components/EventCheckoutWrapper";
 
 const EventPage = () => {
   const { name, photo, isStripeEnabled, connectedAccountStripeId } =
@@ -61,7 +61,7 @@ const EventPage = () => {
     return <ErrorComponent message={getEventByIdResponse.error} />;
   }
   const eventData = getEventByIdResponse?.data?.event;
-  const ticketInfoData = getEventByIdResponse?.data?.ticketInfo;
+  const ticketTypes = getEventByIdResponse?.data?.ticketTypes;
   const ticketSoldCounts = getEventByIdResponse?.data?.ticketSoldCounts;
   return (
     <div>
@@ -79,12 +79,12 @@ const EventPage = () => {
         </div>
         <ProfileBanner displayPhoto={displayCompanyPhoto} name={name} />
 
-        <EventContent
+        <EventContentWrapper
           isStripeEnabled={isStripeEnabled}
           connectedAccountStripeId={connectedAccountStripeId}
           stripePromise={stripePromise}
           eventData={eventData}
-          ticketInfoData={ticketInfoData}
+          ticketTypes={ticketTypes}
           onBrowseMoreEvents={handleBrowseMoreEvents}
           ticketSoldCounts={ticketSoldCounts}
         />

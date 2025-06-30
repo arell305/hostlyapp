@@ -3,11 +3,7 @@ import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { ResponseStatus, FrontendErrorMessages } from "@/types/enums";
 import { Id } from "../../../../../convex/_generated/dataModel";
-import {
-  EventFormInput,
-  GuestListFormInput,
-  TicketFormInput,
-} from "@/types/types";
+import { EventFormInput, GuestListFormInput, TicketType } from "@/types/types";
 
 export const useAddEvent = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -18,7 +14,7 @@ export const useAddEvent = () => {
   const addEvent = async (
     organizationId: Id<"organizations">,
     eventData: EventFormInput,
-    ticketData: TicketFormInput | null,
+    ticketData: TicketType[],
     guestListData: GuestListFormInput | null
   ): Promise<{ success: boolean; eventId: string }> => {
     setIsLoading(true);

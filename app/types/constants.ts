@@ -78,3 +78,10 @@ export const GUEST_LIST_CREDIT_PRICE: {
 };
 
 export const priceRegex = /^\d*\.?\d{0,2}$/;
+
+export const ticketNameOptions = [
+  "GA - Male",
+  "GA - Female",
+  "VIP - Male",
+  "VIP - Female",
+];

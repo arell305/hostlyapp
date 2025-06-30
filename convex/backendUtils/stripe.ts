@@ -334,40 +334,25 @@ export const deleteStripeProduct = async (
 
 export async function createStripePrices(
   productId: string,
-  maleTicketPrice: number,
-  femaleTicketPrice: number,
-  maleTicketCapacity: number,
-  femaleTicketCapacity: number,
+  price: number,
+  name: string,
+  eventId: Id<"events">,
   stripeAccountId: string
-): Promise<{ malePrice: Stripe.Price; femalePrice: Stripe.Price }> {
+): Promise<Stripe.Price> {
   try {
-    const [malePrice, femalePrice] = await Promise.all([
-      stripe.prices.create(
-        {
-          unit_amount: maleTicketPrice * 100,
-          currency: USD_CURRENCY,
-          product: productId,
-          metadata: {
-            ticketType: Gender.Male,
-            capacity: maleTicketCapacity,
-          },
+    const stripePrice = await stripe.prices.create(
+      {
+        unit_amount: price * 100,
+        currency: USD_CURRENCY,
+        product: productId,
+        metadata: {
+          ticketType: name,
+          eventId,
         },
-        { stripeAccount: stripeAccountId }
-      ),
-      stripe.prices.create(
-        {
-          unit_amount: femaleTicketPrice * 100,
-          currency: USD_CURRENCY,
-          product: productId,
-          metadata: {
-            ticketType: Gender.Female,
-            capacity: femaleTicketCapacity,
-          },
-        },
-        { stripeAccount: stripeAccountId }
-      ),
-    ]);
-    return { malePrice, femalePrice };
+      },
+      { stripeAccount: stripeAccountId }
+    );
+    return stripePrice;
   } catch (error) {
     console.error("Error creating Stripe prices:", error);
     throw new Error(ErrorMessages.STRIPE_CREATE_PRICES);
@@ -376,15 +361,15 @@ export async function createStripePrices(
 
 export async function createStripeProduct(
   eventId: Id<"events">,
-  ticketSalesEndTime: number,
-  stripeAccountId: string
+  stripeAccountId: string,
+  name: string
 ): Promise<Stripe.Product> {
   try {
     const product = await stripe.products.create(
       {
-        name: `Event Ticket - ${eventId}`,
-        description: `Tickets for event ${eventId}`,
-        metadata: { eventId, ticketSalesEndTime },
+        name: `Event Ticket  - ${name}`,
+        description: `${name}Tickets for event ${eventId}`,
+        metadata: { eventId },
       },
       { stripeAccount: stripeAccountId }
     );

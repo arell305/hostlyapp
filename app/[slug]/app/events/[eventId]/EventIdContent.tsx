@@ -3,17 +3,18 @@ import {
   EventFormInput,
   GuestListFormInput,
   Tab,
-  TicketFormInput,
+  TicketSoldCountByType,
+  TicketType,
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
-import EventForm from "@/[slug]/app/components/EventForm";
+import EventForm from "@/[slug]/app/components/eventForm/EventFormContent";
 import ViewTab from "../ViewTab";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import {
   EventSchema,
+  EventTicketTypesSchema,
   GuestListInfoSchema,
   SubscriptionSchema,
-  TicketInfoSchema,
 } from "@/types/schemas-types";
 import { ActiveStripeTab, ActiveTab } from "@/types/enums";
 import { useUpdateEvent } from "../hooks/useUpdateEvent";
@@ -24,12 +25,14 @@ import SectionContainer from "@/components/shared/containers/SectionContainer";
 import { isPast } from "date-fns";
 import TicketPage from "../../components/tickets/TicketPage";
 import GuestListPage from "../guestList/GuestListPage";
+import EventFormWrapper from "../../components/eventForm/EventFormWrapper";
 
 interface EventIdContentProps {
   data: {
     event: EventSchema;
-    ticketInfo?: TicketInfoSchema | null;
+    ticketTypes?: EventTicketTypesSchema[] | null;
     guestListInfo?: GuestListInfoSchema | null;
+    ticketSoldCounts?: TicketSoldCountByType[] | null;
   };
   isAppAdmin: boolean;
   isStripeEnabled: boolean;
@@ -77,7 +80,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     ...(data.guestListInfo
       ? [{ label: "Guest List", value: ActiveTab.GUEST_LIST }]
       : []),
-    ...(data.ticketInfo
+    ...(data.ticketTypes
       ? [{ label: "Tickets", value: ActiveTab.TICKET_INFO }]
       : []),
   ];
@@ -99,7 +102,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   const handleUpdateEvent = async (
     organizationId: Id<"organizations">,
     updatedEventData: EventFormInput,
-    updatedTicketData: TicketFormInput | null,
+    updatedTicketData: TicketType[] | null,
     updatedGuestListData: GuestListFormInput | null
   ) => {
     const success = await updateEvent(
@@ -135,9 +138,9 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
         guestListInfo={data.guestListInfo}
       />
       {isEditing ? (
-        <EventForm
+        <EventFormWrapper
           initialEventData={data.event}
-          initialTicketData={data.ticketInfo}
+          initialTicketData={data.ticketTypes}
           initialGuestListData={data.guestListInfo}
           onSubmit={handleUpdateEvent}
           isEdit={isEditing}
@@ -162,7 +165,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
             <SummaryPage
               guestListInfo={data.guestListInfo}
               isPromoter={canUploadGuest}
-              ticketInfo={data.ticketInfo}
+              ticketInfo={data.ticketTypes}
               eventId={data.event._id}
               canEditEvent={canEditEvent}
             />
@@ -183,7 +186,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
             />
           )}
           {activeTab === ActiveTab.VIEW && (
-            <ViewTab eventData={data.event} ticketData={data.ticketInfo} />
+            <ViewTab eventData={data.event} ticketData={data.ticketTypes} />
           )}
         </>
       )}

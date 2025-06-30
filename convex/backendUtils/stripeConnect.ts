@@ -91,13 +91,21 @@ export const handlePaymentIntentSucceeded = async (
   session: Stripe.PaymentIntent
 ) => {
   try {
+    const ticketCounts = JSON.parse(session.metadata.ticketCounts || "[]").map(
+      (t: any) => ({
+        eventTicketTypeId: t.eventTicketTypeId as Id<"eventTicketTypes">,
+        quantity: Number(t.quantity),
+      })
+    );
+    console.log("meta", session.metadata);
+    console.log("ticketCounts", ticketCounts);
+
     await ctx.runAction(api.tickets.insertTicketsSold, {
       eventId: session.metadata.eventId as Id<"events">,
       promoCode: session.metadata.promoCode || null,
       email: session.metadata.email,
-      maleCount: Number(session.metadata.maleCount) || 0,
-      femaleCount: Number(session.metadata.femaleCount) || 0,
-      totalAmount: Number(session.amount) || 0,
+      ticketCounts, // <-- updated field
+      totalAmount: Number(session.amount) / 100, // Stripe amount is in cents
       stripePaymentIntentId: session.id,
       organizationId: session.metadata.organizationId as Id<"organizations">,
     });

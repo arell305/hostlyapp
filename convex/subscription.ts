@@ -13,7 +13,11 @@ import {
   validateOrganization,
   validateSubscription,
 } from "./backendUtils/validation";
-import { isUserInOrganization, shouldExposeError } from "./backendUtils/helper";
+import {
+  handleError,
+  isUserInOrganization,
+  shouldExposeError,
+} from "./backendUtils/helper";
 import { GetSubDatesAndGuestEventsCountByDateResponse } from "@/types/convex-types";
 import { SubscriptionStatusConvex, SubscriptionTierConvex } from "./schema";
 import { Id } from "./_generated/dataModel";
@@ -48,8 +52,8 @@ export const getSubDatesAndGuestEventsCountByDate = query({
           )
           .first()
       );
-      const inputDate = DateTime.fromMillis(date).setZone(TIME_ZONE);
 
+      const inputDate = DateTime.fromMillis(date).setZone(TIME_ZONE);
       const subscriptionStartDate = DateTime.fromMillis(
         subscription._creationTime
       ).setZone(TIME_ZONE);
@@ -73,9 +77,19 @@ export const getSubDatesAndGuestEventsCountByDate = query({
         .filter((q) => q.lte(q.field("startTime"), endDate.toMillis()))
         .collect();
 
-      const filteredEvents: EventSchema[] = allEvents.filter(
-        (event) =>
-          event.guestListInfoId !== null && event.guestListInfoId !== undefined
+      const eventIds = allEvents.map((e) => e._id);
+
+      const guestListInfos = await ctx.db
+        .query("guestListInfo")
+        .withIndex("by_eventId")
+        .collect();
+
+      const guestEventIds = new Set(
+        guestListInfos.map((g) => g.eventId.toString())
+      );
+
+      const filteredEvents = allEvents.filter((e) =>
+        guestEventIds.has(e._id.toString())
       );
 
       const billingCycle: SubscriptionBillingCycle = {
@@ -91,17 +105,7 @@ export const getSubDatesAndGuestEventsCountByDate = query({
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
-      console.error(ErrorMessages.INTERNAL_ERROR, errorMessage, error);
-
-      return {
-        status: ResponseStatus.ERROR,
-        data: null,
-        error: shouldExposeError(errorMessage)
-          ? errorMessage
-          : ErrorMessages.GENERIC_ERROR,
-      };
+      return handleError(error);
     }
   },
 });

@@ -1,12 +1,18 @@
+"use client";
+
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import FieldErrorMessage from "../error/FieldErrorMessage";
 import LabelWrapper from "./LabelWrapper";
+import {
+  formatToDateTimeLocalPST,
+  parseDateTimeLocalToTimestampPST,
+} from "@/utils/luxon";
 
 interface LabeledDateTimeFieldProps {
   label: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  value: number | null;
+  onChange: (val: number | null) => void;
   error?: string;
   name: string;
   placeholder?: string;
@@ -24,20 +30,23 @@ const LabeledDateTimeField: React.FC<LabeledDateTimeFieldProps> = ({
   className = "",
   isIOS = false,
 }) => {
-  const isEmpty = !value;
+  const formattedValue = formatToDateTimeLocalPST(value);
+  const isEmpty = !formattedValue;
 
   return (
     <div>
       <LabelWrapper>
         <Label htmlFor={name}>{label}</Label>
-        <div className="relative w-full ">
+        <div className="relative w-full">
           <Input
             id={name}
             name={name}
             type="datetime-local"
-            value={value}
-            onChange={onChange}
-            className={` h-10 ${isEmpty && isIOS ? "text-transparent" : ""} ${
+            value={formattedValue}
+            onChange={(e) =>
+              onChange(parseDateTimeLocalToTimestampPST(e.target.value))
+            }
+            className={`h-10 ${isEmpty && isIOS ? "text-transparent" : ""} ${
               error ? "border-red-500" : ""
             } ${className}`}
           />

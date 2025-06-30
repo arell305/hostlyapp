@@ -50,7 +50,7 @@ export interface TicketSchema {
   eventId: Id<"events">;
   promoterUserId: Id<"users"> | null;
   email: string;
-  gender: Gender;
+  eventTicketTypeId: Id<"eventTicketTypes">;
   checkInTime?: number;
   ticketUniqueId: string;
   connectedPaymentId?: Id<"connectedPayments">;
@@ -58,15 +58,29 @@ export interface TicketSchema {
   organizationId: Id<"organizations">;
 }
 
-export interface CustomerTicket extends TicketSchema {
-  name: string;
+export interface CustomerTicket {
+  _id: Id<"tickets">;
+  _creationTime: number;
+  eventId: Id<"events">;
+  organizationId: Id<"organizations">;
+  eventTicketTypeId: Id<"eventTicketTypes">;
+  promoterUserId: Id<"users"> | null;
+  email: string;
+  ticketUniqueId: string;
+  checkInTime?: number;
+  eventTicketTypeName: string;
+
+  // Extended fields for display/PDF
+  name: string; // Event name
   startTime: number;
   endTime: number;
   address: string;
+  connectedPaymentId?: Id<"connectedPayments">;
 }
 
 export interface TicketSchemaWithPromoter extends TicketSchema {
   promoterName: string | null;
+  ticketTypeName: string;
 }
 
 export interface PromoterPromoCodeSchema {
@@ -90,28 +104,6 @@ export interface EventSchema {
   photo: Id<"_storage">;
   address: string;
   isActive: boolean;
-  ticketInfoId?: Id<"ticketInfo"> | null;
-  guestListInfoId?: Id<"guestListInfo"> | null;
-}
-
-export interface TicketInfoSchema {
-  _id: Id<"ticketInfo">;
-  _creationTime: number;
-  eventId: Id<"events">;
-  ticketSalesEndTime: number;
-  stripeProductId: string;
-  ticketTypes: {
-    male: {
-      price: number;
-      capacity: number;
-      stripePriceId: string;
-    };
-    female: {
-      price: number;
-      capacity: number;
-      stripePriceId: string;
-    };
-  };
 }
 
 export interface GuestListInfoSchema {
@@ -120,11 +112,8 @@ export interface GuestListInfoSchema {
   eventId: Id<"events">;
   guestListCloseTime: number;
   checkInCloseTime: number;
+  guestListRules: string;
 }
-
-export type EventWithTicketInfo = EventSchema & {
-  ticketInfo?: TicketInfoSchema | null;
-};
 
 export interface ConnectedAccountsSchema {
   _id: Id<"connectedAccounts">;
@@ -184,7 +173,7 @@ export interface GuestListEntrySchema {
   _id: Id<"guestListEntries">;
   _creationTime: number;
   eventId: Id<"events">;
-  userPromoterId: Id<"users">;
+  userPromoterId?: Id<"users">;
   name: string;
   checkInTime?: number;
   malesInGroup?: number;
@@ -205,4 +194,17 @@ export interface OrganizationCreditSchema {
   totalCredits: number;
   creditsUsed: number;
   lastUpdated: number;
+}
+
+export interface EventTicketTypesSchema {
+  _id: Id<"eventTicketTypes">;
+  _creationTime: number;
+  eventId: Id<"events">;
+  name: string;
+  price: number;
+  capacity: number;
+  stripeProductId: string;
+  stripePriceId: string;
+  ticketSalesEndTime: number;
+  isActive: boolean;
 }

@@ -11,13 +11,12 @@ import {
   EventSchema,
   GuestListInfoSchema,
   SubscriptionSchema,
-  TicketInfoSchema,
   TicketSchemaWithPromoter,
   UserSchema,
-  EventWithTicketInfo,
   PromoterPromoCodeWithDiscount,
   GuestListEntryWithPromoter,
   GuestListEntrySchema,
+  EventTicketTypesSchema,
 } from "./schemas-types";
 import {
   GuestListNameSchema,
@@ -27,7 +26,7 @@ import {
   ProratedPrice,
   SubscriptionBillingCycle,
   TicketCounts,
-  TicketSoldCounts,
+  TicketSoldCountByType,
   UserWithPromoCode,
 } from "./types";
 import { Id } from "../../convex/_generated/dataModel";
@@ -161,7 +160,6 @@ export interface AddEventResponseSuccess {
 
 export interface AddEventResponseData {
   eventId: Id<"events">;
-  ticketInfoId: Id<"ticketInfo"> | null;
   guestListInfoId: Id<"guestListInfo"> | null;
 }
 
@@ -192,7 +190,6 @@ export interface UpdateEventSuccess {
 export interface UpdateEventData {
   eventId: Id<"events">;
   guestListInfoId: Id<"guestListInfo"> | null;
-  ticketInfoId: Id<"ticketInfo"> | null;
 }
 
 export type GetEventByIdResponse = GetEventByIdSuccess | ErrorResponse;
@@ -204,9 +201,9 @@ export interface GetEventByIdSuccess {
 
 export interface GetEventByIdData {
   event: EventSchema;
-  ticketInfo: TicketInfoSchema | null;
   guestListInfo?: GuestListInfoSchema | null;
-  ticketSoldCounts?: TicketSoldCounts | null;
+  ticketSoldCounts?: TicketSoldCountByType[] | null;
+  ticketTypes: EventTicketTypesSchema[];
 }
 
 export type InsertTicketSoldResponse = InsertTicketSoldSuccess | ErrorResponse;
@@ -597,21 +594,13 @@ export interface GetEventsByMonthSuccess {
   data: GetEventsByMonthData;
 }
 
+export interface EventWithExtras extends EventSchema {
+  guestListInfo: GuestListInfoSchema | null;
+  ticketTypes: EventTicketTypesSchema[];
+}
+
 export interface GetEventsByMonthData {
-  eventData: EventSchema[];
-}
-
-export type GetEventsByOrganizationPublicResponse =
-  | GetEventsByOrganizationPublicSuccess
-  | ErrorResponse;
-
-export interface GetEventsByOrganizationPublicSuccess {
-  status: ResponseStatus.SUCCESS;
-  data: GetEventsByOrganizationPublicData | null;
-}
-
-export interface GetEventsByOrganizationPublicData {
-  events: PaginationResult<EventWithTicketInfo>;
+  eventData: EventWithExtras[];
 }
 
 export type GetOrganizationImagePublicResponse =
@@ -817,8 +806,11 @@ export interface GetTotalRevenueByOrganizationData {
   }[];
   promoterBreakdown: {
     name: string;
-    male: number;
-    female: number;
+    sales: {
+      eventTicketTypeId: Id<"eventTicketTypes">;
+      name: string;
+      count: number;
+    }[];
   }[];
 }
 
@@ -931,26 +923,21 @@ export interface GetPromoterTicketKpisSuccess {
 }
 
 export interface GetPromoterTicketKpisData {
-  totalMale: {
+  totalTickets: {
     value: number;
     change: number;
   };
-  totalFemale: {
-    value: number;
-    change: number;
-  };
-  avgMalePerDay: {
-    value: number;
-    change: number;
-  };
-  avgFemalePerDay: {
+  avgTicketsPerDay: {
     value: number;
     change: number;
   };
   dailyTicketSales: {
     date: string;
-    male: number;
-    female: number;
+    counts: {
+      eventTicketTypeId: Id<"eventTicketTypes">;
+      name: string;
+      count: number;
+    }[];
   }[];
 }
 export type GetOrganizationByClerkUserIdResponse =
@@ -1069,19 +1056,19 @@ export interface GetTicketSalesByPromoterSuccess {
 
 export interface GetTicketSalesByPromoterData {
   tickets: TicketSalesGroup[];
-  ticketTotals: TicketTotals | null;
+  ticketTotals: TicketTypeTotal[] | null;
 }
 
 export interface TicketSalesGroup {
   promoterId: Id<"users">;
   promoterName: string;
-  maleCount: number;
-  femaleCount: number;
+  sales: TicketTypeTotal[]; // tickets sold by this promoter per ticket type
 }
 
-export interface TicketTotals {
-  maleCount: number;
-  femaleCount: number;
+export interface TicketTypeTotal {
+  eventTicketTypeId: Id<"eventTicketTypes">;
+  name: string;
+  count: number;
 }
 
 export type GetAvailableGuestListCreditsResponse =
@@ -1095,4 +1082,59 @@ export interface GetAvailableGuestListCreditsSuccess {
 
 export interface GetAvailableGuestListCreditsData {
   availableCredits: number;
+}
+
+export type AddPublicGuestListEntryResponse =
+  | AddPublicGuestListEntrySuccess
+  | ErrorResponse;
+
+export interface AddPublicGuestListEntrySuccess {
+  status: ResponseStatus.SUCCESS;
+  data: AddPublicGuestListEntryData;
+}
+export interface AddPublicGuestListEntryData {
+  guestEntryId: Id<"guestListEntries">;
+}
+
+export type PublicGetGuestListInfoByEventIdResponse =
+  | PublicGetGuestListInfoByEventIdSuccess
+  | ErrorResponse;
+
+export interface PublicGetGuestListInfoByEventIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: PublicGetGuestListInfoByEventIdData;
+}
+
+export interface PublicGetGuestListInfoByEventIdData {
+  guestListInfo: GuestListInfoSchema;
+}
+
+export type GetEventTicketTypesByEventIdResponse =
+  | GetEventTicketTypesByEventIdSuccess
+  | ErrorResponse;
+
+export interface GetEventTicketTypesByEventIdSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetEventTicketTypesByEventIdData;
+}
+
+export interface GetEventTicketTypesByEventIdData {
+  eventTicketType: EventTicketTypesSchema;
+}
+
+export type GetTicketTypeBreakdownByClerkUserResponse =
+  | GetTicketTypeBreakdownSuccess
+  | ErrorResponse;
+
+export interface GetTicketTypeBreakdownSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: TicketTypeBreakdownData;
+}
+
+export type TicketTypeBreakdownData = TicketTypeBreakdown[];
+
+export interface TicketTypeBreakdown {
+  eventTicketTypeId: Id<"eventTicketTypes">;
+  name: string;
+  count: number;
 }

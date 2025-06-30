@@ -11,18 +11,20 @@ import {
 import {
   GuestListSchema,
   OrganizationSchema,
-  TicketSoldCounts,
+  TicketSoldCountByType,
+  TicketType,
 } from "@/types/types";
-import { EventSchema, TicketSchema, UserSchema } from "@/types/schemas-types";
+import {
+  EventSchema,
+  EventTicketTypesSchema,
+  TicketSchema,
+  UserSchema,
+} from "@/types/schemas-types";
 import { Id } from "../_generated/dataModel";
 import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
 import { internal } from "../_generated/api";
 import { validateSubscription } from "./validation";
-import {
-  createStripePrices,
-  createStripeProduct,
-  deleteStripeProduct,
-} from "./stripe";
+import { createStripePrices, createStripeProduct } from "./stripe";
 
 export function isUserInOrganization(
   identity: UserIdentity,
@@ -81,6 +83,7 @@ export async function handleGuestListData(
   guestListData: {
     guestListCloseTime: number;
     checkInCloseTime: number;
+    guestListRules: string;
   },
   clerkUserId: string
 ): Promise<Id<"guestListInfo">> {
@@ -103,6 +106,7 @@ export async function handleGuestListData(
           eventId,
           guestListCloseTime: guestListData.guestListCloseTime,
           checkInCloseTime: guestListData.checkInCloseTime,
+          guestListRules: guestListData.guestListRules,
         }),
         await ctx.runMutation(
           internal.guestListCreditTransactions.useGuestListCredit,
@@ -126,6 +130,7 @@ export async function handleGuestListData(
           eventId,
           guestListCloseTime: guestListData.guestListCloseTime,
           checkInCloseTime: guestListData.checkInCloseTime,
+          guestListRules: guestListData.guestListRules,
         }),
         await ctx.runMutation(
           internal.guestListCreditTransactions.useGuestListCredit,
@@ -147,6 +152,7 @@ export async function handleGuestListData(
       eventId,
       guestListCloseTime: guestListData.guestListCloseTime,
       checkInCloseTime: guestListData.checkInCloseTime,
+      guestListRules: guestListData.guestListRules,
     }),
     ctx.runMutation(internal.subscription.updateSubscriptionById, {
       subscriptionId: subscription._id,
@@ -160,27 +166,22 @@ export async function handleGuestListData(
 }
 
 interface TicketData {
-  maleTicketPrice: number;
-  femaleTicketPrice: number;
-  maleTicketCapacity: number;
-  femaleTicketCapacity: number;
-  ticketSalesEndTime: number;
+  ticketTypes: {
+    name: string;
+    price: number;
+    capacity: number;
+    stripeProductId: string;
+    stripePriceId: string;
+    ticketSalesEndTime: number;
+  }[];
 }
 
 export async function handleTicketData(
   ctx: GenericActionCtx<any>,
   eventId: Id<"events">,
-  ticketData: TicketData,
+  ticketData: TicketType[],
   organization: OrganizationSchema
-): Promise<Id<"ticketInfo">> {
-  const {
-    maleTicketPrice,
-    femaleTicketPrice,
-    maleTicketCapacity,
-    femaleTicketCapacity,
-    ticketSalesEndTime,
-  } = ticketData;
-
+): Promise<Id<"eventTicketTypes">[]> {
   const connectedAccount = await ctx.runQuery(
     internal.connectedAccounts.getConnectedAccountByCustomerId,
     { customerId: organization.customerId }
@@ -194,61 +195,56 @@ export async function handleTicketData(
     throw new Error(ErrorMessages.CONNECTED_ACCOUNT_VERIFIED);
   }
 
-  const product = await createStripeProduct(
-    eventId,
-    ticketSalesEndTime,
-    connectedAccount.stripeAccountId
-  );
+  const eventTicketTypesIds: Id<"eventTicketTypes">[] = [];
 
-  const { malePrice, femalePrice } = await createStripePrices(
-    product.id,
-    maleTicketPrice,
-    femaleTicketPrice,
-    maleTicketCapacity,
-    femaleTicketCapacity,
-    connectedAccount.stripeAccountId
-  );
-
-  const ticketInfoId = await ctx.runMutation(
-    internal.ticketInfo.createTicketInfo,
-    {
+  for (const ticket of ticketData) {
+    const stripeProductId = await createStripeProduct(
       eventId,
-      ticketSalesEndTime,
-      stripeProductId: product.id,
-      ticketTypes: {
-        male: {
-          price: maleTicketPrice,
-          capacity: maleTicketCapacity,
-          stripePriceId: malePrice.id,
-        },
-        female: {
-          price: femaleTicketPrice,
-          capacity: femaleTicketCapacity,
-          stripePriceId: femalePrice.id,
-        },
-      },
-    }
-  );
+      connectedAccount.stripeAccountId,
+      ticket.name
+    );
 
-  return ticketInfoId;
+    const stripePriceId = await createStripePrices(
+      stripeProductId.id,
+      ticket.price,
+      ticket.name,
+      eventId,
+      connectedAccount.stripeAccountId
+    );
+
+    const eventTicketTypesId = await ctx.runMutation(
+      internal.eventTicketTypes.createEventTicketTypes,
+      {
+        eventId,
+        name: ticket.name,
+        price: ticket.price,
+        capacity: ticket.capacity,
+        stripeProductId: stripeProductId.id,
+        stripePriceId: stripePriceId.id,
+        ticketSalesEndTime: ticket.ticketSalesEndTime,
+      }
+    );
+    eventTicketTypesIds.push(eventTicketTypesId);
+  }
+
+  return eventTicketTypesIds;
 }
 
 export async function performAddEventCleanup(
   ctx: GenericActionCtx<any>,
   eventId: Id<"events"> | null,
-  ticketInfoId: Id<"ticketInfo"> | null,
-  stripeProductId: string | null
+  eventTicketTypesIds: Id<"eventTicketTypes">[]
 ): Promise<void> {
   if (eventId) {
     await ctx.runMutation(internal.events.deleteEvent, { eventId });
   }
-  if (ticketInfoId) {
-    await ctx.runMutation(internal.ticketInfo.deleteTicketInfo, {
-      ticketInfoId,
-    });
-  }
-  if (stripeProductId) {
-    await deleteStripeProduct(stripeProductId);
+  if (eventTicketTypesIds.length > 0) {
+    await ctx.runMutation(
+      internal.eventTicketTypes.internalDeleteEventTicketTypes,
+      {
+        eventTicketTypesIds,
+      }
+    );
   }
 }
 
@@ -283,6 +279,7 @@ export async function handleGuestListUpdateData(
   guestListData: {
     guestListCloseTime: number;
     checkInCloseTime: number;
+    guestListRules: string;
   } | null,
   clerkUserId: string
 ): Promise<Id<"guestListInfo"> | null> {
@@ -323,6 +320,7 @@ export async function handleGuestListUpdateData(
             eventId,
             guestListCloseTime: guestListData.guestListCloseTime,
             checkInCloseTime: guestListData.checkInCloseTime,
+            guestListRules: guestListData.guestListRules,
           }),
           await ctx.runMutation(
             internal.guestListCreditTransactions.useGuestListCredit,
@@ -346,6 +344,7 @@ export async function handleGuestListUpdateData(
             eventId,
             guestListCloseTime: guestListData.guestListCloseTime,
             checkInCloseTime: guestListData.checkInCloseTime,
+            guestListRules: guestListData.guestListRules,
           }),
           await ctx.runMutation(
             internal.guestListCreditTransactions.useGuestListCredit,
@@ -367,6 +366,7 @@ export async function handleGuestListUpdateData(
         eventId,
         guestListCloseTime: guestListData.guestListCloseTime,
         checkInCloseTime: guestListData.checkInCloseTime,
+        guestListRules: guestListData.guestListRules,
       }),
       ctx.runMutation(internal.subscription.updateSubscriptionById, {
         subscriptionId: subscription._id,
@@ -384,25 +384,31 @@ export async function handleGuestListUpdateData(
 export async function handleTicketUpdateData(
   ctx: GenericActionCtx<any>,
   eventId: Id<"events">,
-  ticketData: TicketData | null,
-  organization: OrganizationSchema
-): Promise<Id<"ticketInfo"> | null> {
-  const existingTicketInfo = await ctx.runQuery(
-    internal.ticketInfo.getTicketInfoByEventId,
-    { eventId }
-  );
-
-  if (!ticketData) {
-    return null;
+  ticketData:
+    | {
+        name: string;
+        price: number;
+        capacity: number;
+        ticketSalesEndTime: number;
+      }[]
+    | null,
+  organization: OrganizationSchema,
+  existingTicketTypes: EventTicketTypesSchema[]
+): Promise<Id<"eventTicketTypes">[]> {
+  // Soft-delete all existing tickets
+  for (const ticket of existingTicketTypes) {
+    await ctx.runMutation(
+      internal.eventTicketTypes.internalUpdateEventTicketType,
+      {
+        eventTicketTypeId: ticket._id,
+        isActive: false,
+      }
+    );
   }
 
-  const {
-    maleTicketPrice,
-    femaleTicketPrice,
-    maleTicketCapacity,
-    femaleTicketCapacity,
-    ticketSalesEndTime,
-  } = ticketData;
+  if (!ticketData || ticketData.length === 0) {
+    return [];
+  }
 
   const connectedAccount = await ctx.runQuery(
     internal.connectedAccounts.getConnectedAccountByCustomerId,
@@ -417,51 +423,40 @@ export async function handleTicketUpdateData(
     throw new Error(ErrorMessages.CONNECTED_ACCOUNT_VERIFIED);
   }
 
-  const product = await createStripeProduct(
-    eventId,
-    ticketSalesEndTime,
-    connectedAccount.stripeAccountId
-  );
+  const newTicketIds: Id<"eventTicketTypes">[] = [];
 
-  const { malePrice, femalePrice } = await createStripePrices(
-    product.id,
-    maleTicketPrice,
-    femaleTicketPrice,
-    maleTicketCapacity,
-    femaleTicketCapacity,
-    connectedAccount.stripeAccountId
-  );
-
-  if (!existingTicketInfo) {
-    return await ctx.runMutation(internal.ticketInfo.createTicketInfo, {
+  for (const ticket of ticketData) {
+    const product = await createStripeProduct(
       eventId,
-      ticketSalesEndTime,
-      stripeProductId: product.id,
-      ticketTypes: {
-        male: {
-          price: maleTicketPrice,
-          capacity: maleTicketCapacity,
-          stripePriceId: malePrice.id,
-        },
-        female: {
-          price: femaleTicketPrice,
-          capacity: femaleTicketCapacity,
-          stripePriceId: femalePrice.id,
-        },
-      },
-    });
+      connectedAccount.stripeAccountId,
+      ticket.name
+    );
+
+    const price = await createStripePrices(
+      product.id,
+      ticket.price,
+      ticket.name,
+      eventId,
+      connectedAccount.stripeAccountId
+    );
+
+    const ticketTypeId = await ctx.runMutation(
+      internal.eventTicketTypes.createEventTicketTypes,
+      {
+        eventId,
+        name: ticket.name,
+        price: ticket.price,
+        capacity: ticket.capacity,
+        stripeProductId: product.id,
+        stripePriceId: price.id,
+        ticketSalesEndTime: ticket.ticketSalesEndTime,
+      }
+    );
+
+    newTicketIds.push(ticketTypeId);
   }
 
-  return await ctx.runMutation(internal.ticketInfo.internalUpdateTicketInfo, {
-    ticketInfoId: existingTicketInfo._id,
-    maleTicketPrice,
-    femaleTicketPrice,
-    maleTicketCapacity,
-    femaleTicketCapacity,
-    ticketSalesEndTime,
-    stripeMalePriceId: malePrice.id,
-    stripeFemalePriceId: femalePrice.id,
-  });
+  return newTicketIds;
 }
 
 export function calculateDiscount(
@@ -474,81 +469,93 @@ export function calculateDiscount(
   const discountFactor = (100 - discountPercentage) / 100;
   return originalAmount * discountFactor;
 }
+export interface GetTicketSoldCountsResponse {
+  ticketSoldCounts: TicketSoldCountByType[];
+  ticketTypes: EventTicketTypesSchema[];
+}
 
 export async function getTicketSoldCounts(
   ctx: GenericQueryCtx<any>,
-  eventId: string
-): Promise<TicketSoldCounts> {
-  const tickets: TicketSchema[] = await ctx.db
-    .query("tickets")
-    .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
-    .collect();
-
-  return tickets.reduce(
-    (acc, ticket) => {
-      if (ticket.gender === Gender.Male) acc.male += 1;
-      if (ticket.gender === Gender.Female) acc.female += 1;
-      return acc;
-    },
-    { male: 0, female: 0 }
-  );
-}
-
-export async function internalGetTicketSoldCounts(
-  ctx: GenericActionCtx<any>,
   eventId: Id<"events">
-): Promise<TicketSoldCounts> {
-  const tickets: TicketSchema[] = await ctx.runQuery(
-    internal.tickets.getTicketsByEvent,
-    { eventId }
-  );
+): Promise<GetTicketSoldCountsResponse> {
+  const [tickets, ticketTypes] = await Promise.all([
+    ctx.db
+      .query("tickets")
+      .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+      .collect(),
+    ctx.db
+      .query("eventTicketTypes")
+      .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+      .collect(),
+  ]);
 
-  return tickets.reduce(
-    (acc, ticket) => {
-      if (ticket.gender === Gender.Male) acc.male += 1;
-      if (ticket.gender === Gender.Female) acc.female += 1;
-      return acc;
-    },
-    { male: 0, female: 0 }
-  );
+  const countMap = new Map<Id<"eventTicketTypes">, number>();
+
+  for (const ticket of tickets) {
+    const typeId = ticket.eventTicketTypeId;
+    countMap.set(typeId, (countMap.get(typeId) || 0) + 1);
+  }
+
+  const ticketSoldCounts = ticketTypes.map((type) => ({
+    eventTicketTypeId: type._id,
+    name: type.name,
+    count: countMap.get(type._id) || 0,
+  }));
+
+  return {
+    ticketSoldCounts,
+    ticketTypes,
+  };
 }
-
-import { TicketInfoSchema } from "@/types/schemas-types";
 
 interface ValidateTicketAvailabilityArgs {
   ctx: GenericActionCtx<any>;
   eventId: Id<"events">;
-  requestedMaleCount: number;
-  requestedFemaleCount: number;
+  requestedTicketTypes: {
+    eventTicketTypeId: Id<"eventTicketTypes">;
+    quantity: number;
+  }[];
 }
 
 export async function validateTicketAvailability({
   ctx,
   eventId,
-  requestedMaleCount,
-  requestedFemaleCount,
+  requestedTicketTypes,
 }: ValidateTicketAvailabilityArgs): Promise<void> {
-  const ticketInfo: TicketInfoSchema | null = await ctx.runQuery(
-    internal.ticketInfo.getTicketInfoByEventId,
+  // Fetch ticket types for this event
+  const ticketTypes = await ctx.runQuery(
+    internal.eventTicketTypes.internalGetEventTicketTypesByEventId,
     { eventId }
   );
 
-  if (!ticketInfo) {
-    throw new Error(ErrorMessages.TICKET_INFO_NOT_FOUND);
+  const ticketTypeMap = new Map(ticketTypes.map((t) => [t._id, t]));
+
+  // Count how many tickets are already sold per type
+  const soldTickets = await ctx.runQuery(
+    internal.tickets.internalGetTicketsByEventId,
+    { eventId }
+  );
+
+  const soldCounts = new Map<Id<"eventTicketTypes">, number>();
+  for (const ticket of soldTickets) {
+    const current = soldCounts.get(ticket.eventTicketTypeId) || 0;
+    soldCounts.set(ticket.eventTicketTypeId, current + 1);
   }
 
-  const soldCounts = await internalGetTicketSoldCounts(ctx, eventId);
+  for (const { eventTicketTypeId, quantity } of requestedTicketTypes) {
+    const ticketType = ticketTypeMap.get(eventTicketTypeId);
+    if (!ticketType) {
+      throw new Error(ErrorMessages.EVENT_TICKET_TYPE_NOT_FOUND);
+    }
 
-  const maleRemaining = ticketInfo.ticketTypes.male.capacity - soldCounts.male;
-  const femaleRemaining =
-    ticketInfo.ticketTypes.female.capacity - soldCounts.female;
+    const sold = soldCounts.get(eventTicketTypeId) || 0;
+    const remaining = ticketType.capacity - sold;
 
-  if (requestedMaleCount > maleRemaining) {
-    throw new Error(ShowErrorMessages.NOT_ENOUGH_MALE_TICKETS);
-  }
-
-  if (requestedFemaleCount > femaleRemaining) {
-    throw new Error(ShowErrorMessages.NOT_ENOUGH_FEMALE_TICKETS);
+    if (quantity > remaining) {
+      throw new Error(
+        `Not enough tickets available for ${ticketType.name}. Only ${remaining} left.`
+      );
+    }
   }
 }
 
@@ -574,4 +581,33 @@ export async function getActingClerkUserId(
   }
 
   return identity.id as string;
+}
+
+export function hasTicketDataChanged(
+  existingTickets: EventTicketTypesSchema[],
+  newTickets: {
+    name: string;
+    price: number;
+    capacity: number;
+    ticketSalesEndTime: number;
+  }[]
+): boolean {
+  if (existingTickets.length !== newTickets.length) return true;
+
+  const sortedExisting = [...existingTickets].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+  const sortedNew = [...newTickets].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  return sortedExisting.some((existing, i) => {
+    const incoming = sortedNew[i];
+    return (
+      existing.name !== incoming.name ||
+      existing.price !== incoming.price ||
+      existing.capacity !== incoming.capacity ||
+      existing.ticketSalesEndTime !== incoming.ticketSalesEndTime
+    );
+  });
 }

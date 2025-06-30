@@ -279,6 +279,13 @@ export enum ErrorMessages {
   ORGANIZATION_CREDITS_DB_QUERY = "DB error querying guest list credits",
   ORGANIZATION_CREDIT_NOT_FOUND = "Guest list credit not found",
   ORGANIZATION_CREDIT_DB_USE = "DB error using guest list credit",
+  EVENT_TICKET_TYPES_DB_CREATE = "DB error creating event ticket types",
+  EVENT_TICKET_TYPES_DB_DELETE = "DB error deleting event ticket types",
+  EVENT_TICKET_TYPES_DB_QUERY_BY_EVENT_ID_ERROR = "DB error querying event ticket types by event id",
+  EVENT_TICKET_TYPES_DB_UPDATE = "DB error updating event ticket types",
+  EVENT_TICKET_TYPE_NOT_FOUND = "Event ticket type not found",
+  EVENT_TICKET_TYPES_DB_QUERY = "DB error querying event ticket types",
+  TICKETS_DB_QUERY_BY_EVENT_ID_ERROR = "DB error querying tickets by event id",
 }
 
 export enum ShowErrorMessages {
@@ -305,6 +312,7 @@ export enum ShowErrorMessages {
   GUEST_INACTIVE = "Guest is inactive",
   GUEST_DOES_NOT_BELONG_TO_PROMOTER = "Guest does not belong to promoter",
   NOT_ENOUGH_GUEST_LIST_CREDITS = "Not enough guest list credits available.",
+  GUEST_LIST_CLOSED = "Guest list is closed",
 }
 
 export enum FrontendErrorMessages {
@@ -329,6 +337,7 @@ export enum FrontendErrorMessages {
   COMPANY_NAME_REQUIRED = "Company name is required",
   PHONE_NUMBER_FORMAT = "Phone number must be a valid 10-digit number.",
   NO_GUEST_SELECTED = "No guest selected",
+  PHONE_NUMBER_EMPTY = "Phone number cannot be empty",
 }
 
 export enum Gender {

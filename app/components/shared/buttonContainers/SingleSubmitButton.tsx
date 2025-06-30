@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils"; // assuming you're using a `cn` utility like clsx
 
 interface SingleSubmitButtonProps {
   isLoading: boolean;
@@ -7,6 +8,7 @@ interface SingleSubmitButtonProps {
   onClick: (() => void) | ((event: React.FormEvent) => void);
   disabled?: boolean;
   label?: string;
+  className?: string;
 }
 
 const SingleSubmitButton: React.FC<SingleSubmitButtonProps> = ({
@@ -15,9 +17,10 @@ const SingleSubmitButton: React.FC<SingleSubmitButtonProps> = ({
   onClick,
   disabled,
   label = "Submit",
+  className,
 }) => {
   return (
-    <div className="pt-8 my-8 ">
+    <div className={cn("pt-8 my-8", className)}>
       <Button onClick={onClick} disabled={disabled}>
         {isLoading ? (
           <div className="flex items-center justify-center space-x-2">

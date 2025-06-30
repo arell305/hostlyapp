@@ -3,10 +3,10 @@
 import React from "react";
 import EventItem from "./EventItem";
 import EmptyList from "@/components/shared/EmptyList";
-import { EventSchema } from "@/types/schemas-types";
+import { EventWithExtras } from "@/types/convex-types";
 
 interface EventListProps {
-  events: EventSchema[];
+  events: EventWithExtras[];
   emptyText?: string;
   className?: string;
   pathname: string;
