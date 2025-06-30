@@ -84,6 +84,7 @@ const TicketPurchaseSection: React.FC<TicketPurchaseSectionProps> = ({
     createPaymentIntent,
     setClientSecret,
     setEmailError,
+    setError,
   ]);
 
   const shouldShowPurchaseForm =

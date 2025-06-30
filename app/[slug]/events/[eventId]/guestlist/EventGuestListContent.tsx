@@ -68,7 +68,9 @@ const EventGuestListContent = ({
   if (isSubmitted) {
     return (
       <div className="py-6 text-center">
-        <p className="text-xl font-medium mb-4">🎉 You're on the guest list!</p>
+        <p className="text-xl font-medium mb-4">
+          🎉 You&apos;re on the guest list!
+        </p>
         <Button onClick={onBrowseMore}>Browse More Events</Button>
       </div>
     );
