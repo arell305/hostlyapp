@@ -1,6 +1,5 @@
 import { Id } from "../../convex/_generated/dataModel";
 import {
-  Gender,
   StripeAccountStatus,
   SubscriptionTier,
   SubscriptionStatus,
@@ -104,6 +103,9 @@ export interface EventSchema {
   photo: Id<"_storage">;
   address: string;
   isActive: boolean;
+}
+export interface EventWithTicketTypes extends EventSchema {
+  ticketTypes: EventTicketTypesSchema[];
 }
 
 export interface GuestListInfoSchema {
