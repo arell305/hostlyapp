@@ -33,7 +33,7 @@ const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
           <ProfileBanner displayPhoto={displayCompanyPhoto} name={name} />
           <EmptyList items={events} message="No events found" />
           <EventGrid>
-            {events.map((event: EventSchema) => (
+            {events.map((event: EventWithTicketTypes) => (
               <EventPreview
                 key={event._id}
                 eventData={event}
