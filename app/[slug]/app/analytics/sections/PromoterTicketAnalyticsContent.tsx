@@ -1,11 +1,12 @@
+"use client";
+
 import React from "react";
 import { GetPromoterTicketKpisData } from "@/types/convex-types";
 import KpiCard from "@/components/shared/KpiCard";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import KpiGrid from "@/components/shared/containers/KpiGrid";
 import BarChartContainer from "@/components/shared/analytics/BarChart";
-import { UserCheck } from "lucide-react";
-import { Users } from "lucide-react";
+import { Ticket } from "lucide-react";
 
 interface PromoterTicketAnalyticsContentProps {
   promoterTicketData: GetPromoterTicketKpisData;
@@ -14,45 +15,38 @@ interface PromoterTicketAnalyticsContentProps {
 const PromoterTicketAnalyticsContent = ({
   promoterTicketData,
 }: PromoterTicketAnalyticsContentProps) => {
-  console.log(promoterTicketData);
-  const formatValue = (key: string, value: number) => {
-    if (key.toLowerCase().includes("revenue")) {
-      return `$${value.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`;
-    }
-    return value.toLocaleString();
-  };
+  // Flatten the data into one object per date, with keys as ticket type names
+  const flattenedSales = promoterTicketData.dailyTicketSales.map((day) => {
+    const base: Record<string, number | string> = { date: day.date };
+    day.counts.forEach(({ name, count }) => {
+      base[name] = count;
+    });
+    return base;
+  });
+
+  // Dynamically extract ticket type names for barKeys
+  const ticketTypeNames = Array.from(
+    new Set(
+      promoterTicketData.dailyTicketSales.flatMap((d) =>
+        d.counts.map((c) => c.name)
+      )
+    )
+  );
 
   const promoterTicketsKpis = [
     {
-      label: "Females / Day",
-      key: "avgFemalesPerDay",
-      icon: Users,
-      value: promoterTicketData.avgFemalePerDay.value,
-      change: promoterTicketData.avgFemalePerDay.change,
+      label: "Tickets / Day",
+      key: "avgTicketsPerDay",
+      icon: Ticket,
+      value: promoterTicketData.avgTicketsPerDay.value,
+      change: promoterTicketData.avgTicketsPerDay.change,
     },
     {
-      label: "Males / Day",
-      key: "avgMalesPerDay",
-      icon: UserCheck,
-      value: promoterTicketData.avgMalePerDay.value,
-      change: promoterTicketData.avgMalePerDay.change,
-    },
-    {
-      label: "Total Females",
-      key: "totalFemales",
-      icon: Users,
-      value: promoterTicketData.totalFemale.value,
-      change: promoterTicketData.totalFemale.change,
-    },
-    {
-      label: "Total Males",
-      key: "totalMales",
-      icon: Users,
-      value: promoterTicketData.totalMale.value,
-      change: promoterTicketData.totalMale.change,
+      label: "Total Tickets",
+      key: "totalTickets",
+      icon: Ticket,
+      value: promoterTicketData.totalTickets.value,
+      change: promoterTicketData.totalTickets.change,
     },
   ];
 
@@ -69,13 +63,17 @@ const PromoterTicketAnalyticsContent = ({
           />
         ))}
       </KpiGrid>
+
       <BarChartContainer
-        title="Ticket Sales"
-        data={promoterTicketData.dailyTicketSales}
+        title="Ticket Sales by Type"
+        data={flattenedSales}
         xKey="date"
-        yKey="male"
-        barKeys={["male", "female"]}
+        yKey={ticketTypeNames[0] || "count"} // fallback key for typing
+        barKeys={ticketTypeNames}
         barLabel="Ticket Sales"
+        tooltipFormatter={(v) => `${v} tickets`}
+        valueFormatter={(v) => `${v}`}
+        emptyDescription="No ticket sales data available"
       />
     </SectionContainer>
   );
