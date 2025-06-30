@@ -47,7 +47,13 @@ const PromoCodeInput: React.FC<{ eventId: string }> = ({ eventId }) => {
 
     setIsLoading(false);
     setShouldValidate(false);
-  }, [shouldValidate, validatePromoQuery]);
+  }, [
+    shouldValidate,
+    validatePromoQuery,
+    setIsPromoApplied,
+    setPromoCodeError,
+    setValidationResult,
+  ]);
 
   const handleApplyPromo = () => {
     if (!promoCode) {

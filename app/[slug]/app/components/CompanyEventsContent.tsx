@@ -1,6 +1,6 @@
 import type { UserResource } from "@clerk/types";
 import _ from "lodash";
-import { EventSchema } from "@/types/schemas-types";
+import { EventSchema, EventWithTicketTypes } from "@/types/schemas-types";
 import EventPreview from "./events/EventPreview";
 import HomeNav from "./nav/HomeNav";
 import ProfileBanner from "@/components/shared/company/ProfileBanner";
@@ -13,7 +13,7 @@ interface CompanyEventsContentProps {
   displayCompanyPhoto: string | null | undefined;
   handleNavigateHome: () => void;
   name: string;
-  events: EventSchema[];
+  events: EventWithTicketTypes[];
   handleNavigateEvent: (eventId: string) => void;
 }
 

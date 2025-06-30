@@ -30,7 +30,12 @@ import {
   validateSubscription,
   validateUser,
 } from "./backendUtils/validation";
-import { ConnectedAccountsSchema } from "@/types/schemas-types";
+import {
+  ConnectedAccountsSchema,
+  EventSchema,
+  EventTicketTypesSchema,
+  EventWithTicketTypes,
+} from "@/types/schemas-types";
 
 export const createConvexOrganization = internalMutation({
   args: {
@@ -461,6 +466,7 @@ export const getPublicOrganizationContext = query({
   },
   handler: async (ctx, args): Promise<GetOrganizationPublicContextResponse> => {
     const { slug } = args;
+
     try {
       const organization = validateOrganization(
         await ctx.db
@@ -478,7 +484,7 @@ export const getPublicOrganizationContext = query({
 
       const now = Date.now();
 
-      const events = await ctx.db
+      const events: EventSchema[] = await ctx.db
         .query("events")
         .withIndex("by_organizationId_and_startTime", (q) =>
           q.eq("organizationId", organization._id)
@@ -486,6 +492,27 @@ export const getPublicOrganizationContext = query({
         .filter((q) => q.gt(q.field("endTime"), now))
         .order("asc")
         .collect();
+
+      const eventIds = events.map((event) => event._id);
+
+      const ticketTypes: EventTicketTypesSchema[] = await ctx.db
+        .query("eventTicketTypes")
+        .filter((q) =>
+          q.or(...eventIds.map((id) => q.eq(q.field("eventId"), id)))
+        )
+        .collect();
+
+      const ticketMap = new Map<string, EventTicketTypesSchema[]>();
+      ticketTypes.forEach((ticket) => {
+        const list = ticketMap.get(ticket.eventId) ?? [];
+        list.push(ticket);
+        ticketMap.set(ticket.eventId, list);
+      });
+
+      const enrichedEvents: EventWithTicketTypes[] = events.map((event) => ({
+        ...event,
+        ticketTypes: ticketMap.get(event._id) ?? [],
+      }));
 
       return {
         status: ResponseStatus.SUCCESS,
@@ -497,7 +524,7 @@ export const getPublicOrganizationContext = query({
             connectedAccountStripeId: connectedAccount?.stripeAccountId,
             isStripeEnabled:
               connectedAccount?.status === StripeAccountStatus.VERIFIED,
-            events,
+            events: enrichedEvents,
           },
         },
       };

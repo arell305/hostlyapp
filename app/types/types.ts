@@ -9,7 +9,11 @@ import {
   SubscriptionTier,
   UserRole,
 } from "./enums";
-import { EventSchema, GuestListEntrySchema } from "./schemas-types";
+import {
+  EventSchema,
+  EventWithTicketTypes,
+  GuestListEntrySchema,
+} from "./schemas-types";
 
 export interface PricingOption {
   id: string;
@@ -377,7 +381,7 @@ export interface OrganizationPublic {
   connectedAccountStripeId?: string | null;
   isStripeEnabled: boolean;
   id: Id<"organizations">;
-  events: EventSchema[];
+  events: EventWithTicketTypes[];
 }
 
 export interface GuestEntry {

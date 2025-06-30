@@ -1,21 +1,19 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import _ from "lodash";
-import { EventSchema, TicketInfoSchema } from "@/types/schemas-types";
+import { EventWithTicketTypes } from "@/types/schemas-types";
 import { isTicketSalesOpen } from "@/lib/frontendHelper";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import EventSummaryInfo from "./EventSummaryInfo";
 import EventImageWithPlaceholder from "./EventImageWithPlaceholder";
 
 interface EventPreviewProps {
-  eventData: EventSchema;
-  ticketInfo?: TicketInfoSchema | null;
+  eventData: EventWithTicketTypes;
   handleNavigateEvent: (eventId: string) => void;
 }
 
 const EventPreview: React.FC<EventPreviewProps> = ({
   eventData,
-  ticketInfo,
   handleNavigateEvent,
 }) => {
   const displayEventPhoto = useQuery(
@@ -27,7 +25,7 @@ const EventPreview: React.FC<EventPreviewProps> = ({
       : "skip"
   );
 
-  const isSalesOpen = isTicketSalesOpen(ticketInfo);
+  const isSalesOpen = isTicketSalesOpen(eventData.ticketTypes);
   return (
     <CustomCard
       className=" hover:shadow-glow-white transition duration-200 p-4 cursor-pointer "
