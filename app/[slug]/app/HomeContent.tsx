@@ -4,7 +4,6 @@ import "react-calendar/dist/Calendar.css";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { getCurrentDate } from "../../../utils/luxon";
-import { EventSchema } from "@/types/schemas-types";
 import { Notification } from "./components/ui/Notification";
 import FullLoading from "./components/loading/FullLoading";
 import ErrorComponent from "./components/errors/ErrorComponent";
@@ -26,6 +25,7 @@ import { Plus } from "lucide-react";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import Link from "next/link";
 import NProgress from "nprogress";
+import { EventWithExtras } from "@/types/convex-types";
 
 const today = getCurrentDate();
 
@@ -48,7 +48,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
     month: 0,
     year: 0,
   });
-  const [selectedEvents, setSelectedEvents] = useState<EventSchema[]>([]);
+  const [selectedEvents, setSelectedEvents] = useState<EventWithExtras[]>([]);
 
   const monthlyEventsData = useQuery(
     api.events.getEventsByMonth,

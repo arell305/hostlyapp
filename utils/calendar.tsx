@@ -1,4 +1,5 @@
 import { TIME_ZONE } from "@/types/constants";
+import { EventWithExtras } from "@/types/convex-types";
 import { EventSchema } from "@/types/schemas-types";
 import { CalendarValue } from "@/types/types";
 import { DateTime } from "luxon";
@@ -21,9 +22,9 @@ export const getShortWeekdayFormatter = (isMobile: boolean) => {
 };
 
 export function getEventsForDate(
-  events: EventSchema[],
+  events: EventWithExtras[],
   targetDate: Date
-): EventSchema[] {
+): EventWithExtras[] {
   const selectedDate = DateTime.fromJSDate(targetDate).setZone(TIME_ZONE);
 
   return events.filter((event) => {
