@@ -54,6 +54,7 @@ const TicketTimeCard = ({
               }
             />
             <StaticField
+              className="border-none"
               label="Tickets Sold:"
               value={
                 canEditEvent ? `${count} / ${ticket.capacity}` : `${count}`

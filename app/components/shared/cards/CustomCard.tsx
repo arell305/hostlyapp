@@ -15,12 +15,12 @@ const CustomCard: React.FC<CustomCardProps> = ({
   return (
     <div
       className={cn(
-        "rounded-md border  bg-cardBackground flex flex-col w-full",
+        "rounded-md border bg-cardBackground flex flex-col w-full overflow-hidden",
         className
       )}
       onClick={onClick}
     >
-      {children}
+      <div className="p-4">{children}</div> {/* Internal padding only */}
     </div>
   );
 };
