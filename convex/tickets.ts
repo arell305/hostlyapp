@@ -17,6 +17,7 @@ import {
 import {
   CheckInTicketResponse,
   GetPromoterTicketKpisResponse,
+  GetPromoterTicketSalesByTypeResponse,
   GetTicketSalesByPromoterResponse,
   GetTicketsByEventIdResponse,
   GetTicketTypeBreakdownByClerkUserResponse,
@@ -134,7 +135,6 @@ export const insertTicketsSold = action({
           }
         }
       }
-      console.log("tickets", tickets);
 
       await ctx.runAction(api.pdfMonkey.generatePDF, {
         tickets: tickets.map(
@@ -758,6 +758,80 @@ export const internalGetTicketsByEventId = internalQuery({
     } catch (error) {
       console.error("Error fetching tickets by event ID:", error);
       throw new Error(ErrorMessages.TICKETS_DB_QUERY_BY_EVENT_ID_ERROR);
+    }
+  },
+});
+
+export const getPromoterTicketSalesByType = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (
+    ctx,
+    { eventId }
+  ): Promise<GetPromoterTicketSalesByTypeResponse> => {
+    try {
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Hostly_Admin,
+        UserRole.Hostly_Moderator,
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Promoter,
+      ]);
+
+      const clerkUserId = identity.id as string;
+
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+          .unique()
+      );
+
+      // Step 2: Get all tickets for this event and promoter
+      const tickets: TicketSchema[] = await ctx.db
+        .query("tickets")
+        .withIndex("by_eventId_and_promoterUserId", (q) =>
+          q.eq("eventId", eventId).eq("promoterUserId", user._id)
+        )
+        .collect();
+
+      if (tickets.length === 0) {
+        return {
+          status: ResponseStatus.SUCCESS,
+          data: [],
+        };
+      }
+
+      // Step 3: Count how many of each ticket type were sold
+      const ticketTypeCounts: Record<Id<"eventTicketTypes">, number> = {};
+      for (const ticket of tickets) {
+        const typeId = ticket.eventTicketTypeId;
+        ticketTypeCounts[typeId] = (ticketTypeCounts[typeId] || 0) + 1;
+      }
+
+      // Step 4: Fetch ticket type names
+      const ticketTypeIds = Object.keys(
+        ticketTypeCounts
+      ) as Id<"eventTicketTypes">[];
+      const ticketTypes = await Promise.all(
+        ticketTypeIds.map((id) => ctx.db.get(id))
+      );
+
+      // Step 5: Return name + count
+      const result = ticketTypes
+        .filter((type): type is NonNullable<typeof type> => !!type)
+        .map((type) => ({
+          name: type.name,
+          count: ticketTypeCounts[type._id],
+        }));
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: result,
+      };
+    } catch (error: any) {
+      return handleError(error);
     }
   },
 });

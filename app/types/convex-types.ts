@@ -1138,3 +1138,17 @@ export interface TicketTypeBreakdown {
   name: string;
   count: number;
 }
+
+export type GetPromoterTicketSalesByTypeResponse =
+  | GetPromoterTicketSalesByTypeSuccess
+  | ErrorResponse;
+
+export interface GetPromoterTicketSalesByTypeSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: PromoterTicketSalesByType[];
+}
+
+export type PromoterTicketSalesByType = {
+  name: string;
+  count: number;
+};

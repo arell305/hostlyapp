@@ -1,24 +1,23 @@
-import { TicketCounts } from "@/types/types";
+import { PromoterTicketSalesByType } from "@/types/convex-types";
 import React from "react";
-import { TbCircleLetterF } from "react-icons/tb";
-import { TbCircleLetterM } from "react-icons/tb";
 
 interface PromoterTicketsContentProps {
-  ticketCounts: TicketCounts;
+  ticketCounts: PromoterTicketSalesByType[];
 }
+
 const PromoterTicketsContent = ({
   ticketCounts,
 }: PromoterTicketsContentProps) => {
   return (
     <div className="mt-4">
-      <h3 className="text-lg font-semibold mb-2">Your Promo Code Usage</h3>
-      <div className="flex">
-        <TbCircleLetterM className="text-2xl pr-1" />
-        <p className="mb-1">Male Tickets: {ticketCounts.male}</p>
-      </div>
-      <div className="flex">
-        <TbCircleLetterF className="text-2xl pr-1" />
-        <p>Female Tickets: {ticketCounts.female}</p>
+      <h3 className="text-lg font-semibold mb-2">Your Ticket Sales</h3>
+      <div className="space-y-2">
+        {ticketCounts.map((ticket) => (
+          <div key={ticket.name} className="flex justify-between items-center">
+            <span className="text-base">{ticket.name}</span>
+            <span className="font-semibold">{ticket.count}</span>
+          </div>
+        ))}
       </div>
     </div>
   );

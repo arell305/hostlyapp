@@ -5,13 +5,14 @@ import { Id } from "../../../../../convex/_generated/dataModel";
 import { handleQueryState } from "../../../../../utils/handleQueryState";
 import { QueryState } from "@/types/enums";
 import PromoterTicketsContent from "./PromoterTicketsContent";
+import { PromoterTicketSalesByType } from "@/types/convex-types";
 
 interface PromoterTicketsPageProps {
   eventId: Id<"events">;
 }
 
 const PromoterTicketsPage = ({ eventId }: PromoterTicketsPageProps) => {
-  const response = useQuery(api.tickets.getTicketsByClerkUser, {
+  const response = useQuery(api.tickets.getPromoterTicketSalesByType, {
     eventId,
   });
 
@@ -21,7 +22,7 @@ const PromoterTicketsPage = ({ eventId }: PromoterTicketsPageProps) => {
     return result.element;
   }
 
-  const ticketCounts = result.data.ticketCounts;
+  const ticketCounts: PromoterTicketSalesByType[] = result.data;
 
   return <PromoterTicketsContent ticketCounts={ticketCounts} />;
 };
