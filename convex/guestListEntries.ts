@@ -12,7 +12,6 @@ import {
   CheckInGuestEntryResponse,
   DeleteGuestListEntryResponse,
   GetEventWithGuestListsResponse,
-  GetGuestListKpisData,
   GetGuestListKpisResponse,
   GetGuestsGroupedByPromoterResponse,
   GetPromoterGuestStatsResponse,
@@ -34,6 +33,8 @@ import { Id } from "./_generated/dataModel";
 import {
   GuestListEntrySchema,
   GuestListEntryWithPromoter,
+  GuestListInfoSchema,
+  UserSchema,
 } from "@/types/schemas-types";
 import { computeKpis, getPercentageChange } from "./backendUtils/kpiHelper";
 
@@ -360,7 +361,11 @@ export const getGuestsGroupedByPromoter = query({
         .collect();
 
       const promoterIds: Id<"users">[] = Array.from(
-        new Set(guestEntries.map((g) => g.userPromoterId))
+        new Set(
+          guestEntries
+            .map((g) => g.userPromoterId)
+            .filter((id): id is Id<"users"> => id !== undefined)
+        )
       );
 
       const promoters = await Promise.all(
@@ -396,6 +401,7 @@ export const getGuestsGroupedByPromoter = query({
 
       for (const guest of guestEntries) {
         const promoterId = guest.userPromoterId;
+        if (!promoterId) continue; // Skip guests without a promoter
         const promoterName = promoterMap.get(promoterId) || "Unknown";
 
         if (!grouped.has(promoterId)) {
@@ -469,7 +475,11 @@ export const getPromoterGuestStats = query({
       const event = validateEvent(await ctx.db.get(eventId));
       isUserInCompanyOfEvent(user, event);
 
-      if (!event.guestListInfoId) {
+      const guestListInfo: GuestListInfoSchema | null = await ctx.db
+        .query("guestListInfo")
+        .first();
+
+      if (!guestListInfo) {
         return {
           status: ResponseStatus.SUCCESS,
           data: { promoterGuestStats: [] },
@@ -503,9 +513,9 @@ export const getPromoterGuestStats = query({
       let totalFemales = 0;
       let totalRSVPs = 0;
       let totalCheckedIn = 0;
-
       for (const entry of entriesToUse) {
         const promoterId = entry.userPromoterId;
+        if (!promoterId) continue;
 
         const existing = grouped.get(promoterId) ?? {
           promoterId,
@@ -537,11 +547,12 @@ export const getPromoterGuestStats = query({
       const promoterIds = Array.from(grouped.keys());
       const users = await Promise.all(promoterIds.map((id) => ctx.db.get(id)));
 
-      users.forEach((u) => {
-        if (!u) return;
-        const summary = grouped.get(u._id);
-        if (summary) summary.promoterName = u.name ?? "";
-      });
+      users
+        .filter((u) => u !== null)
+        .forEach((u) => {
+          const summary = grouped.get(u!._id);
+          if (summary) summary.promoterName = u!.name ?? "";
+        });
 
       const sortedStats = Array.from(grouped.values()).sort(
         (a, b) => b.totalCheckedIn - a.totalCheckedIn
@@ -562,7 +573,6 @@ export const getPromoterGuestStats = query({
           totalRSVPs,
         };
       }
-      console.log("data", data);
 
       return {
         status: ResponseStatus.SUCCESS,
@@ -650,13 +660,12 @@ export const getGuestListKpis = query({
           (entry) => entry.userPromoterId === user._id
         );
       }
-
       const currentPromoterSet = new Set(
-        currentEntries.map((e) => e.userPromoterId.toString())
+        currentEntries.map((e) => e.userPromoterId?.toString() ?? "")
       );
 
       const previousPromoterSet = new Set(
-        previousEntries.map((e) => e.userPromoterId.toString())
+        previousEntries.map((e) => e.userPromoterId?.toString() ?? "")
       );
 
       const currentKpis = computeKpis(
@@ -692,7 +701,7 @@ export const getGuestListKpis = query({
 
       const promoterLeaderboard = await Promise.all(
         Array.from(
-          new Set(currentEntries.map((e) => e.userPromoterId.toString()))
+          new Set(currentEntries.map((e) => e.userPromoterId?.toString() ?? ""))
         ).map(async (promoterIdStr) => {
           const promoterId = promoterIdStr as Id<"users">;
           const promoter = await ctx.db.get(promoterId);
