@@ -6,7 +6,7 @@ import { Id } from "../../../../../convex/_generated/dataModel";
 import {
   EventFormInput,
   GuestListFormInput,
-  TicketFormInput,
+  TicketUpdateInput,
 } from "@/types/types";
 
 export const useUpdateEvent = () => {
@@ -17,7 +17,7 @@ export const useUpdateEvent = () => {
   const updateEvent = async (
     organizationId: Id<"organizations">,
     updatedEventData: EventFormInput,
-    updatedTicketData: TicketFormInput | null,
+    updatedTicketData: TicketUpdateInput[],
     updatedGuestListData: GuestListFormInput | null,
     eventId: Id<"events">
   ): Promise<Boolean> => {

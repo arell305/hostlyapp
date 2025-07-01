@@ -421,3 +421,13 @@ export type TicketTypeForm = {
   ticketSalesEndTime: number | null;
   showCustomInput?: boolean; // Optional for backward compatibility
 };
+
+export type TicketUpdateInput = {
+  eventTicketTypeId?: Id<"eventTicketTypes">;
+  name: string;
+  price: number;
+  capacity: number;
+  stripeProductId?: string;
+  stripePriceId?: string;
+  ticketSalesEndTime: number;
+};

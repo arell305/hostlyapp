@@ -211,11 +211,12 @@ export const updateEvent = action({
     address: v.optional(v.string()),
     ticketData: v.array(
       v.object({
+        eventTicketTypeId: v.optional(v.id("eventTicketTypes")), // <-- optional ID
         name: v.string(),
         price: v.number(),
         capacity: v.number(),
-        stripeProductId: v.string(),
-        stripePriceId: v.string(),
+        stripeProductId: v.optional(v.string()), // optional for existing
+        stripePriceId: v.optional(v.string()),
         ticketSalesEndTime: v.number(),
       })
     ),

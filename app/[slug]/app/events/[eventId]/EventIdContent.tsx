@@ -5,9 +5,9 @@ import {
   Tab,
   TicketSoldCountByType,
   TicketType,
+  TicketUpdateInput,
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
-import EventForm from "@/[slug]/app/components/eventForm/EventFormContent";
 import ViewTab from "../ViewTab";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import {
@@ -21,7 +21,6 @@ import { useUpdateEvent } from "../hooks/useUpdateEvent";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
 import SummaryPage from "./summary/SummaryPage";
-import SectionContainer from "@/components/shared/containers/SectionContainer";
 import { isPast } from "date-fns";
 import TicketPage from "../../components/tickets/TicketPage";
 import GuestListPage from "../guestList/GuestListPage";
@@ -102,7 +101,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   const handleUpdateEvent = async (
     organizationId: Id<"organizations">,
     updatedEventData: EventFormInput,
-    updatedTicketData: TicketType[] | null,
+    updatedTicketData: TicketUpdateInput[],
     updatedGuestListData: GuestListFormInput | null
   ) => {
     const success = await updateEvent(

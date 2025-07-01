@@ -384,76 +384,122 @@ export async function handleGuestListUpdateData(
 export async function handleTicketUpdateData(
   ctx: GenericActionCtx<any>,
   eventId: Id<"events">,
-  ticketData:
-    | {
-        name: string;
-        price: number;
-        capacity: number;
-        ticketSalesEndTime: number;
-      }[]
-    | null,
+  ticketData: {
+    eventTicketTypeId?: Id<"eventTicketTypes">;
+    name: string;
+    price: number;
+    capacity: number;
+    stripeProductId?: string;
+    stripePriceId?: string;
+    ticketSalesEndTime: number;
+  }[],
   organization: OrganizationSchema,
   existingTicketTypes: EventTicketTypesSchema[]
 ): Promise<Id<"eventTicketTypes">[]> {
-  // Soft-delete all existing tickets
-  for (const ticket of existingTicketTypes) {
-    await ctx.runMutation(
-      internal.eventTicketTypes.internalUpdateEventTicketType,
-      {
-        eventTicketTypeId: ticket._id,
-        isActive: false,
-      }
-    );
-  }
-
-  if (!ticketData || ticketData.length === 0) {
-    return [];
-  }
-
   const connectedAccount = await ctx.runQuery(
     internal.connectedAccounts.getConnectedAccountByCustomerId,
     { customerId: organization.customerId }
   );
 
-  if (!connectedAccount) {
+  if (
+    !connectedAccount ||
+    connectedAccount.status !== StripeAccountStatus.VERIFIED
+  ) {
     throw new Error(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND);
-  }
-
-  if (connectedAccount.status !== StripeAccountStatus.VERIFIED) {
-    throw new Error(ErrorMessages.CONNECTED_ACCOUNT_VERIFIED);
   }
 
   const newTicketIds: Id<"eventTicketTypes">[] = [];
 
   for (const ticket of ticketData) {
-    const product = await createStripeProduct(
-      eventId,
-      connectedAccount.stripeAccountId,
-      ticket.name
-    );
+    if (ticket.eventTicketTypeId) {
+      // Update existing ticket
+      const existing = existingTicketTypes.find(
+        (t) => t._id === ticket.eventTicketTypeId
+      );
 
-    const price = await createStripePrices(
-      product.id,
-      ticket.price,
-      ticket.name,
-      eventId,
-      connectedAccount.stripeAccountId
-    );
+      if (!existing) {
+        throw new Error("Existing ticket type not found.");
+      }
 
-    const ticketTypeId = await ctx.runMutation(
-      internal.eventTicketTypes.createEventTicketTypes,
-      {
+      let stripePriceId = existing.stripePriceId;
+
+      const priceChanged = existing.price !== ticket.price;
+      if (priceChanged) {
+        const newPrice = await createStripePrices(
+          existing.stripeProductId,
+          ticket.price,
+          ticket.name,
+          eventId,
+          connectedAccount.stripeAccountId
+        );
+        stripePriceId = newPrice.id;
+      }
+
+      await ctx.runMutation(
+        internal.eventTicketTypes.internalUpdateEventTicketType,
+        {
+          eventTicketTypeId: ticket.eventTicketTypeId,
+          name: ticket.name,
+          price: ticket.price,
+          capacity: ticket.capacity,
+          ticketSalesEndTime: ticket.ticketSalesEndTime,
+          stripePriceId,
+        }
+      );
+
+      newTicketIds.push(ticket.eventTicketTypeId);
+    } else {
+      // Create new product/price and ticket type
+      const product = await createStripeProduct(
         eventId,
-        name: ticket.name,
-        price: ticket.price,
-        capacity: ticket.capacity,
-        stripeProductId: product.id,
-        stripePriceId: price.id,
-        ticketSalesEndTime: ticket.ticketSalesEndTime,
+        connectedAccount.stripeAccountId,
+        ticket.name
+      );
+
+      const price = await createStripePrices(
+        product.id,
+        ticket.price,
+        ticket.name,
+        eventId,
+        connectedAccount.stripeAccountId
+      );
+
+      const ticketTypeId = await ctx.runMutation(
+        internal.eventTicketTypes.createEventTicketTypes,
+        {
+          eventId,
+          name: ticket.name,
+          price: ticket.price,
+          capacity: ticket.capacity,
+          stripeProductId: product.id,
+          stripePriceId: price.id,
+          ticketSalesEndTime: ticket.ticketSalesEndTime,
+        }
+      );
+
+      newTicketIds.push(ticketTypeId);
+    }
+  }
+
+  // Deactivate removed ticket types
+  const incomingIds = new Set(
+    ticketData
+      .map((t) => t.eventTicketTypeId)
+      .filter(Boolean) as Id<"eventTicketTypes">[]
+  );
+
+  const toDeactivate = existingTicketTypes.filter(
+    (t) => !incomingIds.has(t._id)
+  );
+
+  for (const t of toDeactivate) {
+    await ctx.runMutation(
+      internal.eventTicketTypes.internalUpdateEventTicketType,
+      {
+        eventTicketTypeId: t._id,
+        isActive: false,
       }
     );
-
-    newTicketIds.push(ticketTypeId);
   }
 
   return newTicketIds;
