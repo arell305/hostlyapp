@@ -313,6 +313,7 @@ export enum ShowErrorMessages {
   GUEST_DOES_NOT_BELONG_TO_PROMOTER = "Guest does not belong to promoter",
   NOT_ENOUGH_GUEST_LIST_CREDITS = "Not enough guest list credits available.",
   GUEST_LIST_CLOSED = "Guest list is closed",
+  GUEST_LIST_NOT_FOUND = "Guest list not found",
 }
 
 export enum FrontendErrorMessages {
