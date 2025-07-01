@@ -62,11 +62,12 @@ const StaticField: React.FC<StaticFieldProps> = ({
               href={link}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-lg  underline truncate overflow-hidden whitespace-nowrap block"
+              className="text-lg underline truncate overflow-hidden whitespace-nowrap block max-w-[300px] sm:max-w-[400px]"
               title={typeof value === "string" ? value : undefined}
             >
               {value}
             </a>
+
             <div className="flex items-center gap-1">
               <button
                 type="button"
