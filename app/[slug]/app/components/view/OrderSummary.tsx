@@ -14,10 +14,15 @@ const OrderSummary: React.FC = () => {
       {pricing.perTicketPrices
         .filter((ticket) => ticket.quantity > 0)
         .map((ticket) => (
-          <p key={ticket.ticketTypeId}>
-            {ticket.quantity} x {formatCurrency(ticket.discountedPrice)} ={" "}
-            {formatCurrency(ticket.subtotal)}
-          </p>
+          <div key={ticket.ticketTypeId} className="flex justify-between">
+            <span>
+              {ticket.ticketType.name}{" "}
+              <span className="text-grayText">
+                ({ticket.quantity} @ {formatCurrency(ticket.discountedPrice)})
+              </span>
+            </span>
+            <span>{formatCurrency(ticket.subtotal)}</span>
+          </div>
         ))}
 
       {validationResult && (
@@ -27,9 +32,10 @@ const OrderSummary: React.FC = () => {
         </p>
       )}
 
-      <p className="font-semibold">
-        Total: {formatCurrency(pricing.totalPrice)}
-      </p>
+      <div className="flex justify-between font-semibold pt-2   mt-2">
+        <span>Total</span>
+        <span>{formatCurrency(pricing.totalPrice)}</span>
+      </div>
     </div>
   );
 };

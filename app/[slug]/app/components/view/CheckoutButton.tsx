@@ -1,5 +1,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import FieldErrorMessage from "@/components/shared/error/FieldErrorMessage";
+import { isValidEmail } from "@/utils/helpers";
 
 interface CheckoutButtonProps {
   onCheckout: () => void;
@@ -12,20 +15,22 @@ const CheckoutButton: React.FC<CheckoutButtonProps> = ({
   isCheckoutLoading,
   checkoutError,
 }) => {
+  const { email, emailError, termsAccepted } = useEventCheckout();
+
+  const isDisabled =
+    !isValidEmail(email) || emailError !== null || !termsAccepted;
+
   return (
     <div className="mt-4">
       <Button
         className="w-full"
         onClick={onCheckout}
         isLoading={isCheckoutLoading}
+        disabled={isDisabled}
       >
         Checkout
       </Button>
-      <p
-        className={`pl-4 text-sm mt-1 ${checkoutError ? "text-red-500" : "text-transparent"}`}
-      >
-        {checkoutError || "Placeholder to maintain height"}
-      </p>
+      <FieldErrorMessage error={checkoutError} />
     </div>
   );
 };

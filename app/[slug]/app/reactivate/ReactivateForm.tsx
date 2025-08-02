@@ -118,6 +118,7 @@ const ReactivateForm: React.FC<ReactivateFormProps> = ({ user }) => {
         <Label>Card Details</Label>
         <CardElement options={{ style: { base: { fontSize: "16px" } } }} />
         {cardError && <p className="text-red-500">{cardError}</p>}
+
         {error && <p className="text-red-500">{error}</p>}
         <Button type="submit" isLoading={loading}>
           Subscribe

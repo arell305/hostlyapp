@@ -10,6 +10,7 @@ interface TicketPricing {
   discountAmount: number;
   perTicketPrices: {
     ticketTypeId: string;
+    ticketType: EventTicketTypesSchema;
     quantity: number;
     originalPrice: number;
     discountedPrice: number;
@@ -43,6 +44,7 @@ export const calculateTicketPricing = (
       originalPrice,
       discountedPrice,
       subtotal,
+      ticketType,
     };
   });
 

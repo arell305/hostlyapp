@@ -1,8 +1,11 @@
+"use client";
 import { CardElement } from "@stripe/react-stripe-js";
 import { FaApple } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
 import { Label } from "@/components/ui/label";
+import useModal from "@/hooks/useModal";
+import TermsCheckbox from "@/components/shared/fields/TermsCheckbox";
 
 interface PaymentDetailsSectionProps {
   method: "card" | "apple";
@@ -19,6 +22,8 @@ interface PaymentDetailsSectionProps {
   handleSubmit: (e: React.FormEvent) => void;
   isCardComplete: boolean;
   email: string;
+  termsAccepted: boolean;
+  onTermsAccepted: (accepted: boolean) => void;
 }
 
 const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
@@ -36,7 +41,18 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
   handleSubmit,
   isCardComplete,
   email,
+  termsAccepted,
+  onTermsAccepted,
 }) => {
+  const isDisabled =
+    !stripeReady ||
+    isLoading ||
+    !isCardComplete ||
+    email.trim() === "" ||
+    !termsAccepted;
+
+  const termsModal = useModal();
+
   if (method === "apple") {
     return (
       <div className="mb-8">
@@ -81,13 +97,16 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
           onChange={onCardChange}
         />
       </div>
+      <TermsCheckbox
+        termsAccepted={termsAccepted}
+        onTermsAccepted={onTermsAccepted}
+      />
+
       <SingleSubmitButton
         isLoading={isLoading}
         error={error}
         onClick={handleSubmit}
-        disabled={
-          !stripeReady || isLoading || !isCardComplete || email.trim() === ""
-        }
+        disabled={isDisabled}
         label="Subscribe"
       />
     </>

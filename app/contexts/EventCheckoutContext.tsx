@@ -31,6 +31,9 @@ interface EventCheckoutContextValue {
   setPaymentSuccess: (val: boolean) => void;
 
   pricing: ReturnType<typeof calculateTicketPricing>;
+
+  termsAccepted: boolean;
+  setTermsAccepted: (val: boolean) => void;
 }
 
 const EventCheckoutContext = createContext<
@@ -65,6 +68,7 @@ export const EventCheckoutProvider = ({
     useState<PromoterPromoCodeWithDiscount | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
 
   const setCountForTicket = (id: string, val: number) =>
     setTicketCounts((prev) => ({ ...prev, [id]: val }));
@@ -96,6 +100,8 @@ export const EventCheckoutProvider = ({
         paymentSuccess,
         setPaymentSuccess,
         pricing,
+        termsAccepted,
+        setTermsAccepted,
       }}
     >
       {children}

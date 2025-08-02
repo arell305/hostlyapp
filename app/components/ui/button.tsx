@@ -14,7 +14,7 @@ const buttonVariants = cva(
         destructive:
           "bg-altRed text-destructive-foreground hover:bg-destructive/90",
         outline: "border  bg-cardBackground hover:bg-cardBackgroundHover ",
-        secondary: "text-whiteText  hover:underline",
+        secondary: "text-whiteText  underline hover:opacity-80",
         ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
         link: "text-primary underline-offset-4 hover:underline",
         navGhost:

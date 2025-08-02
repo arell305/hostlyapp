@@ -3,7 +3,7 @@ import { CheckSquare, Square } from "lucide-react";
 interface CheckboxIconProps {
   checked: boolean;
   onToggle: () => void;
-  label?: string;
+  label?: React.ReactNode;
   checkedLabel?: string;
   uncheckedLabel?: string;
   className?: string;
@@ -18,20 +18,25 @@ const CheckboxIcon: React.FC<CheckboxIconProps> = ({
   className = "",
 }) => {
   return (
-    <button
-      onClick={onToggle}
-      className={`flex items-center gap-2 text-sm text-grayText hover:opacity-80 hover:underline transition ${className}`}
+    <div
+      className={`flex items-center gap-2 text-sm text-grayText ${className}`}
     >
-      {checked ? (
-        <CheckSquare className="w-5 h-5 text-grayText" />
-      ) : (
-        <Square className="w-5 h-5 text-grayText" />
-      )}
-      <span>
+      <button
+        onClick={onToggle}
+        className="hover:opacity-80 transition"
+        aria-label="Toggle checkbox"
+      >
+        {checked ? (
+          <CheckSquare className="w-5 h-5 text-grayText" />
+        ) : (
+          <Square className="w-5 h-5 text-grayText" />
+        )}
+      </button>
+      <span className="select-none">
         {label ??
           (checked ? checkedLabel ?? "Checked" : uncheckedLabel ?? "Unchecked")}
       </span>
-    </button>
+    </div>
   );
 };
 

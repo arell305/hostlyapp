@@ -85,7 +85,7 @@ const PromoCodeInput: React.FC<{ eventId: string }> = ({ eventId }) => {
         />
         <Button
           variant="secondary"
-          className="w-1/4 rounded-lg h-9 text-base underline"
+          className="w-1/4 rounded-lg h-9 text-base "
           onClick={handleApplyPromo}
           isLoading={isLoading}
         >

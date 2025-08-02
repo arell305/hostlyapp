@@ -50,6 +50,7 @@ const PaymentForm = () => {
     promoCodeApplied: false,
     promoCodeId: null as string | null,
   });
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "apple" | "card"
   >("card");
@@ -233,6 +234,8 @@ const PaymentForm = () => {
           handleSubmit={handleSubmit}
           isCardComplete={isCardComplete}
           email={email}
+          termsAccepted={termsAccepted}
+          onTermsAccepted={setTermsAccepted}
         />
       </form>
     </main>
