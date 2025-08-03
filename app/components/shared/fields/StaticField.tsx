@@ -75,7 +75,7 @@ const StaticField: React.FC<StaticFieldProps> = ({
                 className="text-gray-400 hover:text-white transition"
                 aria-label="Copy link"
               >
-                <FiCopy className="text-xl" />
+                <FiCopy className="text-xl" title="Copy link" />
               </button>
               {copied && (
                 <span className="text-xs text-green-500 animate-fade-in">

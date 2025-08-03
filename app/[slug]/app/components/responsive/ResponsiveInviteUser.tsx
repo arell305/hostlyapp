@@ -20,6 +20,7 @@ import LabeledInputField from "@/components/shared/fields/LabeledInputField";
 import LabeledSelectField from "@/components/shared/fields/LabeledSelectField";
 import FormActions from "@/components/shared/buttonContainers/FormActions";
 import { validateInviteForm } from "../../../../../utils/form-validation/validateInviteForm";
+import { isValidEmail } from "@/utils/helpers";
 
 interface ResponsiveInviteUserProps {
   isOpen: boolean;
@@ -86,7 +87,7 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
     }
   };
 
-  const isDisabled = inviteEmail.trim() === "";
+  const isDisabled = !isValidEmail(inviteEmail);
 
   const formContent = (
     <FormContainer>
@@ -132,23 +133,22 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
     </FormContainer>
   );
 
+  const title = "Invite User";
+  const description = "Invite a user to your team.";
+
   return isDesktop ? (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
-        <DialogTitle>Invite User</DialogTitle>
-        <DialogDescription>
-          Invite a user to your organization
-        </DialogDescription>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{description}</DialogDescription>
         {formContent}
       </DialogContent>
     </Dialog>
   ) : (
     <Drawer open={isOpen} onOpenChange={handleClose}>
       <DrawerContent className="h-[100svh] flex flex-col overscroll-contain">
-        <DrawerTitle>Invite User</DrawerTitle>
-        <DrawerDescription>
-          Invite a user to your organization
-        </DrawerDescription>
+        <DrawerTitle>{title}</DrawerTitle>
+        <DrawerDescription>{description}</DrawerDescription>
         {formContent}
       </DrawerContent>
     </Drawer>

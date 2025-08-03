@@ -12,7 +12,7 @@ const EditableImageContainer: React.FC<EditableImageContainerProps> = ({
   className,
 }) => {
   return (
-    <div className={`flex justify-center mb-6 ${className || ""}`}>
+    <div className={`flex justify-center my-4 ${className || ""}`}>
       {children}
     </div>
   );

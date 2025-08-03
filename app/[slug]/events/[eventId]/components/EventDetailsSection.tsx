@@ -13,7 +13,7 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
   eventData,
 }) => {
   return (
-    <SectionContainer className="flex flex-col w-full gap-x-10 mb-10">
+    <SectionContainer className="flex flex-col w-full gap-x-10 pb-0">
       <DetailsView eventData={eventData} />
     </SectionContainer>
   );

@@ -48,5 +48,5 @@ export const useUpdateEvent = () => {
     }
   };
 
-  return { updateEvent, isLoading, error };
+  return { updateEvent, isLoading, error, setError };
 };

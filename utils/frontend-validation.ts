@@ -47,3 +47,9 @@ export const validatePromoDiscount = (
 export function isValidPhoneNumber(phone: string): boolean {
   return /^\d{10}$/.test(phone.trim());
 }
+
+export function isValidFullName(name: string): boolean {
+  return /^[A-Za-z]+([-'’]?[A-Za-z]+)?\s+[A-Za-z]+([-'’]?[A-Za-z]+)?$/.test(
+    name.trim()
+  );
+}

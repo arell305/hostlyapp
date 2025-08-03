@@ -13,7 +13,6 @@ import EventFormActionController from "./EventFormActionController";
 import Backdrop from "./Backdrop";
 
 interface EventFormContentProps {
-  initialEventData?: EventSchema;
   initialTicketData?: TicketType[] | null;
   initialGuestListData?: GuestListInfoSchema | null;
   onSubmit: (
@@ -36,7 +35,6 @@ interface EventFormContentProps {
 }
 
 const EventFormContent: React.FC<EventFormContentProps> = ({
-  initialEventData,
   initialTicketData,
   initialGuestListData,
   onSubmit,
@@ -77,7 +75,6 @@ const EventFormContent: React.FC<EventFormContentProps> = ({
 
         <EventFormActionController
           isEdit={isEdit}
-          initialEventData={initialEventData}
           isUpdateEventLoading={isUpdateEventLoading}
           saveError={saveEventError}
           submitError={submitError}

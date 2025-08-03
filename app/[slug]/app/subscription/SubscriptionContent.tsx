@@ -25,6 +25,7 @@ import ClickableField from "@/components/shared/fields/ClickableField";
 import { GuestListCheckout } from "../components/modals/GuestListCheckoutContent";
 import { CONTACT_EMAIL, PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
+import { formatCurrency } from "@/utils/helpers";
 
 interface SubscriptionContentProps {
   customer: CustomerSchema;
@@ -103,10 +104,10 @@ const SubscriptionContent = ({
     subscriptionTier === SubscriptionTier.STANDARD;
   const showGuestEventsThisCycle = subscriptionTier === SubscriptionTier.PLUS;
   return (
-    <SectionContainer>
+    <section>
       <SectionHeaderWithAction title="Subscription" />
 
-      <CustomCard className="p-0">
+      <CustomCard>
         <StaticField label="Status" value={subscriptionStatusText} />
         <StaticField
           label={nextPaymentText}
@@ -118,11 +119,11 @@ const SubscriptionContent = ({
         />
         <StaticField
           label="Amount"
-          value={`$${subscription.amount.toFixed(2)}/month`}
+          value={`${formatCurrency(subscription.amount)}/month`}
           secondaryValue={
             subscription.discount
               ? `${subscription.discount.discountPercentage}% Discount Applied`
-              : undefined
+              : ""
           }
         />
         {showGuestEventsThisCycle && (
@@ -221,9 +222,12 @@ const SubscriptionContent = ({
         />
       </CustomCard>
 
-      <p className="text-sm text-muted-foreground mt-6 pl-2">
+      <p className="text-sm text-muted-foreground mt-6  w-full overflow-hidden">
         Please email{" "}
-        <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>
+        <a
+          className="underline hover:opacity-80"
+          href={`mailto:${CONTACT_EMAIL}`}
+        >
           {CONTACT_EMAIL}
         </a>{" "}
         to update your subscription.
@@ -252,7 +256,7 @@ const SubscriptionContent = ({
           )}
         </ButtonEndContainer>
       )} */}
-    </SectionContainer>
+    </section>
   );
 };
 

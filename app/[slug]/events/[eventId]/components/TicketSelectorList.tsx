@@ -18,8 +18,8 @@ const TicketSelectorList: React.FC<TicketSelectorListProps> = ({
   const { ticketCounts, setCountForTicket } = useEventCheckout();
 
   return (
-    <div className="py-3 px-7 pb-10">
-      <h2 className="text-2xl font-bold mb-2 text-start">Tickets</h2>
+    <div className=" ">
+      <h2 className="text-2xl font-bold text-start px-4 pt-3">Tickets</h2>
       {ticketTypes.map((type) => {
         const count = ticketCounts[type._id] || 0;
         const soldCount =

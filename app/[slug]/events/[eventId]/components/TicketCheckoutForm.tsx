@@ -19,7 +19,7 @@ const TicketCheckoutForm: React.FC<TicketCheckoutFormProps> = ({
   onCheckout,
 }) => {
   return (
-    <div className="py-3 px-7">
+    <div className="py-3 px-4">
       <EmailInput />
       <PromoCodeInput eventId={eventId} />
       <TicketTermsAccepted />

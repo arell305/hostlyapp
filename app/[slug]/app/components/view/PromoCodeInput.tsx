@@ -18,12 +18,11 @@ const PromoCodeInput: React.FC<{ eventId: string }> = ({ eventId }) => {
     setPromoCodeError,
     isPromoApplied,
     setIsPromoApplied,
-    validationResult,
     setValidationResult,
   } = useEventCheckout();
 
-  const [shouldValidate, setShouldValidate] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [shouldValidate, setShouldValidate] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const validatePromoQuery = useQuery(
     api.promoterPromoCode.validatePromoterPromoCode,
@@ -82,12 +81,14 @@ const PromoCodeInput: React.FC<{ eventId: string }> = ({ eventId }) => {
           readOnly={isPromoApplied}
           className="w-3/4"
           error={promoCodeError}
+          disabled={isPromoApplied}
         />
         <Button
           variant="secondary"
           className="w-1/4 rounded-lg h-9 text-base "
           onClick={handleApplyPromo}
           isLoading={isLoading}
+          disabled={isPromoApplied || promoCode.trim() === ""}
         >
           {isPromoApplied ? "Applied ✓" : "Apply"}
         </Button>

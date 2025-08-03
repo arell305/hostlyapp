@@ -27,41 +27,44 @@ const TicketTimeCard = ({
           typeof ticket.ticketSalesEndTime === "number" &&
           !isPast(ticket.ticketSalesEndTime);
 
-        const count =
+        const totalSold =
           ticketTotals?.find((t) => t.eventTicketTypeId === ticket._id)
             ?.count ?? 0;
 
         return (
-          <CustomCard key={ticket._id} className="mb-4">
-            <StaticField
-              label={`${ticket.name} – ${
-                isTicketsSalesOpen
-                  ? "Tickets Sales Ends:"
-                  : "Tickets Sales Ended:"
-              }`}
-              value={
-                typeof ticket.ticketSalesEndTime === "number"
-                  ? formatToTimeAndShortDate(ticket.ticketSalesEndTime)
-                  : "N/A"
-              }
-              icon={<FiClock className="text-xl text-grayText" />}
-              badge={
-                isTicketsSalesOpen ? (
-                  <Badge variant="success">Open</Badge>
-                ) : (
-                  <Badge variant="destructive">Closed</Badge>
-                )
-              }
-            />
-            <StaticField
-              className="border-none"
-              label="Tickets Sold:"
-              value={
-                canEditEvent ? `${count} / ${ticket.capacity}` : `${count}`
-              }
-              icon={<Ticket className="text-xl text-grayText" />}
-            />
-          </CustomCard>
+          <div key={ticket._id}>
+            <h2 className="font-medium mb-1">Tickets: {ticket.name}</h2>
+
+            <CustomCard key={ticket._id} className="mb-4">
+              <StaticField
+                label={isTicketsSalesOpen ? "Sales End:" : "Sales Ended:"}
+                value={
+                  typeof ticket.ticketSalesEndTime === "number"
+                    ? formatToTimeAndShortDate(ticket.ticketSalesEndTime)
+                    : "N/A"
+                }
+                icon={<FiClock className="text-xl text-grayText" />}
+                badge={
+                  isTicketsSalesOpen ? (
+                    <Badge variant="success">Open</Badge>
+                  ) : (
+                    <Badge variant="destructive">Closed</Badge>
+                  )
+                }
+              />
+
+              <StaticField
+                className="border-none"
+                label="Tickets Sold:"
+                value={
+                  canEditEvent
+                    ? `${totalSold} / ${ticket.capacity}`
+                    : `${totalSold}`
+                }
+                icon={<Ticket className="text-xl text-grayText" />}
+              />
+            </CustomCard>
+          </div>
         );
       })}
     </div>

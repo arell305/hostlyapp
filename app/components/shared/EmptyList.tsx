@@ -11,7 +11,7 @@ const EmptyList: React.FC<EmptyListProps> = ({
 }) => {
   if (items && items.length > 0) return null;
 
-  return <div className="text-grayText pl-4">{message}</div>;
+  return <div className="text-grayText ">{message}</div>;
 };
 
 export default EmptyList;

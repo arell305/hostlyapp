@@ -18,9 +18,9 @@ const ToggleCalendar: React.FC<ToggleCalendarProps> = ({
         className=" text-grayText hover:text-whiteText transition "
       >
         {isWeekView ? (
-          <p className="text-xs underline">Expand</p>
+          <p className="text-sm underline">Expand</p>
         ) : (
-          <p className="text-xs underline">Collapse</p>
+          <p className="text-sm underline">Collapse</p>
         )}
       </button>
     </div>

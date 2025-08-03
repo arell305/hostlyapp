@@ -6,6 +6,7 @@ import StaticField from "@/components/shared/fields/StaticField";
 import { Badge } from "@/components/ui/badge";
 import { usePathname } from "next/navigation";
 import { Id } from "convex/_generated/dataModel";
+import { LuClipboardList } from "react-icons/lu";
 
 interface GuestListTimeCardProps {
   isCheckInOpen: boolean;
@@ -14,6 +15,7 @@ interface GuestListTimeCardProps {
   className?: string;
   isGuestListOpen: boolean;
   eventId: Id<"events">;
+  guestListRules: string;
 }
 
 const GuestListTimeCard: React.FC<GuestListTimeCardProps> = ({
@@ -23,6 +25,7 @@ const GuestListTimeCard: React.FC<GuestListTimeCardProps> = ({
   className,
   isGuestListOpen,
   eventId,
+  guestListRules,
 }) => {
   const pathname = usePathname();
   const slug = pathname.split("/")[1]; // Extract "vest" from "/vest/app/events/..."
@@ -59,6 +62,11 @@ const GuestListTimeCard: React.FC<GuestListTimeCardProps> = ({
         value={guestListUrl}
         link={guestListUrl}
         icon={<FiLink className="text-xl" />}
+      />
+      <StaticField
+        label="Guest List Rules"
+        value={guestListRules}
+        icon={<LuClipboardList className="text-xl" />}
       />
     </CustomCard>
   );

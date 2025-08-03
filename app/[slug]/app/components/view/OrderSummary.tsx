@@ -8,7 +8,7 @@ const OrderSummary: React.FC = () => {
   const { pricing, validationResult } = useEventCheckout();
 
   return (
-    <div className="space-y-2 py-3 px-7">
+    <div className="space-y-2 py-3 px-4">
       <h2 className="text-2xl font-bold">Order Summary</h2>
 
       {pricing.perTicketPrices

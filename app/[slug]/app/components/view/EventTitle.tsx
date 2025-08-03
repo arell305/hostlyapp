@@ -8,7 +8,7 @@ interface EventTitleProps {
 
 const EventTitle: React.FC<EventTitleProps> = ({ title, className = "" }) => {
   return (
-    <h1 className={`font-bold text-6xl mt-10 md:mt-0 ${className}`}>
+    <h1 className={`font-bold text-6xl mt-4 md:mt-0 ${className}`}>
       {_.capitalize(title)}
     </h1>
   );

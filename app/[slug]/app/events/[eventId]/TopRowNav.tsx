@@ -1,9 +1,10 @@
 import { EventSchema, GuestListInfoSchema } from "@/types/schemas-types";
 import { Home, Plus } from "lucide-react";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
-import EditToggleButton from "@/components/shared/buttonContainers/EditToggleButton";
+import EditToggleButton from "@/components/shared/buttonContainers/EditDeleteButton";
 import TopBarContainer from "@/components/shared/containers/TopBarContainer";
 import CenteredTitle from "@/components/shared/headings/CenteredTitle";
+import EditDeleteButton from "@/components/shared/buttonContainers/EditDeleteButton";
 
 interface TopRowNavProps {
   eventData: EventSchema;
@@ -17,6 +18,7 @@ interface TopRowNavProps {
   handleAddGuestList: () => void;
   isGuestListOpen: boolean;
   guestListInfo?: GuestListInfoSchema | null;
+  onDelete: () => void;
 }
 
 const TopRowNav: React.FC<TopRowNavProps> = ({
@@ -30,15 +32,17 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
   canEditEvent,
   handleAddGuestList,
   guestListInfo,
+  onDelete,
 }) => {
   return (
-    <TopBarContainer>
+    <TopBarContainer className="pt-0 md:pt-1">
       {" "}
       <div className="">
         <IconButton
           icon={<Home size={20} />}
           onClick={handleGoHome}
           title="Home"
+          disabled={isEditing}
         />
       </div>
       {/* Centered event name */}
@@ -46,10 +50,11 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
       {/* Right side: Edit button or empty space to keep layout consistent */}
       <div className=" flex justify-end">
         {canEditEvent && (
-          <EditToggleButton
+          <EditDeleteButton
             isEditing={isEditing}
             onToggle={() => setIsEditing((prev) => !prev)}
             onCancelEdit={onCancelEdit}
+            onDelete={onDelete}
           />
         )}
         {canUploadGuest &&

@@ -4,11 +4,8 @@ interface EventFormActionsProps {
   isEdit: boolean;
   isLoading: boolean;
   isUpdateLoading?: boolean;
-  isDeleteLoading?: boolean;
   saveError?: string | null;
-  deleteError?: string | null;
   onCancel: () => void;
-  onDelete?: () => void;
   isSubmitDisabled?: boolean;
   onSubmit: () => void;
 }
@@ -17,11 +14,8 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
   isEdit,
   isLoading,
   isUpdateLoading,
-  isDeleteLoading,
   saveError,
-  deleteError,
   onCancel,
-  onDelete,
   isSubmitDisabled,
   onSubmit,
 }) => {
@@ -40,7 +34,7 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
           type="button"
           onClick={onCancel}
           disabled={isLoading}
-          size={isEdit ? "tripleButtons" : "doubelButtons"}
+          size="doubelButtons"
           variant="secondary"
           className="w-full "
         >
@@ -51,32 +45,13 @@ const EventFormActions: React.FC<EventFormActionsProps> = ({
         <Button
           onClick={onSubmit}
           disabled={isLoading || isUpdateLoading || isSubmitDisabled}
-          size={isEdit ? "tripleButtons" : "doubelButtons"}
+          size="doubelButtons"
           variant="default"
           className="w-full "
           isLoading={isLoading || isUpdateLoading}
         >
           {isEdit ? "Update Event" : "Create"}
         </Button>
-
-        {/* Delete Button */}
-        {isEdit && onDelete && (
-          <div className="w-full ">
-            <Button
-              type="button"
-              onClick={onDelete}
-              size="tripleButtons"
-              variant="secondary"
-              className="w-full border-red-700 text-red-700"
-              isLoading={isDeleteLoading}
-            >
-              Delete Event
-            </Button>
-            {deleteError && (
-              <p className="text-red-500 text-sm mt-1">{deleteError}</p>
-            )}
-          </div>
-        )}
       </div>
     </>
   );

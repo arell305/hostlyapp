@@ -5,6 +5,11 @@ import LabeledInputField from "@/components/shared/fields/LabeledInputField";
 import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
 import { validatePublicGuestListForm } from "@/utils/form-validation/validatePublicGuestList";
 import { Button } from "@/components/ui/button";
+import PhoneNumberInput from "@/components/shared/fields/PhoneNumberInput";
+import {
+  isValidFullName,
+  isValidPhoneNumber,
+} from "@/utils/frontend-validation";
 
 interface EventGuestListContentProps {
   guestListInfo: GuestListInfoSchema;
@@ -52,7 +57,8 @@ const EventGuestListContent = ({
     });
   };
 
-  const isSubmitDisabled = isLoading || !name || !phoneNumber;
+  const isSubmitDisabled =
+    isLoading || !isValidPhoneNumber(phoneNumber) || !isValidFullName(name);
 
   if (isGuestListClosed) {
     return (
@@ -78,15 +84,15 @@ const EventGuestListContent = ({
 
   return (
     <form onSubmit={handleSubmit} className="py-4 w-full">
-      <div className="text-center">
+      <div className="">
         <p className="text-xl font-medium mb-4">
           {guestListInfo.guestListRules}
         </p>
       </div>
       <LabeledInputField
         name="name"
-        label="Name*"
-        placeholder="Enter your fullname"
+        label="Full Name*"
+        placeholder="Enter your full name"
         value={name}
         onChange={(e) => {
           setName(e.target.value);
@@ -94,17 +100,16 @@ const EventGuestListContent = ({
         }}
         error={errors.name}
       />
-      <LabeledInputField
+      <PhoneNumberInput
         name="phoneNumber"
         label="Phone Number*"
         placeholder="Enter your phone number"
         value={phoneNumber}
-        onChange={(e) => {
-          setPhoneNumber(e.target.value);
+        onChange={(value) => {
+          setPhoneNumber(value);
           setErrors((prev) => ({ ...prev, phoneNumber: undefined }));
         }}
         error={errors.phoneNumber}
-        type="tel"
       />
       <SingleSubmitButton
         className="pt-0"

@@ -21,16 +21,16 @@ const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-x-10 w-[95%] max-w-5xl mx-auto">
+    <div className="flex flex-col md:flex-row gap-x-10 w-[95%] max-w-5xl mx-auto mt-4">
       {/* Image Column */}
       <div className="w-full md:w-2/5">
         <EventImagePreview storageId={eventData.photo} />
       </div>
 
       {/* Info Column */}
-      <div className="w-full md:w-3/5 flex flex-col justify-between">
+      <div className="w-full md:w-3/5 flex flex-col ">
         <EventTitle title={eventData.name} />
-        <CustomCard className="mt-4 md:mt-0">
+        <CustomCard className="mt-4 ">
           <IconTextRow
             icon={<MdOutlineCalendarToday />}
             text={

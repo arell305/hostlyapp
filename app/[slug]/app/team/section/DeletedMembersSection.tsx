@@ -29,7 +29,7 @@ const DeletedMembersSection = ({
   const companyUsers: UserSchema[] = sortUsersByName(result.data.users);
 
   if (companyUsers.length === 0) {
-    return <p>No deleted members</p>;
+    return <p className=" text-grayText">No deleted members.</p>;
   }
 
   return (

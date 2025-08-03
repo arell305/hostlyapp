@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import NProgress from "nprogress";
 import EventFormActions from "@/components/shared/buttonContainers/EventFormActions";
-import ResponsiveConfirm from "../responsive/ResponsiveConfirm";
-import { useCancelEvent } from "../../events/hooks/useCancelEvent";
 import { EventSchema } from "@/types/schemas-types";
 import { useEventForm } from "@/contexts/EventFormContext";
 import { EventFormInput, GuestListFormInput, TicketType } from "@/types/types";
@@ -14,7 +10,6 @@ import { Id } from "convex/_generated/dataModel";
 
 interface EventFormActionControllerProps {
   isEdit: boolean;
-  initialEventData?: EventSchema;
   isUpdateEventLoading?: boolean;
   saveError?: string | null;
   submitError?: string | null;
@@ -30,7 +25,7 @@ interface EventFormActionControllerProps {
 
 const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
   isEdit,
-  initialEventData,
+
   isUpdateEventLoading,
   saveError,
   submitError,
@@ -39,9 +34,6 @@ const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
   organizationId,
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
-  const router = useRouter();
-  const pathname = usePathname();
   const {
     eventName,
     startTime,
@@ -74,28 +66,6 @@ const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
       )) ||
     (isGuestListSelected && (!guestListCloseTime || !checkInCloseTime)) ||
     isLoading;
-
-  const {
-    cancelEvent,
-    isLoading: isDeleteLoading,
-    error: deleteError,
-    setError: setDeleteError,
-  } = useCancelEvent();
-
-  const onDeleteEvent = async () => {
-    if (initialEventData) {
-      const success = await cancelEvent(initialEventData._id);
-      if (success) {
-        const slug = pathname.split("/")[1];
-        NProgress.start();
-        router.push(`/${slug}/app`);
-      }
-    }
-  };
-
-  const handleDeleteEvent = () => {
-    setShowConfirmModal(true);
-  };
 
   const handleSubmit = async () => {
     setErrors({});
@@ -169,39 +139,10 @@ const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
         isEdit={isEdit}
         isLoading={isLoading}
         isUpdateLoading={isUpdateEventLoading}
-        isDeleteLoading={isDeleteLoading}
         saveError={submitError || saveError}
-        deleteError={deleteError}
         onCancel={onCancelEdit || (() => {})}
-        onDelete={handleDeleteEvent}
         isSubmitDisabled={isSubmitDisabled}
         onSubmit={handleSubmit}
-      />
-
-      <ResponsiveConfirm
-        isOpen={showConfirmModal}
-        title="Confirm Event Deletion"
-        content="Are you sure you want to delete this event? This action cannot be undone."
-        confirmText="Delete Event"
-        cancelText="Keep Event"
-        confirmVariant="destructive"
-        error={deleteError}
-        isLoading={isDeleteLoading}
-        modalProps={{
-          onClose: () => setShowConfirmModal(false),
-          onConfirm: async () => {
-            await onDeleteEvent();
-          },
-        }}
-        drawerProps={{
-          onOpenChange: (open) => {
-            if (!open) setDeleteError(null);
-            setShowConfirmModal(open);
-          },
-          onSubmit: async () => {
-            await onDeleteEvent();
-          },
-        }}
       />
     </>
   );

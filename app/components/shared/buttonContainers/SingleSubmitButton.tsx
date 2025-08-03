@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils"; // assuming you're using a `cn` utility like clsx
+import FieldErrorMessage from "../error/FieldErrorMessage";
 
 interface SingleSubmitButtonProps {
   isLoading: boolean;
@@ -20,8 +21,8 @@ const SingleSubmitButton: React.FC<SingleSubmitButtonProps> = ({
   className,
 }) => {
   return (
-    <div className={cn("pt-8 my-8", className)}>
-      <Button onClick={onClick} disabled={disabled}>
+    <div className={cn("pt-4 my-8", className)}>
+      <Button onClick={onClick} disabled={disabled} type="button">
         {isLoading ? (
           <div className="flex items-center justify-center space-x-2">
             <Loader2 className="animate-spin h-4 w-4" />
@@ -31,7 +32,7 @@ const SingleSubmitButton: React.FC<SingleSubmitButtonProps> = ({
           label
         )}
       </Button>
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      <FieldErrorMessage error={error} />
     </div>
   );
 };

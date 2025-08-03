@@ -14,9 +14,9 @@ const buttonVariants = cva(
         destructive:
           "bg-altRed text-destructive-foreground hover:bg-destructive/90",
         outline: "border  bg-cardBackground hover:bg-cardBackgroundHover ",
-        secondary: "text-whiteText  underline hover:opacity-80",
+        secondary: "text-whiteText  hover:underline ",
         ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-primary underline-offset-4 underline hover:opacity-80",
         navGhost:
           "text-whiteText font-semibold underline hover:text-whiteText/80 text-base p-0 h-auto",
         navDestructive:
@@ -40,7 +40,7 @@ const buttonVariants = cva(
         sidebar:
           "h-12 w-full px-4 text-base md:text-sm font-medium rounded-[12px]",
         modal: "font-medium px-4 py-2 text-base rounded-[20px] w-full",
-        heading: "text-base w-[120px] gap-1 h-10 rounded-md",
+        heading: "text-base w-[100px] gap-0.5 h-10 rounded-md",
       },
     },
     defaultVariants: {

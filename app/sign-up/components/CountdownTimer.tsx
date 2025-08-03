@@ -21,15 +21,12 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
       </p>
 
       <div className="flex space-x-2 text-[40px] sm:text-[48px] font-bold">
-        <span>{format(hours)}</span>
-        <span>:</span>
         <span>{format(minutes)}</span>
         <span>:</span>
         <span>{format(seconds)}</span>
       </div>
 
       <div className="flex space-x-8 mt-1 text-xs sm:text-sm text-gray-400 tracking-wide">
-        <span>HOURS</span>
         <span>MINUTES</span>
         <span>SECONDS</span>
       </div>

@@ -44,7 +44,7 @@ const EventPurchaseSectionWrapper: React.FC<
     clientSecret && !paymentSuccess && isTicketsSalesOpen;
 
   return (
-    <SectionContainer className="flex flex-col w-full">
+    <SectionContainer className="flex flex-col w-full pb-0">
       <About description={eventData.description} />
       {paymentSuccess && (
         <OrderReceipt onBrowseMoreEvents={onBrowseMoreEvents} />

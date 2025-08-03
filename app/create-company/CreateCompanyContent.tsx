@@ -18,7 +18,7 @@ import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmi
 import ImageUploadField from "@/components/shared/fields/ImageUploadField";
 import { validateCompanyForm } from "../../utils/form-validation/validateCreateCompany";
 import NProgress from "nprogress";
-import { isValidDollarAmount } from "@/lib/frontendHelper";
+import CurrencyInput from "@/components/shared/fields/CurrencyInput";
 
 type ErrorState = {
   companyName: string | null;
@@ -116,6 +116,8 @@ const CreateCompanyContent = ({
       }, 4000);
     }
   };
+
+  const isDisabled = companyName.trim() === "";
   return (
     <main className="">
       <nav className={"px-4 w-full flex justify-end  z-10 top-0 fixed h-12  "}>
@@ -138,23 +140,20 @@ const CreateCompanyContent = ({
             }}
             error={errors.companyName}
           />
-          <LabeledInputField
+          <CurrencyInput
             name="promoDiscountAmount"
             label="Promo Discount ($)"
-            type="number"
-            placeholder="Enter Promo Discount Amount"
-            value={promoDiscountAmount}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (isValidDollarAmount(value)) {
-                setPromoDiscountAmount(value);
+            value={promoDiscountAmount ? parseFloat(promoDiscountAmount) : null}
+            onChange={(value) => {
+              setPromoDiscountAmount(value ? value.toString() : "");
+              if (value !== null && value >= 0) {
                 setErrors((prev) => ({ ...prev, promoDiscount: null }));
               }
             }}
             error={errors.promoDiscount}
-            min={0}
-            step={0.01}
+            placeholder="Enter Promo Discount Amount"
           />
+
           <ImageUploadField
             label="Company Photo"
             id="companyPhoto"
@@ -168,7 +167,7 @@ const CreateCompanyContent = ({
             isLoading={isLoading}
             error={clerkOrganizationError}
             onClick={handleSubmit}
-            disabled={companyName === ""}
+            disabled={isDisabled}
             label="Create"
           />
         </LabelWrapper>

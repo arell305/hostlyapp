@@ -25,6 +25,7 @@ const CheckboxIcon: React.FC<CheckboxIconProps> = ({
         onClick={onToggle}
         className="hover:opacity-80 transition"
         aria-label="Toggle checkbox"
+        type="button"
       >
         {checked ? (
           <CheckSquare className="w-5 h-5 text-grayText" />

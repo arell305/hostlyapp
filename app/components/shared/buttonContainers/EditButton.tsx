@@ -3,30 +3,32 @@
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import { Pencil, X } from "lucide-react";
 
-interface EditToggleButtonProps {
+interface EditButtonProps {
   isEditing: boolean;
   onToggle: () => void;
-  onCancelEdit?: () => void; // <-- make it optional
+  onCancelEdit?: () => void; // Optional: triggered when exiting edit mode
 }
 
-const EditToggleButton: React.FC<EditToggleButtonProps> = ({
+const EditButton: React.FC<EditButtonProps> = ({
   isEditing,
   onToggle,
   onCancelEdit,
 }) => {
   const handleClick = () => {
     if (isEditing && onCancelEdit) {
-      return onCancelEdit(); // Call cancel first if exiting edit mode
+      onCancelEdit();
+    } else {
+      onToggle();
     }
-    onToggle(); // Then toggle
   };
 
   return (
     <IconButton
       icon={isEditing ? <X size={20} /> : <Pencil size={20} />}
       onClick={handleClick}
+      title={isEditing ? "Cancel Edit" : "Edit"}
     />
   );
 };
 
-export default EditToggleButton;
+export default EditButton;

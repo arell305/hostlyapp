@@ -14,7 +14,7 @@ const PromoterTicketData: React.FC<PromoterTicketDataProps> = ({
 
   return (
     <CustomCard className="p-4 space-y-4 w-full">
-      <h3 className="text-lg font-bold">{promoterName}</h3>
+      <h2 className="font-medium">{promoterName}</h2>
       {sales.map(({ name, count }) => (
         <div key={name} className="flex justify-between items-center">
           <span className="text-grayText">{name} Tickets Sold</span>

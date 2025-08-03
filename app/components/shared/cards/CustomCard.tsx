@@ -20,7 +20,7 @@ const CustomCard: React.FC<CustomCardProps> = ({
       )}
       onClick={onClick}
     >
-      <div className="p-4">{children}</div> {/* Internal padding only */}
+      {children}
     </div>
   );
 };

@@ -28,7 +28,11 @@ const TeamContent = ({ canManageTeam, organization }: TeamContentProps) => {
         title="Team Members"
         actions={
           canManageTeam && (
-            <Button onClick={() => setIsInviteModalOpen(true)} size="heading">
+            <Button
+              className="w-[110px]"
+              onClick={() => setIsInviteModalOpen(true)}
+              size="heading"
+            >
               <Plus size={20} />
               <span>Member</span>
             </Button>

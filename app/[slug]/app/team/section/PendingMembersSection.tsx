@@ -102,7 +102,7 @@ const PendingMembersSection = ({
   }
 
   if (pendingUsers.length === 0 && !loadingMembers) {
-    return <p>No pending members</p>;
+    return <p className=" text-grayText">No pending members.</p>;
   }
 
   return (

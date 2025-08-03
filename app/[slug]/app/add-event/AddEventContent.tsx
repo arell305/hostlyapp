@@ -114,7 +114,7 @@ const AddEventContent: React.FC<{
         confirmText="Yes, Cancel"
         cancelText="No, Continue"
         content="Are you sure you want to cancel? Any unsaved changes will be discarded."
-        confirmVariant="destructive"
+        confirmVariant="default"
         error={null}
         isLoading={false}
         modalProps={{

@@ -4,8 +4,8 @@ import { FaApple } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
 import { Label } from "@/components/ui/label";
-import useModal from "@/hooks/useModal";
 import TermsCheckbox from "@/components/shared/fields/TermsCheckbox";
+import { isValidEmail } from "@/utils/helpers";
 
 interface PaymentDetailsSectionProps {
   method: "card" | "apple";
@@ -48,10 +48,8 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
     !stripeReady ||
     isLoading ||
     !isCardComplete ||
-    email.trim() === "" ||
+    !isValidEmail(email) ||
     !termsAccepted;
-
-  const termsModal = useModal();
 
   if (method === "apple") {
     return (
@@ -76,7 +74,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
     <>
       <Label>Card Details</Label>
       <div
-        className={`p-2 border mb-6 mt-1 text-white rounded-md ${
+        className={`p-2 border mb-6  text-white rounded-md ${
           cardError ? "border-red-500" : focused ? "border-primaryBlue" : ""
         }`}
       >

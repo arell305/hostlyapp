@@ -27,8 +27,6 @@ import Link from "next/link";
 import NProgress from "nprogress";
 import { EventWithExtras } from "@/types/convex-types";
 
-const today = getCurrentDate();
-
 interface HomeContentProps {
   organization: OrganizationSchema;
   canCreateEvents: boolean;
@@ -42,7 +40,8 @@ const HomeContent: React.FC<HomeContentProps> = ({
   showStripeNotification,
   pathname,
 }) => {
-  const [date, setDate] = useState(() => today);
+  const today = getCurrentDate();
+  const [date, setDate] = useState(today);
   const [isWeekView, setIsWeekView] = useState(true);
   const [calendarMonthYear, setCalendarMonthYear] = useState({
     month: 0,
@@ -101,7 +100,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
             >
               <Button size="heading">
                 <Plus size={20} />
-                <span>Add Event</span>
+                <span>Event</span>
               </Button>
             </Link>
           )

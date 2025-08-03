@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RiImageAddFill } from "react-icons/ri";
 import Loading from "@/[slug]/app/components/loading/Loading";
-import { getInitial } from "@/utils/helpers";
+import { getInitial, capitalizeWords } from "@/utils/helpers";
 import InitialAvatar from "../avatars/InitialAvatar";
+import FieldErrorMessage from "../error/FieldErrorMessage";
 
 interface EditableImageProps {
   displayImage: string | null | undefined;
@@ -16,6 +17,7 @@ interface EditableImageProps {
   canEdit: boolean;
   isLoading: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  error?: string | null;
 }
 
 const EditableImage: React.FC<EditableImageProps> = ({
@@ -25,60 +27,52 @@ const EditableImage: React.FC<EditableImageProps> = ({
   canEdit,
   isLoading,
   onChange,
+  error,
 }) => {
   return (
-    <div className="relative">
-      {displayImage ? (
-        <div className="relative w-[200px] h-[200px]">
+    <div className="flex items-center flex-col ">
+      <div className="relative w-[100px] h-[100px]">
+        {displayImage ? (
           <Image
             src={displayImage}
-            alt="Image"
+            alt="Company Logo"
             fill
-            sizes="200px"
-            className="rounded-full object-cover"
+            sizes="100px"
+            className="rounded-full object-cover aspect-square"
           />
-          {canEdit && isEditing && (
-            <Label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer rounded-md">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={onChange}
-                className="hidden"
-              />
-              {isLoading ? (
-                <Loading />
-              ) : (
-                <RiImageAddFill className="text-4xl text-white" />
-              )}
-            </Label>
-          )}
-        </div>
-      ) : (
-        <div>
+        ) : (
           <InitialAvatar
             initial={getInitial(companyName)}
-            size={140}
-            textSize="text-4xl"
+            size={100}
+            textSize="text-2xl"
             bgColor="bg-gray-600"
           />
+        )}
 
-          {canEdit && isEditing && (
-            <Label className="absolute inset-0 z-20 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer rounded-full">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={onChange}
-                className="hidden"
-              />
-              {isLoading ? (
-                <Loading />
-              ) : (
-                <RiImageAddFill className="text-4xl text-white" />
-              )}
-            </Label>
-          )}
-        </div>
+        {canEdit && isEditing && (
+          <Label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer rounded-full z-10">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={onChange}
+              className="hidden"
+            />
+            {isLoading ? (
+              <Loading />
+            ) : (
+              <RiImageAddFill className="text-4xl text-white" />
+            )}
+          </Label>
+        )}
+      </div>
+
+      {!isEditing && (
+        <h2 className="mt-2 text-2xl font-semibold">
+          {capitalizeWords(companyName || "Unknown Company")}
+        </h2>
       )}
+
+      {error && <FieldErrorMessage error={error} />}
     </div>
   );
 };

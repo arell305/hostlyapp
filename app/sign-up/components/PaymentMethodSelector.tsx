@@ -13,8 +13,14 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
 }) => {
   return (
     <>
-      <Label className="block text-sm font-medium mb-2">Payment Method</Label>
-      <div className="flex space-x-4 mt-2 mb-8">
+      <p id="payment-method-label" className="block font-medium">
+        Payment Method
+      </p>
+      <div
+        role="radiogroup"
+        aria-labelledby="payment-method-label"
+        className="flex space-x-4 mt-1 mb-8"
+      >
         <PaymentMethodOption
           label="Card"
           icon={<FaCreditCard />}

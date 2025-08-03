@@ -21,7 +21,9 @@ const AddressTextRow: React.FC<AddressTextRowProps> = ({
       }`}
     >
       <div className="text-2xl md:text-base flex-shrink-0 mt-1">{icon}</div>
-      <p className="flex-1 font-medium break-words underline">{text}</p>
+      <p className="flex-1 font-medium break-words underline hover:opacity-80">
+        {text}
+      </p>
     </div>
   );
 };

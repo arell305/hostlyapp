@@ -20,6 +20,7 @@ import PromoterTicketData from "./PromoterTicketData";
 import { TicketIcon } from "lucide-react";
 import SubPageContainer from "@/components/shared/containers/SubPageContainer";
 import { Id } from "convex/_generated/dataModel";
+import EventLinkCard from "../../components/EventLinkCard";
 
 interface SummaryContentProps {
   guestListInfo?: GuestListInfoSchema | null;
@@ -54,7 +55,10 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
   return (
     <SubPageContainer className="flex flex-col gap-8">
       <div>
-        <h2 className="mb-1">Tickets</h2>
+        <h2 className="mb-1 font-medium">Event Link</h2>
+        <EventLinkCard eventId={eventId} />
+      </div>
+      <div>
         {ticketInfo && ticketSalesByPromoterData ? (
           <>
             <TicketTimeCard
@@ -78,9 +82,10 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
       </div>
 
       <div>
-        <h2 className="mb-1">Guest List</h2>
+        <h2 className="mb-1 font-medium">Guest List</h2>
         {guestListInfo ? (
           <GuestListTimeCard
+            guestListRules={guestListInfo.guestListRules}
             isCheckInOpen={isCheckInOpen}
             isGuestListOpen={isGuestListOpen}
             guestListCloseTime={formatToTimeAndShortDate(
@@ -101,7 +106,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
 
       {isPromoter && promoterGuestStatsData && (
         <div>
-          <h2 className="mb-1">Promoter Guest Attendance</h2>
+          <h2 className="mb-1 font-medium">Promoter Guest Attendance</h2>
           <PromoterGuestsListData
             guestListData={promoterGuestStatsData.promoterGuestStats[0]}
           />
@@ -110,7 +115,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
 
       {ticketInfo && !isPromoter && ticketSalesByPromoterData && (
         <div>
-          <h2 className="mb-1">Promoter Ticket Sales</h2>
+          <h2 className="mb-1 font-medium">Promoter Ticket Sales</h2>
           {ticketSalesByPromoterData.tickets.length > 0 ? (
             <div className="flex flex-col gap-2">
               {ticketSalesByPromoterData.tickets.map((ticket) => (
@@ -131,7 +136,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
 
       {guestListInfo && !isPromoter && promoterGuestStatsData && (
         <div>
-          <h2 className="mb-1">Promoter Guest List Summary</h2>
+          <h2 className="mb-1 font-medium">Promoter Guest List Summary</h2>
           <div className="flex flex-col gap-2">
             {promoterGuestStatsData.promoterGuestStats.length > 0 ? (
               promoterGuestStatsData.promoterGuestStats.map((promoter) => (

@@ -27,6 +27,7 @@ const IconButton = ({
           "bg-transparent border border-gray-600 hover:bg-gray-700",
         variant === "green" && "bg-greenCustom",
         variant === "ghost" && "bg-transparent hover:bg-cardBackgroundHover",
+        disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
         className
       )}
     >

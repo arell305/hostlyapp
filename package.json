@@ -50,6 +50,7 @@
     "react-dom": "^18",
     "react-google-places-autocomplete": "^4.1.0",
     "react-icons": "^5.5.0",
+    "react-number-format": "^5.4.4",
     "react-timer-hook": "^3.0.7",
     "recharts": "^2.15.3",
     "slugify": "^1.6.6",

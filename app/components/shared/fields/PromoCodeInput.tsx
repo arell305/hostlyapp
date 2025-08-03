@@ -11,7 +11,6 @@ interface PromoCodeInputProps {
   isLoading?: boolean;
   error?: string | null;
   success?: boolean;
-  disabled?: boolean;
 }
 
 const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
@@ -22,26 +21,27 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
   isLoading = false,
   error,
   success = false,
-  disabled = false,
 }) => {
+  const isDisabled = promoCode.trim() === "";
   return (
     <div className="mb-6">
       <Label htmlFor="promoCode">{label}</Label>
-      <div className="flex items-center mt-1">
+      <div className="flex items-center justify-between ">
         <Input
           id="promoCode"
           value={promoCode}
           onChange={(e) => onChange(e.target.value)}
-          className="md:w-[300px]"
-          disabled={isLoading || disabled}
+          className="w-[400px] "
+          disabled={isLoading || success}
           placeholder="Enter promo code"
         />
         <Button
           onClick={onApply}
           type="button"
-          className="ml-4 bg-cardBackgroundHover"
-          disabled={isLoading || disabled}
+          className=" w-auto h-auto"
+          disabled={isLoading || isDisabled || success}
           isLoading={isLoading}
+          variant="secondary"
         >
           Apply
         </Button>

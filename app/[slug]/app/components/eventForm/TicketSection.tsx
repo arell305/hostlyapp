@@ -9,6 +9,8 @@ import { ticketNameOptions } from "@/types/constants";
 import { useEventForm } from "@/contexts/EventFormContext";
 import ResponsiveConfirm from "../responsive/ResponsiveConfirm";
 import { Label } from "@/components/ui/label";
+import CurrencyInput from "@/components/shared/fields/CurrencyInput";
+import IntegerInput from "@/components/shared/fields/IntegerInput";
 
 interface TicketSectionProps {
   isEdit: boolean;
@@ -89,22 +91,30 @@ const TicketSection: React.FC<TicketSectionProps> = ({
           <div className="mb-4">
             <Label className="mb-1">Ticket Name*</Label>
             <div className="flex flex-wrap gap-2 mb-4">
-              {ticketNameOptions.map((preset) => (
-                <Button
-                  key={preset}
-                  type="button"
-                  variant={type.name === preset ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    const newTypes = [...ticketTypes];
-                    newTypes[index].name = preset;
-                    newTypes[index].showCustomInput = false;
-                    setTicketTypes(newTypes);
-                  }}
-                >
-                  {preset}
-                </Button>
-              ))}
+              {ticketNameOptions.map((preset) => {
+                const isUsed = ticketTypes.some(
+                  (t, i) => t.name === preset && i !== index
+                );
+
+                return (
+                  <Button
+                    key={preset}
+                    type="button"
+                    variant={type.name === preset ? "default" : "outline"}
+                    size="sm"
+                    disabled={isUsed}
+                    onClick={() => {
+                      const newTypes = [...ticketTypes];
+                      newTypes[index].name = preset;
+                      newTypes[index].showCustomInput = false;
+                      setTicketTypes(newTypes);
+                    }}
+                  >
+                    {preset}
+                  </Button>
+                );
+              })}
+
               <Button
                 type="button"
                 variant={type.showCustomInput ? "default" : "outline"}
@@ -135,37 +145,29 @@ const TicketSection: React.FC<TicketSectionProps> = ({
               error={errors.ticketFieldErrors?.[index]?.name}
             />
           )}
-
-          <LabeledInputField
+          <CurrencyInput
             name="ticketPrice"
             label="Ticket Price*"
-            type="number"
-            min={0}
-            step="0.01"
-            value={type.price}
-            onChange={(e) => {
+            value={type.price ? parseFloat(type.price) : null}
+            onChange={(val) => {
               const newTypes = [...ticketTypes];
-              newTypes[index].price = e.target.value;
+              newTypes[index].price = val ? val.toString() : "";
               setTicketTypes(newTypes);
             }}
-            placeholder="Enter ticket price"
             error={errors.ticketFieldErrors?.[index]?.price}
           />
 
-          <LabeledInputField
+          <IntegerInput
             name="ticketCapacity"
             label="Ticket Capacity*"
-            type="number"
-            inputMode="decimal"
-            min={1}
-            value={type.capacity}
-            onChange={(e) => {
+            value={type.capacity ? parseInt(type.capacity) : null}
+            onChange={(val) => {
               const newTypes = [...ticketTypes];
-              newTypes[index].capacity = e.target.value;
+              newTypes[index].capacity = val ? val.toString() : "";
               setTicketTypes(newTypes);
             }}
-            placeholder="Enter ticket capacity"
             error={errors.ticketFieldErrors?.[index]?.capacity}
+            placeholder="Enter ticket capacity"
           />
 
           <LabeledDateTimeField

@@ -88,7 +88,7 @@ const BaseDrawer: React.FC<BaseDrawerProps> = ({
           <DrawerClose asChild className="flex-1">
             <Button
               type="button"
-              variant="ghost"
+              variant="secondary"
               className="w-full"
               disabled={isLoading}
             >

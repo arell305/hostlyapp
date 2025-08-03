@@ -74,7 +74,7 @@ export const formatNarrowWeekday = (
 
 export const formatShortDate = (date: Date): string => {
   const dt = DateTime.fromJSDate(date);
-  return dt.toLocaleString({ month: "short", day: "numeric", year: "numeric" });
+  return dt.toLocaleString({ month: "short", day: "numeric" });
 };
 
 export const formatLongDate = (date: Date): string => {

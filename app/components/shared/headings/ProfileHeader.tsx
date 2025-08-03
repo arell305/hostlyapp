@@ -11,7 +11,7 @@ interface ProfileHeaderProps {
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ imageUrl, name }) => {
   return (
-    <div className="flex items-center flex-col mb-4">
+    <div className="flex items-center flex-col my-4">
       {imageUrl && (
         <Image
           src={imageUrl}

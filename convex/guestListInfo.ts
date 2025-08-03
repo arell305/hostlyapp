@@ -63,14 +63,21 @@ export const updateGuestListInfo = internalMutation({
     guestListInfoId: v.id("guestListInfo"),
     guestListCloseTime: v.number(),
     checkInCloseTime: v.number(),
+    guestListRules: v.string(),
   },
   handler: async (ctx, args): Promise<Id<"guestListInfo">> => {
     try {
-      const { guestListInfoId, guestListCloseTime, checkInCloseTime } = args;
+      const {
+        guestListInfoId,
+        guestListCloseTime,
+        checkInCloseTime,
+        guestListRules,
+      } = args;
 
       await ctx.db.patch(guestListInfoId, {
         guestListCloseTime,
         checkInCloseTime,
+        guestListRules,
       });
 
       return guestListInfoId;

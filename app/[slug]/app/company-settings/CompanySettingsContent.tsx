@@ -14,6 +14,7 @@ import EditableImage from "@/components/shared/editable/EditableImage";
 import EditableInputField from "@/components/shared/editable/EditableInputField";
 import EditableContainer from "@/components/shared/containers/EditableContainer";
 import EditableImageContainer from "@/components/shared/containers/EditableImageContainer";
+import EditableCurrencyField from "@/components/shared/editable/EditableCurrencyField";
 
 interface CompanySettingsContentProps {
   organization: OrganizationSchema;
@@ -86,6 +87,17 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
     }
   };
 
+  const handleToggleEditing = () => {
+    if (isEditing) {
+      // Reset unsaved changes
+      setCompanyName(organization?.name);
+      setPromoDiscount(organization?.promoDiscount.toString() || "");
+    }
+    setIsEditing((prev) => !prev);
+  };
+
+  const isCompanyNameDisabled = !companyName || companyName.trim() === "";
+
   return (
     <section>
       <SectionHeaderWithAction
@@ -93,12 +105,13 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
         actions={
           <IconButton
             icon={isEditing ? <X size={20} /> : <Pencil size={20} />}
-            onClick={() => setIsEditing((prev) => !prev)}
+            onClick={handleToggleEditing}
+            title={isEditing ? "Cancel Edit" : "Edit"}
           />
         }
       />
-      <CustomCard className="p-0">
-        <EditableImageContainer className="mt-6">
+      <CustomCard>
+        <EditableImageContainer>
           <EditableImage
             companyName={companyName}
             displayImage={displayCompanyPhoto}
@@ -106,32 +119,37 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
             canEdit={canEditSettings}
             isLoading={isPhotoLoading}
             onChange={handlePhotoChange}
+            error={photoError}
           />
         </EditableImageContainer>
 
         <EditableContainer>
-          <EditableInputField
-            label="Company Name"
-            value={companyName || ""}
-            onChange={(e) => setCompanyName(e.target.value)}
-            onSave={handleSaveCompanyName}
-            isEditing={isEditing}
-            isSaving={isNameSaving}
-            name="companyName"
-            error={nameError}
-            type="text"
-          />
+          {isEditing && (
+            <EditableInputField
+              label="Company Name"
+              value={companyName || ""}
+              onChange={(e) => setCompanyName(e.target.value)}
+              onSave={handleSaveCompanyName}
+              isEditing={isEditing}
+              isSaving={isNameSaving}
+              name="companyName"
+              error={nameError}
+              disabled={isCompanyNameDisabled}
+            />
+          )}
 
-          <EditableInputField
+          <EditableCurrencyField
             label="Promo Discount Amount"
-            value={promoDiscount}
-            onChange={(e) => setPromoDiscount(e.target.value)}
+            value={promoDiscount ? parseFloat(promoDiscount) : null}
+            onChange={(value) =>
+              setPromoDiscount(value ? value.toString() : "")
+            }
             onSave={handleSavePromoDiscount}
             isEditing={isEditing}
             isSaving={isPromoSaving}
             name="promoDiscount"
             error={promoError}
-            type="number"
+            className={isEditing ? "" : "border-t "}
           />
         </EditableContainer>
       </CustomCard>

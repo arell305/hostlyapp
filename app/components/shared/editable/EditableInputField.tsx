@@ -5,6 +5,9 @@ import { Label } from "@/components/ui/label";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import { Save, Loader2 } from "lucide-react";
 import _ from "lodash";
+import EditableFieldWrapper from "../containers/EditableFieldWapper";
+import FormattedValueDisplay from "../display/FormattedValueDisplay";
+import FieldErrorMessage from "../error/FieldErrorMessage";
 interface EditableInputFieldProps {
   label: string;
   name: string;
@@ -14,7 +17,7 @@ interface EditableInputFieldProps {
   isEditing: boolean;
   isSaving: boolean;
   error?: string | null;
-  type?: "text" | "number"; // <-- NEW
+  disabled?: boolean;
 }
 
 const EditableInputField: React.FC<EditableInputFieldProps> = ({
@@ -26,10 +29,10 @@ const EditableInputField: React.FC<EditableInputFieldProps> = ({
   isEditing,
   isSaving,
   error,
-  type = "text", // <-- default to text
+  disabled,
 }) => {
   return (
-    <div className="w-full border-b px-4 py-3">
+    <EditableFieldWrapper className="border-t">
       <Label htmlFor={name} className="font-normal text-grayText ">
         {label}
       </Label>
@@ -43,14 +46,8 @@ const EditableInputField: React.FC<EditableInputFieldProps> = ({
               value={value}
               onChange={onChange}
               className={error ? "border-red-500" : ""}
-              type={type}
-              min={type === "number" ? 0 : undefined} // <-- min 0 if number
             />
-            <p
-              className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
-            >
-              {error || "Placeholder to maintain height"}
-            </p>
+            <FieldErrorMessage error={error} />
           </div>
           <IconButton
             icon={
@@ -61,15 +58,18 @@ const EditableInputField: React.FC<EditableInputFieldProps> = ({
               )
             }
             onClick={onSave}
-            disabled={isSaving}
+            disabled={isSaving || disabled}
+            title={"Save"}
           />
         </div>
       ) : (
-        <p className="text-xl font-semibold mt-.5">
-          {_.capitalize(value) || "Not Set"}
-        </p>
+        <FormattedValueDisplay
+          value={value}
+          fallbackText="Not Set"
+          className="text-xl font-semibold mt-.5"
+        />
       )}
-    </div>
+    </EditableFieldWrapper>
   );
 };
 

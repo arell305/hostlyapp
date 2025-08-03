@@ -19,7 +19,7 @@ const StripePaymentSection: React.FC<StripePaymentSectionProps> = ({
     setClientSecret(null);
   };
   return (
-    <div className="py-5 px-7 space-y-4">
+    <div className="py-5 px-4 space-y-4">
       <Button onClick={handleOnBack} variant="navGhost" size="nav">
         ← Back to ticket selection
       </Button>

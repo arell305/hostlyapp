@@ -17,6 +17,7 @@ const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({}) => {
   const elements = useElements();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isPaymentComplete, setIsPaymentComplete] = useState<boolean>(false);
 
   const handlePayment = async (event: FormEvent) => {
     event.preventDefault();
@@ -27,9 +28,12 @@ const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({}) => {
     }
 
     setIsProcessing(true);
+    setErrorMessage(null);
 
     const { error: submitError } = await elements.submit();
     if (submitError) {
+      setErrorMessage(submitError.message || "Form validation failed.");
+      setIsProcessing(false);
       return;
     }
 
@@ -43,7 +47,6 @@ const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({}) => {
 
     if (error) {
       setErrorMessage(error.message || "An unexpected error occurred.");
-      setIsProcessing(false);
     } else if (paymentIntent?.status === "succeeded") {
       console.log("Payment successful:", paymentIntent);
       setPaymentSuccess(true);
@@ -56,12 +59,17 @@ const TicketPaymentForm: React.FC<TicketPaymentFormProps> = ({}) => {
   if (!stripe || !elements) {
     return <div>Loading payment form...</div>;
   }
+
   return (
-    <form onSubmit={handlePayment} className="mx-auto ">
-      <PaymentElement />
+    <form onSubmit={handlePayment} className="mx-auto">
+      <PaymentElement
+        onChange={(event) => {
+          setIsPaymentComplete(event.complete);
+        }}
+      />
       <Button
         type="submit"
-        disabled={isProcessing || !stripe}
+        disabled={isProcessing || !stripe || !isPaymentComplete}
         className="mt-8 mb-4"
         isLoading={isProcessing}
       >

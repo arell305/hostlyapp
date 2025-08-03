@@ -1,17 +1,14 @@
-import { Button } from "@/components/ui/button";
 import { UserWithPromoCode } from "@/types/types";
-import { roleMap, UserRole } from "@/types/enums";
+import { UserRole } from "@/types/enums";
 import { useUpdateUser } from "../hooks/useUpdateUser";
 import { useState } from "react";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import CustomCard from "@/components/shared/cards/CustomCard";
-import NavButtonsContainer from "@/components/shared/containers/NavButtonsContainer";
 import StaticField from "@/components/shared/fields/StaticField";
 import EditableSelectField from "@/components/shared/editable/EditableSelectField";
-import ButtonEndContainer from "@/components/shared/buttonContainers/ButtonEndContainer";
-import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
 import ProfileHeader from "@/components/shared/headings/ProfileHeader";
 import _ from "lodash";
+import MemberTopBar from "./MemberTopBar";
 
 interface UserIdContentProps {
   userData: UserWithPromoCode;
@@ -56,32 +53,60 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
   };
 
   const handleSaveRole = async () => {
-    await updateUserById(userData._id, {
+    const success = await updateUserById(userData._id, {
       role: selectedRole as UserRole,
     });
+    if (success) {
+      handleCancelEditing();
+    }
   };
 
-  const canEditOrDelete =
-    canEditUsers &&
-    userData.role !== UserRole.Admin &&
-    userData.role !== UserRole.Hostly_Admin;
+  const handleToggleEditing = () => {
+    setIsEditing((prev) => !prev);
+  };
+
+  const handleCancelEditing = () => {
+    setIsEditing(false);
+  };
 
   return (
     <section>
+      <MemberTopBar
+        userData={userData}
+        onBack={handleBack}
+        isEditing={isEditing}
+        handleToggleEditing={handleToggleEditing}
+        handleCancelEditing={handleCancelEditing}
+        handleShowDeleteConfirmation={handleShowDeleteConfirmation}
+        canEditUsers={canEditUsers}
+      />
+
       <CustomCard>
-        <NavButtonsContainer>
-          <Button
-            variant="navGhost"
-            size="nav"
-            className="text-whiteText"
-            onClick={handleBack}
-          >
-            Back
-          </Button>
-        </NavButtonsContainer>
         <ProfileHeader imageUrl={userData.imageUrl} name={userData.name} />
-        <StaticField label="Email" value={userData.email} />
-        {[UserRole.Admin, UserRole.Hostly_Admin, UserRole.Moderator].includes(
+
+        <StaticField
+          className="border-t"
+          label="Email"
+          value={userData.email}
+        />
+        <EditableSelectField
+          label="Role"
+          name="role"
+          value={selectedRole}
+          options={[
+            { label: "Moderator", value: UserRole.Moderator },
+            { label: "Manager", value: UserRole.Manager },
+            { label: "Promoter", value: UserRole.Promoter },
+          ]}
+          onChange={(value) => {
+            setSelectedRole(value);
+          }}
+          onSave={handleSaveRole}
+          isEditing={isEditing}
+          isSaving={isLoading}
+          error={error}
+        />
+        {/* {[UserRole.Admin, UserRole.Hostly_Admin, UserRole.Moderator].includes(
           userData.role as UserRole
         ) ? (
           <StaticField
@@ -104,7 +129,7 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
             isSaving={isLoading}
             error={error}
           />
-        )}
+        )} */}
 
         {userData.role === UserRole.Promoter && (
           <StaticField
@@ -132,26 +157,6 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
           }}
         />
       </CustomCard>
-      {canEditOrDelete && (
-        <ButtonEndContainer>
-          {userData.isActive ? (
-            <Button
-              onClick={handleShowDeleteConfirmation}
-              className="text-whiteText hover:text-whiteText/80 underline w-auto text-base"
-              variant="navGhost"
-            >
-              Delete User
-            </Button>
-          ) : (
-            <SingleSubmitButton
-              isLoading={isLoading}
-              error={error}
-              onClick={handleReactivateUser}
-              label="Reactivate"
-            />
-          )}
-        </ButtonEndContainer>
-      )}
     </section>
   );
 };

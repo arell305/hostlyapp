@@ -1,4 +1,5 @@
-// utils/handleQueryState.tsx
+"use client";
+
 import React, { ReactElement } from "react";
 import { QueryState, ResponseStatus } from "@/types/enums";
 import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
@@ -49,10 +50,6 @@ export function handleQueryState<T>(
           title="Error"
           description={queryResult.error || "An error occurred."}
           buttonLabel="Go to Home"
-          onButtonClick={() => {
-            NProgress.start();
-            router.push("/");
-          }}
         />
       ),
     };

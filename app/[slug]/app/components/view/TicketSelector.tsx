@@ -22,7 +22,7 @@ const TicketSelector: React.FC<TicketSelectorProps> = ({
   const isTicketSalesEnded = !isAfterNowInPacificTime(ticketSalesEndTime);
 
   return (
-    <div className="flex justify-between items-center py-3 border-b">
+    <div className="flex justify-between items-center py-3 px-4 border-b">
       <div>
         <h3 className="font-semibold text-base">{name} Ticket</h3>
         <p className="text-sm text-grayText">

@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import CheckboxIcon from "./CheckboxIcon";
 import useModal from "@/hooks/useModal";
@@ -23,6 +24,7 @@ const TermsCheckbox = ({
           <>
             I agree to the{" "}
             <button
+              type="button"
               onClick={termsModal.toggleModal}
               className="underline text-grayText hover:text-white"
             >

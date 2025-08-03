@@ -8,7 +8,7 @@ import {
   TicketUpdateInput,
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
-import ViewTab from "../ViewTab";
+// import ViewTab from "../ViewTab";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import {
   EventSchema,
@@ -25,6 +25,9 @@ import { isPast } from "date-fns";
 import TicketPage from "../../components/tickets/TicketPage";
 import GuestListPage from "../guestList/GuestListPage";
 import EventFormWrapper from "../../components/eventForm/EventFormWrapper";
+import { usePathname, useRouter } from "next/navigation";
+import NProgress from "nprogress";
+import { useCancelEvent } from "../hooks/useCancelEvent";
 
 interface EventIdContentProps {
   data: {
@@ -60,22 +63,31 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   isCompanyAdmin,
   availableCredits,
 }) => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showConfirmCancelEdit, setShowConfirmCancelEdit] =
     useState<boolean>(false);
-  const [showConfirmHome, setShowConfirmHome] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab | ActiveStripeTab>(
     ActiveTab.SUMMARY
   );
+  const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
   const {
     updateEvent,
     isLoading: isUpdateEventLoading,
     error: saveEventError,
+    setError: setSaveEventError,
   } = useUpdateEvent();
+
+  const {
+    cancelEvent,
+    isLoading: isDeleteLoading,
+    error: deleteError,
+    setError: setDeleteError,
+  } = useCancelEvent();
 
   const tabs: Tab[] = [
     { label: "Summary", value: ActiveTab.SUMMARY },
-    { label: "View", value: ActiveTab.VIEW },
     ...(data.guestListInfo
       ? [{ label: "Guest List", value: ActiveTab.GUEST_LIST }]
       : []),
@@ -91,13 +103,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
       handleNavigateHome();
     }
   };
-  const handleGoHome = () => {
-    if (isEditing) {
-      setShowConfirmHome(true);
-    } else {
-      handleNavigateHome();
-    }
-  };
+
   const handleUpdateEvent = async (
     organizationId: Id<"organizations">,
     updatedEventData: EventFormInput,
@@ -121,20 +127,38 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     ? !isPast(data.guestListInfo.guestListCloseTime)
     : false;
 
+  const handleShowDeleteConfirmation = () => {
+    setShowConfirmDelete(true);
+  };
+
+  const handleCloseDeleteConfirmation = () => {
+    setShowConfirmDelete(false);
+    setSaveEventError(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    const success = await cancelEvent(data.event._id);
+    if (success) {
+      const slug = pathname.split("/")[1];
+      NProgress.start();
+      router.push(`/${slug}/app`);
+    }
+  };
   return (
-    <div className="w-full">
+    <div className="w-full pb-10">
       <TopRowNav
         eventData={data.event}
         isAdminOrg={isAppAdmin}
         setIsEditing={setIsEditing}
         isEditing={isEditing}
         onCancelEdit={handleCancelEdit}
-        handleGoHome={handleGoHome}
+        handleGoHome={handleNavigateHome}
         canUploadGuest={canUploadGuest}
         canEditEvent={canEditEvent}
         handleAddGuestList={handleAddGuestList}
         isGuestListOpen={isGuestListOpen}
         guestListInfo={data.guestListInfo}
+        onDelete={handleShowDeleteConfirmation}
       />
       {isEditing ? (
         <EventFormWrapper
@@ -184,9 +208,6 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
               guestListInfo={data.guestListInfo}
             />
           )}
-          {activeTab === ActiveTab.VIEW && (
-            <ViewTab eventData={data.event} ticketData={data.ticketTypes} />
-          )}
         </>
       )}
       <ResponsiveConfirm
@@ -195,7 +216,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
         confirmText="Yes, Cancel"
         cancelText="No, Continue"
         content="Are you sure you want to cancel? Any unsaved changes will be discarded."
-        confirmVariant="destructive"
+        confirmVariant="default"
         error={null}
         isLoading={false}
         modalProps={{
@@ -213,30 +234,23 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           onOpenChange: (open) => setShowConfirmCancelEdit(open),
         }}
       />
+
       <ResponsiveConfirm
-        isOpen={showConfirmHome}
-        title="Confirm Home Navigation"
-        confirmText="Yes, Go Home"
-        cancelText="No, Stay Here"
-        content="Are you sure you want to go home? Any unsaved changes will be discarded."
+        isOpen={showConfirmDelete}
+        title="Confirm Deletion"
+        confirmText="Yes, Delete"
+        cancelText="No, Cancel"
         confirmVariant="destructive"
-        error={null}
-        isLoading={false}
+        content="Are you sure you want to delete this event? This action cannot be undone."
+        error={deleteError}
+        isLoading={isDeleteLoading}
         modalProps={{
-          onClose: () => setShowConfirmHome(false),
-          onConfirm: () => {
-            setShowConfirmHome(false);
-            setIsEditing(false);
-            handleNavigateHome();
-          },
+          onClose: handleCloseDeleteConfirmation,
+          onConfirm: handleConfirmDelete,
         }}
         drawerProps={{
-          onSubmit: () => {
-            setShowConfirmHome(false);
-            setIsEditing(false);
-            handleNavigateHome();
-          },
-          onOpenChange: (open) => setShowConfirmHome(open),
+          onSubmit: handleConfirmDelete,
+          onOpenChange: handleCloseDeleteConfirmation,
         }}
       />
     </div>
