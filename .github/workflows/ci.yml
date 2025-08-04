@@ -3,10 +3,10 @@ name: Next.js CI
 on:
   push:
     branches:
-      - main # Only trigger on push to main
+      - main
   pull_request:
     branches:
-      - main # Only trigger on PR to main
+      - main
 
 jobs:
   build-and-test:
