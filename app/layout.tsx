@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/logo/logo.png",
+        url: "/logo/Logo_Black.JPG",
         width: 1200,
         height: 630,
         alt: "Hostly Logo",
