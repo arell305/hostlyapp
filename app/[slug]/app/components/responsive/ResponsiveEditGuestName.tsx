@@ -73,6 +73,8 @@ const ResponsiveEditGuestName: React.FC<ResponsiveEditGuestNameProps> = ({
     </FormContainer>
   );
 
+  const isDisabled = isLoading || !editName || !editName.trim();
+
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -92,6 +94,7 @@ const ResponsiveEditGuestName: React.FC<ResponsiveEditGuestNameProps> = ({
             submitText="Save"
             isLoading={isLoading}
             error={error}
+            isSubmitDisabled={isDisabled}
           />
         </DialogContent>
       </Dialog>

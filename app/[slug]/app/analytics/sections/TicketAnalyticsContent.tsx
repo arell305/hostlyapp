@@ -9,7 +9,7 @@ import { GetTotalRevenueByOrganizationData } from "@/types/convex-types";
 import { DollarSign } from "lucide-react";
 import { Ticket } from "lucide-react";
 import HorizontalBarChartContainer from "@/components/shared/analytics/HorizontalBarChartContainer";
-import { formatCurrencyAbbr } from "@/utils/helpers";
+import { formatCurrency, formatCurrencyAbbr } from "@/utils/helpers";
 
 interface TicketAnalyticsContentProps {
   revenueData: GetTotalRevenueByOrganizationData;
@@ -81,9 +81,7 @@ const TicketAnalyticsContent = ({
         title="Revenue by Day"
         data={revenueData.revenueByDay}
         xKey="date"
-        yKey="revenue"
         barKeys={["revenue"]}
-        barLabel="Revenue"
         tooltipFormatter={(v) =>
           `$${v.toLocaleString(undefined, {
             minimumFractionDigits: 2,
@@ -102,11 +100,9 @@ const TicketAnalyticsContent = ({
         title="Revenue by Event"
         data={revenueData.revenueByEvent}
         xKey="name"
-        yKey="revenue"
         barKeys={["revenue"]}
-        barLabel="Revenue"
-        tooltipFormatter={(v) => `$${v.toFixed(2)}`}
-        valueFormatter={(v) => `$${v.toFixed(0)}`}
+        tooltipFormatter={(v) => `${formatCurrency(v)}`}
+        valueFormatter={(v) => `${formatCurrency(v)}`}
         emptyDescription="No revenue by event data available"
       />
 

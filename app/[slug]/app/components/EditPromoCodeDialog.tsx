@@ -1,25 +1,25 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useEffect, useState } from "react";
+import useMediaQuery from "@/hooks/useMediaQuery";
+import { DESKTOP_WIDTH } from "@/types/constants";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { UserWithPromoCode } from "@/types/types";
-import useMediaQuery from "@/hooks/useMediaQuery";
-import { DESKTOP_WIDTH } from "@/types/constants";
 import {
   Drawer,
   DrawerContent,
   DrawerDescription,
-  DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import FormContainer from "@/components/shared/containers/FormContainer";
+import FormActions from "@/components/shared/buttonContainers/FormActions";
+import { UserWithPromoCode } from "@/types/types";
 import { useAddOrUpdatePromoterPromoCode } from "@/hooks/useAddorUpdatePromoterPromoCode";
 
 interface EditPromoCodeDialogProps {
@@ -33,16 +33,30 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
   setIsOpen,
   user,
 }) => {
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   const [promoCode, setPromoCode] = useState<string | null | undefined>(
     user?.promoCode
   );
-  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
-  const { addPromoCode, isLoading, error, setError } =
-    useAddOrUpdatePromoterPromoCode();
+  const [error, setError] = useState<string | null>(null);
+  const { addPromoCode, isLoading } = useAddOrUpdatePromoterPromoCode();
+
+  useEffect(() => {
+    if (!isDesktop) {
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, isDesktop]);
+
+  const resetState = () => {
+    setPromoCode(user?.promoCode ?? null);
+    setError(null);
+  };
 
   const handleClose = () => {
+    resetState();
     setIsOpen(false);
-    setError(null);
   };
 
   const handleSave = async () => {
@@ -57,7 +71,7 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
     }
 
     if (promoCode === user?.promoCode) {
-      setIsOpen(false);
+      handleClose();
       return;
     }
 
@@ -66,108 +80,58 @@ const EditPromoCodeDialog: React.FC<EditPromoCodeDialogProps> = ({
       handleClose();
     }
   };
-  if (isDesktop) {
-    return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="rounded-[10px]">
-          <DialogHeader>
-            <DialogTitle>
-              {user?.promoCodeId ? "Edit Promo Code" : "Add Promo Code"}
-            </DialogTitle>
-            <DialogDescription>
-              {user?.promoCodeId
-                ? "Edit your current promo code below."
-                : "Enter a new promo code below."}
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            value={promoCode || ""}
-            onChange={(e) => {
-              setPromoCode(e.target.value);
-              setError(null);
-            }}
-            placeholder="Enter promo code"
-            disabled={isLoading}
-            error={error || undefined}
-          />
-          <p
-            className={`text-sm mt-1 ${error ? "text-red-500" : "text-transparent"}`}
-          >
-            {error || "Placeholder to maintain height"}
-          </p>{" "}
-          <div className="flex justify-center space-x-10 mt-4">
-            <Button
-              variant="ghost"
-              onClick={() => setIsOpen(false)}
-              disabled={isLoading}
-              className="font-semibold  w-[140px]"
-            >
-              Cancel
-            </Button>
-            <Button
-              className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
-              onClick={handleSave}
-              disabled={isLoading}
-              isLoading={isLoading}
-            >
-              Save
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
-  return (
+  const isDisabled = isLoading || !promoCode || !promoCode.trim();
+
+  const formContent = (
+    <FormContainer>
+      <Input
+        value={promoCode || ""}
+        onChange={(e) => {
+          setPromoCode(e.target.value);
+          setError(null);
+        }}
+        placeholder="Enter promo code"
+        disabled={isLoading}
+      />
+      <p
+        className={`text-sm mt-1 ${
+          error ? "text-red-500" : "text-transparent"
+        }`}
+      >
+        {error || "Placeholder to maintain height"}
+      </p>
+
+      <FormActions
+        onCancel={handleClose}
+        onSubmit={handleSave}
+        isLoading={isLoading}
+        submitText="Save"
+        error={error}
+        isSubmitDisabled={isDisabled}
+      />
+    </FormContainer>
+  );
+
+  const title = user?.promoCodeId ? "Edit Promo Code" : "Add Promo Code";
+  const description = user?.promoCodeId
+    ? "Edit your current promo code below."
+    : "Enter a new promo code below.";
+
+  return isDesktop ? (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{description}</DialogDescription>
+        {formContent}
+      </DialogContent>
+    </Dialog>
+  ) : (
     <Drawer open={isOpen} onOpenChange={handleClose}>
-      <DrawerContent className="rounded-t-[10px]">
-        <DrawerHeader>
-          <DrawerTitle>
-            {user?.promoCodeId ? "Edit Promo Code" : "Add Promo Code"}
-          </DrawerTitle>
-          <DrawerDescription>
-            {user?.promoCodeId
-              ? "Edit your current promo code below."
-              : "Enter a new promo code below."}
-          </DrawerDescription>
-        </DrawerHeader>
-        <div className="px-4">
-          <Input
-            value={promoCode || ""}
-            onChange={(e) => {
-              setPromoCode(e.target.value);
-              setError(null);
-            }}
-            placeholder="Enter promo code"
-            disabled={isLoading}
-            error={error || undefined}
-          />
-          <p
-            className={`text-sm mt-1 ${
-              error ? "text-red-500" : "text-transparent"
-            }`}
-          >
-            {error || "Placeholder to maintain height"}
-          </p>
-          <div className="flex justify-center space-x-10 mt-4 pb-4">
-            <Button
-              variant="ghost"
-              onClick={() => setIsOpen(false)}
-              disabled={isLoading}
-              className="font-semibold w-[140px]"
-            >
-              Cancel
-            </Button>
-            <Button
-              className="bg-customDarkBlue rounded-[20px] w-[140px] font-semibold"
-              onClick={handleSave}
-              disabled={isLoading}
-              isLoading={isLoading}
-            >
-              Save
-            </Button>
-          </div>
-        </div>
+      <DrawerContent className="h-[100svh] flex flex-col overscroll-contain">
+        <DrawerTitle>{title}</DrawerTitle>
+        <DrawerDescription>{description}</DrawerDescription>
+        {formContent}
       </DrawerContent>
     </Drawer>
   );

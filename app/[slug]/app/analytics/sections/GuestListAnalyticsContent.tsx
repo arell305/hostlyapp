@@ -61,12 +61,10 @@ const GuestListAnalyticsContent = ({
         title="Event Headcount by Gender"
         data={guestListKpisData.eventCheckInData}
         xKey="name"
-        yKey="male"
         barKeys={["male", "female"]}
-        barLabel="Check-ins"
         tooltipFormatter={(v) => `${v}`}
         valueFormatter={(v) => `${v}`}
-        emptyDescription="No event check-in data available"
+        emptyDescription="No event check-in data available."
       />
       {canViewCompanyAnalytics && (
         <HorizontalBarChartContainer

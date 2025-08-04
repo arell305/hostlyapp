@@ -68,9 +68,7 @@ const PromoterTicketAnalyticsContent = ({
         title="Ticket Sales by Type"
         data={flattenedSales}
         xKey="date"
-        yKey={ticketTypeNames[0] || "count"} // fallback key for typing
         barKeys={ticketTypeNames}
-        barLabel="Ticket Sales"
         tooltipFormatter={(v) => `${v} tickets`}
         valueFormatter={(v) => `${v}`}
         emptyDescription="No ticket sales data available"

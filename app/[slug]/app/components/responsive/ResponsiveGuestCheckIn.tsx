@@ -42,6 +42,8 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
   );
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
+  const isDisabled = maleCount === 0 && femaleCount === 0;
+
   const handleSave = () => {
     onSave(guest._id, maleCount, femaleCount);
   };
@@ -83,7 +85,7 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
             submitText="Save"
             submitVariant="default"
             error={error}
-            isSubmitDisabled={isLoading}
+            isSubmitDisabled={isDisabled}
           />
         </DialogContent>
       </Dialog>

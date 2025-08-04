@@ -46,6 +46,8 @@ const AddGuestListPage: React.FC<AddGuestListContentProps> = ({
     }
   };
 
+  const isDisabled = isLoading || !guestInput || !guestInput.trim();
+
   return (
     <SectionContainer>
       <AddGuestTopRow
@@ -58,7 +60,9 @@ const AddGuestListPage: React.FC<AddGuestListContentProps> = ({
         <p>
           Enter each guest on a new line. Optionally, include a phone number.
         </p>
-        <p className="text-grayText">Example: Jane Doe 5556667777</p>
+        <p className="text-grayText mt-2">Example:</p>
+        <p className="text-grayText">Mary White 1112223333</p>
+        <p className="text-grayText">John Doe 4445556666</p>
       </div>
       <LabeledTextAreaField
         label="Guest Names and Phone Numbers"
@@ -79,6 +83,7 @@ const AddGuestListPage: React.FC<AddGuestListContentProps> = ({
         onCancel={handleGoBack}
         onSubmit={handleSubmit}
         isLoading={isLoading}
+        isSubmitDisabled={isDisabled}
         error={error}
         submitText="Add Guests"
       />

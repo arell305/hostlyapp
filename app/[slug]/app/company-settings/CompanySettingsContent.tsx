@@ -97,6 +97,7 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
   };
 
   const isCompanyNameDisabled = !companyName || companyName.trim() === "";
+  const isPromoDiscountDisabled = !promoDiscount || promoDiscount.trim() === "";
 
   return (
     <section>
@@ -150,6 +151,7 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
             name="promoDiscount"
             error={promoError}
             className={isEditing ? "" : "border-t "}
+            disabled={isPromoDiscountDisabled}
           />
         </EditableContainer>
       </CustomCard>

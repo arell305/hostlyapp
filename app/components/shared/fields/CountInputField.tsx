@@ -27,7 +27,9 @@ const CountInputField: React.FC<CountInputFieldProps> = ({
           value={value}
           onChange={(e) => onChange(Math.max(0, Number(e.target.value)))}
           className="w-10 text-center text-xl"
+          onFocus={(e) => e.target.select()}
         />
+
         <IconButton icon={<Plus />} onClick={() => onChange(value + 1)} />
       </div>
     </div>

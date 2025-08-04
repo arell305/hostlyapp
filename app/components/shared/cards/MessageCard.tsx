@@ -9,6 +9,7 @@ interface MessageCardProps {
   buttonLabel?: string;
   onButtonClick?: () => void;
   className?: string;
+  showButton?: boolean;
 }
 
 const MessageCard: React.FC<MessageCardProps> = ({
@@ -17,6 +18,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
   buttonLabel,
   onButtonClick,
   className = "",
+  showButton = true,
 }) => {
   const router = useRouter();
   const handleButtonClick = () => {
@@ -30,9 +32,11 @@ const MessageCard: React.FC<MessageCardProps> = ({
     <CustomCard className={`p-4 ${className} w-full mx-2 md:mx-0  `}>
       <h2 className="text-xl font-semibold">{title}</h2>
       <p className="text-grayText mt-2">{description}</p>
-      <div className="mt-8 flex justify-center">
-        <Button onClick={handleButtonClick}>{buttonLabel}</Button>
-      </div>
+      {showButton && (
+        <div className="mt-8 flex justify-center">
+          <Button onClick={handleButtonClick}>{buttonLabel}</Button>
+        </div>
+      )}
     </CustomCard>
   );
 };

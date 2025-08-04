@@ -17,8 +17,6 @@ import MessageCard from "../cards/MessageCard";
 interface BarChartContainerProps<T> {
   data: T[];
   xKey: keyof T;
-  yKey: keyof T;
-  barLabel?: string;
   title: string;
   tooltipFormatter?: (value: number) => string;
   valueFormatter?: (value: number) => string;
@@ -29,8 +27,6 @@ interface BarChartContainerProps<T> {
 const BarChartContainer = <T extends Record<string, any>>({
   data,
   xKey,
-  yKey,
-  barLabel,
   title,
   tooltipFormatter = (value: number) => `$${value.toFixed(2)}`,
   valueFormatter = (value: number) => `$${value.toFixed(2)}`,
@@ -72,7 +68,13 @@ const BarChartContainer = <T extends Record<string, any>>({
   };
 
   if (data.length === 0) {
-    return <MessageCard title={title} description={emptyDescription} />;
+    return (
+      <MessageCard
+        showButton={false}
+        title={title}
+        description={emptyDescription}
+      />
+    );
   }
 
   return (

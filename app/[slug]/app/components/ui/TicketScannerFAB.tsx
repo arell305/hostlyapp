@@ -9,6 +9,7 @@ const TicketScannerFAB = () => {
     <>
       <button
         onClick={() => setOpen(true)}
+        title="Scan QR Code"
         className="z-[999] fixed bottom-6 right-6 bg-primaryBlue text-white p-4 rounded-full  hover:bg-blue-700 transition shadow shadow-glow-white"
       >
         <QrCode size={24} />

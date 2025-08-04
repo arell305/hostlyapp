@@ -31,10 +31,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/favicon_io/android-chrome-512x512.png",
+        url: "/logo/logo.png",
         width: 1200,
         height: 630,
-        alt: "computer favicon",
+        alt: "Hostly Logo",
       },
     ],
   },

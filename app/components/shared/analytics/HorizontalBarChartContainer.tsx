@@ -54,7 +54,13 @@ const HorizontalBarChartContainer = <T extends Record<string, any>>({
   };
 
   if (data.length === 0) {
-    return <MessageCard title={title} description={emptyDescription} />;
+    return (
+      <MessageCard
+        showButton={false}
+        title={title}
+        description={emptyDescription}
+      />
+    );
   }
 
   return (

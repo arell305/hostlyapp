@@ -19,6 +19,7 @@ interface EditableCurrencyFieldProps {
   isSaving: boolean;
   error?: string | null;
   className?: string;
+  disabled?: boolean;
 }
 
 const EditableCurrencyField: React.FC<EditableCurrencyFieldProps> = ({
@@ -31,6 +32,7 @@ const EditableCurrencyField: React.FC<EditableCurrencyFieldProps> = ({
   isSaving,
   error,
   className,
+  disabled,
 }) => {
   return (
     <EditableFieldWrapper className={className}>
@@ -67,7 +69,8 @@ const EditableCurrencyField: React.FC<EditableCurrencyFieldProps> = ({
           <IconButton
             icon={<SavingIcon isSaving={isSaving} />}
             onClick={onSave}
-            disabled={isSaving}
+            disabled={isSaving || disabled}
+            title={disabled ? "Disabled" : "Save"}
           />
         </div>
       ) : (
