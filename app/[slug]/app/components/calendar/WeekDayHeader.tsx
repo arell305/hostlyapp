@@ -13,7 +13,7 @@ const WeekdayHeader: React.FC<WeekdayHeaderProps> = ({ weekdays }) => {
       {weekdays.map((day) => (
         <div
           key={day.toISOString()}
-          className="w-[14.2857%] text-center text-xs font-semibold text-gray-600"
+          className="w-[14.2857%] text-center text-xs font-semibold text-gray-400"
         >
           {formatNarrowWeekday(undefined, day)}
         </div>

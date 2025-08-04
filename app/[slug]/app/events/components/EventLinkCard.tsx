@@ -18,7 +18,7 @@ const EventLinkCard: React.FC<EventLinkCardProps> = ({ eventId }) => {
   return (
     <CustomCard>
       <StaticField
-        label="Event Link"
+        label="Link"
         value={eventListUrl}
         link={eventListUrl}
         icon={<FiLink className="text-xl" />}

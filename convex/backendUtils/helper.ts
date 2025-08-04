@@ -6,7 +6,6 @@ import {
   ResponseStatus,
   UserRole,
   SubscriptionTier,
-  Gender,
 } from "@/types/enums";
 import {
   GuestListSchema,
@@ -17,7 +16,6 @@ import {
 import {
   EventSchema,
   EventTicketTypesSchema,
-  TicketSchema,
   UserSchema,
 } from "@/types/schemas-types";
 import { Id } from "../_generated/dataModel";
@@ -532,6 +530,7 @@ export async function getTicketSoldCounts(
     ctx.db
       .query("eventTicketTypes")
       .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+      .filter((q) => q.eq(q.field("isActive"), true))
       .collect(),
   ]);
 

@@ -15,6 +15,7 @@ import { QueryState } from "@/types/enums";
 import { GetEventByIdData } from "@/types/convex-types";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
 import NProgress from "nprogress";
+import ErrorPage from "../../components/errors/ErrorPage";
 
 export default function EventPageWrapper() {
   const params = useParams();
@@ -70,7 +71,7 @@ export default function EventPageWrapper() {
   }
 
   if (organizationContextError) {
-    return <ErrorComponent message={organizationContextError} />;
+    return <ErrorPage title={organizationContextError} />;
   }
 
   if (eventResult.type === QueryState.Error) {

@@ -21,7 +21,7 @@ const TicketTimeCard = ({
   canEditEvent,
 }: TicketTimeCardProps) => {
   return (
-    <div className={className}>
+    <div className={`${className} space-y-8`}>
       {ticketInfo.map((ticket) => {
         const isTicketsSalesOpen =
           typeof ticket.ticketSalesEndTime === "number" &&
@@ -32,10 +32,10 @@ const TicketTimeCard = ({
             ?.count ?? 0;
 
         return (
-          <div key={ticket._id}>
+          <div key={ticket._id} className="">
             <h2 className="font-medium mb-1">Tickets: {ticket.name}</h2>
 
-            <CustomCard key={ticket._id} className="mb-4">
+            <CustomCard key={ticket._id} className="">
               <StaticField
                 label={isTicketsSalesOpen ? "Sales End:" : "Sales Ended:"}
                 value={

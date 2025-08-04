@@ -86,7 +86,7 @@ const StaticField: React.FC<StaticFieldProps> = ({
           </>
         ) : (
           <p
-            className="text-lg font-medium truncate overflow-hidden whitespace-nowrap"
+            className="text-lg font-medium "
             title={typeof value === "string" ? value : undefined}
           >
             {value !== null && value !== undefined && value !== ""

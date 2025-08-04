@@ -65,6 +65,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
               ticketTotals={ticketSalesByPromoterData.ticketTotals ?? []}
               ticketInfo={ticketInfo}
               canEditEvent={canEditEvent}
+              className=""
             />
 
             {isPromoter && ticketSalesByPromoterData.tickets.length > 0 && (
@@ -74,10 +75,13 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
             )}
           </>
         ) : (
-          <EmptyStateCard
-            message="There is no ticket option for this event."
-            icon={<LuClipboardList className="text-2xl" />}
-          />
+          <div>
+            <h2 className="font-medium mb-1">Tickets</h2>
+            <EmptyStateCard
+              message="There is no ticket option for this event."
+              icon={<LuClipboardList className="text-2xl" />}
+            />
+          </div>
         )}
       </div>
 

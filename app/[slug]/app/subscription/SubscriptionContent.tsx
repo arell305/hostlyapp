@@ -120,11 +120,11 @@ const SubscriptionContent = ({
         <StaticField
           label="Amount"
           value={`${formatCurrency(subscription.amount)}/month`}
-          secondaryValue={
-            subscription.discount
-              ? `${subscription.discount.discountPercentage}% Discount Applied`
-              : ""
-          }
+          // secondaryValue={
+          //   subscription.discount
+          //     ? `${subscription.discount.discountPercentage}% Discount Applied`
+          //     : ""
+          // }
         />
         {showGuestEventsThisCycle && (
           <StaticField

@@ -11,7 +11,8 @@ const OrderReceipt: React.FC<OrderReceiptProps> = ({ onBrowseMoreEvents }) => (
       <h2 className="mb-2 text-2xl font-bold ">Success!</h2>
       <div className="mt-1 ">
         <p className="text-sm 3">
-          You will an email with your tickets. Thank you for your purchase!
+          You will receive an email with your tickets. Thank you for your
+          purchase!
         </p>
       </div>
     </div>

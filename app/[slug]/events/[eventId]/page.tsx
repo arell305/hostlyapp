@@ -14,6 +14,7 @@ import { ArrowLeft } from "lucide-react";
 import HomeNav from "@/[slug]/app/components/nav/HomeNav";
 import NProgress from "nprogress";
 import EventContentWrapper from "./components/EventCheckoutWrapper";
+import ErrorPage from "@/[slug]/app/components/errors/ErrorPage";
 
 const EventPage = () => {
   const { name, photo, isStripeEnabled, connectedAccountStripeId } =
@@ -58,7 +59,7 @@ const EventPage = () => {
   }
 
   if (getEventByIdResponse.status === ResponseStatus.ERROR) {
-    return <ErrorComponent message={getEventByIdResponse.error} />;
+    return <ErrorPage title={getEventByIdResponse.error} />;
   }
   const eventData = getEventByIdResponse?.data?.event;
   const ticketTypes = getEventByIdResponse?.data?.ticketTypes;
@@ -67,7 +68,7 @@ const EventPage = () => {
     <div>
       <HomeNav user={user} handleNavigateHome={handleBrowseMoreEvents} />
 
-      <main>
+      <main className="pb-10">
         <div className="px-4 mt-2">
           <button
             onClick={handleBrowseMoreEvents}

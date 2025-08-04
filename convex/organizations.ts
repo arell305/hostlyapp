@@ -490,6 +490,7 @@ export const getPublicOrganizationContext = query({
           q.eq("organizationId", organization._id)
         )
         .filter((q) => q.gt(q.field("endTime"), now))
+        .filter((q) => q.eq(q.field("isActive"), true))
         .order("asc")
         .collect();
 
