@@ -447,12 +447,150 @@ export const getGuestsGroupedByPromoter = query({
   },
 });
 
+// export const getPromoterGuestStats = query({
+//   args: {
+//     eventId: v.id("events"),
+//   },
+//   handler: async (ctx, args): Promise<GetPromoterGuestStatsResponse> => {
+//     const { eventId } = args;
+//     try {
+//       const identity = await requireAuthenticatedUser(ctx, [
+//         UserRole.Admin,
+//         UserRole.Hostly_Admin,
+//         UserRole.Hostly_Moderator,
+//         UserRole.Moderator,
+//         UserRole.Manager,
+//         UserRole.Promoter,
+//       ]);
+
+//       const clerkUserId = identity.id as string;
+
+//       const user = validateUser(
+//         await ctx.db
+//           .query("users")
+//           .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+//           .first()
+//       );
+
+//       const event = validateEvent(await ctx.db.get(eventId));
+//       isUserInCompanyOfEvent(user, event);
+
+//       const guestListInfo: GuestListInfoSchema | null = await ctx.db
+//         .query("guestListInfo")
+//         .first();
+
+//       if (!guestListInfo) {
+//         return {
+//           status: ResponseStatus.SUCCESS,
+//           data: { promoterGuestStats: [] },
+//         };
+//       }
+
+//       const isManager = [
+//         UserRole.Admin,
+//         UserRole.Hostly_Admin,
+//         UserRole.Hostly_Moderator,
+//         UserRole.Moderator,
+//         UserRole.Manager,
+//       ].includes(user.role as UserRole);
+
+//       const allEntries = await ctx.db
+//         .query("guestListEntries")
+//         .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+//         .filter((q) => q.eq(q.field("isActive"), true))
+//         .collect();
+
+//       const entriesToUse = isManager
+//         ? allEntries
+//         : allEntries.filter((e) => e.userPromoterId === user._id);
+
+//       const grouped = new Map<
+//         Id<"users">,
+//         Omit<PromoterGuestStatsData, "entries">
+//       >();
+
+//       let totalMales = 0;
+//       let totalFemales = 0;
+//       let totalRSVPs = 0;
+//       let totalCheckedIn = 0;
+//       for (const entry of entriesToUse) {
+//         const promoterId = entry.userPromoterId;
+//         if (!promoterId) continue;
+
+//         const existing = grouped.get(promoterId) ?? {
+//           promoterId,
+//           promoterName: "",
+//           totalMales: 0,
+//           totalFemales: 0,
+//           totalRSVPs: 0,
+//           totalCheckedIn: 0,
+//         };
+
+//         const males = entry.malesInGroup ?? 0;
+//         const females = entry.femalesInGroup ?? 0;
+
+//         existing.totalMales += males;
+//         existing.totalFemales += females;
+//         existing.totalRSVPs += 1;
+//         existing.totalCheckedIn += entry.attended ? 1 : 0;
+
+//         grouped.set(promoterId, existing);
+
+//         if (isManager) {
+//           totalMales += males;
+//           totalFemales += females;
+//           totalRSVPs += 1;
+//           totalCheckedIn += entry.attended ? 1 : 0;
+//         }
+//       }
+
+//       const promoterIds = Array.from(grouped.keys());
+//       const users = await Promise.all(promoterIds.map((id) => ctx.db.get(id)));
+
+//       users
+//         .filter((u) => u !== null)
+//         .forEach((u) => {
+//           const summary = grouped.get(u!._id);
+//           if (summary) summary.promoterName = u!.name ?? "";
+//         });
+
+//       const sortedStats = Array.from(grouped.values()).sort(
+//         (a, b) => b.totalCheckedIn - a.totalCheckedIn
+//       );
+
+//       const data: {
+//         promoterGuestStats: Omit<PromoterGuestStatsData, "entries">[];
+//         checkInData?: CheckInData;
+//       } = {
+//         promoterGuestStats: sortedStats,
+//       };
+
+//       if (isManager) {
+//         data.checkInData = {
+//           totalCheckedIn,
+//           totalMales,
+//           totalFemales,
+//           totalRSVPs,
+//         };
+//       }
+
+//       return {
+//         status: ResponseStatus.SUCCESS,
+//         data,
+//       };
+//     } catch (error) {
+//       return handleError(error);
+//     }
+//   },
+// });
+
 export const getPromoterGuestStats = query({
   args: {
     eventId: v.id("events"),
   },
   handler: async (ctx, args): Promise<GetPromoterGuestStatsResponse> => {
     const { eventId } = args;
+
     try {
       const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Admin,
@@ -505,7 +643,7 @@ export const getPromoterGuestStats = query({
         : allEntries.filter((e) => e.userPromoterId === user._id);
 
       const grouped = new Map<
-        Id<"users">,
+        string, // userId as string or "company"
         Omit<PromoterGuestStatsData, "entries">
       >();
 
@@ -513,13 +651,13 @@ export const getPromoterGuestStats = query({
       let totalFemales = 0;
       let totalRSVPs = 0;
       let totalCheckedIn = 0;
-      for (const entry of entriesToUse) {
-        const promoterId = entry.userPromoterId;
-        if (!promoterId) continue;
 
-        const existing = grouped.get(promoterId) ?? {
-          promoterId,
-          promoterName: "",
+      for (const entry of entriesToUse) {
+        const promoterKey = entry.userPromoterId ?? "company";
+
+        const existing = grouped.get(promoterKey) ?? {
+          promoterId: promoterKey as any,
+          promoterName: promoterKey === "company" ? "Company" : "",
           totalMales: 0,
           totalFemales: 0,
           totalRSVPs: 0,
@@ -534,7 +672,7 @@ export const getPromoterGuestStats = query({
         existing.totalRSVPs += 1;
         existing.totalCheckedIn += entry.attended ? 1 : 0;
 
-        grouped.set(promoterId, existing);
+        grouped.set(promoterKey, existing);
 
         if (isManager) {
           totalMales += males;
@@ -544,7 +682,10 @@ export const getPromoterGuestStats = query({
         }
       }
 
-      const promoterIds = Array.from(grouped.keys());
+      const promoterIds = Array.from(grouped.keys()).filter(
+        (id) => id !== "company"
+      ) as Id<"users">[];
+
       const users = await Promise.all(promoterIds.map((id) => ctx.db.get(id)));
 
       users
@@ -660,12 +801,13 @@ export const getGuestListKpis = query({
           (entry) => entry.userPromoterId === user._id
         );
       }
+
       const currentPromoterSet = new Set(
-        currentEntries.map((e) => e.userPromoterId?.toString() ?? "")
+        currentEntries.map((e) => e.userPromoterId?.toString() ?? "company")
       );
 
       const previousPromoterSet = new Set(
-        previousEntries.map((e) => e.userPromoterId?.toString() ?? "")
+        previousEntries.map((e) => e.userPromoterId?.toString() ?? "company")
       );
 
       const currentKpis = computeKpis(
@@ -699,32 +841,60 @@ export const getGuestListKpis = query({
         };
       });
 
+      const uniquePromoterIds = Array.from(
+        new Set(
+          currentEntries.map((e) => e.userPromoterId?.toString() ?? "company")
+        )
+      );
+
       const promoterLeaderboard = await Promise.all(
-        Array.from(
-          new Set(currentEntries.map((e) => e.userPromoterId?.toString() ?? ""))
-        ).map(async (promoterIdStr) => {
-          const promoterId = promoterIdStr as Id<"users">;
-          const promoter = await ctx.db.get(promoterId);
-          const entries = currentEntries.filter(
-            (e) => e.userPromoterId === promoterId && e.attended
-          );
+        uniquePromoterIds.map(async (promoterIdStr) => {
+          if (promoterIdStr === "company") {
+            const entries = currentEntries.filter(
+              (e) => !e.userPromoterId && e.attended
+            );
 
-          const male = entries.reduce(
-            (sum, e) => sum + (e.malesInGroup || 0),
-            0
-          );
-          const female = entries.reduce(
-            (sum, e) => sum + (e.femalesInGroup || 0),
-            0
-          );
+            const male = entries.reduce(
+              (sum, e) => sum + (e.malesInGroup || 0),
+              0
+            );
+            const female = entries.reduce(
+              (sum, e) => sum + (e.femalesInGroup || 0),
+              0
+            );
 
-          return {
-            name: promoter?.name || "Unknown",
-            male,
-            female,
-          };
+            return {
+              name: "Company",
+              male,
+              female,
+            };
+          } else {
+            const promoterId = promoterIdStr as Id<"users">;
+            const promoter = await ctx.db.get(promoterId);
+            const entries = currentEntries.filter(
+              (e) => e.userPromoterId === promoterId && e.attended
+            );
+
+            const male = entries.reduce(
+              (sum, e) => sum + (e.malesInGroup || 0),
+              0
+            );
+            const female = entries.reduce(
+              (sum, e) => sum + (e.femalesInGroup || 0),
+              0
+            );
+
+            return {
+              name: promoter?.name || "Unknown",
+              male,
+              female,
+            };
+          }
         })
       );
+
+      // Sort leaderboard alphabetically by name (including Company)
+      promoterLeaderboard.sort((a, b) => a.name.localeCompare(b.name));
 
       return {
         status: ResponseStatus.SUCCESS,
