@@ -40,6 +40,10 @@ Detailed information about the tech stack, database, and API design can be found
 
 The application is deployed at [hostlyapp.com](hostlyapp.com).
 
+## Staging
+
+The application is deployed for staging at [https://hostlystaging.vercel.app/](https://hostlystaging.vercel.app/).
+
 ## User Stories
 
 User stories for this project can be viewed [here](https://docs.google.com/document/d/1WwRWuncTOXTl1gNuvq8ovf7ouA9e1GGhARNtAh3aflM/edit?usp=sharing)
