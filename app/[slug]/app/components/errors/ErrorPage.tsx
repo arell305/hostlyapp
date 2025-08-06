@@ -16,7 +16,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
   const router = useRouter();
 
   return (
-    <StaticPageContainer>
+    <div>
       <MessageCard
         title={title}
         description={description}
@@ -27,7 +27,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
         }}
         className="max-w-[700px]"
       />
-    </StaticPageContainer>
+    </div>
   );
 };
 

@@ -82,7 +82,7 @@ const GuestCard: React.FC<GuestCardProps> = ({
       {guest.attended && guest.checkInTime && (
         <div className="flex items-center justify-center flex-col gap-y-1 w-[40px]">
           <FaCheckCircle className=" text-primaryBlue text-center" size={33} />
-          <p className="text-xs text-gray-Text">
+          <p className="text-xs text-grayText">
             {" "}
             {formatArrivalTime(guest.checkInTime)}
           </p>

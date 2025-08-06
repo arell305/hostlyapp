@@ -6,7 +6,8 @@ import FullLoading from "../components/loading/FullLoading";
 import ErrorComponent from "../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import AddEventContent from "./AddEventContent";
-import { isAdmin } from "@/utils/permissions";
+import { isAdmin, isManager } from "@/utils/permissions";
+import MessagePage from "@/components/shared/shared-page/MessagePage";
 
 const AddEventPage: FC = () => {
   const {
@@ -19,6 +20,7 @@ const AddEventPage: FC = () => {
     orgRole,
   } = useContextOrganization();
   const isCompanyAdmin = isAdmin(orgRole);
+  const isCompanyManagerOrHostly = isManager(orgRole);
 
   if (
     !subscription ||
@@ -34,6 +36,15 @@ const AddEventPage: FC = () => {
     return <ErrorComponent message={organizationContextError} />;
   }
 
+  if (!isCompanyManagerOrHostly) {
+    return (
+      <MessagePage
+        title="Unauthorized Access"
+        description="You are not authorized to access this page. Please contact support if you believe this is an error."
+        buttonLabel="Home"
+      />
+    );
+  }
   return (
     <AddEventContent
       organization={organization}

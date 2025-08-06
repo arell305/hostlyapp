@@ -61,6 +61,8 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
     </CountInputContainer>
   );
 
+  const description = "Enter the amount of males and females in group.";
+
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -69,9 +71,7 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
             <DialogTitle className="flex flex-col">
               {`${guest.name || "Guest"}`}
             </DialogTitle>
-            <DialogDescription>
-              Check in the guest you want to add to the event.
-            </DialogDescription>
+            <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
 
           {renderCheckInForm()}
@@ -94,8 +94,8 @@ const ResponsiveGuestCheckIn: React.FC<ResponsiveGuestCheckInProps> = ({
       isOpen={isOpen}
       onOpenChange={onClose}
       title={`${guest.name || "Guest"}`}
-      description={`Enter the amount of males and females in group`}
-      confirmText={isLoading ? "Saving..." : "Save"}
+      description={description}
+      confirmText="Save"
       cancelText="Cancel"
       onSubmit={handleSave}
       error={error}

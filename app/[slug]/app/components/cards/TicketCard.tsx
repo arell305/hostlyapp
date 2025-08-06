@@ -38,15 +38,15 @@ const TicketCard: React.FC<TicketCardProps> = ({
       <div className="flex flex-col flex-1 min-w-0">
         <div className="flex justify-between items-center mb-1">
           <p className="font-semibold truncate">{ticket.ticketUniqueId}</p>
-          <p className="text-sm text-grayText font-medium">
-            {ticket.ticketTypeName}
-          </p>
         </div>
 
-        <div className="flex justify-between items-center">
-          <p className="text-grayText text-sm truncate">{ticket.email}</p>
+        <div className="flex  items-center">
+          <p className="text-grayText text-sm truncate">
+            {" "}
+            {ticket.ticketTypeName}
+          </p>
           {ticket.promoterName && (
-            <Badge className="ml-2 text-xs text-grayText whitespace-nowrap">
+            <Badge className="flex pt-[2px] space-x-1 ml-2">
               Promoter: {ticket.promoterName}
             </Badge>
           )}
@@ -54,9 +54,9 @@ const TicketCard: React.FC<TicketCardProps> = ({
       </div>
 
       {ticket.checkInTime && (
-        <div className="flex items-center justify-center flex-col w-[50px] ml-2">
-          <FaCheckCircle className="text-primaryBlue" size={28} />
-          <p className="text-xs text-grayText text-center">
+        <div className="flex items-center justify-center flex-col gap-y-1 w-[40px]">
+          <FaCheckCircle className=" text-primaryBlue text-center" size={33} />
+          <p className="text-xs text-grayText">
             {formatArrivalTime(ticket.checkInTime)}
           </p>
         </div>

@@ -2,7 +2,6 @@
 
 import React from "react";
 import MessageCard from "@/components/shared/cards/MessageCard";
-import StaticPageContainer from "../containers/StaticPageContainer";
 
 interface MessagePageProps {
   title: string;
@@ -22,15 +21,17 @@ const MessagePage: React.FC<MessagePageProps> = ({
   containerClassName = "",
 }) => {
   return (
-    <StaticPageContainer className={containerClassName}>
+    <div
+      className={`flex items-center justify-center min-h-screen px-2 -translate-y-[100px] ${containerClassName}`}
+    >
       <MessageCard
         title={title}
         description={description}
         buttonLabel={buttonLabel}
         onButtonClick={onButtonClick}
-        className={`mx-2 max-w-[700px] w-full ${cardClassName}`}
+        className={`max-w-[700px] w-full ${cardClassName}`}
       />
-    </StaticPageContainer>
+    </div>
   );
 };
 

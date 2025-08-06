@@ -9,9 +9,13 @@ import { Id } from "convex/_generated/dataModel";
 import { api } from "convex/_generated/api";
 import { useEventForm } from "@/contexts/EventFormContext";
 
-interface EventPhotoSectionProps {}
+interface EventPhotoSectionProps {
+  isEdit?: boolean;
+}
 
-const EventPhotoSection: React.FC<EventPhotoSectionProps> = ({}) => {
+const EventPhotoSection: React.FC<EventPhotoSectionProps> = ({
+  isEdit = false,
+}) => {
   const { photoStorageId, setPhotoStorageId, errors, setErrors } =
     useEventForm();
   const [isPhotoLoading, setIsPhotoLoading] = useState<boolean>(false);
@@ -62,6 +66,7 @@ const EventPhotoSection: React.FC<EventPhotoSectionProps> = ({}) => {
       error={error || errors.photo}
       onChange={handlePhotoChange}
       onRemove={handleRemovePhoto}
+      isEdit={isEdit}
     />
   );
 };

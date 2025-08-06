@@ -21,6 +21,7 @@ const Logo = () => {
         width={124}
         height={20}
         priority
+        style={{ width: "124px", height: "80px" }} // lock both dimensions
       />
     </div>
   );

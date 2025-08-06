@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
+import clsx from "clsx";
 
 interface EventImageWithPlaceholderProps {
   src?: string | null;
@@ -10,20 +11,27 @@ const EventImageWithPlaceholder: React.FC<EventImageWithPlaceholderProps> = ({
   src,
   alt = "Event Image",
 }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
     <div className="relative rounded-md w-full aspect-[4/5] bg-gray-200 overflow-hidden">
-      {src ? (
+      {/* Skeleton placeholder */}
+      {(!src || isLoading) && (
+        <div className="absolute inset-0 bg-gray-500 animate-pulse rounded-md" />
+      )}
+
+      {src && (
         <Image
           src={src}
           alt={alt}
           fill
-          className="object-cover rounded-md transition-opacity duration-300"
           sizes="160px"
+          onLoadingComplete={() => setIsLoading(false)}
+          className={clsx(
+            "object-cover rounded-md transition-opacity duration-300",
+            isLoading ? "opacity-0" : "opacity-100"
+          )}
         />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">
-          Loading image...
-        </div>
       )}
     </div>
   );

@@ -48,8 +48,8 @@ export function handleQueryState<T>(
       element: (
         <MessagePage
           title="Error"
-          description={queryResult.error || "An error occurred."}
-          buttonLabel="Go to Home"
+          description={`${queryResult.error || "An error occurred"}. Please contact support if you believe this is an error.`}
+          buttonLabel="Home"
         />
       ),
     };

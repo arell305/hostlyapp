@@ -14,6 +14,7 @@ interface LabeledImageUploadFieldProps {
   error?: string | null;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: () => void;
+  isEdit?: boolean;
 }
 
 const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
@@ -24,7 +25,11 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
   error,
   onChange,
   onRemove,
+  isEdit = false,
 }) => {
+  // Show skeleton if loading OR in edit mode with no image
+  const showSkeleton = isLoading || (isEdit && !imageUrl);
+
   return (
     <div>
       <LabelWrapper className="relative">
@@ -45,14 +50,14 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
           <Label
             htmlFor={id}
             className={`focus:border-white w-[300px] aspect-[4/5] flex justify-center items-center cursor-pointer relative rounded-lg hover:bg-cardBackgroundHover ${
-              imageUrl ? "" : "border-2 border-dashed "
+              imageUrl ? "" : "border-2 border-dashed"
             }`}
           >
-            {isLoading ? (
-              <div className="w-full h-full border-2 border-dashed rounded-lg flex items-center justify-center">
-                <div className="h-6 w-6 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
-              </div>
+            {showSkeleton ? (
+              // Skeleton placeholder for both loading & edit-no-image state
+              <div className="absolute inset-0 bg-gray-500 animate-pulse rounded-lg" />
             ) : imageUrl ? (
+              // Uploaded image preview
               <Image
                 src={imageUrl}
                 alt="Uploaded Preview"
@@ -62,6 +67,7 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
                 height={200}
               />
             ) : (
+              // Add image icon
               <RiImageAddFill className="text-4xl text-gray-500" />
             )}
           </Label>
