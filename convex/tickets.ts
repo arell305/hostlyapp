@@ -7,7 +7,7 @@ import {
   query,
 } from "./_generated/server";
 import { TicketInput } from "@/types/types";
-import { ErrorMessages, Gender, UserRole, ResponseStatus } from "@/types/enums";
+import { ErrorMessages, UserRole, ResponseStatus } from "@/types/enums";
 import { Id } from "./_generated/dataModel";
 import {
   CustomerTicket,

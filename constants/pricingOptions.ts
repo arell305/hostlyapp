@@ -21,7 +21,7 @@ export const pricingOptions: PricingOption[] = [
   {
     id: "prod_QpJaBAWi59Guz9",
     tier: SubscriptionTier.ELITE,
-    price: "199.99",
+    price: "299.99",
     description: "Unlimited Tickets & Guest List",
     isFree: false,
     priceId: "price_1PxfD5Rv8MX5Pza1TJKtcBHK",
