@@ -4,9 +4,15 @@ import CompaniesContent from "./CompaniesContent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { isHostlyUser } from "@/utils/permissions";
 import ErrorPage from "../components/errors/ErrorPage";
+import FullLoading from "../components/loading/FullLoading";
 
 const CompaniesPage = () => {
   const { orgRole } = useContextOrganization();
+
+  if (!orgRole) {
+    return <FullLoading />;
+  }
+
   const preventAccess = !isHostlyUser(orgRole);
 
   if (preventAccess) {
