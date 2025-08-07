@@ -1,7 +1,7 @@
 "use client";
 
 import React, { ReactElement } from "react";
-import { QueryState, ResponseStatus } from "@/types/enums";
+import { ResponseStatus } from "@/types/enums";
 import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
 import { Skeleton } from "@/components/ui/skeleton";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
@@ -9,28 +9,29 @@ import { UserResource } from "@clerk/types";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
 import router from "next/router";
 import NProgress from "nprogress";
-export interface QuerySuccess<T> {
+import MemberCardSkeleton from "@/[slug]/app/components/loading/MemberCardSkeleton";
+export interface QuerySuccess1<T> {
   status: ResponseStatus.SUCCESS;
   data: T;
 }
 
 // Define the shape of an error response
-export interface QueryError {
+export interface QueryError1 {
   status: ResponseStatus.ERROR;
   error: string;
 }
 
 // Combine the success and error responses into a union type
-export type QueryResult<T> = QuerySuccess<T> | QueryError;
+export type QueryResult1<T> = QuerySuccess1<T> | QueryError1;
 
-export type QueryStateResult<T> =
-  | { type: QueryState.Loading; element: React.ReactElement }
-  | { type: QueryState.Error; element: React.ReactElement }
+export type QueryStateResult1<T> =
+  | { type: QueryState.Loading; element: React.ReactNode }
+  | { type: QueryState.Error; element: React.ReactNode }
   | { type: QueryState.Success; data: T };
 
 export function handleQueryState<T>(
-  queryResult: QueryResult<T> | undefined
-): QueryStateResult<T> {
+  queryResult: QueryResult1<T> | undefined
+): QueryStateResult1<T> {
   if (!queryResult) {
     return {
       type: QueryState.Loading,
@@ -56,6 +57,51 @@ export function handleQueryState<T>(
   }
 
   // At this point, TypeScript knows queryResult is of type QuerySuccess<T>
+  return { type: QueryState.Success, data: queryResult.data };
+}
+
+enum QueryState {
+  Loading = "loading",
+  Error = "error",
+  Success = "success",
+}
+export { QueryState };
+
+interface QueryStateResult<T> {
+  type: QueryState;
+  element?: React.ReactNode;
+  data?: T;
+}
+
+interface HandleQueryComponentStateOptions {
+  loadingComponent?: React.ReactNode;
+  errorComponent?: (message: string) => React.ReactNode;
+}
+
+export function handleQueryComponentState<T>(
+  queryResult: QueryResult1<T> | undefined,
+  options?: HandleQueryComponentStateOptions
+): QueryStateResult1<T> {
+  if (!queryResult) {
+    return {
+      type: QueryState.Loading,
+      element: options?.loadingComponent ?? <FullLoading />,
+    };
+  }
+
+  if (queryResult.status === ResponseStatus.ERROR) {
+    return {
+      type: QueryState.Error,
+      element: (
+        <ErrorComponent
+          message={`${
+            queryResult.error || "An error occurred"
+          }. Please contact support if you believe this is an error.`}
+        />
+      ),
+    };
+  }
+
   return { type: QueryState.Success, data: queryResult.data };
 }
 

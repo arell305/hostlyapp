@@ -3,11 +3,11 @@ import { useQuery } from "convex/react";
 import React from "react";
 import { OrganizationSchema } from "@/types/types";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus } from "@/types/enums";
+import { QueryState } from "@/types/enums";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import MemberCard from "../MemberCard";
 import MemberCardSkeleton from "../../components/loading/MemberCardSkeleton";
-import MessagePage from "@/components/shared/shared-page/MessagePage";
+import { handleQueryComponentState } from "@/utils/handleQueryState";
 
 interface ActiveMembersSectionProps {
   organization: OrganizationSchema;
@@ -18,25 +18,17 @@ const ActiveMembersSection = ({ organization }: ActiveMembersSectionProps) => {
     isActive: true,
   });
 
-  const isLoading = companyUsersData === undefined;
+  const result = handleQueryComponentState(companyUsersData, {
+    loadingComponent: <MemberCardSkeleton />,
+  });
 
-  if (isLoading) {
-    return <MemberCardSkeleton />;
-  }
-
-  if (companyUsersData.status === ResponseStatus.ERROR) {
-    return (
-      <MessagePage
-        title="Error"
-        description={companyUsersData.error}
-        buttonLabel="Home"
-      />
-    );
+  if (result.type === QueryState.Loading || result.type === QueryState.Error) {
+    return result.element;
   }
 
   return (
     <CustomCard className="p-0">
-      {companyUsersData.data.users.map((member) => (
+      {result.data?.users.map((member) => (
         <MemberCard
           key={member.clerkUserId}
           user={member}
