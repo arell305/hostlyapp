@@ -30,9 +30,12 @@ const EditableImage: React.FC<EditableImageProps> = ({
   error,
 }) => {
   return (
-    <div className="flex items-center flex-col ">
+    <div className="flex items-center flex-col">
       <div className="relative w-[100px] h-[100px]">
-        {displayImage ? (
+        {displayImage === undefined ? (
+          // Skeleton placeholder when image is loading
+          <div className="w-full h-full rounded-full bg-gray-300 animate-pulse" />
+        ) : displayImage ? (
           <Image
             src={displayImage}
             alt="Company Logo"

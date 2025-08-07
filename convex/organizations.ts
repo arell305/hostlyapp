@@ -368,11 +368,17 @@ export const getUsersByOrganization = query({
         .filter((q) => q.eq(q.field("isActive"), isActive))
         .collect();
 
+      const sortedUsers = users.sort((a, b) => {
+        const nameA = a.name?.toLowerCase() || "";
+        const nameB = b.name?.toLowerCase() || "";
+        return nameA.localeCompare(nameB);
+      });
+
       return {
         status: ResponseStatus.SUCCESS,
         data: {
           clerkOrganizationId: organization.clerkOrganizationId,
-          users,
+          users: sortedUsers,
         },
       };
     } catch (error) {

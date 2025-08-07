@@ -47,12 +47,12 @@ const SidebarContent = ({ onNavigate, slug, orgRole }: SidebarContentProps) => {
         {/* Only for hostly users */}
         {isHostlyUserButton && (
           <div className="border-b-2">
-            <NavLink href={`/${slug}/app/companies`} onNavigate={onNavigate}>
+            <NavLink href={`/admin/app/companies`} onNavigate={onNavigate}>
               <Building size={20} />
               Companies
             </NavLink>
 
-            <NavLink href={`/${slug}/app/team`} onNavigate={onNavigate}>
+            <NavLink href={`/admin/app/team`} onNavigate={onNavigate}>
               <Users size={20} />
               Admin Members
             </NavLink>
