@@ -7,9 +7,9 @@ import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import { ResponseStatus, UserRole } from "@/types/enums";
-import ErrorPage from "@/[slug]/app/components/errors/ErrorPage";
 import NProgress from "nprogress";
 import { RedirectToSignIn } from "@clerk/nextjs";
+import MessagePage from "@/components/shared/shared-page/MessagePage";
 
 const MAX_POLLS = 6;
 const POLL_INTERVAL = 500; // ms
@@ -126,7 +126,14 @@ const RedirectingPage = () => {
   ]);
 
   if (error) {
-    return <ErrorPage description={error} />;
+    return (
+      <MessagePage
+        title="Error"
+        description={error}
+        buttonLabel="Home"
+        onButtonClick={() => router.push("/")}
+      />
+    );
   }
 
   return <FullLoading />;

@@ -22,11 +22,15 @@ const SingleSubmitButton: React.FC<SingleSubmitButtonProps> = ({
 }) => {
   return (
     <div className={cn("pt-4 my-8", className)}>
-      <Button onClick={onClick} disabled={disabled} type="button">
+      <Button
+        onClick={onClick}
+        isLoading={isLoading}
+        disabled={disabled}
+        type="button"
+      >
         {isLoading ? (
           <div className="flex items-center justify-center space-x-2">
             <Loader2 className="animate-spin h-4 w-4" />
-            <span>{label}...</span>
           </div>
         ) : (
           label

@@ -13,17 +13,20 @@ interface CompaniesContentProps {
 const CompaniesContent: React.FC<CompaniesContentProps> = ({
   organizations,
 }) => {
+  console.log("organizations", organizations);
   return (
     <SectionContainer>
       <SectionHeaderWithAction title="Companies" />
 
-      <CustomCard>
-        {organizations
-          .filter((company) => company.slug !== "admin")
-          .map((company) => (
-            <CompanyCard key={company.organizationId} company={company} />
-          ))}
-      </CustomCard>
+      {organizations.length > 0 && (
+        <CustomCard>
+          {organizations
+            .filter((company) => company.slug !== "admin")
+            .map((company) => (
+              <CompanyCard key={company.organizationId} company={company} />
+            ))}
+        </CustomCard>
+      )}
     </SectionContainer>
   );
 };
