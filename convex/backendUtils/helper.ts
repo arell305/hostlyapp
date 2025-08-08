@@ -622,7 +622,11 @@ export async function getActingClerkUserId(
       throw new Error(ErrorMessages.COMPANY_NO_ADMIN_FOUND);
     }
 
-    return adminUser._id;
+    if (!adminUser.clerkUserId) {
+      throw new Error(ErrorMessages.CLERK_USER_NO_CLERK_ID);
+    }
+
+    return adminUser.clerkUserId;
   }
 
   return identity.id as string;

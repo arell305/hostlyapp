@@ -132,6 +132,7 @@ export enum ErrorMessages {
   CLERK_WEBHOOK_UPDATED_USER_NO_EMAIL = "User updated event received without an email",
   CLERK_USER_METADATA_UPDATE_ERROR = "Error updating user metadata",
   CLERK_USER_NOT_FOUND = "User not found",
+  CLERK_USER_NO_CLERK_ID = "User has no Clerk ID",
   COMPANY_DB_QUERY_ERROR = "DB error querying company",
   COMPANY_DB_QUERY_ID_ERROR = "DB error querying company by id",
   COMPANY_DB_UPDATE_ERROR = "DB error updating company",
