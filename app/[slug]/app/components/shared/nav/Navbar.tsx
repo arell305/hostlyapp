@@ -4,17 +4,8 @@ import { useEffect, useState } from "react";
 import MobileSidebar from "./MobileSidebar";
 import NavbarActions from "./NavBarActions";
 import Logo from "@/components/shared/Logo";
-import { UserWithPromoCode } from "@/types/types";
 
-const Navbar = ({
-  slug,
-  orgRole,
-  userData,
-}: {
-  slug: string;
-  orgRole: string;
-  userData?: UserWithPromoCode;
-}) => {
+const Navbar = ({}: {}) => {
   const [showNavbar, setShowNavbar] = useState<boolean>(true);
   const [lastScrollY, setLastScrollY] = useState<number>(0);
 
@@ -42,7 +33,7 @@ const Navbar = ({
       }`}
     >
       {/* Hamburger menu for mobile */}
-      <MobileSidebar slug={slug} orgRole={orgRole} />
+      <MobileSidebar />
 
       {/* Centered logo only on mobile */}
       <div className="flex-1 flex justify-center lg:hidden">
@@ -50,7 +41,7 @@ const Navbar = ({
       </div>
       <div className="flex-1 hidden lg:flex"></div>
 
-      <NavbarActions orgRole={orgRole} userData={userData} />
+      <NavbarActions />
     </nav>
   );
 };

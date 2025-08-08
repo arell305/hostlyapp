@@ -1,4 +1,3 @@
-import { UserWithPromoCode } from "@/types/types";
 import { roleMap, UserRole } from "@/types/enums";
 import { useUpdateUser } from "../hooks/useUpdateUser";
 import { useState } from "react";
@@ -8,21 +7,26 @@ import StaticField from "@/components/shared/fields/StaticField";
 import ProfileHeader from "@/components/shared/headings/ProfileHeader";
 import _ from "lodash";
 import MemberTopBar from "./MemberTopBar";
+import { useUserFromDb } from "@/hooks/queries/users/useUserFromDb";
+import { Id } from "convex/_generated/dataModel";
 
 interface UserIdContentProps {
-  userData: UserWithPromoCode;
   canEditUsers: boolean;
   handleBack: () => void;
+  userId: Id<"users">;
 }
 
 const UserIdContent: React.FC<UserIdContentProps> = ({
-  userData,
   canEditUsers,
   handleBack,
+  userId,
 }) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] =
     useState<boolean>(false);
   const { updateUserById, error, isLoading, setError } = useUpdateUser();
+
+  const { component, user } = useUserFromDb(userId);
+  if (component) return component;
 
   const handleShowDeleteConfirmation = () => {
     setError(null);
@@ -35,7 +39,7 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
   };
 
   const handleDeleteUser = async () => {
-    const success = await updateUserById(userData._id, {
+    const success = await updateUserById(user._id, {
       isActive: false,
     });
     if (success) {
@@ -46,31 +50,24 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
   return (
     <section>
       <MemberTopBar
-        userData={userData}
+        userData={user}
         onBack={handleBack}
         handleShowDeleteConfirmation={handleShowDeleteConfirmation}
         canEditUsers={canEditUsers}
       />
 
       <CustomCard>
-        <ProfileHeader imageUrl={userData.imageUrl} name={userData.name} />
+        <ProfileHeader imageUrl={user.imageUrl} name={user.name} />
 
-        <StaticField
-          className="border-t"
-          label="Email"
-          value={userData.email}
-        />
+        <StaticField className="border-t" label="Email" value={user.email} />
         <StaticField
           className="border-t"
           label="Role"
-          value={roleMap[userData.role as UserRole] ?? "Not Set"}
+          value={roleMap[user.role as UserRole] ?? "Not Set"}
         />
 
-        {userData.role === UserRole.Promoter && (
-          <StaticField
-            label="Promo Code"
-            value={userData.promoCode ?? "Not Set"}
-          />
+        {user.role === UserRole.Promoter && (
+          <StaticField label="Promo Code" value={user.promoCode ?? "Not Set"} />
         )}
 
         <ResponsiveConfirm

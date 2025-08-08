@@ -247,11 +247,12 @@ export const revokeOrganizationInvitation = action({
       ]);
 
       isUserInOrganization(identity, clerkOrgId);
-      const clerkUserId = await getActingClerkUserId(
+      let clerkUserId = await getActingClerkUserId(
         ctx,
         identity,
         organizationId
       );
+
       await revokeOrganizationInvitationHelper(
         clerkInvitationId,
         clerkOrgId,

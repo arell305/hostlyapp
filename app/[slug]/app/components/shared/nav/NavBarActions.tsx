@@ -5,20 +5,18 @@ import { useCallback, useEffect, useState } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { isPromoter } from "@/utils/permissions";
 import EditPromoCodeDialog from "../../EditPromoCodeDialog";
-import { UserWithPromoCode } from "@/types/types";
 import { User } from "lucide-react";
 import { roleMap } from "@/types/enums";
 import { UserRole } from "@/types/enums";
 import { FaEdit } from "react-icons/fa";
 import { usePathname, useRouter } from "next/navigation";
 import NProgress from "nprogress";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
 
-interface NavbarActionsProps {
-  orgRole: string;
-  userData?: UserWithPromoCode;
-}
+interface NavbarActionsProps {}
 
-const NavbarActions = ({ orgRole, userData }: NavbarActionsProps) => {
+const NavbarActions = ({}: NavbarActionsProps) => {
+  const { orgRole, user: userData } = useContextOrganization();
   const router = useRouter();
   const pathname = usePathname();
   const [showUserButton, setShowUserButton] = useState<boolean>(false);

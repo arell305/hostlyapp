@@ -17,20 +17,10 @@ const UserPage = () => {
   const router = useRouter();
 
   const { user } = useUser();
-  const userFromDb = useQuery(
-    api.users.findUserById,
-    userId ? { userId } : "skip"
-  );
 
   const handleBack = () => {
     router.back();
   };
-
-  const result = handleQueryState(userFromDb);
-
-  if (result.type === QueryState.Loading || result.type === QueryState.Error) {
-    return result.element;
-  }
 
   if (!user) {
     return <FullLoading />;
@@ -38,13 +28,12 @@ const UserPage = () => {
 
   const orgRole = user?.publicMetadata.role as string;
   const canEditUsers = isManager(orgRole);
-  const userData = result.data.user;
 
   return (
     <UserIdContent
-      userData={userData}
       canEditUsers={canEditUsers}
       handleBack={handleBack}
+      userId={userId}
     />
   );
 };

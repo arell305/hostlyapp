@@ -20,14 +20,14 @@ import {
 import Logo from "@/components/shared/Logo";
 import _ from "lodash";
 import NavLink from "./NavLink";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
 
 type SidebarContentProps = {
   onNavigate?: () => void;
-  slug: string;
-  orgRole: string;
 };
 
-const SidebarContent = ({ onNavigate, slug, orgRole }: SidebarContentProps) => {
+const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
+  const { orgRole, cleanSlug: slug } = useContextOrganization();
   const isAdminButton = isAdmin(orgRole);
   const isManagerButton = isManager(orgRole);
   const isAdminOrHostlyAdminButton = isAdminOrHostlyAdmin(orgRole);

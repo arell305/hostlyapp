@@ -12,14 +12,10 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import SidebarContent from "./SidebarContent";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
-interface MobileSidebarProps {
-  slug: string;
-  orgRole: string;
-}
+interface MobileSidebarProps {}
 
-const MobileSidebar: React.FC<MobileSidebarProps> = ({ slug, orgRole }) => {
+const MobileSidebar: React.FC<MobileSidebarProps> = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
   return (
     <div className="lg:hidden">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -40,11 +36,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ slug, orgRole }) => {
             </VisuallyHidden>
           </SheetHeader>
 
-          <SidebarContent
-            slug={slug}
-            orgRole={orgRole}
-            onNavigate={() => setIsOpen(false)}
-          />
+          <SidebarContent onNavigate={() => setIsOpen(false)} />
         </SheetContent>
       </Sheet>
     </div>
