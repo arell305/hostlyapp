@@ -1,140 +1,28 @@
-// "use client";
-// import React, { createContext, useContext, useEffect, useState } from "react";
-// import { useQuery } from "convex/react";
-// import { api } from "../../convex/_generated/api";
-// import {
-//   ErrorMessages,
-//   StripeAccountStatus,
-//   ResponseStatus,
-//   UserRole,
-// } from "@/types/enums";
-// import { useParams } from "next/navigation";
-// import { OrganizationSchema } from "@/types/types";
-// import { SubscriptionSchema } from "@/types/schemas-types";
-// import { useRouter } from "next/navigation";
-// import { useUser } from "@clerk/nextjs";
-// import { UserResource } from "@clerk/types";
-// type OrganizationContextType = {
-//   organization?: OrganizationSchema;
-//   connectedAccountId?: string | null;
-//   connectedAccountEnabled?: boolean;
-//   subscription?: SubscriptionSchema;
-//   organizationContextLoading: boolean;
-//   organizationContextError: string | null;
-//   availableCredits?: number;
-//   user?: UserResource | null;
-//   orgRole?: UserRole;
-// };
-
-// const OrganizationContext = createContext<OrganizationContextType | undefined>(
-//   undefined
-// );
-
-// export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
-//   children,
-// }) => {
-//   const { slug } = useParams();
-//   const router = useRouter();
-//   const { user, isLoaded } = useUser();
-//   const cleanSlug =
-//     typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
-
-//   const orgRole = user?.publicMetadata.role as UserRole;
-//   const isHostlyModerator =
-//     orgRole === UserRole.Hostly_Moderator || orgRole === UserRole.Hostly_Admin;
-
-//   const response = useQuery(
-//     api.organizations.getOrganizationContext,
-//     cleanSlug ? { slug: cleanSlug } : "skip"
-//   );
-
-//   // Re-fetch when slug changes
-//   useEffect(() => {
-//     if (!response || !response.data) return;
-
-//     if (isLoaded && !user) {
-//       router.push("/sign-in");
-//       return;
-//     }
-
-//     const org = response.data.organization;
-//     if (!org) {
-//       router.push("/unauthorized");
-//       return;
-//     }
-
-//     if (org.slug !== cleanSlug && !isHostlyModerator) {
-//       router.push("/unauthorized");
-//       return;
-//     }
-
-//     if (!org.isActive) {
-//       if (orgRole === UserRole.Admin) {
-//         router.push(`/${cleanSlug}/app/reactivate`);
-//       } else {
-//         router.push(`/${cleanSlug}/app/deactivated`);
-//       }
-//     }
-//   }, [response, cleanSlug, isHostlyModerator, orgRole, isLoaded, user, router]);
-
-//   return (
-//     <OrganizationContext.Provider
-//       value={
-//         response === undefined
-//           ? {
-//               organizationContextLoading: true,
-//               organizationContextError: null,
-//             }
-//           : response.status === ResponseStatus.ERROR
-//             ? {
-//                 organizationContextLoading: false,
-//                 organizationContextError: response.error,
-//               }
-//             : {
-//                 organization: response.data.organization,
-//                 connectedAccountId: response.data.connectedAccountId,
-//                 connectedAccountEnabled:
-//                   response.data.connectedAccountStatus ===
-//                   StripeAccountStatus.VERIFIED,
-//                 subscription: response.data.subscription,
-//                 organizationContextLoading: false,
-//                 organizationContextError: null,
-//                 availableCredits: response.data.availableCredits,
-//                 user,
-//                 orgRole,
-//               }
-//       }
-//     >
-//       {children}
-//     </OrganizationContext.Provider>
-//   );
-// };
-
-// export const useContextOrganization = () => {
-//   const context = useContext(OrganizationContext);
-//   if (!context) {
-//     throw new Error(ErrorMessages.CONTEXT_ORGANIZATION_PROVER);
-//   }
-//   return context;
-// };
-
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo } from "react";
-import { useQuery } from "convex/react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  PropsWithChildren,
+} from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "../../convex/_generated/api";
+
 import {
   ErrorMessages,
   StripeAccountStatus,
   ResponseStatus,
   UserRole,
 } from "@/types/enums";
-import { useParams, useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
 
 import { UserWithPromoCode, OrganizationSchema } from "@/types/types";
 import { SubscriptionSchema } from "@/types/schemas-types";
 
+// ---------- Types ----------
 type OrganizationContextType = {
   organization?: OrganizationSchema;
   connectedAccountId?: string | null;
@@ -148,33 +36,49 @@ type OrganizationContextType = {
   cleanSlug?: string;
 };
 
+// ---------- Context ----------
 const OrganizationContext = createContext<OrganizationContextType | undefined>(
   undefined
 );
 
+// ---------- Redirect hook (auth + org guards) ----------
 function useHandleOrgRedirects({
+  ready,
   response,
   slug,
   user,
   orgRole,
 }: {
-  response: any;
+  ready: boolean;
+  response:
+    | {
+        status: ResponseStatus;
+        error?: string | null;
+        data?: any;
+      }
+    | undefined;
   slug: string;
   user: UserWithPromoCode | null;
-  orgRole: UserRole;
+  orgRole?: UserRole;
 }) {
   const router = useRouter();
   const isHostlyModerator =
     orgRole === UserRole.Hostly_Moderator || orgRole === UserRole.Hostly_Admin;
 
   useEffect(() => {
-    if (!response || !response.data) return;
+    if (!ready) return; // wait for auth + queries to be runnable
+    if (!response) return;
+
+    if (response.status === ResponseStatus.ERROR) return; // don't redirect on transient errors here
+
+    if (response.status !== ResponseStatus.SUCCESS) return;
+
     if (!user) {
       router.push("/sign-in");
       return;
     }
 
-    const org = response.data.organization;
+    const org = response.data?.organization;
     if (!org) {
       router.push("/unauthorized");
       return;
@@ -192,40 +96,58 @@ function useHandleOrgRedirects({
         router.push(`/${slug}/app/deactivated`);
       }
     }
-  }, [response, slug, user, router, orgRole]);
+  }, [ready, response, slug, user, orgRole, router, isHostlyModerator]);
 }
 
-export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
+// ---------- Provider ----------
+export const OrganizationProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const { slug } = useParams();
   const cleanSlug =
     typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
 
-  const { user: clerkUser, isLoaded } = useUser();
-  const orgRole = clerkUser?.publicMetadata.role as UserRole;
+  // Clerk state
+  const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn } = useUser();
+  const orgRole = (clerkUser?.publicMetadata.role as UserRole) ?? undefined;
 
+  // Convex auth bridge state
+  const { isAuthenticated, isLoading: isConvexAuthLoading } = useConvexAuth();
+
+  // Only allow queries when everything is truly ready
+  const ready =
+    !!cleanSlug &&
+    isClerkLoaded &&
+    !!isSignedIn &&
+    isAuthenticated &&
+    !isConvexAuthLoading;
+
+  // Queries gated by `ready`
   const orgContext = useQuery(
     api.organizations.getOrganizationContext,
-    cleanSlug ? { slug: cleanSlug } : "skip"
+    ready ? { slug: cleanSlug } : "skip"
   );
 
   const userFromDb = useQuery(
     api.users.findUserByClerkId,
-    clerkUser ? { clerkUserId: clerkUser.id } : "skip"
+    ready && clerkUser ? { clerkUserId: clerkUser.id } : "skip"
   );
 
   const user = userFromDb?.data?.user ?? null;
 
+  // Handle redirects only after auth + data are sane
   useHandleOrgRedirects({
+    ready,
     response: orgContext,
     slug: cleanSlug,
     user,
     orgRole,
   });
 
+  // Compose context value
   const value = useMemo<OrganizationContextType>(() => {
-    if (!orgContext || !userFromDb) {
+    // Not ready or queries not mounted yet
+    if (!ready || !orgContext || !userFromDb) {
       return {
         organizationContextLoading: true,
         organizationContextError: null,
@@ -235,31 +157,33 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
     if (orgContext.status === ResponseStatus.ERROR) {
       return {
         organizationContextLoading: false,
-        organizationContextError: orgContext.error,
+        organizationContextError: orgContext.error ?? "Unknown error",
       };
     }
 
     if (userFromDb.status === ResponseStatus.ERROR) {
       return {
         organizationContextLoading: false,
-        organizationContextError: userFromDb.error,
+        organizationContextError: userFromDb.error ?? "Unknown error",
       };
     }
 
+    // SUCCESS path
     return {
-      organization: orgContext.data.organization,
-      connectedAccountId: orgContext.data.connectedAccountId,
+      organization: orgContext.data?.organization,
+      connectedAccountId: orgContext.data?.connectedAccountId ?? null,
       connectedAccountEnabled:
-        orgContext.data.connectedAccountStatus === StripeAccountStatus.VERIFIED,
-      subscription: orgContext.data.subscription,
-      availableCredits: orgContext.data.availableCredits,
+        orgContext.data?.connectedAccountStatus ===
+        StripeAccountStatus.VERIFIED,
+      subscription: orgContext.data?.subscription,
+      availableCredits: orgContext.data?.availableCredits,
       organizationContextLoading: false,
       organizationContextError: null,
       user,
       orgRole,
       cleanSlug,
     };
-  }, [orgContext, userFromDb, user, orgRole, cleanSlug]);
+  }, [ready, orgContext, userFromDb, user, orgRole, cleanSlug]);
 
   return (
     <OrganizationContext.Provider value={value}>
@@ -268,6 +192,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+// ---------- Hook ----------
 export const useContextOrganization = () => {
   const context = useContext(OrganizationContext);
   if (!context) {

@@ -134,7 +134,7 @@ const ResponsiveInviteUser: React.FC<ResponsiveInviteUserProps> = ({
   );
 
   const title = "Invite User";
-  const description = "Invite a user to your team.";
+  const description = "Enter in an email and select a role to invite a user.";
 
   return isDesktop ? (
     <Dialog open={isOpen} onOpenChange={handleClose}>
