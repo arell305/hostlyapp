@@ -1,16 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import "react-calendar/dist/Calendar.css";
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import React, { useState, useEffect, useMemo } from "react";
 import { getCurrentDate } from "../../../utils/luxon";
-import { Notification } from "./components/ui/Notification";
-import FullLoading from "./components/loading/FullLoading";
-import ErrorComponent from "./components/errors/ErrorComponent";
-import { DateTime } from "luxon";
-import { ResponseStatus } from "@/types/enums";
 import SelectedDateEvents from "./components/calendar/SelectedDateEvents";
-import { OrganizationSchema, CalendarValue } from "@/types/types";
 import ToggleCalendar from "./components/calendar/ToggleCalendar";
 import {
   doesDateHaveEvent,
@@ -19,103 +10,46 @@ import {
   normalizeCalendarDate,
 } from "../../../utils/calendar";
 import { CalendarSwitcher } from "./components/calendar/CalendarSwitcher";
-import { Button } from "@/components/ui/button";
-import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
-import { Plus } from "lucide-react";
-import SectionContainer from "@/components/shared/containers/SectionContainer";
-import Link from "next/link";
-import NProgress from "nprogress";
 import { EventWithExtras } from "@/types/convex-types";
+import { useMonthlyEvents } from "./hooks/useMonthlyEvents";
+import { CalendarValue } from "@/types/types";
+import { DateTime } from "luxon";
 
 interface HomeContentProps {
-  organization: OrganizationSchema;
-  canCreateEvents: boolean;
-  showStripeNotification: boolean;
   pathname: string;
 }
 
-const HomeContent: React.FC<HomeContentProps> = ({
-  organization,
-  canCreateEvents,
-  showStripeNotification,
-  pathname,
-}) => {
+const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
   const today = getCurrentDate();
-  const [date, setDate] = useState(today);
-  const [isWeekView, setIsWeekView] = useState(true);
-  const [calendarMonthYear, setCalendarMonthYear] = useState({
-    month: 0,
-    year: 0,
-  });
+  const [date, setDate] = useState<Date>(today);
+  const [isWeekView, setIsWeekView] = useState<boolean>(true);
   const [selectedEvents, setSelectedEvents] = useState<EventWithExtras[]>([]);
 
-  const monthlyEventsData = useQuery(
-    api.events.getEventsByMonth,
-    organization
-      ? {
-          organizationId: organization._id,
-          year: calendarMonthYear.year,
-          month: calendarMonthYear.month,
-        }
-      : "skip"
-  );
-
-  useEffect(() => {
-    setCalendarMonthYear({
-      month: DateTime.fromJSDate(date).month,
-      year: DateTime.fromJSDate(date).year,
-    });
+  const { month, year } = useMemo(() => {
+    const dt = DateTime.fromJSDate(date);
+    return { month: dt.month, year: dt.year };
   }, [date]);
 
+  const { component: monthlyEventsComponent, events: monthlyEventsData } =
+    useMonthlyEvents({ month, year }, isWeekView);
+
   useEffect(() => {
-    if (monthlyEventsData?.data?.eventData) {
-      setSelectedEvents(
-        getEventsForDate(monthlyEventsData.data.eventData, date)
-      );
-    } else {
-      setSelectedEvents([]);
-    }
+    setSelectedEvents(
+      monthlyEventsData ? getEventsForDate(monthlyEventsData, date) : []
+    );
   }, [monthlyEventsData, date]);
 
-  const hasEventOnDate = (date: Date) =>
-    doesDateHaveEvent(monthlyEventsData?.data?.eventData ?? [], date);
+  const hasEventOnDate = (d: Date) =>
+    doesDateHaveEvent(monthlyEventsData ?? [], d);
   const handleNavigation = (direction: "prev" | "next") =>
     setDate(navigateDate(date, direction));
   const handleDateClick = (value: CalendarValue) =>
     setDate(normalizeCalendarDate(value));
 
-  if (!monthlyEventsData) return <FullLoading />;
-  if (monthlyEventsData.status === ResponseStatus.ERROR)
-    return <ErrorComponent message={monthlyEventsData.error} />;
+  if (monthlyEventsComponent) return monthlyEventsComponent;
 
   return (
-    <SectionContainer>
-      <SectionHeaderWithAction
-        title="My Events"
-        actions={
-          canCreateEvents && (
-            <Link
-              href={`${pathname}/add-event`}
-              onClick={() => NProgress.start()}
-            >
-              <Button size="heading">
-                <Plus size={20} />
-                <span>Event</span>
-              </Button>
-            </Link>
-          )
-        }
-      />
-      {showStripeNotification && (
-        <div className=" md:mb-4">
-          <Notification
-            title="Stripe Required"
-            description="Please integrate Stripe to accept payments."
-            route="stripe"
-          />
-        </div>
-      )}
-
+    <div>
       <CalendarSwitcher
         isWeekView={isWeekView}
         date={date}
@@ -123,7 +57,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
         onDateClick={handleDateClick}
         onNavigate={handleNavigation}
         hasEventOnDate={hasEventOnDate}
-        handleActiveStartDateChange={(date) => date && setDate(date)}
+        handleActiveStartDateChange={(d) => d && setDate(d)}
       />
 
       <ToggleCalendar
@@ -136,7 +70,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
         events={selectedEvents}
         pathname={pathname}
       />
-    </SectionContainer>
+    </div>
   );
 };
 

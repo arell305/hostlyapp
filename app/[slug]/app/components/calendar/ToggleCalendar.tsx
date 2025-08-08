@@ -1,7 +1,5 @@
 "use client";
 
-import { RiArrowDownWideLine, RiArrowUpWideLine } from "react-icons/ri";
-
 interface ToggleCalendarProps {
   isWeekView: boolean;
   onToggle: () => void;
@@ -12,7 +10,7 @@ const ToggleCalendar: React.FC<ToggleCalendarProps> = ({
   onToggle,
 }) => {
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center my-2">
       <button
         onClick={onToggle}
         className=" text-grayText hover:text-whiteText transition "

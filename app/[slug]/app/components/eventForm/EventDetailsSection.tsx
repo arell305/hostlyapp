@@ -4,14 +4,18 @@ import LabeledInputField from "@/components/shared/fields/LabeledInputField";
 import LabeledTextAreaField from "@/components/shared/fields/LabeledTextAreaField";
 import LabeledAddressAutoComplete from "@/components/shared/fields/LabeledAddressAutoComplete";
 import LabeledDateTimeField from "@/components/shared/fields/LabeledDateTimeField";
-import { timestampToPstString, convertToPstTimestamp } from "@/utils/luxon";
+import { convertToPstTimestamp } from "@/utils/luxon";
 import { AddressValue } from "@/types/types";
 import EventPhotoSection from "./EventPhotoSection";
 import { useEventForm } from "@/contexts/EventFormContext";
 
-interface EventDetailsSectionProps {}
+interface EventDetailsSectionProps {
+  isEdit?: boolean;
+}
 
-const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({}) => {
+const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
+  isEdit = false,
+}) => {
   const {
     eventName,
     setEventName,
@@ -49,7 +53,7 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({}) => {
 
   return (
     <>
-      <EventPhotoSection />
+      <EventPhotoSection isEdit={isEdit} />
       <LabeledInputField
         name="eventName"
         label="Name*"

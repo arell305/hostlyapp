@@ -23,12 +23,7 @@ import {
   UpdateUserByIdResponse,
 } from "@/types/convex-types";
 import { validateOrganization, validateUser } from "./backendUtils/validation";
-import {
-  ResponseStatus,
-  ErrorMessages,
-  UserRole,
-  ShowErrorMessages,
-} from "@/types/enums";
+import { ResponseStatus, ErrorMessages, UserRole } from "@/types/enums";
 
 export const createUser = internalMutation({
   args: {

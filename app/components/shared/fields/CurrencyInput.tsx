@@ -2,6 +2,7 @@ import { NumericFormat } from "react-number-format";
 import { Label } from "@/components/ui/label";
 import LabelWrapper from "./LabelWrapper";
 import FieldErrorMessage from "../error/FieldErrorMessage";
+import { Input } from "@/components/ui/input";
 
 interface CurrencyInputProps {
   label?: string;
@@ -25,16 +26,20 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
   return (
     <div>
       <LabelWrapper>
-        <Label htmlFor={name}>{label}</Label>
+        {label && <Label htmlFor={name}>{label}</Label>}
+
         <NumericFormat
-          value={value === null ? "" : value}
-          onValueChange={(values) => {
-            if (values.value === "") {
-              onChange(null); // handle empty input
-            } else {
-              const numericValue = values.floatValue ?? 0;
-              onChange(numericValue);
-            }
+          /** render our styled input so it matches all other fields */
+          customInput={Input}
+          /** forward validation state to Input (so it turns red) */
+          error={error}
+          id={name}
+          name={name}
+          inputMode="decimal"
+          value={value ?? ""} // keep controlled
+          onValueChange={({ value: raw, floatValue }) => {
+            if (raw === "") onChange(null);
+            else onChange(floatValue ?? 0);
           }}
           thousandSeparator
           decimalScale={2}
@@ -43,14 +48,10 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
           allowNegative={false}
           placeholder={placeholder}
           disabled={!isEditing}
-          className={`focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full rounded-md border px-2 py-1 text-base bg-transparent text-white ${
-            error
-              ? "border-red-500 focus-visible:ring-red-500"
-              : "border-grayCustom"
-          }`}
         />
       </LabelWrapper>
-      <FieldErrorMessage error={error} />{" "}
+
+      <FieldErrorMessage error={error} />
     </div>
   );
 };

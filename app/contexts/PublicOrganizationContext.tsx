@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { ErrorMessages, ResponseStatus } from "@/types/enums";
@@ -8,6 +8,8 @@ import { useUser } from "@clerk/nextjs";
 import type { UserResource } from "@clerk/types";
 import { Id } from "../../convex/_generated/dataModel";
 import { EventWithTicketTypes } from "@/types/schemas-types";
+import FullLoading from "@/[slug]/app/components/loading/FullLoading";
+import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
 
 type PublicOrganizationContextType = {
   name: string;
@@ -19,6 +21,7 @@ type PublicOrganizationContextType = {
   organizationId?: Id<"organizations">;
   events: EventWithTicketTypes[];
   displayCompanyPhoto: string | null;
+  slug: string;
 };
 
 const PublicOrganizationContext = createContext<
@@ -33,35 +36,62 @@ export const PublicOrganizationProvider: React.FC<{
   const cleanSlug =
     typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
 
+  // Always call hooks in the same order
   const response = useQuery(
     api.organizations.getPublicOrganizationContext,
     cleanSlug ? { slug: cleanSlug } : "skip"
   );
 
+  const organizationPublic = response?.data?.organizationPublic ?? null;
+  const photoId = organizationPublic?.photo ?? null;
+
   const displayCompanyPhoto = useQuery(
     api.photo.getFileUrl,
-    response?.data?.organizationPublic?.photo
-      ? { storageId: response?.data?.organizationPublic?.photo }
-      : "skip"
+    photoId ? { storageId: photoId } : "skip"
+  );
+  // Compute memo BEFORE any early returns
+  const contextValue: PublicOrganizationContextType = useMemo(
+    () => ({
+      name: organizationPublic?.name || "",
+      photo: organizationPublic?.photo || null,
+      organizationId: organizationPublic?.id,
+      slug: cleanSlug,
+      connectedAccountStripeId:
+        organizationPublic?.connectedAccountStripeId || null,
+      isStripeEnabled: organizationPublic?.isStripeEnabled ?? false,
+      publicOrganizationContextError:
+        response?.status === ResponseStatus.ERROR
+          ? response?.error || null
+          : null,
+      user,
+      events: organizationPublic?.events || [],
+      // If still loading the photo query, keep it null; otherwise string or null
+      displayCompanyPhoto: displayCompanyPhoto ?? null,
+    }),
+    [
+      organizationPublic,
+      response?.status,
+      response?.data,
+      user,
+      displayCompanyPhoto,
+    ]
   );
 
-  const organizationData = response?.data?.organizationPublic;
+  // Now gate what you render (no hooks below this point)
+  const loadingPrimary = response === undefined || user === undefined;
+  const loadingPhoto = !!photoId && displayCompanyPhoto === undefined;
 
-  const contextValue: PublicOrganizationContextType = {
-    name: organizationData?.name || "",
-    photo: organizationData?.photo || null,
-    organizationId: organizationData?.id,
-    connectedAccountStripeId:
-      organizationData?.connectedAccountStripeId || null,
-    isStripeEnabled: organizationData?.isStripeEnabled ?? false,
-    publicOrganizationContextError:
-      response?.status === ResponseStatus.ERROR
-        ? response?.error || null
-        : null,
-    user,
-    events: organizationData?.events || [],
-    displayCompanyPhoto: displayCompanyPhoto || null,
-  };
+  if (loadingPrimary || loadingPhoto) return <FullLoading />;
+
+  if (response?.status === ResponseStatus.ERROR) {
+    return (
+      <ErrorComponent
+        message={
+          response?.error || ErrorMessages.COMPANY_DB_QUERY_FOR_ADMIN_ERROR
+        }
+      />
+    );
+  }
 
   return (
     <PublicOrganizationContext.Provider value={contextValue}>
@@ -71,9 +101,7 @@ export const PublicOrganizationProvider: React.FC<{
 };
 
 export const useContextPublicOrganization = () => {
-  const context = useContext(PublicOrganizationContext);
-  if (!context) {
-    throw new Error(ErrorMessages.CONTEXT_ORGANIZATION_PROVER);
-  }
-  return context;
+  const ctx = useContext(PublicOrganizationContext);
+  if (!ctx) throw new Error(ErrorMessages.CONTEXT_ORGANIZATION_PROVER);
+  return ctx;
 };

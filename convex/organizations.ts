@@ -6,6 +6,7 @@ import {
   Promoter,
   UserSchema,
   OrganizationSchema,
+  UserWithPromoCode,
 } from "@/types/types";
 import {
   ErrorMessages,
@@ -35,6 +36,7 @@ import {
   EventSchema,
   EventTicketTypesSchema,
   EventWithTicketTypes,
+  PromoterPromoCodeSchema,
 } from "@/types/schemas-types";
 
 export const createConvexOrganization = internalMutation({
@@ -402,15 +404,43 @@ export const getOrganizationById = internalQuery({
     }
   },
 });
-
 export const getOrganizationContext = query({
-  args: {
-    slug: v.string(),
-  },
-  handler: async (ctx, args): Promise<GetOrganizationContextResponse> => {
-    const { slug } = args;
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }): Promise<GetOrganizationContextResponse> => {
     try {
       const identity = await requireAuthenticatedUser(ctx);
+      const user: UserSchema | null = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), identity.id))
+        .unique();
+
+      if (!user) {
+        throw new Error(ErrorMessages.USER_NOT_FOUND);
+      }
+
+      if (!user.organizationId) {
+        throw new Error(ErrorMessages.USER_NO_COMPANY);
+      }
+
+      if (!user.isActive) {
+        throw new Error(ErrorMessages.USER_INACTIVE);
+      }
+
+      // Preload promoter promo (only if promoter)
+      let userWithPromoCode: UserWithPromoCode | null = user;
+      if (user.role === UserRole.Promoter) {
+        const promoterPromoCode: PromoterPromoCodeSchema | null = await ctx.db
+          .query("promoterPromoCode")
+          .filter((q) => q.eq(q.field("promoterUserId"), user._id))
+          .unique();
+
+        userWithPromoCode = {
+          ...user,
+          promoCode: promoterPromoCode?.name ?? null,
+          promoCodeId: promoterPromoCode?._id,
+        };
+      }
+
       const organization = validateOrganization(
         await ctx.db
           .query("organizations")
@@ -420,12 +450,12 @@ export const getOrganizationContext = query({
 
       isUserInOrganization(identity, organization.clerkOrganizationId);
 
-      const customerId = organization.customerId;
-
       const subscription = validateSubscription(
         await ctx.db
           .query("subscriptions")
-          .withIndex("by_customerId", (q) => q.eq("customerId", customerId))
+          .withIndex("by_customerId", (q) =>
+            q.eq("customerId", organization.customerId)
+          )
           .first()
       );
 
@@ -443,7 +473,9 @@ export const getOrganizationContext = query({
 
       const connectedAccount: ConnectedAccountsSchema | null = await ctx.db
         .query("connectedAccounts")
-        .withIndex("by_customerId", (q) => q.eq("customerId", customerId))
+        .withIndex("by_customerId", (q) =>
+          q.eq("customerId", organization.customerId)
+        )
         .first();
 
       return {
@@ -456,8 +488,9 @@ export const getOrganizationContext = query({
           connectedAccountStatus: connectedAccount
             ? connectedAccount.status
             : null,
-          subscription: subscription,
+          subscription,
           availableCredits,
+          user: userWithPromoCode, // <-- only non-null for promoters
         },
       };
     } catch (error) {

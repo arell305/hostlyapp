@@ -9,25 +9,21 @@ import SectionContainer from "@/components/shared/containers/SectionContainer";
 import EmptyList from "@/components/shared/EmptyList";
 
 interface CompanyEventsContentProps {
-  user: UserResource | null;
   displayCompanyPhoto: string | null | undefined;
-  handleNavigateHome: () => void;
   name: string;
   events: EventWithTicketTypes[];
   handleNavigateEvent: (eventId: string) => void;
 }
 
 const CompanyEventsContent: React.FC<CompanyEventsContentProps> = ({
-  user,
   displayCompanyPhoto,
-  handleNavigateHome,
   name,
   events,
   handleNavigateEvent,
 }) => {
   return (
     <div>
-      <HomeNav user={user} handleNavigateHome={handleNavigateHome} />
+      <HomeNav />
       <main>
         <SectionContainer>
           <ProfileBanner displayPhoto={displayCompanyPhoto} name={name} />

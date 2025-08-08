@@ -15,7 +15,7 @@ const CreateCompanyPage = () => {
   const orgRole = user?.publicMetadata.role as UserRole;
   const preventAccess = !isAdmin(orgRole);
 
-  const navigateToApp = (slug: string) => {
+  const navigateToApp = () => {
     router.push(`/redirecting`);
   };
 

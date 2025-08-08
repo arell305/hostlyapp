@@ -1,25 +1,16 @@
-import { OrganizationSchema } from "@/types/types";
 import { useQuery } from "convex/react";
 import React from "react";
-import {
-  handleQueryComponentState,
-  handleQueryState,
-} from "../../../../../utils/handleQueryState";
-import { QueryState, ResponseStatus } from "@/types/enums";
+import { handleQueryComponentState } from "../../../../../utils/handleQueryState";
+import { QueryState } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import MemberCard from "../MemberCard";
-import { UserSchema } from "@/types/schemas-types";
-import { sortUsersByName } from "../../../../../utils/helpers";
-import MemberCardSkeleton from "../../components/loading/MemberCardSkeleton";
-import MessagePage from "@/components/shared/shared-page/MessagePage";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import MemberCardSkeleton from "@/components/shared/skeleton/MemberCardSkeleton";
 
-interface DeletedMembersSectionProps {
-  organization: OrganizationSchema;
-}
-const DeletedMembersSection = ({
-  organization,
-}: DeletedMembersSectionProps) => {
+interface DeletedMembersSectionProps {}
+const DeletedMembersSection = ({}: DeletedMembersSectionProps) => {
+  const { organization } = useContextOrganization();
   const companyUsersData = useQuery(api.organizations.getUsersByOrganization, {
     organizationId: organization._id,
     isActive: false,

@@ -6,13 +6,6 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobile, setIsMobile] = useState(false); // Initialize as false
   const sidebarRef = useRef<HTMLDivElement | null>(null); // Ref for sidebar
 
-  const toggleSidebar = () => {
-    // Only toggle sidebar for mobile view
-    if (isMobile) {
-      setIsOpen((prev) => !prev);
-    }
-  };
-
   // Close sidebar if clicking outside of it
   const handleClickOutside = (event: MouseEvent) => {
     if (
@@ -51,14 +44,7 @@ const Home: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     };
   }, [isOpen]);
 
-  return (
-    // <div className="relative  flex flex-col w-full">
-    //   {/* Main content area */}
-    //   <div className={` relative flex-grow ${!isMobile ? "ml-[280px]" : ""}`}>
-    <div className={``}>{children}</div>
-    // </div>
-    // </div>
-  );
+  return <div className={``}>{children}</div>;
 };
 
 export default Home;

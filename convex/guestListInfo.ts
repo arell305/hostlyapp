@@ -9,7 +9,10 @@ import {
 } from "@/types/enums";
 import { PublicGetGuestListInfoByEventIdResponse } from "@/types/convex-types";
 import { handleError } from "./backendUtils/helper";
-import { validateGuestListInfo } from "./backendUtils/validation";
+import {
+  validateEvent,
+  validateGuestListInfo,
+} from "./backendUtils/validation";
 
 export const createGuestListInfo = internalMutation({
   args: {
@@ -97,6 +100,7 @@ export const publicGetGuestListInfoByEventId = query({
     args
   ): Promise<PublicGetGuestListInfoByEventIdResponse> => {
     try {
+      const event = validateEvent(await ctx.db.get(args.eventId));
       const guestListInfo = validateGuestListInfo(
         await ctx.db
           .query("guestListInfo")
@@ -107,6 +111,7 @@ export const publicGetGuestListInfoByEventId = query({
       return {
         status: ResponseStatus.SUCCESS,
         data: {
+          event,
           guestListInfo,
         },
       };

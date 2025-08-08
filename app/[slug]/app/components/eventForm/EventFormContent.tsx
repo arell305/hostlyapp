@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { EventFormInput, GuestListFormInput, TicketType } from "@/types/types";
-import {
-  EventSchema,
-  GuestListInfoSchema,
-  SubscriptionSchema,
-} from "@/types/schemas-types";
+import { GuestListInfoSchema, SubscriptionSchema } from "@/types/schemas-types";
 import EventDetailsSection from "./EventDetailsSection";
 import GuestListToggleSection from "./GuestListToggleSection";
 import TicketToggleSection from "./TicketToggleSection";
@@ -56,7 +52,7 @@ const EventFormContent: React.FC<EventFormContentProps> = ({
     <>
       {isCalendarOpen && <Backdrop onClick={() => setIsCalendarOpen(false)} />}
       <div className=" py-4 w-full">
-        <EventDetailsSection />
+        <EventDetailsSection isEdit={isEdit} />
 
         <GuestListToggleSection
           isCompanyAdmin={isCompanyAdmin}

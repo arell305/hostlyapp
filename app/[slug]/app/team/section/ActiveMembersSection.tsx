@@ -1,18 +1,16 @@
 "use client";
 import { useQuery } from "convex/react";
 import React from "react";
-import { OrganizationSchema } from "@/types/types";
 import { api } from "../../../../../convex/_generated/api";
 import { QueryState } from "@/types/enums";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import MemberCard from "../MemberCard";
-import MemberCardSkeleton from "../../components/loading/MemberCardSkeleton";
 import { handleQueryComponentState } from "@/utils/handleQueryState";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import MemberCardSkeleton from "@/components/shared/skeleton/MemberCardSkeleton";
 
-interface ActiveMembersSectionProps {
-  organization: OrganizationSchema;
-}
-const ActiveMembersSection = ({ organization }: ActiveMembersSectionProps) => {
+const ActiveMembersSection = () => {
+  const { organization } = useContextOrganization();
   const companyUsersData = useQuery(api.organizations.getUsersByOrganization, {
     organizationId: organization._id,
     isActive: true,

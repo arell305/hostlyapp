@@ -4,7 +4,6 @@ import { createContext, useContext, useState, useMemo } from "react";
 import { PromoterPromoCodeWithDiscount } from "@/types/schemas-types";
 import { calculateTicketPricing } from "@/lib/frontendHelper";
 import { EventTicketTypesSchema } from "@/types/schemas-types";
-import { TicketSoldCountByType } from "@/types/types";
 
 interface EventCheckoutContextValue {
   ticketCounts: Record<string, number>;
@@ -52,11 +51,9 @@ export const useEventCheckout = () => {
 export const EventCheckoutProvider = ({
   children,
   ticketTypes,
-  ticketSoldCounts,
 }: {
   children: React.ReactNode;
   ticketTypes: EventTicketTypesSchema[];
-  ticketSoldCounts?: TicketSoldCountByType[] | null;
 }) => {
   const [ticketCounts, setTicketCounts] = useState<Record<string, number>>({});
   const [email, setEmail] = useState<string>("");

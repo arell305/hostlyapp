@@ -1,38 +1,39 @@
 import React, { useState } from "react";
-import {
-  EventFormInput,
-  GuestListFormInput,
-  OrganizationSchema,
-  TicketType,
-} from "@/types/types";
-import { SubscriptionSchema } from "@/types/schemas-types";
+import { EventFormInput, GuestListFormInput, TicketType } from "@/types/types";
 import { useAddEvent } from "./hooks/useAddEvent";
 import { Button } from "@/components/ui/button";
 import { Notification } from "../components/ui/Notification";
 import ResponsiveConfirm from "../components/responsive/ResponsiveConfirm";
-import { useRouter } from "next/navigation";
 import { Id } from "../../../../convex/_generated/dataModel";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
-import NProgress from "nprogress";
 import EventFormWrapper from "../components/eventForm/EventFormWrapper";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { isAdmin } from "@/utils/permissions";
 
-const AddEventContent: React.FC<{
-  organization: OrganizationSchema;
-  subscription: SubscriptionSchema;
-  connectedAccountEnabled: boolean;
-  isCompanyAdmin: boolean;
-  availableCredits: number;
-}> = ({
-  organization,
-  subscription,
-  connectedAccountEnabled,
-  isCompanyAdmin,
-  availableCredits,
+interface AddEventContentProps {
+  onCancel: () => void;
+  onSubmitSuccess: (eventId: string) => void;
+  onBuyCredit: () => void;
+}
+
+const AddEventContent: React.FC<AddEventContentProps> = ({
+  onCancel,
+  onSubmitSuccess,
+  onBuyCredit,
 }) => {
+  const {
+    orgRole,
+    organization,
+    subscription,
+    connectedAccountEnabled,
+    availableCredits,
+  } = useContextOrganization();
+
   const [showCancelConfirmModal, setShowCancelConfirmModal] =
     useState<boolean>(false);
   const { addEvent, isLoading, error } = useAddEvent();
-  const router = useRouter();
+
+  const isCompanyAdmin = isAdmin(orgRole);
 
   const handleSubmit = async (
     organizationId: Id<"organizations">,
@@ -47,8 +48,7 @@ const AddEventContent: React.FC<{
       guestListData
     );
     if (result.success) {
-      NProgress.start();
-      router.push(`/${organization.slug}/app/events/${result.eventId}`);
+      onSubmitSuccess(result.eventId);
     }
   };
 
@@ -58,14 +58,11 @@ const AddEventContent: React.FC<{
 
   const handleConfirmCancel = () => {
     setShowCancelConfirmModal(false);
-    router.back();
+    onCancel();
   };
 
   const handleBuyCredit = () => {
-    if (organization?.slug) {
-      NProgress.start();
-      router.push(`/${organization.slug}/app/subscription`);
-    }
+    onBuyCredit();
   };
 
   return (

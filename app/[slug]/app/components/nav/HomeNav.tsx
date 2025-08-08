@@ -1,19 +1,9 @@
 import Logo from "@/components/shared/Logo";
-import { Button } from "@/components/ui/button";
+import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
 import { UserButton } from "@clerk/nextjs";
-import type { UserResource } from "@clerk/types";
 
-interface HomeNavProps {
-  user: UserResource | null;
-  handleNavigateHome: () => void;
-  buttonText?: string;
-}
-
-const HomeNav: React.FC<HomeNavProps> = ({
-  user,
-  handleNavigateHome,
-  buttonText = "Home",
-}) => {
+const HomeNav: React.FC = () => {
+  const { user } = useContextPublicOrganization();
   if (!user) return null;
 
   return (
@@ -21,14 +11,6 @@ const HomeNav: React.FC<HomeNavProps> = ({
       <div className="w-full max-w-screen-xl flex items-center justify-between px-2 h-14 md:h-16 mx-auto">
         <div className="flex items-center space-x-3">
           <Logo />
-          <Button
-            variant="navGhost"
-            className="justify-start"
-            onClick={handleNavigateHome}
-            size="nav"
-          >
-            {buttonText}
-          </Button>
         </div>
         <UserButton />
       </div>

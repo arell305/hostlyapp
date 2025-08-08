@@ -7,9 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import { UserResource } from "@clerk/types";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
-import router from "next/router";
-import NProgress from "nprogress";
-import MemberCardSkeleton from "@/[slug]/app/components/loading/MemberCardSkeleton";
+
 export interface QuerySuccess1<T> {
   status: ResponseStatus.SUCCESS;
   data: T;

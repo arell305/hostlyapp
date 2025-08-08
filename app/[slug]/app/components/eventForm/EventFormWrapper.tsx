@@ -31,8 +31,8 @@ export interface EventFormProps {
   isSubmitLoading?: boolean;
   submitError?: string | null;
   handleBuyCredit: () => void;
-  isCompanyAdmin: boolean;
   availableCredits?: number;
+  isCompanyAdmin: boolean;
 }
 
 const EventForm = (props: EventFormProps) => {

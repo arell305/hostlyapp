@@ -2,18 +2,27 @@ import Image from "next/image";
 import _ from "lodash";
 import { getInitial } from "@/utils/helpers";
 import InitialAvatar from "../avatars/InitialAvatar";
+import clsx from "clsx";
+import Link from "next/link";
+import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
 
 interface ProfileBannerProps {
   displayPhoto: string | null | undefined;
   name: string;
+  className?: string;
 }
 
 const ProfileBanner: React.FC<ProfileBannerProps> = ({
   displayPhoto,
   name,
+  className,
 }) => {
+  const { slug } = useContextPublicOrganization();
   return (
-    <div className="flex items-center gap-4 px-4 pt-4 pb-2">
+    <Link
+      href={`/${slug}`}
+      className={clsx("flex items-center gap-4 pt-4 pb-2", className)}
+    >
       {displayPhoto ? (
         <div className="relative w-[60px] h-[60px]">
           <Image
@@ -33,7 +42,7 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
         />
       )}
       <h1 className="text-2xl font-medium">{_.capitalize(name)}</h1>
-    </div>
+    </Link>
   );
 };
 

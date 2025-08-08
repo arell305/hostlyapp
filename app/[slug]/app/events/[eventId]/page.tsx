@@ -1,9 +1,7 @@
 "use client";
-import { useUser } from "@clerk/nextjs";
 import { useParams, useRouter } from "next/navigation";
 import EventIdContent from "./EventIdContent";
 import FullLoading from "../../components/loading/FullLoading";
-import ErrorComponent from "../../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { isAdmin, isHostlyUser, isManager } from "@/utils/permissions";
 import { isModerator, isPromoter } from "@/utils/permissions";
@@ -15,19 +13,18 @@ import { QueryState } from "@/types/enums";
 import { GetEventByIdData } from "@/types/convex-types";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
 import NProgress from "nprogress";
-import ErrorPage from "../../components/errors/ErrorPage";
 
 export default function EventPageWrapper() {
   const params = useParams();
   const router = useRouter();
   const eventId = params.eventId as Id<"events">;
+
   const {
-    organization,
-    organizationContextError,
     connectedAccountEnabled,
     subscription,
     availableCredits,
     orgRole,
+    cleanSlug,
   } = useContextOrganization();
 
   const canCheckInGuests = isModerator(orgRole);
@@ -39,39 +36,29 @@ export default function EventPageWrapper() {
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
 
   const handleNavigateHome = () => {
-    if (organization?.slug) {
-      NProgress.start();
-      router.push(`/${organization.slug}/app/`);
-    }
+    NProgress.start();
+    router.push(`/${cleanSlug}/app/`);
   };
 
   const handleAddGuestList = () => {
-    if (organization?.slug) {
-      NProgress.start();
-      router.push(`/${organization.slug}/app/events/${eventId}/add-guest-list`);
-    }
+    NProgress.start();
+    router.push(`/${cleanSlug}/app/events/${eventId}/add-guest-list`);
   };
 
   const handleBuyCredit = () => {
-    if (organization?.slug) {
-      NProgress.start();
-      router.push(`/${organization.slug}/app/subscription`);
-    }
+    NProgress.start();
+    router.push(`/${cleanSlug}/app/subscription`);
+  };
+
+  const handleDeleteSuccess = () => {
+    NProgress.start();
+    router.push(`/${cleanSlug}/app`);
   };
 
   const eventResult = handleQueryState(getEventByIdResponse);
 
-  if (
-    !organization ||
-    !subscription ||
-    connectedAccountEnabled === undefined ||
-    eventResult.type === QueryState.Loading
-  ) {
+  if (eventResult.type === QueryState.Loading) {
     return <FullLoading />;
-  }
-
-  if (organizationContextError) {
-    return <ErrorPage title={organizationContextError} />;
   }
 
   if (eventResult.type === QueryState.Error) {
@@ -105,6 +92,7 @@ export default function EventPageWrapper() {
       data={eventData}
       isCompanyAdmin={isCompanyAdmin}
       availableCredits={availableCredits}
+      onDeleteSuccess={handleDeleteSuccess}
     />
   );
 }

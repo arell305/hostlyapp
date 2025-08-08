@@ -4,44 +4,38 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   PropsWithChildren,
 } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { useQuery, useConvexAuth } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-
 import {
   ErrorMessages,
-  StripeAccountStatus,
   ResponseStatus,
+  StripeAccountStatus,
   UserRole,
 } from "@/types/enums";
+import type { OrganizationSchema, UserWithPromoCode } from "@/types/types";
+import type { SubscriptionSchema } from "@/types/schemas-types";
+import FullLoading from "@/[slug]/app/components/loading/FullLoading";
+import MessagePage from "@/components/shared/shared-page/MessagePage";
 
-import { UserWithPromoCode, OrganizationSchema } from "@/types/types";
-import { SubscriptionSchema } from "@/types/schemas-types";
-
-// ---------- Types ----------
 type OrganizationContextType = {
-  organization?: OrganizationSchema;
-  connectedAccountId?: string | null;
-  connectedAccountEnabled?: boolean;
-  subscription?: SubscriptionSchema;
-  organizationContextLoading: boolean;
-  organizationContextError: string | null;
-  availableCredits?: number;
-  user?: UserWithPromoCode | null;
+  organization: OrganizationSchema;
+  connectedAccountId: string;
+  connectedAccountEnabled: boolean;
+  subscription: SubscriptionSchema;
+  availableCredits: number;
+  user: UserWithPromoCode;
   orgRole?: UserRole;
-  cleanSlug?: string;
+  cleanSlug: string;
 };
 
-// ---------- Context ----------
 const OrganizationContext = createContext<OrganizationContextType | undefined>(
   undefined
 );
 
-// ---------- Redirect hook (auth + org guards) ----------
 function useHandleOrgRedirects({
   ready,
   response,
@@ -51,11 +45,7 @@ function useHandleOrgRedirects({
 }: {
   ready: boolean;
   response:
-    | {
-        status: ResponseStatus;
-        error?: string | null;
-        data?: any;
-      }
+    | { status: ResponseStatus; error?: string | null; data?: any }
     | undefined;
   slug: string;
   user: UserWithPromoCode | null;
@@ -66,11 +56,7 @@ function useHandleOrgRedirects({
     orgRole === UserRole.Hostly_Moderator || orgRole === UserRole.Hostly_Admin;
 
   useEffect(() => {
-    if (!ready) return; // wait for auth + queries to be runnable
-    if (!response) return;
-
-    if (response.status === ResponseStatus.ERROR) return; // don't redirect on transient errors here
-
+    if (!ready || !response) return;
     if (response.status !== ResponseStatus.SUCCESS) return;
 
     if (!user) {
@@ -90,16 +76,12 @@ function useHandleOrgRedirects({
     }
 
     if (!org.isActive) {
-      if (orgRole === UserRole.Admin) {
-        router.push(`/${slug}/app/reactivate`);
-      } else {
-        router.push(`/${slug}/app/deactivated`);
-      }
+      if (orgRole === UserRole.Admin) router.push(`/${slug}/app/reactivate`);
+      else router.push(`/${slug}/app/deactivated`);
     }
   }, [ready, response, slug, user, orgRole, router, isHostlyModerator]);
 }
 
-// ---------- Provider ----------
 export const OrganizationProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
@@ -107,14 +89,11 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
   const cleanSlug =
     typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
 
-  // Clerk state
   const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn } = useUser();
   const orgRole = (clerkUser?.publicMetadata.role as UserRole) ?? undefined;
 
-  // Convex auth bridge state
   const { isAuthenticated, isLoading: isConvexAuthLoading } = useConvexAuth();
 
-  // Only allow queries when everything is truly ready
   const ready =
     !!cleanSlug &&
     isClerkLoaded &&
@@ -122,20 +101,14 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
     isAuthenticated &&
     !isConvexAuthLoading;
 
-  // Queries gated by `ready`
+  // Hooks called unconditionally
   const orgContext = useQuery(
     api.organizations.getOrganizationContext,
     ready ? { slug: cleanSlug } : "skip"
   );
 
-  const userFromDb = useQuery(
-    api.users.findUserByClerkId,
-    ready && clerkUser ? { clerkUserId: clerkUser.id } : "skip"
-  );
+  const user = (orgContext?.data?.user as UserWithPromoCode | null) ?? null;
 
-  const user = userFromDb?.data?.user ?? null;
-
-  // Handle redirects only after auth + data are sane
   useHandleOrgRedirects({
     ready,
     response: orgContext,
@@ -144,46 +117,56 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
     orgRole,
   });
 
-  // Compose context value
-  const value = useMemo<OrganizationContextType>(() => {
-    // Not ready or queries not mounted yet
-    if (!ready || !orgContext || !userFromDb) {
-      return {
-        organizationContextLoading: true,
-        organizationContextError: null,
-      };
-    }
+  // Gates AFTER all hooks:
+  const stillLoading = !ready || orgContext === undefined;
+  if (stillLoading) return <FullLoading />;
 
-    if (orgContext.status === ResponseStatus.ERROR) {
-      return {
-        organizationContextLoading: false,
-        organizationContextError: orgContext.error ?? "Unknown error",
-      };
-    }
+  if (orgContext.status === ResponseStatus.ERROR) {
+    return (
+      <MessagePage
+        title="Failed to load organization"
+        description={orgContext.error || "Please try again."}
+      />
+    );
+  }
 
-    if (userFromDb.status === ResponseStatus.ERROR) {
-      return {
-        organizationContextLoading: false,
-        organizationContextError: userFromDb.error ?? "Unknown error",
-      };
-    }
+  // Success assertions / normalization
+  const org = orgContext.data?.organization;
+  if (!org) {
+    return (
+      <MessagePage
+        title="Organization not found"
+        description="We couldn’t find this organization."
+      />
+    );
+  }
 
-    // SUCCESS path
-    return {
-      organization: orgContext.data?.organization,
-      connectedAccountId: orgContext.data?.connectedAccountId ?? null,
-      connectedAccountEnabled:
-        orgContext.data?.connectedAccountStatus ===
-        StripeAccountStatus.VERIFIED,
-      subscription: orgContext.data?.subscription,
-      availableCredits: orgContext.data?.availableCredits,
-      organizationContextLoading: false,
-      organizationContextError: null,
-      user,
-      orgRole,
-      cleanSlug,
-    };
-  }, [ready, orgContext, userFromDb, user, orgRole, cleanSlug]);
+  const connectedAccountId = orgContext.data.connectedAccountId ?? "";
+  const connectedAccountEnabled =
+    orgContext.data.connectedAccountStatus === StripeAccountStatus.VERIFIED;
+  const subscription = orgContext.data.subscription;
+  const availableCredits = orgContext.data.availableCredits ?? 0;
+
+  if (!subscription || !user) {
+    return (
+      <MessagePage
+        title="Incomplete data"
+        description="Required account info is missing. Please contact support."
+      />
+    );
+  }
+
+  // Not using useMemo (no hook), so no order issues:
+  const value: OrganizationContextType = {
+    organization: org,
+    connectedAccountId,
+    connectedAccountEnabled,
+    subscription,
+    availableCredits,
+    user,
+    orgRole,
+    cleanSlug,
+  };
 
   return (
     <OrganizationContext.Provider value={value}>
@@ -192,11 +175,8 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
   );
 };
 
-// ---------- Hook ----------
 export const useContextOrganization = () => {
-  const context = useContext(OrganizationContext);
-  if (!context) {
-    throw new Error(ErrorMessages.CONTEXT_ORGANIZATION_PROVER);
-  }
-  return context;
+  const ctx = useContext(OrganizationContext);
+  if (!ctx) throw new Error(ErrorMessages.CONTEXT_ORGANIZATION_PROVER);
+  return ctx;
 };

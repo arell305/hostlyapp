@@ -1,25 +1,11 @@
 "use client";
 import React from "react";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
-import ErrorComponent from "../components/errors/ErrorComponent";
 import AnalyticsContent from "./AnalyticsContent";
 import { isManager, isPromoter } from "@/utils/permissions";
 
 const AnalyticsPage = () => {
-  const { organization, organizationContextError, subscription, orgRole } =
-    useContextOrganization();
-
-  if (organizationContextError) {
-    return <ErrorComponent message={organizationContextError} />;
-  }
-
-  if (!subscription) {
-    return <ErrorComponent message="No subscription found" />;
-  }
-
-  if (!organization) {
-    return <ErrorComponent message="No organization found" />;
-  }
+  const { organization, subscription, orgRole } = useContextOrganization();
 
   const canViewPromoter = isPromoter(orgRole);
   const canViewCompanyAnalytics = isManager(orgRole);

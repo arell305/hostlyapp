@@ -9,19 +9,28 @@ import EventImagePreview from "./EventImagePreview";
 import EventTitle from "./EventTitle";
 import IconTextRow from "../../components/ui/IconTextRow";
 import AddressTextRow from "../../components/ui/AddressTextRow";
+import clsx from "clsx";
 
 interface DetailsViewProps {
   eventData: EventSchema;
+  className?: string;
 }
 
-const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
+const DetailsView: React.FC<DetailsViewProps> = ({ eventData, className }) => {
   const handleAddressClick = () => {
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(eventData.address)}`;
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      eventData.address
+    )}`;
     window.open(googleMapsUrl, "_blank");
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-x-10 w-[95%] max-w-5xl mx-auto mt-4">
+    <div
+      className={clsx(
+        "flex flex-col md:flex-row gap-x-10 w-[95%] max-w-5xl mx-auto mt-4",
+        className
+      )}
+    >
       {/* Image Column */}
       <div className="w-full md:w-2/5">
         <EventImagePreview storageId={eventData.photo} />
@@ -30,7 +39,7 @@ const DetailsView: React.FC<DetailsViewProps> = ({ eventData }) => {
       {/* Info Column */}
       <div className="w-full md:w-3/5 flex flex-col ">
         <EventTitle title={eventData.name} />
-        <CustomCard className="mt-4 ">
+        <CustomCard className="mt-4">
           <IconTextRow
             icon={<MdOutlineCalendarToday />}
             text={

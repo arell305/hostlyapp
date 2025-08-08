@@ -2,39 +2,32 @@
 
 import { FC } from "react";
 
-import FullLoading from "../components/loading/FullLoading";
-import ErrorComponent from "../components/errors/ErrorComponent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import AddEventContent from "./AddEventContent";
-import { isAdmin, isManager } from "@/utils/permissions";
+import { isManager } from "@/utils/permissions";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
+import { useRouter } from "next/navigation";
+import NProgress from "nprogress";
 
 const AddEventPage: FC = () => {
-  const {
-    organization,
-    organizationContextError,
-    subscription,
-    connectedAccountEnabled,
-    availableCredits,
-    user,
-    orgRole,
-  } = useContextOrganization();
-  const isCompanyAdmin = isAdmin(orgRole);
+  const { orgRole, cleanSlug } = useContextOrganization();
+  const router = useRouter();
+
   const isCompanyManagerOrHostly = isManager(orgRole);
 
-  if (
-    !subscription ||
-    connectedAccountEnabled === undefined ||
-    !organization ||
-    !user ||
-    availableCredits === undefined
-  ) {
-    return <FullLoading />;
-  }
+  const handleCancel = () => {
+    router.back();
+  };
 
-  if (organizationContextError) {
-    return <ErrorComponent message={organizationContextError} />;
-  }
+  const handleSubmitSuccess = (eventId: string) => {
+    NProgress.start();
+    router.push(`/${cleanSlug}/app/events/${eventId}`);
+  };
+
+  const handleBuyCredit = () => {
+    NProgress.start();
+    router.push(`/${cleanSlug}/app/subscription`);
+  };
 
   if (!isCompanyManagerOrHostly) {
     return (
@@ -47,11 +40,9 @@ const AddEventPage: FC = () => {
   }
   return (
     <AddEventContent
-      organization={organization}
-      subscription={subscription}
-      connectedAccountEnabled={connectedAccountEnabled}
-      isCompanyAdmin={isCompanyAdmin}
-      availableCredits={availableCredits}
+      onCancel={handleCancel}
+      onSubmitSuccess={handleSubmitSuccess}
+      onBuyCredit={handleBuyCredit}
     />
   );
 };

@@ -14,7 +14,6 @@ import {
   UserRole,
 } from "@/types/enums";
 import { Id } from "./_generated/dataModel";
-import { PaginationResult, paginationOptsValidator } from "convex/server";
 import {
   AddEventResponse,
   GetEventByIdResponse,
@@ -30,7 +29,6 @@ import {
   PromoterPromoCodeSchema,
   UserSchema,
 } from "@/types/schemas-types";
-import { getCurrentTime } from "../utils/luxon";
 import { internal } from "./_generated/api";
 import { requireAuthenticatedUser } from "../utils/auth";
 import {
@@ -170,20 +168,6 @@ export const getEventById = query({
         .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
         .first();
 
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) {
-        return {
-          status: ResponseStatus.SUCCESS,
-          data: {
-            event,
-            ticketTypes,
-            ticketSoldCounts,
-          },
-        };
-      }
-      const organization = await ctx.db.get(event.organizationId);
-      const validatedOrganization = validateOrganization(organization);
-      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
       return {
         status: ResponseStatus.SUCCESS,
         data: {

@@ -1,12 +1,13 @@
 import { useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
-import { GuestListInfoSchema } from "@/types/schemas-types";
+import { EventSchema, GuestListInfoSchema } from "@/types/schemas-types";
 import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
 import { PublicGetGuestListInfoByEventIdResponse } from "@/types/convex-types";
 
 interface UsePublicGuestListInfoResult {
   guestListInfo: GuestListInfoSchema | null;
+  event: EventSchema | null;
   isLoading: boolean;
   isError: boolean;
   errorMessage: string | null;
@@ -30,9 +31,14 @@ export const usePublicGuestListInfo = (
     response && response.status === ResponseStatus.SUCCESS
       ? response.data.guestListInfo
       : null;
+  const event =
+    response && response.status === ResponseStatus.SUCCESS
+      ? response.data.event
+      : null;
 
   return {
     guestListInfo,
+    event,
     isLoading,
     isError,
     errorMessage,

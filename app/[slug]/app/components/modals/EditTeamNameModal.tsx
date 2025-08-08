@@ -6,7 +6,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface TeamNameModalProps {

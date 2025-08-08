@@ -1,20 +1,15 @@
 "use client";
 import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
 import { useQuery } from "convex/react";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 import { api } from "../../../../convex/_generated/api";
 import { Stripe, loadStripe } from "@stripe/stripe-js";
-import ErrorComponent from "@/[slug]/app/components/errors/ErrorComponent";
-import FullLoading from "@/[slug]/app/components/loading/FullLoading";
-import { ResponseStatus } from "@/types/enums";
-import { useUser } from "@clerk/nextjs";
 import ProfileBanner from "@/components/shared/company/ProfileBanner";
 import { ArrowLeft } from "lucide-react";
 import HomeNav from "@/[slug]/app/components/nav/HomeNav";
 import NProgress from "nprogress";
 import EventContentWrapper from "./components/EventCheckoutWrapper";
-import ErrorPage from "@/[slug]/app/components/errors/ErrorPage";
 
 const EventPage = () => {
   const { name, photo, isStripeEnabled, connectedAccountStripeId } =
@@ -22,10 +17,6 @@ const EventPage = () => {
 
   const pathname = usePathname();
   const router = useRouter();
-  const params = useParams();
-  const eventId = params.eventId as string;
-  const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
-  const { user } = useUser();
 
   const displayCompanyPhoto = useQuery(
     api.photo.getFileUrl,
@@ -50,24 +41,9 @@ const EventPage = () => {
     );
   }
 
-  if (
-    getEventByIdResponse === undefined ||
-    user === undefined ||
-    name === undefined
-  ) {
-    return <FullLoading />;
-  }
-
-  if (getEventByIdResponse.status === ResponseStatus.ERROR) {
-    return <ErrorPage title={getEventByIdResponse.error} />;
-  }
-  const eventData = getEventByIdResponse?.data?.event;
-  const ticketTypes = getEventByIdResponse?.data?.ticketTypes;
-  const ticketSoldCounts = getEventByIdResponse?.data?.ticketSoldCounts;
   return (
     <div>
-      <HomeNav user={user} handleNavigateHome={handleBrowseMoreEvents} />
-
+      <HomeNav />
       <main className="pb-10">
         <div className="px-4 mt-2">
           <button
@@ -78,16 +54,17 @@ const EventPage = () => {
             Back to Events
           </button>
         </div>
-        <ProfileBanner displayPhoto={displayCompanyPhoto} name={name} />
+        <ProfileBanner
+          className="px-4"
+          displayPhoto={displayCompanyPhoto}
+          name={name}
+        />
 
         <EventContentWrapper
           isStripeEnabled={isStripeEnabled}
           connectedAccountStripeId={connectedAccountStripeId}
           stripePromise={stripePromise}
-          eventData={eventData}
-          ticketTypes={ticketTypes}
           onBrowseMoreEvents={handleBrowseMoreEvents}
-          ticketSoldCounts={ticketSoldCounts}
         />
       </main>
     </div>

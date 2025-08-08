@@ -3,22 +3,22 @@ import CustomCard from "@/components/shared/cards/CustomCard";
 import { useAction } from "convex/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
-import { OrganizationSchema, PendingInvitationUser } from "@/types/types";
+import { PendingInvitationUser } from "@/types/types";
 import ErrorComponent from "../../components/errors/ErrorComponent";
 import PendingUserCard from "../PendingUserCard";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import { useRevokeInvitation } from "../hooks/useRevokeInvitation";
-import MemberCardSkeleton from "../../components/loading/MemberCardSkeleton";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import MemberCardSkeleton from "@/components/shared/skeleton/MemberCardSkeleton";
 
 interface PendingMembersSectionProps {
-  organization: OrganizationSchema;
   canManageTeam: boolean;
 }
 
 const PendingMembersSection = ({
-  organization,
   canManageTeam,
 }: PendingMembersSectionProps) => {
+  const { organization } = useContextOrganization();
   const [pendingUsers, setPendingUsers] = useState<PendingInvitationUser[]>([]);
   const [loadingMembers, setLoadingMembers] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

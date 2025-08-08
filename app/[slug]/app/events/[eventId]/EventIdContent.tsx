@@ -4,7 +4,6 @@ import {
   GuestListFormInput,
   Tab,
   TicketSoldCountByType,
-  TicketType,
   TicketUpdateInput,
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
@@ -25,8 +24,6 @@ import { isPast } from "date-fns";
 import TicketPage from "../../components/tickets/TicketPage";
 import GuestListPage from "../guestList/GuestListPage";
 import EventFormWrapper from "../../components/eventForm/EventFormWrapper";
-import { usePathname, useRouter } from "next/navigation";
-import NProgress from "nprogress";
 import { useCancelEvent } from "../hooks/useCancelEvent";
 
 interface EventIdContentProps {
@@ -47,6 +44,7 @@ interface EventIdContentProps {
   handleBuyCredit: () => void;
   isCompanyAdmin: boolean;
   availableCredits?: number;
+  onDeleteSuccess: () => void;
 }
 
 const EventIdContent: React.FC<EventIdContentProps> = ({
@@ -62,9 +60,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   handleBuyCredit,
   isCompanyAdmin,
   availableCredits,
+  onDeleteSuccess,
 }) => {
-  const router = useRouter();
-  const pathname = usePathname();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showConfirmCancelEdit, setShowConfirmCancelEdit] =
     useState<boolean>(false);
@@ -83,7 +80,6 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     cancelEvent,
     isLoading: isDeleteLoading,
     error: deleteError,
-    setError: setDeleteError,
   } = useCancelEvent();
 
   const tabs: Tab[] = [
@@ -139,9 +135,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   const handleConfirmDelete = async () => {
     const success = await cancelEvent(data.event._id);
     if (success) {
-      const slug = pathname.split("/")[1];
-      NProgress.start();
-      router.push(`/${slug}/app`);
+      setShowConfirmDelete(false); // optional: close dialog before navigating
+      onDeleteSuccess(); // delegate navigation to parent
     }
   };
   return (

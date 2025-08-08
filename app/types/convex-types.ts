@@ -29,7 +29,7 @@ import {
   TicketSoldCountByType,
   UserWithPromoCode,
 } from "./types";
-import { Id } from "../../convex/_generated/dataModel";
+import { Doc, Id } from "../../convex/_generated/dataModel";
 import { PaginationResult } from "convex/server";
 import { OrganizationSchema } from "./types";
 
@@ -201,7 +201,7 @@ export interface GetEventByIdSuccess {
 
 export interface GetEventByIdData {
   event: EventSchema;
-  guestListInfo?: GuestListInfoSchema | null;
+  guestListInfo: GuestListInfoSchema | null;
   ticketSoldCounts?: TicketSoldCountByType[] | null;
   ticketTypes: EventTicketTypesSchema[];
 }
@@ -646,6 +646,7 @@ export interface GetOrganizationContextData {
   connectedAccountStatus: StripeAccountStatus | null;
   subscription: SubscriptionSchema;
   availableCredits: number;
+  user: UserWithPromoCode;
 }
 
 export type RetryInvoicePaymentResponse =
@@ -1107,6 +1108,7 @@ export interface PublicGetGuestListInfoByEventIdSuccess {
 
 export interface PublicGetGuestListInfoByEventIdData {
   guestListInfo: GuestListInfoSchema;
+  event: EventSchema;
 }
 
 export type GetEventTicketTypesByEventIdResponse =
