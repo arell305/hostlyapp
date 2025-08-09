@@ -5,10 +5,11 @@ import React, {
   useContext,
   useEffect,
   PropsWithChildren,
+  useState,
 } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { useConvexAuth, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import {
   ErrorMessages,
@@ -85,6 +86,7 @@ function useHandleOrgRedirects({
 export const OrganizationProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
+  const router = useRouter();
   const { slug } = useParams();
   const cleanSlug =
     typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
@@ -92,19 +94,13 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
   const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn } = useUser();
   const orgRole = (clerkUser?.publicMetadata.role as UserRole) ?? undefined;
 
-  const { isAuthenticated, isLoading: isConvexAuthLoading } = useConvexAuth();
+  // ✅ Loosen "ready": only depend on Clerk + slug (Convex auth can settle in the background)
+  const ready = !!cleanSlug && isClerkLoaded && !!isSignedIn;
 
-  const ready =
-    !!cleanSlug &&
-    isClerkLoaded &&
-    !!isSignedIn &&
-    isAuthenticated &&
-    !isConvexAuthLoading;
-
-  // Hooks called unconditionally
+  // ✅ Start the org query as soon as we have a slug (don’t block on auth flags)
   const orgContext = useQuery(
     api.organizations.getOrganizationContext,
-    ready ? { slug: cleanSlug } : "skip"
+    cleanSlug ? { slug: cleanSlug } : "skip"
   );
 
   const user = (orgContext?.data?.user as UserWithPromoCode | null) ?? null;
@@ -117,15 +113,62 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
     orgRole,
   });
 
+  // ✅ Refresh on focus/visibility to recover after long idle
+  useEffect(() => {
+    const onFocus = () => router.refresh();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") onFocus();
+    };
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [router]);
+
+  // ✅ Slow-loading watchdog → fallback UI with retry
+  const [tookTooLong, setTookTooLong] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setTookTooLong(true), 8000);
+    return () => clearTimeout(id);
+  }, []);
+
   // Gates AFTER all hooks:
   const stillLoading = !ready || orgContext === undefined;
-  if (stillLoading) return <FullLoading />;
+
+  if (isClerkLoaded && !isSignedIn) {
+    // Signed out explicitly
+    return (
+      <MessagePage
+        title="Please sign in"
+        description="Your session expired. Sign in to continue."
+        buttonLabel="Sign in"
+        onButtonClick={() => router.push("/sign-in")}
+      />
+    );
+  }
+
+  if (stillLoading) {
+    return tookTooLong ? (
+      <MessagePage
+        title="Reconnecting…"
+        description="We are refreshing your session. If this takes too long, try reloading."
+        buttonLabel="Retry"
+        onButtonClick={() => router.refresh()}
+      />
+    ) : (
+      <FullLoading />
+    );
+  }
 
   if (orgContext.status === ResponseStatus.ERROR) {
     return (
       <MessagePage
         title="Failed to load organization"
         description={orgContext.error || "Please try again."}
+        buttonLabel="Retry"
+        onButtonClick={() => router.refresh()}
       />
     );
   }
@@ -156,7 +199,6 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
     );
   }
 
-  // Not using useMemo (no hook), so no order issues:
   const value: OrganizationContextType = {
     organization: org,
     connectedAccountId,
