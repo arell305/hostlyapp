@@ -22,11 +22,14 @@ const EventList: React.FC<EventListProps> = ({
     return <EmptyList message={emptyText} />;
   }
 
+  // Sort by earliest start time first
+  const sortedEvents = [...events].sort((a, b) => a.startTime - b.startTime);
+
   return (
     <div
-      className={`py-2 flex flex-wrap justify-center gap-x-4 gap-y-3  ${className}`}
+      className={`py-2 flex flex-wrap justify-center gap-x-4 gap-y-3 ${className}`}
     >
-      {events.map((event) => (
+      {sortedEvents.map((event) => (
         <EventItem key={event._id} event={event} pathname={pathname} />
       ))}
     </div>

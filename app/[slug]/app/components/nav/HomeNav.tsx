@@ -8,7 +8,7 @@ const HomeNav: React.FC = () => {
 
   return (
     <nav className="flex bg-cardBackground border-b w-full px-3">
-      <div className="w-full max-w-screen-xl flex items-center justify-between px-2 h-14 md:h-16 mx-auto">
+      <div className="w-full max-w-screen-xl flex items-center justify-between px-2 h-12  mx-auto">
         <div className="flex items-center space-x-3">
           <Logo />
         </div>

@@ -3,11 +3,7 @@ import { DateTime, Zone } from "luxon";
 import { DateRange } from "react-day-picker";
 
 export const formatTime = (timestamp: number): string => {
-  const pstDateTime = DateTime.fromMillis(timestamp, {
-    zone: "America/Los_Angeles",
-  });
-
-  return pstDateTime.toFormat("h:mm a");
+  return DateTime.fromMillis(timestamp, { zone: TIME_ZONE }).toFormat("h:mm a");
 };
 
 export const formatDateMDY = (timestamp: number): string => {
@@ -148,7 +144,7 @@ export const getDateRangeFromPreset = (preset: PresetOption): DateRange => {
 };
 
 export function formatEventDateParts(startTime: number) {
-  const date = DateTime.fromMillis(startTime);
+  const date = DateTime.fromMillis(startTime, { zone: TIME_ZONE });
 
   return {
     month: date.toFormat("MMM").toUpperCase(),
@@ -158,7 +154,9 @@ export function formatEventDateParts(startTime: number) {
 }
 
 export function formatToEventDateTime(timestamp: number): string {
-  return DateTime.fromMillis(timestamp).toFormat("EEE, MMM d • h:mm a");
+  return DateTime.fromMillis(timestamp, { zone: TIME_ZONE }).toFormat(
+    "EEE, MMM d • h:mm a"
+  );
 }
 
 export function formatToPstShortDate(ts: number): string {
@@ -170,12 +168,31 @@ export function startOfPstDay(ts: number): DateTime {
   return DateTime.fromMillis(ts, { zone: TIME_ZONE }).startOf("day");
 }
 
+// export function formatToDateTimeLocalPST(ms: number | null): string {
+//   return ms
+//     ? DateTime.fromMillis(ms).setZone(TIME_ZONE).toFormat("yyyy-MM-dd'T'HH:mm")
+//     : "";
+// }
+
+// export function parseDateTimeLocalToTimestampPST(val: string): number | null {
+//   return val ? DateTime.fromISO(val, { zone: TIME_ZONE }).toMillis() : null;
+// }
+
+// utils/timePST.ts
+// import { DateTime } from "luxon";
+
+// export const TIME_ZONE = "America/Los_Angeles";
+const INPUT_FMT = "yyyy-LL-dd'T'HH:mm";
+
+/** ms (UTC or any zone) -> "YYYY-MM-DDTHH:mm" string rendered in PST/PDT */
 export function formatToDateTimeLocalPST(ms: number | null): string {
-  return ms
-    ? DateTime.fromMillis(ms).setZone(TIME_ZONE).toFormat("yyyy-MM-dd'T'HH:mm")
-    : "";
+  if (ms == null) return "";
+  return DateTime.fromMillis(ms).setZone(TIME_ZONE).toFormat(INPUT_FMT);
 }
 
+/** "YYYY-MM-DDTHH:mm" string (from input) interpreted AS PST/PDT -> ms epoch */
 export function parseDateTimeLocalToTimestampPST(val: string): number | null {
-  return val ? DateTime.fromISO(val, { zone: TIME_ZONE }).toMillis() : null;
+  if (!val) return null;
+  const dt = DateTime.fromFormat(val, INPUT_FMT, { zone: TIME_ZONE });
+  return dt.isValid ? dt.toMillis() : null;
 }

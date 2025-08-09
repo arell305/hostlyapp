@@ -19,10 +19,11 @@ import {
   UserSchema,
 } from "@/types/schemas-types";
 import { Id } from "../_generated/dataModel";
-import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
+import { PLUS_GUEST_LIST_LIMIT, TIME_ZONE } from "@/types/constants";
 import { internal } from "../_generated/api";
 import { validateSubscription } from "./validation";
 import { createStripePrices, createStripeProduct } from "./stripe";
+import { DateTime } from "luxon";
 
 export function isUserInOrganization(
   identity: UserIdentity,
@@ -659,4 +660,24 @@ export function hasTicketDataChanged(
       existing.ticketSalesEndTime !== incoming.ticketSalesEndTime
     );
   });
+}
+
+const DAY_FMT = "LLLL dd, yyyy"; // e.g., February 02, 2025
+const TIME_FMT = "h:mm a"; // e.g., 9:00 PM
+
+export function withFormattedTimes<
+  T extends {
+    startTime: number;
+    endTime: number;
+  },
+>(ticket: T) {
+  const start = DateTime.fromMillis(ticket.startTime).setZone(TIME_ZONE);
+  const end = DateTime.fromMillis(ticket.endTime).setZone(TIME_ZONE);
+
+  return {
+    ...ticket,
+    startDay: start.toFormat(DAY_FMT),
+    startHour: start.toFormat(TIME_FMT),
+    endHour: end.toFormat(TIME_FMT),
+  };
 }

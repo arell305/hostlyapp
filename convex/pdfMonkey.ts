@@ -6,6 +6,7 @@ import {
 } from "./backendUtils/pdfMonkeyWebhooks";
 import { WebhookResponse } from "@/types/convex-types";
 import { ErrorMessages } from "@/types/enums";
+import { withFormattedTimes } from "./backendUtils/helper";
 
 export const fulfill = internalAction({
   args: {
@@ -72,9 +73,10 @@ export const generatePDF = action({
     const { tickets, email } = args;
 
     const apiKey = process.env.PDFMONKEY_API_KEY;
-    if (!apiKey) {
-      throw new Error(ErrorMessages.PDF_MONKEY_MISSING_API_KEY);
-    }
+    if (!apiKey) throw new Error(ErrorMessages.PDF_MONKEY_MISSING_API_KEY);
+
+    // ✨ transform tickets to include PST-formatted strings
+    const transformed = tickets.map(withFormattedTimes);
 
     const url = "https://api.pdfmonkey.io/api/v1/documents";
 
@@ -88,7 +90,11 @@ export const generatePDF = action({
         body: JSON.stringify({
           document: {
             document_template_id: "8100AF29-ACA9-4F13-BBD4-2E2555689D54",
-            payload: { tickets },
+            payload: {
+              tickets: transformed,
+              // (optional) include a top-level timezone label if your template needs it
+              timezone: "America/Los_Angeles",
+            },
             meta: JSON.stringify({ email }),
             status: "pending",
           },

@@ -17,7 +17,6 @@ export const sendTicketEmail = action({
   },
   handler: async (ctx, args) => {
     const url = "https://api.sendgrid.com/v3/mail/send";
-    console.log("SendGrid API key is", apiKey ? "set" : "NOT set");
     try {
       const response = await fetch(url, {
         method: "POST",
