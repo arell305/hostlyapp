@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import CustomCard from "../cards/CustomCard";
 import Heading2 from "../headings/h2";
 import MessageCard from "../cards/MessageCard";
@@ -34,6 +34,30 @@ const BarChartContainer = <T extends Record<string, any>>({
   emptyDescription = "No chart data available for this period.",
 }: BarChartContainerProps<T>) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  // Parse + format helpers (assumes x values are date-like strings such as "8/3/25")
+  const formatMD = (v: unknown) => {
+    const d = new Date(String(v));
+    return isNaN(+d)
+      ? String(v)
+      : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
+  const formatMDY = (v: unknown) => {
+    const d = new Date(String(v));
+    return isNaN(+d)
+      ? String(v)
+      : d.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+  };
+
+  // Keep a memo of the selected bar’s full date for display under chart (optional)
+  const selectedLabel = useMemo(() => {
+    if (selectedIndex == null || !data[selectedIndex]) return null;
+    return formatMDY(data[selectedIndex][xKey]);
+  }, [selectedIndex, data, xKey]);
 
   const CustomBar = (props: any) => {
     const { x, y, width, height, index, fill } = props;
@@ -86,6 +110,7 @@ const BarChartContainer = <T extends Record<string, any>>({
           <XAxis
             dataKey={xKey as string}
             tick={{ fontSize: 12, fill: "#f3f4f6" }}
+            tickFormatter={formatMD} // <-- Month Day on the axis
             interval="preserveStartEnd"
             minTickGap={0}
           />
@@ -100,6 +125,7 @@ const BarChartContainer = <T extends Record<string, any>>({
             }}
             labelStyle={{ color: "#f3f4f6" }}
             formatter={(value) => tooltipFormatter(Number(value))}
+            labelFormatter={formatMDY} // <-- Month Day, Year in tooltip
             cursor={{ fill: "#1f2937" }}
           />
           <Legend
@@ -128,6 +154,11 @@ const BarChartContainer = <T extends Record<string, any>>({
           })}
         </BarChart>
       </ResponsiveContainer>
+
+      {/* Optional: show the clicked bar’s full date under the chart */}
+      {selectedLabel && (
+        <div className="mt-2 text-sm text-gray-300">{selectedLabel}</div>
+      )}
     </CustomCard>
   );
 };

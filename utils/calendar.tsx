@@ -2,7 +2,7 @@ import { TIME_ZONE } from "@/types/constants";
 import { EventWithExtras } from "@/types/convex-types";
 import { EventSchema } from "@/types/schemas-types";
 import { CalendarValue } from "@/types/types";
-import { DateTime } from "luxon";
+import { DateTime, Interval } from "luxon";
 
 export const formatShortWeekday = (
   locale: string | undefined,
@@ -21,6 +21,46 @@ export const getShortWeekdayFormatter = (isMobile: boolean) => {
   };
 };
 
+export function getVisibleRange(date: Date, isWeekView: boolean) {
+  const dt = DateTime.fromJSDate(date).setZone(TIME_ZONE);
+  return isWeekView
+    ? {
+        start: dt.startOf("week").startOf("day"),
+        end: dt.endOf("week").endOf("day"),
+      }
+    : {
+        start: dt.startOf("month").startOf("day"),
+        end: dt.endOf("month").endOf("day"),
+      };
+}
+
+/**
+ * Returns events that overlap the [start, end] range.
+ * Supports all-day & multi-day (if `endTime` exists); otherwise uses startTime.
+ */
+export function getEventsForDateRange(
+  events: EventWithExtras[],
+  start: Date,
+  end: Date
+): EventWithExtras[] {
+  const rangeStart = DateTime.fromJSDate(start)
+    .setZone(TIME_ZONE)
+    .startOf("day");
+  const rangeEnd = DateTime.fromJSDate(end).setZone(TIME_ZONE).endOf("day");
+  const range = Interval.fromDateTimes(rangeStart, rangeEnd);
+
+  return events.filter((event) => {
+    const evStart = DateTime.fromMillis(event.startTime).setZone(TIME_ZONE);
+    const evEnd =
+      event.endTime != null
+        ? DateTime.fromMillis(event.endTime).setZone(TIME_ZONE)
+        : evStart;
+    const evInterval = Interval.fromDateTimes(evStart, evEnd);
+    return evInterval.overlaps(range);
+  });
+}
+
+// to be deleted
 export function getEventsForDate(
   events: EventWithExtras[],
   targetDate: Date
@@ -45,15 +85,17 @@ export function doesDateHaveEvent(events: EventSchema[], date: Date): boolean {
 }
 
 export function navigateDate(
-  currentDate: Date,
-  direction: "prev" | "next"
+  date: Date,
+  direction: "prev" | "next",
+  isWeekView: boolean
 ): Date {
-  return DateTime.fromJSDate(currentDate)
-    .setZone(TIME_ZONE)
-    .plus({ days: direction === "next" ? 7 : -7 })
-    .toJSDate();
+  const d = DateTime.fromJSDate(date).setZone(TIME_ZONE);
+  const delta = direction === "next" ? 1 : -1;
+  const next = isWeekView
+    ? d.plus({ weeks: delta }).startOf("week")
+    : d.plus({ months: delta }).startOf("month");
+  return next.toJSDate();
 }
-
 export function normalizeCalendarDate(value: CalendarValue): Date {
   if (!value) {
     return DateTime.now().setZone(TIME_ZONE).toJSDate();

@@ -6,6 +6,8 @@ import ToggleCalendar from "./components/calendar/ToggleCalendar";
 import {
   doesDateHaveEvent,
   getEventsForDate,
+  getEventsForDateRange,
+  getVisibleRange,
   navigateDate,
   normalizeCalendarDate,
 } from "../../../utils/calendar";
@@ -33,18 +35,26 @@ const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
   const { component: monthlyEventsComponent, events: monthlyEventsData } =
     useMonthlyEvents({ month, year }, isWeekView);
 
+  const { start, end } = useMemo(
+    () => getVisibleRange(date, isWeekView),
+    [date, isWeekView]
+  );
+
   useEffect(() => {
+    if (!monthlyEventsData) {
+      setSelectedEvents([]);
+      return;
+    }
     setSelectedEvents(
-      monthlyEventsData ? getEventsForDate(monthlyEventsData, date) : []
+      getEventsForDateRange(monthlyEventsData, start.toJSDate(), end.toJSDate())
     );
-  }, [monthlyEventsData, date]);
+  }, [monthlyEventsData, start, end]);
 
   const hasEventOnDate = (d: Date) =>
     doesDateHaveEvent(monthlyEventsData ?? [], d);
+  // HomeContent.tsx
   const handleNavigation = (direction: "prev" | "next") =>
-    setDate(navigateDate(date, direction));
-  const handleDateClick = (value: CalendarValue) =>
-    setDate(normalizeCalendarDate(value));
+    setDate((prev) => navigateDate(prev, direction, isWeekView));
 
   if (monthlyEventsComponent) return monthlyEventsComponent;
 
@@ -54,7 +64,6 @@ const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
         isWeekView={isWeekView}
         date={date}
         today={today}
-        onDateClick={handleDateClick}
         onNavigate={handleNavigation}
         hasEventOnDate={hasEventOnDate}
         handleActiveStartDateChange={(d) => d && setDate(d)}
@@ -66,9 +75,9 @@ const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
       />
 
       <SelectedDateEvents
-        date={date}
         events={selectedEvents}
         pathname={pathname}
+        isWeekView={isWeekView}
       />
     </div>
   );

@@ -18,10 +18,10 @@ const Logo = () => {
       <Image
         src="/logo/logo.png"
         alt="Hostly Logo"
-        width={124}
-        height={20}
+        width={180} // intrinsic width of the file
+        height={40} // intrinsic height of the file
+        style={{ width: 90, height: "auto" }} // scale down, keep ratio
         priority
-        style={{ width: "124px", height: "80px" }} // lock both dimensions
       />
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { SubscriptionSchema } from "@/types/schemas-types";
 import { SubscriptionTier } from "@/types/enums";
 import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
 import PageHeading from "@/components/shared/PageHeading";
@@ -9,21 +8,12 @@ import PresetRangeDropdown from "@/components/shared/containers/date-filters/Pre
 import SingleDatePickerModal from "@/components/shared/containers/date-filters/DateRange";
 import { PresetOption } from "@/types/constants";
 import { getDateRangeFromPreset } from "../../../../utils/luxon";
-import { Id } from "../../../../convex/_generated/dataModel";
 import TicketAnalyticsPage from "./sections/TicketAnalyticsPage";
 import GuestListAnalyticsPage from "./sections/GuestListAnalyticsPage";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
 
-const AnalyticsContent = ({
-  subscription,
-  organizationId,
-  canViewPromoter,
-  canViewCompanyAnalytics,
-}: {
-  subscription: SubscriptionSchema;
-  organizationId: Id<"organizations">;
-  canViewPromoter: boolean;
-  canViewCompanyAnalytics: boolean;
-}) => {
+const AnalyticsContent = ({}: {}) => {
+  const { subscription } = useContextOrganization();
   const { subscriptionTier } = subscription;
   const hasGuestListAccess =
     subscriptionTier === SubscriptionTier.PLUS ||
@@ -111,19 +101,10 @@ const AnalyticsContent = ({
       </div>
 
       {selectedTab === "tickets" && (
-        <TicketAnalyticsPage
-          organizationId={organizationId}
-          dateRange={dateRange}
-          canViewPromoter={canViewPromoter}
-          canViewCompanyAnalytics={canViewCompanyAnalytics}
-        />
+        <TicketAnalyticsPage dateRange={dateRange} />
       )}
       {selectedTab === "guestlist" && hasGuestListAccess && (
-        <GuestListAnalyticsPage
-          organizationId={organizationId}
-          dateRange={dateRange}
-          canViewCompanyAnalytics={canViewCompanyAnalytics}
-        />
+        <GuestListAnalyticsPage dateRange={dateRange} />
       )}
     </section>
   );

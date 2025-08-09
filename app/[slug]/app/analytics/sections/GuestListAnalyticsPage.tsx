@@ -1,48 +1,27 @@
 "use client";
 
 import React from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
-import { handleQueryState } from "../../../../../utils/handleQueryState";
-import { GetGuestListKpisData } from "@/types/convex-types";
-import { QueryState } from "@/types/enums";
 import GuestListAnalyticsContent from "./GuestListAnalyticsContent";
+import { useGuestListKpis } from "../hooks/useGuestListKpis";
+import { isError, isLoading } from "@/types/types";
 
 interface GuestListAnalyticsPageProps {
-  organizationId: Id<"organizations">;
   dateRange: {
     from: Date | undefined;
     to: Date | undefined;
   };
-  canViewCompanyAnalytics: boolean;
 }
 
-const GuestListAnalyticsPage = ({
-  organizationId,
-  dateRange,
-  canViewCompanyAnalytics,
-}: GuestListAnalyticsPageProps) => {
-  const guestListData = useQuery(api.guestListEntries.getGuestListKpis, {
-    organizationId,
-    fromTimestamp: dateRange.from?.getTime() ?? 0,
-    toTimestamp: dateRange.to?.getTime() ?? Date.now(),
-  });
+const GuestListAnalyticsPage = ({ dateRange }: GuestListAnalyticsPageProps) => {
+  const result = useGuestListKpis(dateRange);
 
-  const result = handleQueryState(guestListData);
-
-  if (result.type === QueryState.Loading || result.type === QueryState.Error) {
-    return result.element;
+  if (isLoading(result) || isError(result)) {
+    return result.component;
   }
 
-  const guestListKpisData: GetGuestListKpisData = result.data;
+  const guestListKpisData = result.data;
 
-  return (
-    <GuestListAnalyticsContent
-      canViewCompanyAnalytics={canViewCompanyAnalytics}
-      guestListKpisData={guestListKpisData}
-    />
-  );
+  return <GuestListAnalyticsContent guestListKpisData={guestListKpisData} />;
 };
 
 export default GuestListAnalyticsPage;

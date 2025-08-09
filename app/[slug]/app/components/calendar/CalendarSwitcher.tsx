@@ -3,14 +3,12 @@
 import Calendar from "react-calendar";
 import { RiArrowDropLeftLine, RiArrowDropRightLine } from "react-icons/ri";
 import WeekView from "./WeekView";
-import { CalendarValue } from "@/types/types";
 import { formatNarrowWeekday } from "@/utils/luxon";
 
 interface CalendarSwitcherProps {
   isWeekView: boolean;
   date: Date;
   today: Date;
-  onDateClick: (value: CalendarValue) => void;
   onNavigate: (direction: "prev" | "next") => void;
   hasEventOnDate: (date: Date) => boolean;
   handleActiveStartDateChange: (date: Date | null) => void;
@@ -20,7 +18,6 @@ export const CalendarSwitcher: React.FC<CalendarSwitcherProps> = ({
   isWeekView,
   date,
   today,
-  onDateClick,
   onNavigate,
   hasEventOnDate,
   handleActiveStartDateChange,
@@ -30,7 +27,6 @@ export const CalendarSwitcher: React.FC<CalendarSwitcherProps> = ({
       <WeekView
         date={date}
         today={today}
-        onDateClick={onDateClick}
         onNavigate={onNavigate}
         hasEventOnDate={hasEventOnDate}
       />
@@ -40,14 +36,21 @@ export const CalendarSwitcher: React.FC<CalendarSwitcherProps> = ({
   return (
     <div className="w-full">
       <Calendar
-        onChange={onDateClick}
         value={date}
         calendarType="gregory"
-        className="px-2 pt-3 w-full"
+        className=" w-full"
         next2Label={null}
         prev2Label={null}
-        nextLabel={<RiArrowDropRightLine className="text-xl" />}
-        prevLabel={<RiArrowDropLeftLine className="text-xl" />}
+        nextLabel={
+          <div className="px-3 py-2 hover:bg-cardBackgroundHover rounded">
+            <RiArrowDropRightLine className="text-2xl " />
+          </div>
+        }
+        prevLabel={
+          <div className="px-3 py-2 hover:bg-cardBackgroundHover rounded">
+            <RiArrowDropLeftLine className="text-2xl " />
+          </div>
+        }
         formatShortWeekday={formatNarrowWeekday}
         selectRange={false}
         tileContent={({ date: tileDate, view }) => {
@@ -65,7 +68,7 @@ export const CalendarSwitcher: React.FC<CalendarSwitcherProps> = ({
                   <div
                     className={`absolute bottom-1 transform 
                     ${isToday ? "-translate-x-[15%]" : "-translate-x-1/2"} 
-                    bg-customDarkBlue rounded-full w-1.5 h-1.5`}
+                    bg-primaryBlue rounded-full w-1.5 h-1.5`}
                   />
                 )}
               </div>

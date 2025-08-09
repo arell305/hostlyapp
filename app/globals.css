@@ -195,15 +195,13 @@ input::-webkit-date-and-time-value {
     padding-left: 10px !important;
   }
 }
-.react-calendar {
-  font-family: "Inter", sans-serif !important;
-}
 
 .react-calendar__month-view__days__day,
 .react-calendar__month-view__days__day--weekend,
 .react-calendar__tile {
   background-color: "#0C0C0F" !important;
   color: white !important;
+  cursor: default !important;
 }
 
 .react-calendar__month-view__days__day {
@@ -345,26 +343,6 @@ input::-webkit-date-and-time-value {
   outline: none !important;
 }
 
-.react-calendar__tile:focus,
-.react-calendar__tile:focus-visible,
-.react-calendar__tile:active {
-  background: transparent !important;
-  color: inherit !important;
-}
-
-.react-calendar__tile:hover {
-  background-color: #f3f4f6;
-}
-.react-calendar__tile:active {
-  background-color: #f3f4f6;
-}
-
-@media (max-width: 768px) {
-  .react-calendar__tile:hover {
-    background: transparent !important;
-  }
-}
-
 .dot-container {
   display: flex;
   justify-content: center;
@@ -391,10 +369,12 @@ input::-webkit-date-and-time-value {
 }
 
 .react-calendar {
+  font-family: "Inter", sans-serif !important;
+
   background-color: #0f0f13 !important; /* Tailwind's bg-backgroundBlack */
   color: #f3f4f6 !important; /* Tailwind's text-whiteText */
   border-radius: 0.5rem;
-  padding: 1rem;
+  padding: 10px 4px 10px 4px !important;
   width: 100% !important;
   border: 1px solid #1b1c20 !important;
 }
@@ -451,25 +431,6 @@ input::-webkit-date-and-time-value {
   text-align: center;
   border-radius: 0.375rem;
   transition: background 0.2s ease;
-}
-
-.react-calendar__tile:hover {
-  background-color: #1f2937 !important; /* Tailwind's bg-gray-800 */
-}
-
-.react-calendar__tile--active {
-  background-color: #1b1c20 !important;
-  color: #f3f4f6 !important; /* your whiteText */
-  border: 2px solid #324e78 !important; /* clean white border */
-  font-weight: 600 !important;
-}
-
-.react-calendar__tile--active:enabled:focus,
-.react-calendar__tile--active:enabled:hover {
-  background-color: #1f2937 !important;
-  color: #f3f4f6 !important; /* your whiteText */
-  border: 2px solid #f9fafa !important; /* clean white border */
-  font-weight: 600 !important;
 }
 
 .recharts-active-bar {

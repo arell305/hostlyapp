@@ -18,16 +18,6 @@ interface TicketAnalyticsContentProps {
 const TicketAnalyticsContent = ({
   revenueData,
 }: TicketAnalyticsContentProps) => {
-  const formatValue = (key: string, value: number) => {
-    if (key.toLowerCase().includes("revenue")) {
-      return `$${value.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`;
-    }
-    return value.toLocaleString();
-  };
-
   const ticketKpis = [
     {
       label: "Total Revenue",

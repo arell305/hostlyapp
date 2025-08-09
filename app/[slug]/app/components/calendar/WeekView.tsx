@@ -12,7 +12,6 @@ import WeekNavigationHeader from "./WeekNavigationHeader";
 interface WeekViewProps {
   date: Date;
   today: Date;
-  onDateClick: (date: Date) => void;
   onNavigate: (direction: "prev" | "next") => void;
   hasEventOnDate: (date: Date) => boolean;
 }
@@ -20,7 +19,6 @@ interface WeekViewProps {
 const WeekView: React.FC<WeekViewProps> = ({
   date,
   today,
-  onDateClick,
   onNavigate,
   hasEventOnDate,
 }) => {
@@ -38,9 +36,8 @@ const WeekView: React.FC<WeekViewProps> = ({
   };
 
   const weekDates = getWeekDates(date);
-  console.log("weekDates", weekDates);
   return (
-    <CustomCard className="flex flex-col items-center  py-2 px-2  ">
+    <CustomCard className="flex flex-col items-center  pb-2 pt-3 px-3  ">
       <WeekNavigationHeader
         onNavigate={onNavigate}
         startDate={formatShortDate(weekDates[0])}
@@ -52,21 +49,18 @@ const WeekView: React.FC<WeekViewProps> = ({
       <div className="flex justify-between w-full">
         {weekDates.map((day) => {
           const isToday = day.toDateString() === today.toDateString();
-          const isSelected = day.toDateString() === date.toDateString();
           const hasEvent = hasEventOnDate(day);
           const isOutsideCurrentMonth =
             day.getMonth() !== date.getMonth() ||
             day.getFullYear() !== date.getFullYear();
 
           return (
-            <button
+            <div
               key={day.toISOString()}
-              type="button"
               className={`react-calendar__tile w-[14.2857%] aspect-square flex items-center justify-center 
         text-lg font-medium transition-all overflow-hidden
-        md:hover:bg-cardBackgroundHover
-        ${isSelected ? "md:hover:hover:bg-cardBackgroundHover react-calendar__tile--active" : ""}`}
-              onClick={() => onDateClick(day)}
+        
+        `}
             >
               <abbr
                 aria-label={day.toDateString()}
@@ -83,10 +77,10 @@ const WeekView: React.FC<WeekViewProps> = ({
                   {day.getDate()}
                 </span>
                 {hasEvent && (
-                  <div className="absolute -bottom-[16px] left-[50%] transform -translate-x-[50%] bg-customDarkBlue rounded-full w-[6px] h-[6px]" />
+                  <div className="absolute -bottom-[16px] left-[50%] transform -translate-x-[50%] bg-primaryBlue rounded-full w-[6px] h-[6px]" />
                 )}
               </abbr>
-            </button>
+            </div>
           );
         })}
       </div>

@@ -7,16 +7,19 @@ import SectionContainer from "@/components/shared/containers/SectionContainer";
 import BarChartContainer from "@/components/shared/analytics/BarChart";
 import { GetGuestListKpisData } from "@/types/convex-types";
 import HorizontalBarChartContainer from "@/components/shared/analytics/HorizontalBarChartContainer";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { isManager } from "@/utils/permissions";
 
 interface GuestListAnalyticsContentProps {
   guestListKpisData: GetGuestListKpisData;
-  canViewCompanyAnalytics: boolean;
 }
 
 const GuestListAnalyticsContent = ({
   guestListKpisData,
-  canViewCompanyAnalytics,
 }: GuestListAnalyticsContentProps) => {
+  const { orgRole } = useContextOrganization();
+  const canViewCompanyAnalytics = isManager(orgRole);
+
   const kpis = [
     {
       label: "Avg RSVPs per Event",

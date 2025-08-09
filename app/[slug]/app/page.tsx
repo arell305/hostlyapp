@@ -37,6 +37,7 @@ const HomePage: React.FC = () => {
             </Link>
           )
         }
+        className="mb-0"
       />
 
       {showStripeNotification && (

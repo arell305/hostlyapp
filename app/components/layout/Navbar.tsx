@@ -8,7 +8,6 @@ import NProgress from "nprogress";
 import Link from "next/link";
 
 const Navbar: React.FC = () => {
-  const router = useRouter();
   const { isLoaded } = useAuth();
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   const [visible, setVisible] = useState(true);
@@ -30,7 +29,7 @@ const Navbar: React.FC = () => {
         visible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      <div className="max-w-screen-xl flex items-center justify-between mx-auto px-2 h-14 md:h-16">
+      <div className="max-w-screen-xl flex items-center justify-between mx-auto px-2 h-12">
         <Logo />
         <div className="flex md:order-2 space-x-3 md:space-x-3 rtl:space-x-reverse">
           {!isLoaded ? (
