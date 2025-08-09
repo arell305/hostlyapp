@@ -26,7 +26,9 @@ import {
   ProratedPrice,
   SubscriptionBillingCycle,
   TicketCounts,
+  TicketSalesByPromoter,
   TicketSoldCountByType,
+  TicketTotalsItem,
   UserWithPromoCode,
 } from "./types";
 import { Doc, Id } from "../../convex/_generated/dataModel";
@@ -1154,3 +1156,17 @@ export type PromoterTicketSalesByType = {
   name: string;
   count: number;
 };
+
+export type GetEventSummaryResponse = GetEventSummarySuccess | ErrorResponse;
+
+export interface GetEventSummarySuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetEventSummaryData;
+}
+
+export interface GetEventSummaryData {
+  promoterGuestStats: Omit<PromoterGuestStatsData, "entries">[];
+  checkInData?: CheckInData;
+  tickets: TicketSalesByPromoter[];
+  ticketTotals: TicketTotalsItem[] | null;
+}

@@ -6,7 +6,11 @@ import {
   mutation,
   query,
 } from "./_generated/server";
-import { TicketInput } from "@/types/types";
+import {
+  TicketInput,
+  TicketSalesByPromoter,
+  TicketTotalsItem,
+} from "@/types/types";
 import { ErrorMessages, UserRole, ResponseStatus } from "@/types/enums";
 import { Id } from "./_generated/dataModel";
 import {
@@ -15,12 +19,15 @@ import {
   TicketSchemaWithPromoter,
 } from "@/types/schemas-types";
 import {
+  CheckInData,
   CheckInTicketResponse,
+  GetEventSummaryResponse,
   GetPromoterTicketKpisResponse,
   GetPromoterTicketSalesByTypeResponse,
   GetTicketSalesByPromoterResponse,
   GetTicketsByEventIdResponse,
   GetTicketTypeBreakdownByClerkUserResponse,
+  PromoterGuestStatsData,
 } from "@/types/convex-types";
 import { nanoid } from "nanoid";
 import { api, internal } from "./_generated/api";
@@ -831,6 +838,250 @@ export const getPromoterTicketSalesByType = query({
         data: result,
       };
     } catch (error: any) {
+      return handleError(error);
+    }
+  },
+});
+
+export const getEventSummary = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args): Promise<GetEventSummaryResponse> => {
+    try {
+      // ---- AuthZ / Context
+      const identity = await requireAuthenticatedUser(ctx, [
+        UserRole.Hostly_Admin,
+        UserRole.Hostly_Moderator,
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Moderator,
+        UserRole.Promoter,
+      ]);
+
+      const clerkUserId = identity.id as string;
+
+      const user = validateUser(
+        await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
+          .first()
+      );
+
+      const event = validateEvent(await ctx.db.get(args.eventId));
+      isUserInCompanyOfEvent(user, event);
+
+      const isManager = [
+        UserRole.Admin,
+        UserRole.Hostly_Admin,
+        UserRole.Hostly_Moderator,
+        UserRole.Manager,
+        UserRole.Moderator,
+      ].includes(user.role as UserRole);
+
+      // ---- Guest list portion (promoterGuestStats + optional checkInData)
+      const guestListInfo = await ctx.db.query("guestListInfo").first();
+
+      let promoterGuestStats: Omit<PromoterGuestStatsData, "entries">[] = [];
+      let checkInData: CheckInData | undefined = undefined;
+
+      if (guestListInfo) {
+        const allEntries = await ctx.db
+          .query("guestListEntries")
+          .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .collect();
+
+        const entriesToUse = isManager
+          ? allEntries
+          : allEntries.filter((e) => e.userPromoterId === user._id);
+
+        const groupedGuests = new Map<
+          string, // userId as string or "company"
+          Omit<PromoterGuestStatsData, "entries">
+        >();
+
+        let totalMales = 0;
+        let totalFemales = 0;
+        let totalRSVPs = 0;
+        let totalCheckedIn = 0;
+
+        for (const entry of entriesToUse) {
+          const promoterKey = (entry.userPromoterId ??
+            "company") as unknown as string;
+
+          const existing = groupedGuests.get(promoterKey) ?? {
+            promoterId:
+              promoterKey === "company"
+                ? ("company" as unknown as Id<"users">)
+                : (promoterKey as unknown as Id<"users">),
+            promoterName: promoterKey === "company" ? "Company" : "",
+            totalMales: 0,
+            totalFemales: 0,
+            totalRSVPs: 0,
+            totalCheckedIn: 0,
+          };
+
+          const males = entry.malesInGroup ?? 0;
+          const females = entry.femalesInGroup ?? 0;
+
+          existing.totalMales += males;
+          existing.totalFemales += females;
+          existing.totalRSVPs += 1;
+          existing.totalCheckedIn += entry.attended ? 1 : 0;
+
+          groupedGuests.set(promoterKey, existing);
+
+          if (isManager) {
+            totalMales += males;
+            totalFemales += females;
+            totalRSVPs += 1;
+            totalCheckedIn += entry.attended ? 1 : 0;
+          }
+        }
+
+        // Fill promoter names for guest stats (exclude "company")
+        const guestPromoterIds = Array.from(groupedGuests.keys()).filter(
+          (k) => k !== "company"
+        ) as unknown as Id<"users">[];
+
+        if (guestPromoterIds.length) {
+          const usersForGuests = await Promise.all(
+            guestPromoterIds.map((id) => ctx.db.get(id))
+          );
+          usersForGuests.forEach((u) => {
+            if (!u) return;
+            const summary = groupedGuests.get(u._id as unknown as string);
+            if (summary) summary.promoterName = u.name ?? "";
+          });
+        }
+
+        promoterGuestStats = Array.from(groupedGuests.values()).sort(
+          (a, b) => b.totalCheckedIn - a.totalCheckedIn
+        );
+
+        if (isManager) {
+          checkInData = {
+            totalCheckedIn,
+            totalMales,
+            totalFemales,
+            totalRSVPs,
+          };
+        }
+      } else {
+        promoterGuestStats = [];
+        checkInData = undefined;
+      }
+
+      // ---- Ticket portion (tickets + ticketTotals)
+      const ticketTypes = await ctx.db
+        .query("eventTicketTypes")
+        .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+        .collect();
+
+      let tickets: TicketSalesByPromoter[] = [];
+      let ticketTotals: TicketTotalsItem[] | null = null;
+
+      if (ticketTypes.length > 0) {
+        const ticketTypeMap = new Map(
+          ticketTypes.map((tt) => [tt._id, tt.name])
+        );
+
+        const allTickets = await ctx.db
+          .query("tickets")
+          .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+          .collect();
+
+        const ticketsToUse = isManager
+          ? allTickets
+          : allTickets.filter((t) => t.promoterUserId === user._id);
+
+        const promoterTypeCountMap = new Map<
+          Id<"users">,
+          Map<Id<"eventTicketTypes">, number>
+        >();
+
+        for (const ticket of ticketsToUse) {
+          if (!ticket.promoterUserId) continue;
+          const promoterId = ticket.promoterUserId;
+          const typeId = ticket.eventTicketTypeId;
+
+          if (!promoterTypeCountMap.has(promoterId)) {
+            promoterTypeCountMap.set(promoterId, new Map());
+          }
+          const typeMap = promoterTypeCountMap.get(promoterId)!;
+          typeMap.set(typeId, (typeMap.get(typeId) || 0) + 1);
+        }
+
+        const groupedTickets = new Map<Id<"users">, TicketSalesByPromoter>();
+        for (const [promoterId, typeCounts] of promoterTypeCountMap.entries()) {
+          const sales = Array.from(typeCounts.entries()).map(
+            ([typeId, count]) => ({
+              eventTicketTypeId: typeId,
+              name: ticketTypeMap.get(typeId) || "Unknown",
+              count,
+            })
+          );
+
+          groupedTickets.set(promoterId, {
+            promoterId,
+            promoterName: "", // fill later
+            sales,
+          });
+        }
+
+        // Fetch promoter names (union with guest promoter IDs for one pass if desired)
+        const ticketPromoterIds = Array.from(groupedTickets.keys());
+        if (ticketPromoterIds.length) {
+          const usersForTickets = await Promise.all(
+            ticketPromoterIds.map((id) => ctx.db.get(id))
+          );
+          usersForTickets.forEach((u) => {
+            if (!u) return;
+            const group = groupedTickets.get(u._id);
+            if (group) group.promoterName = u.name ?? "Unknown";
+          });
+        }
+
+        tickets = Array.from(groupedTickets.values()).sort((a, b) => {
+          const aTotal = a.sales.reduce((sum, s) => sum + s.count, 0);
+          const bTotal = b.sales.reduce((sum, s) => sum + s.count, 0);
+          return bTotal - aTotal;
+        });
+
+        // Totals across all promoters by ticket type (respect role filter above)
+        const totalTypeCountMap = new Map<Id<"eventTicketTypes">, number>();
+        for (const ticket of ticketsToUse) {
+          const typeId = ticket.eventTicketTypeId;
+          totalTypeCountMap.set(
+            typeId,
+            (totalTypeCountMap.get(typeId) || 0) + 1
+          );
+        }
+
+        ticketTotals = Array.from(totalTypeCountMap.entries()).map(
+          ([typeId, count]) => ({
+            eventTicketTypeId: typeId,
+            name: ticketTypeMap.get(typeId) || "Unknown",
+            count,
+          })
+        );
+      } else {
+        tickets = [];
+        ticketTotals = null;
+      }
+
+      // ---- Return combined payload
+      return {
+        status: ResponseStatus.SUCCESS,
+        data: {
+          promoterGuestStats,
+          checkInData,
+          tickets,
+          ticketTotals,
+        },
+      };
+    } catch (error) {
       return handleError(error);
     }
   },

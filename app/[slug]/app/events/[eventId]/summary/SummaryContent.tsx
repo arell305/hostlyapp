@@ -12,7 +12,6 @@ import TicketTimeCard from "../../components/TicketTimeCard";
 import { LuClipboardList } from "react-icons/lu";
 import {
   PromoterGuestStatsData,
-  CheckInData,
   GetTicketSalesByPromoterData,
 } from "@/types/convex-types";
 import PromoterGuestsListData from "./PromoterGuestsData";
@@ -21,23 +20,24 @@ import { TicketIcon } from "lucide-react";
 import SubPageContainer from "@/components/shared/containers/SubPageContainer";
 import { Id } from "convex/_generated/dataModel";
 import EventLinkCard from "../../components/EventLinkCard";
+import { TicketTotalsItem } from "@/types/types";
 
 interface SummaryContentProps {
   guestListInfo?: GuestListInfoSchema | null;
   isPromoter: boolean;
   ticketInfo?: EventTicketTypesSchema[] | null;
-  promoterGuestStatsData: {
-    promoterGuestStats: PromoterGuestStatsData[];
-    checkInData?: CheckInData;
+  promoterGuestStats: Omit<PromoterGuestStatsData, "entries">[];
+  ticketSalesByPromoterData: {
+    tickets: GetTicketSalesByPromoterData["tickets"];
+    ticketTotals: TicketTotalsItem[] | null;
   } | null;
-  ticketSalesByPromoterData: GetTicketSalesByPromoterData | null;
   canEditEvent: boolean;
   eventId: Id<"events">;
 }
 
 const SummaryContent: React.FC<SummaryContentProps> = ({
   isPromoter,
-  promoterGuestStatsData,
+  promoterGuestStats,
   guestListInfo,
   ticketInfo,
   ticketSalesByPromoterData,
@@ -52,38 +52,40 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
     ? !isPast(guestListInfo.checkInCloseTime)
     : false;
 
+  console.log(ticketSalesByPromoterData);
+  console.log(ticketInfo);
+
   return (
     <SubPageContainer className="flex flex-col gap-8">
       <div>
         <h2 className="mb-1 font-medium">Event Link</h2>
         <EventLinkCard eventId={eventId} />
       </div>
-      <div>
-        {ticketInfo && ticketSalesByPromoterData ? (
-          <>
-            <TicketTimeCard
-              ticketTotals={ticketSalesByPromoterData.ticketTotals ?? []}
-              ticketInfo={ticketInfo}
-              canEditEvent={canEditEvent}
-              className=""
-            />
 
-            {isPromoter && ticketSalesByPromoterData.tickets.length > 0 && (
-              <PromoterTicketData
-                promoterTicketData={ticketSalesByPromoterData.tickets[0]}
-              />
-            )}
-          </>
-        ) : (
-          <div>
-            <h2 className="font-medium mb-1">Tickets</h2>
-            <EmptyStateCard
-              message="There is no ticket option for this event."
-              icon={<LuClipboardList className="text-2xl" />}
+      {ticketInfo && ticketSalesByPromoterData && ticketInfo.length > 0 ? (
+        <>
+          <TicketTimeCard
+            ticketTotals={ticketSalesByPromoterData.ticketTotals ?? []}
+            ticketInfo={ticketInfo}
+            canEditEvent={canEditEvent}
+            className=""
+          />
+
+          {isPromoter && ticketSalesByPromoterData.tickets.length > 0 && (
+            <PromoterTicketData
+              promoterTicketData={ticketSalesByPromoterData.tickets[0]}
             />
-          </div>
-        )}
-      </div>
+          )}
+        </>
+      ) : (
+        <div>
+          <h2 className="font-medium mb-1">Tickets</h2>
+          <EmptyStateCard
+            message="There is no ticket option for this event."
+            icon={<LuClipboardList className="text-2xl" />}
+          />
+        </div>
+      )}
 
       <div>
         <h2 className="mb-1 font-medium">Guest List</h2>
@@ -108,12 +110,10 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
         )}
       </div>
 
-      {isPromoter && promoterGuestStatsData && (
+      {isPromoter && promoterGuestStats && (
         <div>
           <h2 className="mb-1 font-medium">Promoter Guest Attendance</h2>
-          <PromoterGuestsListData
-            guestListData={promoterGuestStatsData.promoterGuestStats[0]}
-          />
+          <PromoterGuestsListData guestListData={promoterGuestStats[0]} />
         </div>
       )}
 
@@ -138,12 +138,12 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
         </div>
       )}
 
-      {guestListInfo && !isPromoter && promoterGuestStatsData && (
+      {guestListInfo && !isPromoter && promoterGuestStats && (
         <div>
           <h2 className="mb-1 font-medium">Promoter Guest List Summary</h2>
           <div className="flex flex-col gap-2">
-            {promoterGuestStatsData.promoterGuestStats.length > 0 ? (
-              promoterGuestStatsData.promoterGuestStats.map((promoter) => (
+            {promoterGuestStats.length > 0 ? (
+              promoterGuestStats.map((promoter) => (
                 <PromoterGuestsListData
                   guestListData={promoter}
                   key={promoter.promoterId}

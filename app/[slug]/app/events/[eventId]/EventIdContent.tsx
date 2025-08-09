@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   EventFormInput,
   GuestListFormInput,
@@ -7,7 +7,6 @@ import {
   TicketUpdateInput,
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
-// import ViewTab from "../ViewTab";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
 import {
   EventSchema,
@@ -87,10 +86,17 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     ...(data.guestListInfo
       ? [{ label: "Guest List", value: ActiveTab.GUEST_LIST }]
       : []),
-    ...(data.ticketTypes
+    ...(data.ticketTypes && data.ticketTypes.length > 0
       ? [{ label: "Tickets", value: ActiveTab.TICKET_INFO }]
       : []),
   ];
+
+  useEffect(() => {
+    const availableValues = new Set(tabs.map((t) => t.value));
+    if (!availableValues.has(activeTab)) {
+      setActiveTab(ActiveTab.SUMMARY);
+    }
+  }, [tabs, activeTab]);
 
   const handleCancelEdit = () => {
     if (isEditing) {

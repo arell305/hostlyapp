@@ -6,31 +6,6 @@ import { api, internal } from "../_generated/api";
 import { Id } from "../_generated/dataModel";
 import { getStripeAccountStatus } from "./stripeWebhooks";
 
-// export async function createStripeConnectedAccount(
-//   email: string,
-//   companyName: string
-// ) {
-//   try {
-//     const account = await stripe.accounts.create({
-//       type: "express",
-//       country: "US",
-//       email,
-//       business_profile: {
-//         name: companyName,
-//       },
-//       capabilities: {
-//         card_payments: { requested: true },
-//         transfers: { requested: true },
-//       },
-//     });
-
-//     return account;
-//   } catch (error) {
-//     console.error("Failed to create Stripe connected account:", error);
-//     throw new Error(ErrorMessages.STRIPE_CONNECT_CREATE_ERROR);
-//   }
-// }
-
 export async function createStripeOnboardingSession(
   stripeAccountId: string
 ): Promise<Stripe.Response<Stripe.AccountSession>> {

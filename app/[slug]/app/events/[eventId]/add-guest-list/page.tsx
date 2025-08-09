@@ -14,7 +14,7 @@ const AddGuestListPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const eventId = params.eventId as string;
-  const { organization } = useContextOrganization();
+  const { cleanSlug } = useContextOrganization();
 
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
 
@@ -31,10 +31,8 @@ const AddGuestListPage: React.FC = () => {
   };
 
   const handleNavigateHome = () => {
-    if (organization?.slug) {
-      NProgress.start();
-      router.push(`/${organization.slug}/app/`);
-    }
+    NProgress.start();
+    router.push(`/${cleanSlug}/app/`);
   };
 
   if (!eventData.isActive) {

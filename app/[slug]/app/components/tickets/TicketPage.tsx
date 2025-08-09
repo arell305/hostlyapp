@@ -6,6 +6,8 @@ import { useQuery } from "convex/react";
 import React from "react";
 import TicketContent from "./TicketContent";
 import SubPageContainer from "@/components/shared/containers/SubPageContainer";
+import { useTicketsByEventId } from "../../events/hooks/useTicketsByEventId";
+import { isError, isLoading } from "@/types/types";
 
 interface TicketPageProps {
   eventId: Id<"events">;
@@ -16,25 +18,15 @@ const TicketPage: React.FC<TicketPageProps> = ({
   eventId,
   canCheckInGuests,
 }) => {
-  const responseTicketSalesByPromoter = useQuery(
-    api.tickets.getTicketsByEventId,
-    { eventId }
-  );
-  const resultTicketSalesByPromoter = handleQueryState(
-    responseTicketSalesByPromoter
-  );
-  if (
-    resultTicketSalesByPromoter.type === QueryState.Loading ||
-    resultTicketSalesByPromoter.type === QueryState.Error
-  ) {
-    return resultTicketSalesByPromoter.element;
+  const result = useTicketsByEventId(eventId);
+  if (isLoading(result) || isError(result)) {
+    return result.component;
   }
+  const tickets = result.data;
+
   return (
     <SubPageContainer>
-      <TicketContent
-        tickets={resultTicketSalesByPromoter.data?.tickets}
-        canCheckInGuests={canCheckInGuests}
-      />
+      <TicketContent tickets={tickets} canCheckInGuests={canCheckInGuests} />
     </SubPageContainer>
   );
 };

@@ -144,7 +144,7 @@ const PromoterGuestListContent = ({
   return (
     <SectionContainer>
       {isEmptyGuestList ? (
-        <EmptyList items={[]} message="No guest list added" />
+        <EmptyList items={[]} message="No guest list added." />
       ) : (
         <>
           <SearchInput

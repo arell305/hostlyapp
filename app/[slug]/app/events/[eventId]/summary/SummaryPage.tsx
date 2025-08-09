@@ -1,14 +1,12 @@
+import React from "react";
+import { Id } from "../../../../../../convex/_generated/dataModel";
 import {
   EventTicketTypesSchema,
   GuestListInfoSchema,
 } from "@/types/schemas-types";
-import React from "react";
-import { Id } from "../../../../../../convex/_generated/dataModel";
-import { api } from "../../../../../../convex/_generated/api";
-import { useQuery } from "convex/react";
-import { handleQueryState } from "../../../../../../utils/handleQueryState";
-import { QueryState } from "@/types/enums";
 import SummaryContent from "./SummaryContent";
+import { isError, isLoading } from "@/types/types";
+import { useEventSummary } from "../../hooks/useEventSummary";
 
 interface SummaryPageProps {
   guestListInfo?: GuestListInfoSchema | null;
@@ -25,45 +23,13 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
   ticketInfo,
   canEditEvent,
 }) => {
-  const hasTicket = ticketInfo && ticketInfo.length > 0;
-  const responsePromoterGuestStats = useQuery(
-    api.guestListEntries.getPromoterGuestStats,
-    !guestListInfo ? "skip" : { eventId }
-  );
+  const result = useEventSummary(eventId);
 
-  const responseTicketSalesByPromoter = useQuery(
-    api.tickets.getTicketSalesByPromoterWithDetails,
-    !hasTicket ? "skip" : { eventId }
-  );
-
-  const resultPromoterGuestStats = handleQueryState(responsePromoterGuestStats);
-  const resultTicketSalesByPromoter = handleQueryState(
-    responseTicketSalesByPromoter
-  );
-  if (
-    guestListInfo &&
-    (resultPromoterGuestStats.type === QueryState.Loading ||
-      resultPromoterGuestStats.type === QueryState.Error)
-  ) {
-    return resultPromoterGuestStats.element;
+  if (isLoading(result) || isError(result)) {
+    return result.component;
   }
 
-  if (
-    hasTicket &&
-    (resultTicketSalesByPromoter.type === QueryState.Loading ||
-      resultTicketSalesByPromoter.type === QueryState.Error)
-  ) {
-    return resultTicketSalesByPromoter.element;
-  }
-
-  const promoterGuestStatsData =
-    resultPromoterGuestStats.type === QueryState.Success
-      ? resultPromoterGuestStats.data
-      : null;
-  const ticketSalesByPromoterData =
-    resultTicketSalesByPromoter.type === QueryState.Success
-      ? resultTicketSalesByPromoter.data
-      : null;
+  const { promoterGuestStats, tickets, ticketTotals } = result.data;
 
   return (
     <SummaryContent
@@ -71,8 +37,8 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
       canEditEvent={canEditEvent}
       guestListInfo={guestListInfo}
       ticketInfo={ticketInfo}
-      promoterGuestStatsData={promoterGuestStatsData}
-      ticketSalesByPromoterData={ticketSalesByPromoterData}
+      promoterGuestStats={promoterGuestStats}
+      ticketSalesByPromoterData={{ tickets: tickets, ticketTotals }}
       eventId={eventId}
     />
   );

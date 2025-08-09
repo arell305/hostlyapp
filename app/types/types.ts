@@ -431,3 +431,67 @@ export type TicketUpdateInput = {
   stripePriceId?: string;
   ticketSalesEndTime: number;
 };
+
+// loadable.ts
+export type LoadState = "loading" | "error" | "success";
+
+export type QueryLoading<T> = {
+  state: "loading";
+  component: JSX.Element; // skeleton/spinner to render
+  data: null;
+};
+
+export type QueryError<T> = {
+  state: "error";
+  component: JSX.Element; // error UI to render
+  data: null;
+};
+
+export type QuerySuccess<T> = {
+  state: "success";
+  component: null; // nothing to render
+  data: T;
+};
+
+export type QueryResult<T> = QueryLoading<T> | QueryError<T> | QuerySuccess<T>;
+
+// Type guards
+export const isLoading = <T>(r: QueryResult<T>): r is QueryLoading<T> =>
+  r.state === "loading";
+export const isError = <T>(r: QueryResult<T>): r is QueryError<T> =>
+  r.state === "error";
+export const isSuccess = <T>(r: QueryResult<T>): r is QuerySuccess<T> =>
+  r.state === "success";
+
+// Small helpers (optional)
+export const loading = <T>(component: JSX.Element): QueryLoading<T> => ({
+  state: "loading",
+  component,
+  data: null,
+});
+export const failure = <T>(component: JSX.Element): QueryError<T> => ({
+  state: "error",
+  component,
+  data: null,
+});
+export const success = <T>(data: T): QuerySuccess<T> => ({
+  state: "success",
+  component: null,
+  data,
+});
+
+export type TicketSalesByPromoter = {
+  promoterId: Id<"users">;
+  promoterName: string;
+  sales: {
+    eventTicketTypeId: Id<"eventTicketTypes">;
+    name: string;
+    count: number;
+  }[];
+};
+
+export type TicketTotalsItem = {
+  eventTicketTypeId: Id<"eventTicketTypes">;
+  name: string;
+  count: number;
+};

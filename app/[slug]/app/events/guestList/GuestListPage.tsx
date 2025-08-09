@@ -8,6 +8,8 @@ import ModeratorGuestListContent from "./ModeratorGuestListContent";
 import { GuestListInfoSchema } from "@/types/schemas-types";
 import { isPast } from "@/utils/luxon";
 import SubPageContainer from "@/components/shared/containers/SubPageContainer";
+import { useEventWithGuestLists } from "../hooks/useEventWithGuestLists";
+import { isError, isLoading, isSuccess } from "@/types/types";
 
 interface GuestListPageProps {
   eventId: Id<"events">;
@@ -25,21 +27,13 @@ const GuestListPage: React.FC<GuestListPageProps> = ({
   let isCheckInOpen: boolean = !isPast(guestListInfo.checkInCloseTime);
   const isGuestListOpen = !isPast(guestListInfo.guestListCloseTime);
 
-  const responseGuestList = useQuery(
-    api.guestListEntries.getEventWithGuestLists,
-    {
-      eventId,
-    }
-  );
-  const resultGuestList = handleQueryState(responseGuestList);
-  if (
-    resultGuestList.type === QueryState.Loading ||
-    resultGuestList.type === QueryState.Error
-  ) {
-    return resultGuestList.element;
+  const resultGuestList = useEventWithGuestLists(eventId);
+
+  if (isLoading(resultGuestList) || isError(resultGuestList)) {
+    return resultGuestList.component;
   }
 
-  const guestListData = resultGuestList.data.guests;
+  const guestListData = resultGuestList.data;
 
   return (
     <SubPageContainer>
