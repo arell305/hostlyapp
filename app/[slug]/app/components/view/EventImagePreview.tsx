@@ -16,7 +16,7 @@ const EventImagePreview: React.FC<EventImagePreviewProps> = ({
   storageId,
   alt = "Event Image",
   className,
-  aspectRatio = "aspect-[4/5]",
+  aspectRatio = "aspect-[9/16]",
 }) => {
   const fileUrl = useQuery(
     api.photo.getFileUrl,

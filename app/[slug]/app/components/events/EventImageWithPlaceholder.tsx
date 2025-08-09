@@ -14,7 +14,7 @@ const EventImageWithPlaceholder: React.FC<EventImageWithPlaceholderProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <div className="relative rounded-md w-full aspect-[4/5] bg-gray-200 overflow-hidden">
+    <div className="relative rounded-md w-full aspect-[9/16] bg-gray-200 overflow-hidden">
       {/* Skeleton placeholder */}
       {(!src || isLoading) && (
         <div className="absolute inset-0 bg-gray-500 animate-pulse rounded-md" />

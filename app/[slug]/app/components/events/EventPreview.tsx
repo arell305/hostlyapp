@@ -34,7 +34,7 @@ const EventPreview: React.FC<EventPreviewProps> = ({
       <div
         className={` shadow-md rounded-md transition duration-200 bg-cardBackground `}
       >
-        <div className="relative rounded-md w-full aspect-[4/5] overflow-hidden">
+        <div className="relative rounded-md w-full aspect-[9/16] overflow-hidden">
           {isSalesOpen && (
             <div className="absolute top-0 left-0 z-10">
               <span className="bg-cardBackgroundHover text-white text-sm font-semibold px-2 py-1 rounded">

@@ -36,6 +36,9 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
         <Label htmlFor={id} className="font-bold">
           {label}
         </Label>
+        <p className="text-xs text-gray-400 mt-0.5">
+          Recommended: 9:16 vertical image (portrait)
+        </p>
 
         {/* Hidden file input */}
         <Input
@@ -49,25 +52,22 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
         <div className="flex">
           <Label
             htmlFor={id}
-            className={`focus:border-white w-[300px] aspect-[4/5] flex justify-center items-center cursor-pointer relative rounded-lg hover:bg-cardBackgroundHover ${
+            className={`focus:border-white w-[200px] aspect-[9/16] flex justify-center items-center cursor-pointer relative rounded-lg hover:bg-cardBackgroundHover ${
               imageUrl ? "" : "border-2 border-dashed"
             }`}
           >
             {showSkeleton ? (
-              // Skeleton placeholder for both loading & edit-no-image state
               <div className="absolute inset-0 bg-gray-500 animate-pulse rounded-lg" />
             ) : imageUrl ? (
-              // Uploaded image preview
               <Image
                 src={imageUrl}
                 alt="Uploaded Preview"
                 className="w-full h-full object-cover rounded-lg"
                 loading="lazy"
-                width={200}
-                height={200}
+                width={450} // keeps resolution sharp for portrait
+                height={800}
               />
             ) : (
-              // Add image icon
               <RiImageAddFill className="text-4xl text-gray-500" />
             )}
           </Label>
