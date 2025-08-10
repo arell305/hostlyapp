@@ -58,7 +58,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
           <Button
             type="button"
             onClick={onApplePayClick}
-            className="w-full bg-black text-white"
+            className="w-full bg-black text-white border-primaryBlue"
           >
             <FaApple className="mr-2" />
             Subscribe with Apple Pay

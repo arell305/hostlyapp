@@ -38,7 +38,11 @@ const Navbar: React.FC = () => {
             <>
               <SignedOut>
                 <Link href="/sign-up" onClick={() => NProgress.start()}>
-                  <Button type="button" size="navButton">
+                  <Button
+                    type="button"
+                    size="navButton"
+                    className="w-[90px] h-[36px]"
+                  >
                     Sign up
                   </Button>
                 </Link>
@@ -47,7 +51,7 @@ const Navbar: React.FC = () => {
                   <Button
                     variant="outline"
                     size="navButton"
-                    className="rounded-[12px] border-primaryBlue text-base font-medium w-[90px] h-[42px]"
+                    className="rounded-[12px] border-primaryBlue text-primaryBlue text-base font-medium w-[90px] h-[36px]"
                   >
                     Sign in
                   </Button>

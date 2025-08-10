@@ -12,6 +12,7 @@ import BaseDrawer from "../drawer/BaseDrawer";
 import LabeledInputField from "@/components/shared/fields/LabeledInputField";
 import FormContainer from "@/components/shared/containers/FormContainer";
 import FormActions from "@/components/shared/buttonContainers/FormActions";
+import PhoneNumberInput from "@/components/shared/fields/PhoneNumberInput";
 
 interface ResponsiveEditGuestNameProps {
   isOpen: boolean;
@@ -59,13 +60,13 @@ const ResponsiveEditGuestName: React.FC<ResponsiveEditGuestNameProps> = ({
         }}
         error={editNameError}
       />
-      <LabeledInputField
+      <PhoneNumberInput
         label="Phone Number (Optional)"
         name="editPhoneNumber"
         placeholder="Enter phone number"
         value={editPhoneNumber}
-        onChange={(e) => {
-          setEditPhoneNumber(e.target.value);
+        onChange={(phoneNumber) => {
+          setEditPhoneNumber(phoneNumber);
           setEditPhoneNumberError(null);
         }}
         error={editPhoneNumberError}
@@ -74,6 +75,7 @@ const ResponsiveEditGuestName: React.FC<ResponsiveEditGuestNameProps> = ({
   );
 
   const isDisabled = isLoading || !editName || !editName.trim();
+  const description = "Update the name and optional phone number of the guest.";
 
   if (isDesktop) {
     return (
@@ -81,9 +83,7 @@ const ResponsiveEditGuestName: React.FC<ResponsiveEditGuestNameProps> = ({
         <DialogContent className="w-[90vw] md:min-w-0 rounded">
           <DialogHeader>
             <DialogTitle className="flex">Guest Name</DialogTitle>
-            <DialogDescription>
-              Update the name and phone number of the guest.
-            </DialogDescription>
+            <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
 
           {nameInputField}
@@ -106,8 +106,8 @@ const ResponsiveEditGuestName: React.FC<ResponsiveEditGuestNameProps> = ({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       title="Guest Name"
-      description="Editing guest name"
-      confirmText={isLoading ? "Saving..." : "Save"}
+      description={description}
+      confirmText="Save"
       cancelText="Cancel"
       onSubmit={onSaveGuestName}
       error={error}
