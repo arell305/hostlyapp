@@ -7,6 +7,7 @@ import { useStripeDashboardLink } from "./hooks/useStripeDashboardLink";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import StaticField from "@/components/shared/fields/StaticField";
+import PageContainer from "@/components/shared/containers/PageContainer";
 
 const StripeContent = ({
   connectedAccount,
@@ -47,7 +48,7 @@ const StripeContent = ({
     connectedAccount.status === StripeAccountStatus.NOT_ONBOARDED;
 
   return (
-    <section>
+    <PageContainer>
       <SectionHeaderWithAction
         title="Stripe"
         actions={
@@ -77,7 +78,7 @@ const StripeContent = ({
       <CustomCard className="p-0">
         <StaticField label="Status" value={statusToDisplay} />
       </CustomCard>
-    </section>
+    </PageContainer>
   );
 };
 

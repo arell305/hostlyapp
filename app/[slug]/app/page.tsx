@@ -10,6 +10,7 @@ import { Plus } from "lucide-react";
 import NProgress from "nprogress";
 import { Notification } from "./components/ui/Notification";
 import Link from "next/link";
+import PageContainer from "@/components/shared/containers/PageContainer";
 
 const HomePage: React.FC = () => {
   const pathname = usePathname();
@@ -21,7 +22,7 @@ const HomePage: React.FC = () => {
   const showStripeNotification = !connectedAccountEnabled && canCreateEvents;
 
   return (
-    <SectionContainer>
+    <PageContainer>
       <SectionHeaderWithAction
         title="My Events"
         actions={
@@ -51,7 +52,7 @@ const HomePage: React.FC = () => {
       )}
 
       <HomeContent pathname={pathname} />
-    </SectionContainer>
+    </PageContainer>
   );
 };
 

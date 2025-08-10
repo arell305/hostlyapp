@@ -15,9 +15,7 @@ const SectionHeaderWithAction: React.FC<SectionHeaderWithActionProps> = ({
   className,
 }) => {
   return (
-    <div
-      className={cn("flex items-center justify-between w-full mb-4", className)}
-    >
+    <div className={cn("flex items-center justify-between w-full ", className)}>
       <h1>{title}</h1>
       {actions && <div>{actions}</div>}
     </div>

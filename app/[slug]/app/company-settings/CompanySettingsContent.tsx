@@ -15,6 +15,7 @@ import EditableInputField from "@/components/shared/editable/EditableInputField"
 import EditableContainer from "@/components/shared/containers/EditableContainer";
 import EditableImageContainer from "@/components/shared/containers/EditableImageContainer";
 import EditableCurrencyField from "@/components/shared/editable/EditableCurrencyField";
+import PageContainer from "@/components/shared/containers/PageContainer";
 
 interface CompanySettingsContentProps {
   organization: OrganizationSchema;
@@ -100,7 +101,7 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
   const isPromoDiscountDisabled = !promoDiscount || promoDiscount.trim() === "";
 
   return (
-    <section>
+    <PageContainer>
       <SectionHeaderWithAction
         title="Company Settings"
         actions={
@@ -155,7 +156,7 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
           />
         </EditableContainer>
       </CustomCard>
-    </section>
+    </PageContainer>
   );
 };
 

@@ -11,6 +11,7 @@ import { getDateRangeFromPreset } from "../../../../utils/luxon";
 import TicketAnalyticsPage from "./sections/TicketAnalyticsPage";
 import GuestListAnalyticsPage from "./sections/GuestListAnalyticsPage";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
+import PageContainer from "@/components/shared/containers/PageContainer";
 
 const AnalyticsContent = () => {
   const { subscription } = useContextOrganization();
@@ -56,7 +57,7 @@ const AnalyticsContent = () => {
   };
 
   return (
-    <section>
+    <PageContainer>
       <PageHeading
         title="Analytics"
         presetDropdown={
@@ -107,7 +108,7 @@ const AnalyticsContent = () => {
       {selectedTab === "guestlist" && hasGuestListAccess && (
         <GuestListAnalyticsPage dateRange={dateRange} />
       )}
-    </section>
+    </PageContainer>
   );
 };
 

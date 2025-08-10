@@ -4,11 +4,11 @@ import CompanyCard from "../components/cards/CompanyCard";
 import { OrganizationDetails } from "@/types/types";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
-import SectionContainer from "@/components/shared/containers/SectionContainer";
 import { useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import { handleQueryComponentState } from "@/utils/handleQueryState";
 import { QueryState } from "@/types/enums";
+import PageContainer from "@/components/shared/containers/PageContainer";
 
 const CompaniesContent = () => {
   const organizationsResponse = useQuery(api.organizations.getAllOrganizations);
@@ -21,7 +21,7 @@ const CompaniesContent = () => {
   const companies = result.data.organizationDetails;
 
   return (
-    <SectionContainer>
+    <PageContainer>
       <SectionHeaderWithAction title="Companies" />
 
       {companies.length > 0 && (
@@ -33,7 +33,7 @@ const CompaniesContent = () => {
             ))}
         </CustomCard>
       )}
-    </SectionContainer>
+    </PageContainer>
   );
 };
 

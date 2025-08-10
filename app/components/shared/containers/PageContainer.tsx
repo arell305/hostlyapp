@@ -1,6 +1,4 @@
-"use client";
-
-import React from "react";
+import { cn } from "@/lib/utils"; // should wrap twMerge + clsx
 
 interface PageContainerProps {
   children: React.ReactNode;
@@ -9,9 +7,11 @@ interface PageContainerProps {
 
 const PageContainer: React.FC<PageContainerProps> = ({
   children,
-  className = "",
+  className,
 }) => {
-  return <div className={`space-y-6 pt-2 ${className}`}>{children}</div>;
+  return (
+    <div className={cn("space-y-4 pt-2 pb-10", className)}>{children}</div>
+  );
 };
 
 export default PageContainer;

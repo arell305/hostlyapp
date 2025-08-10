@@ -9,6 +9,7 @@ import _ from "lodash";
 import MemberTopBar from "./MemberTopBar";
 import { useUserFromDb } from "@/hooks/queries/users/useUserFromDb";
 import { Id } from "convex/_generated/dataModel";
+import PageContainer from "@/components/shared/containers/PageContainer";
 
 interface UserIdContentProps {
   canEditUsers: boolean;
@@ -48,7 +49,7 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
   };
 
   return (
-    <section>
+    <PageContainer className="pt-0">
       <MemberTopBar
         userData={user}
         onBack={handleBack}
@@ -89,7 +90,7 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
           }}
         />
       </CustomCard>
-    </section>
+    </PageContainer>
   );
 };
 

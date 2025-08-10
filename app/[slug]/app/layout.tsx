@@ -20,7 +20,7 @@ const InnerLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Sidebar />
       <div className="flex-1 lg:ml-64">
         <Navbar />
-        <main className="pt-[72px]">
+        <main className="pt-[60px]">
           {canCheckInTickets && <TicketScannerFAB />}
           {children}
         </main>

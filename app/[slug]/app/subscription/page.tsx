@@ -4,6 +4,7 @@ import { isAdminOrHostlyAdmin } from "../../../../utils/permissions";
 import ErrorPage from "../components/errors/ErrorPage";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import SubscriptionPageContent from "./SubscriptionPageContent";
+import PageContainer from "@/components/shared/containers/PageContainer";
 
 const SubscriptionPage = () => {
   const { orgRole } = useContextOrganization();
@@ -20,11 +21,11 @@ const SubscriptionPage = () => {
   }
 
   return (
-    <section>
+    <PageContainer>
       <SectionHeaderWithAction title="Subscription" />
 
       <SubscriptionPageContent />
-    </section>
+    </PageContainer>
   );
 };
 

@@ -35,7 +35,7 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
   onDelete,
 }) => {
   return (
-    <TopBarContainer className="pt-0 md:pt-1">
+    <TopBarContainer className="">
       {" "}
       <div className="">
         <IconButton

@@ -24,6 +24,7 @@ import TicketPage from "../../components/tickets/TicketPage";
 import GuestListPage from "../guestList/GuestListPage";
 import EventFormWrapper from "../../components/eventForm/EventFormWrapper";
 import { useCancelEvent } from "../hooks/useCancelEvent";
+import PageContainer from "@/components/shared/containers/PageContainer";
 
 interface EventIdContentProps {
   data: {
@@ -146,7 +147,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     }
   };
   return (
-    <div className="w-full pb-10">
+    <PageContainer className="pt-0">
       <TopRowNav
         eventData={data.event}
         isAdminOrg={isAppAdmin}
@@ -254,7 +255,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
           onOpenChange: handleCloseDeleteConfirmation,
         }}
       />
-    </div>
+    </PageContainer>
   );
 };
 
