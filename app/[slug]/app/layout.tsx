@@ -8,6 +8,7 @@ import Sidebar from "./components/shared/nav/Sidebar";
 import TicketScannerFAB from "./components/ui/TicketScannerFAB";
 import Navbar from "./components/shared/nav/Navbar";
 import { isModerator } from "@/utils/permissions";
+import EnsureClerkOrgActive from "./EnsureClerkOrgActive";
 
 const InnerLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { orgRole } = useContextOrganization();
@@ -31,6 +32,7 @@ const InnerLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const CompanyLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <OrganizationProvider>
+      <EnsureClerkOrgActive />
       <InnerLayout>{children}</InnerLayout>
     </OrganizationProvider>
   );
