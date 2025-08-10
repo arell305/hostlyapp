@@ -93,11 +93,9 @@ export const validatePromoterPromoCode = query({
       throw new Error(ErrorMessages.EVENT_NOT_FOUND);
     }
     try {
-      const normalizedInputName = args.name.toLowerCase();
-
       const promoterPromoCode: PromoterPromoCodeSchema | null = await ctx.db
         .query("promoterPromoCode")
-        .withIndex("by_name", (q) => q.eq("name", normalizedInputName))
+        .withIndex("by_name", (q) => q.eq("name", args.name))
         .unique();
 
       if (!promoterPromoCode) {
