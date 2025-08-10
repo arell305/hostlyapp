@@ -1,6 +1,7 @@
 import React from "react";
 import { Id } from "../../../../../../convex/_generated/dataModel";
 import {
+  EventSchema,
   EventTicketTypesSchema,
   GuestListInfoSchema,
 } from "@/types/schemas-types";
@@ -12,18 +13,18 @@ interface SummaryPageProps {
   guestListInfo?: GuestListInfoSchema | null;
   ticketInfo?: EventTicketTypesSchema[] | null;
   isPromoter: boolean;
-  eventId: Id<"events">;
   canEditEvent: boolean;
+  event: EventSchema;
 }
 
 const SummaryPage: React.FC<SummaryPageProps> = ({
   isPromoter,
-  eventId,
   guestListInfo,
   ticketInfo,
   canEditEvent,
+  event,
 }) => {
-  const result = useEventSummary(eventId);
+  const result = useEventSummary(event._id);
 
   if (isLoading(result) || isError(result)) {
     return result.component;
@@ -39,7 +40,7 @@ const SummaryPage: React.FC<SummaryPageProps> = ({
       ticketInfo={ticketInfo}
       promoterGuestStats={promoterGuestStats}
       ticketSalesByPromoterData={{ tickets: tickets, ticketTotals }}
-      eventId={eventId}
+      event={event}
     />
   );
 };

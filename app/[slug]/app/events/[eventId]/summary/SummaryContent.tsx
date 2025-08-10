@@ -1,4 +1,5 @@
 import {
+  EventSchema,
   EventTicketTypesSchema,
   GuestListInfoSchema,
 } from "@/types/schemas-types";
@@ -18,7 +19,6 @@ import PromoterGuestsListData from "./PromoterGuestsData";
 import PromoterTicketData from "./PromoterTicketData";
 import { TicketIcon } from "lucide-react";
 import SubPageContainer from "@/components/shared/containers/SubPageContainer";
-import { Id } from "convex/_generated/dataModel";
 import EventLinkCard from "../../components/EventLinkCard";
 import { TicketTotalsItem } from "@/types/types";
 
@@ -32,7 +32,7 @@ interface SummaryContentProps {
     ticketTotals: TicketTotalsItem[] | null;
   } | null;
   canEditEvent: boolean;
-  eventId: Id<"events">;
+  event: EventSchema;
 }
 
 const SummaryContent: React.FC<SummaryContentProps> = ({
@@ -42,7 +42,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
   ticketInfo,
   ticketSalesByPromoterData,
   canEditEvent,
-  eventId,
+  event,
 }) => {
   const isGuestListOpen = guestListInfo
     ? !isPast(guestListInfo.guestListCloseTime)
@@ -52,14 +52,11 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
     ? !isPast(guestListInfo.checkInCloseTime)
     : false;
 
-  console.log(ticketSalesByPromoterData);
-  console.log(ticketInfo);
-
   return (
     <SubPageContainer className="flex flex-col gap-8">
       <div>
-        <h2 className="mb-1 font-medium">Event Link</h2>
-        <EventLinkCard eventId={eventId} />
+        <h2 className="mb-1 font-medium">Event Details</h2>
+        <EventLinkCard event={event} />
       </div>
 
       {ticketInfo && ticketSalesByPromoterData && ticketInfo.length > 0 ? (
@@ -101,7 +98,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
             formattedCheckInEndTime={formatToTimeAndShortDate(
               guestListInfo.checkInCloseTime
             )}
-            eventId={eventId}
+            eventId={event._id}
           />
         ) : (
           <EmptyStateCard

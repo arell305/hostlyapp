@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
@@ -7,6 +7,7 @@ import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { ResponseStatus } from "@/types/enums";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import { X } from "lucide-react";
+
 const TicketScannerModal = ({
   open,
   onClose,
@@ -17,6 +18,11 @@ const TicketScannerModal = ({
   const [checkInStatus, setCheckInStatus] = useState<string | null>(null);
 
   const checkInTicket = useMutation(api.tickets.checkInTicket);
+
+  // Reset status any time the modal opens OR closes
+  useEffect(() => {
+    setCheckInStatus(null);
+  }, [open]);
 
   const handleScan = async (detectedCodes: IDetectedBarcode[]) => {
     if (!detectedCodes.length) return;
@@ -29,8 +35,7 @@ const TicketScannerModal = ({
         const parsedData = JSON.parse(qrData);
         ticketId = parsedData?.ticketUniqueId;
       } catch {
-        // fallback if it's a plain string
-        ticketId = qrData;
+        ticketId = qrData; // plain string fallback
       }
 
       if (ticketId) {
@@ -53,12 +58,11 @@ const TicketScannerModal = ({
   return (
     <Drawer
       open={open}
-      onOpenChange={() => {
-        setCheckInStatus(null);
-        onClose();
+      onOpenChange={(isOpen: boolean) => {
+        if (!isOpen) onClose(); // only trigger close callback when closing
       }}
     >
-      <DrawerContent className="fixed inset-x-0 bottom-0 h-[100vh]  rounded-t-lg  flex flex-col">
+      <DrawerContent className="fixed inset-x-0 bottom-0 h-[100vh] rounded-t-lg flex flex-col">
         <IconButton
           onClick={onClose}
           className="absolute top-4 right-4"
@@ -68,6 +72,7 @@ const TicketScannerModal = ({
         <DrawerTitle className="text-center text-2xl font-bold py-4">
           Scan Ticket
         </DrawerTitle>
+
         <div className="flex-grow flex items-center justify-center">
           <Scanner
             onScan={handleScan}
@@ -75,6 +80,7 @@ const TicketScannerModal = ({
             paused={false}
           />
         </div>
+
         {checkInStatus && (
           <p className="text-center text-lg font-semibold mt-4 text-white">
             {checkInStatus}

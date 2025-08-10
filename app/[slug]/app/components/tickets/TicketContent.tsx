@@ -1,5 +1,4 @@
 import useRedeemTicket from "../../hooks/useRedeemTicket";
-import { useToast } from "@/hooks/use-toast";
 import { useMemo, useRef, useState } from "react";
 import { filterBySearchTerm } from "../../../../../utils/format";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
@@ -25,7 +24,6 @@ const TicketContent: React.FC<TicketContentProps> = ({
     handleRedeem,
     setRedeemTicketError,
   } = useRedeemTicket();
-  const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showRedeemModal, setShowRedeemModal] = useState<boolean>(false);
@@ -34,10 +32,9 @@ const TicketContent: React.FC<TicketContentProps> = ({
   const handleConfirmRedeem = async () => {
     const result = await handleRedeem();
     if (result) {
-      toast({
-        title: "Success",
-        description: "Ticket Redeemed",
-      });
+      setShowRedeemModal(false);
+      setSelectedTicketId("");
+      setRedeemTicketError(null);
     }
   };
 

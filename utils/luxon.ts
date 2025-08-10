@@ -80,7 +80,7 @@ export const formatLongDate = (date: Date): string => {
 
 export const formatToTimeAndShortDate = (timestamp: number): string => {
   return DateTime.fromMillis(timestamp)
-    .setZone("America/Los_Angeles")
+    .setZone(TIME_ZONE)
     .toFormat("MMM d, yyyy h:mma");
 };
 
@@ -89,28 +89,26 @@ export const isPast = (timestamp: number): boolean => {
 };
 
 export const formatArrivalTime = (timestamp: number) => {
-  return DateTime.fromMillis(timestamp).toFormat("h:mma");
+  return DateTime.fromMillis(timestamp).setZone(TIME_ZONE).toFormat("h:mma");
 };
 
 export const formatUnixToTimeAndAbbreviatedDate = (
   timestamp: number
 ): string => {
   return DateTime.fromMillis(timestamp)
-    .setZone("America/Los_Angeles")
+    .setZone(TIME_ZONE)
     .toFormat("M/d/yy h:mma");
 };
 
 export const isAfterNowInPacificTime = (timestamp: number): boolean => {
-  const targetTime = DateTime.fromMillis(timestamp).setZone(
-    "America/Los_Angeles"
-  );
-  const now = DateTime.now().setZone("America/Los_Angeles");
+  const targetTime = DateTime.fromMillis(timestamp).setZone(TIME_ZONE);
+  const now = DateTime.now().setZone(TIME_ZONE);
 
   return targetTime > now;
 };
 
 export const getDateRangeFromPreset = (preset: PresetOption): DateRange => {
-  const now = DateTime.now().setZone("America/Los_Angeles");
+  const now = DateTime.now().setZone(TIME_ZONE);
 
   switch (preset) {
     case "Last 7 Days":

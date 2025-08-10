@@ -101,15 +101,9 @@ const BaseDrawer: React.FC<BaseDrawerProps> = ({
             onClick={onSubmit}
             className="flex-1"
             disabled={isLoading}
+            isLoading={isLoading}
           >
-            {isLoading ? (
-              <div className="flex items-center justify-center space-x-2">
-                <Loader2 className="animate-spin h-4 w-4" aria-hidden="true" />
-                <span>Loading...</span>
-              </div>
-            ) : (
-              confirmText
-            )}
+            {confirmText}
           </Button>
         </DrawerFooter>
       </DrawerContent>

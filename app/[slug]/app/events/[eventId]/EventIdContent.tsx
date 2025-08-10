@@ -190,8 +190,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
               guestListInfo={data.guestListInfo}
               isPromoter={canUploadGuest}
               ticketInfo={data.ticketTypes}
-              eventId={data.event._id}
               canEditEvent={canEditEvent}
+              event={data.event}
             />
           )}
 
