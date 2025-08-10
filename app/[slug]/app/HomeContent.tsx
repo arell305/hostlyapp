@@ -39,16 +39,18 @@ const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
     () => getVisibleRange(date, isWeekView),
     [date, isWeekView]
   );
+  const [startMs, endMs] = useMemo(
+    () => [start.toMillis(), end.toMillis()],
+    [start, end]
+  );
 
   useEffect(() => {
     if (!monthlyEventsData) {
       setSelectedEvents([]);
       return;
     }
-    setSelectedEvents(
-      getEventsForDateRange(monthlyEventsData, start.toJSDate(), end.toJSDate())
-    );
-  }, [monthlyEventsData, start, end]);
+    setSelectedEvents(getEventsForDateRange(monthlyEventsData, startMs, endMs));
+  }, [monthlyEventsData, startMs, endMs]);
 
   const hasEventOnDate = (d: Date) =>
     doesDateHaveEvent(monthlyEventsData ?? [], d);

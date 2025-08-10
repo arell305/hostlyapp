@@ -21,17 +21,21 @@ export const getShortWeekdayFormatter = (isMobile: boolean) => {
   };
 };
 
+// TZ-aware week range with Sunday as first day
 export function getVisibleRange(date: Date, isWeekView: boolean) {
   const dt = DateTime.fromJSDate(date).setZone(TIME_ZONE);
-  return isWeekView
-    ? {
-        start: dt.startOf("week").startOf("day"),
-        end: dt.endOf("week").endOf("day"),
-      }
-    : {
-        start: dt.startOf("month").startOf("day"),
-        end: dt.endOf("month").endOf("day"),
-      };
+
+  if (isWeekView) {
+    // Shift back to Sunday explicitly
+    const sunday = dt.minus({ days: dt.weekday % 7 }).startOf("day"); // weekday: Mon=1..Sun=7; Sun→0
+    const saturdayEnd = sunday.plus({ days: 6 }).endOf("day");
+    return { start: sunday, end: saturdayEnd };
+  }
+
+  return {
+    start: dt.startOf("month").startOf("day"),
+    end: dt.endOf("month").endOf("day"),
+  };
 }
 
 /**
@@ -40,23 +44,23 @@ export function getVisibleRange(date: Date, isWeekView: boolean) {
  */
 export function getEventsForDateRange(
   events: EventWithExtras[],
-  start: Date,
-  end: Date
+  startMs: number, // millis
+  endMs: number // millis
 ): EventWithExtras[] {
-  const rangeStart = DateTime.fromJSDate(start)
+  const rangeStartMs = DateTime.fromMillis(startMs)
     .setZone(TIME_ZONE)
-    .startOf("day");
-  const rangeEnd = DateTime.fromJSDate(end).setZone(TIME_ZONE).endOf("day");
-  const range = Interval.fromDateTimes(rangeStart, rangeEnd);
+    .startOf("day")
+    .toMillis();
+  const rangeEndMs = DateTime.fromMillis(endMs)
+    .setZone(TIME_ZONE)
+    .endOf("day")
+    .toMillis();
 
-  return events.filter((event) => {
-    const evStart = DateTime.fromMillis(event.startTime).setZone(TIME_ZONE);
-    const evEnd =
-      event.endTime != null
-        ? DateTime.fromMillis(event.endTime).setZone(TIME_ZONE)
-        : evStart;
-    const evInterval = Interval.fromDateTimes(evStart, evEnd);
-    return evInterval.overlaps(range);
+  return events.filter((ev) => {
+    const evStartMs = DateTime.fromMillis(ev.startTime)
+      .setZone(TIME_ZONE)
+      .toMillis();
+    return evStartMs >= rangeStartMs && evStartMs <= rangeEndMs;
   });
 }
 

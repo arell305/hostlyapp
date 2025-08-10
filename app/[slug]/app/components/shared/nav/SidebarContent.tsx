@@ -39,7 +39,7 @@ const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   return (
     <nav className="flex flex-col bg-cardBackground h-screen">
       {/* Static header */}
-      <div className="h-12 flex items-center border-b md:pl-4">
+      <div className="h-12 flex items-center border-b pl-4">
         <Logo />
       </div>
 

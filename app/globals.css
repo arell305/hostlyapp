@@ -313,10 +313,6 @@ input::-webkit-date-and-time-value {
   position: relative !important;
 }
 
-.react-calendar__tile--now:hover {
-  background-color: #f3f4f6 !important;
-}
-
 .week-days {
   display: flex;
   justify-content: space-around;
