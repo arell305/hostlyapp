@@ -67,7 +67,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                 className="relative font-medium flex flex-col justify-center items-center leading-none translate-y-[1px]"
               >
                 {isToday && (
-                  <div className="absolute w-6 h-6 bg-primaryBlue rounded-full"></div>
+                  <div className="absolute w-7 h-7 bg-primaryBlue rounded-full"></div>
                 )}
                 <span
                   className={`relative ${

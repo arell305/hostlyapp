@@ -61,7 +61,7 @@ export const CalendarSwitcher: React.FC<CalendarSwitcherProps> = ({
               <div className="relative">
                 {isToday && (
                   <div className="absolute w-6 h-6 mt-[-38px] ml-[-10px] mr-6 bg-primaryBlue rounded-full">
-                    <p className="text-base">{tileDate.getDate()}</p>
+                    <p className="text-base pb-4">{tileDate.getDate()}</p>
                   </div>
                 )}
                 {hasEvent && (

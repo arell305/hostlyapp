@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { SubscriptionTier } from "@/types/enums";
 import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
 import PageHeading from "@/components/shared/PageHeading";
@@ -12,7 +12,7 @@ import TicketAnalyticsPage from "./sections/TicketAnalyticsPage";
 import GuestListAnalyticsPage from "./sections/GuestListAnalyticsPage";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 
-const AnalyticsContent = ({}: {}) => {
+const AnalyticsContent = () => {
   const { subscription } = useContextOrganization();
   const { subscriptionTier } = subscription;
   const hasGuestListAccess =
@@ -24,7 +24,7 @@ const AnalyticsContent = ({}: {}) => {
   );
   const [preset, setPreset] = useState<PresetOption>("Last 7 Days");
 
-  // Load default range from preset
+  // Default range from preset
   const defaultRange = getDateRangeFromPreset("Last 7 Days");
 
   const [startDate, setStartDate] = useState<Date | null>(
@@ -32,25 +32,26 @@ const AnalyticsContent = ({}: {}) => {
   );
   const [endDate, setEndDate] = useState<Date | null>(defaultRange.to ?? null);
 
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: defaultRange.from,
-    to: defaultRange.to ?? undefined,
-  });
+  // 👉 Derive dateRange so it always updates when start/end change
+  const dateRange = useMemo(
+    () => ({
+      from: startDate ?? undefined,
+      to: endDate ?? undefined,
+    }),
+    [startDate, endDate]
+  );
 
   const handlePresetChange = (newPreset: PresetOption) => {
     setPreset(newPreset);
 
     if (newPreset !== "Custom") {
       const newRange = getDateRangeFromPreset(newPreset);
-      const from = newRange.from;
-      const to = newRange.to ?? undefined;
+      const from = newRange.from ?? null;
+      const to = newRange.to ?? null;
 
-      setStartDate(from ?? null);
-      setEndDate(to ?? null);
-      setDateRange({ from, to });
+      setStartDate(from);
+      setEndDate(to);
+      // no setDateRange needed — it's derived from start/end
     }
   };
 
@@ -66,8 +67,8 @@ const AnalyticsContent = ({}: {}) => {
             <SingleDatePickerModal
               type="start"
               date={startDate}
-              onDateChange={(date) => {
-                setStartDate(date);
+              onDateChange={(d) => {
+                setStartDate(d);
                 setPreset("Custom");
               }}
               otherDate={endDate}
@@ -76,8 +77,8 @@ const AnalyticsContent = ({}: {}) => {
             <SingleDatePickerModal
               type="end"
               date={endDate}
-              onDateChange={(date) => {
-                setEndDate(date);
+              onDateChange={(d) => {
+                setEndDate(d);
                 setPreset("Custom");
               }}
               otherDate={startDate}
