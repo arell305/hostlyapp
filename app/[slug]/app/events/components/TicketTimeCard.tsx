@@ -12,6 +12,7 @@ interface TicketTimeCardProps {
   ticketInfo: EventTicketTypesSchema[];
   ticketTotals: TicketTypeTotal[] | null;
   canEditEvent: boolean;
+  isPromoter: boolean;
 }
 
 const TicketTimeCard = ({
@@ -19,6 +20,7 @@ const TicketTimeCard = ({
   ticketInfo,
   ticketTotals,
   canEditEvent,
+  isPromoter,
 }: TicketTimeCardProps) => {
   return (
     <div className={`${className} space-y-8`}>
@@ -53,16 +55,18 @@ const TicketTimeCard = ({
                 }
               />
 
-              <StaticField
-                className="border-none"
-                label="Tickets Sold:"
-                value={
-                  canEditEvent
-                    ? `${totalSold} / ${ticket.capacity}`
-                    : `${totalSold}`
-                }
-                icon={<Ticket className="text-xl text-grayText" />}
-              />
+              {!isPromoter && (
+                <StaticField
+                  className="border-none"
+                  label="Tickets Sold:"
+                  value={
+                    canEditEvent
+                      ? `${totalSold} / ${ticket.capacity}`
+                      : `${totalSold}`
+                  }
+                  icon={<Ticket className="text-xl text-grayText" />}
+                />
+              )}
             </CustomCard>
           </div>
         );

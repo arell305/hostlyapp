@@ -69,6 +69,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
             ticketInfo={ticketInfo}
             canEditEvent={canEditEvent}
             className=""
+            isPromoter={isPromoter}
           />
 
           {isPromoter && ticketSalesByPromoterData.tickets.length > 0 && (
