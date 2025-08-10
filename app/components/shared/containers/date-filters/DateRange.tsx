@@ -47,6 +47,7 @@ export default function SingleDatePickerModal({
   const maxDate = type === "start" ? otherDate ?? undefined : undefined;
 
   const calendarUI = (
+    // inside your component
     <Calendar
       formatShortWeekday={getShortWeekdayFormatter(isMobile)}
       className="react-calendar bg-backgroundBlack text-whiteText rounded-md shadow-[0_0_0_2px_rgba(255,255,255,0.2)]"
@@ -57,11 +58,18 @@ export default function SingleDatePickerModal({
         onDateChange(val as Date);
         setModalOpen(false);
       }}
-      tileClassName={({ date: d }) =>
-        date?.toDateString() === d.toDateString()
-          ? "bg-white text-black rounded-md"
-          : ""
-      }
+      tileClassName={({ date: d }) => {
+        const isSelected = date?.toDateString() === d.toDateString();
+        return [
+          // base hover/focus styles for every tile
+          "rounded-md transition-colors",
+          "hover:!bg-neutral-700/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
+          // keep selected tile white even on hover
+          isSelected && "bg-white text-black hover:!bg-white",
+        ]
+          .filter(Boolean)
+          .join(" ");
+      }}
       next2Label={null}
       prev2Label={null}
       showNeighboringMonth={false}
@@ -87,11 +95,9 @@ export default function SingleDatePickerModal({
         <Drawer open={modalOpen} onOpenChange={setModalOpen}>
           <DrawerContent className="p-4 flex justify-center items-center mb-4">
             <DrawerHeader>
-              <DrawerTitle className="py-4 ">
-                Select {capitalize(type)} date
-              </DrawerTitle>
+              <DrawerTitle className="py-4 ">{title}</DrawerTitle>
               <DrawerDescription>
-                Select the {capitalize(type)} date.
+                Select the {capitalize(type)} Date from the calendar.
               </DrawerDescription>
             </DrawerHeader>
             {calendarUI}
@@ -100,11 +106,9 @@ export default function SingleDatePickerModal({
       ) : (
         <Dialog open={modalOpen} onOpenChange={setModalOpen}>
           <DialogContent className="p-6 flex justify-center items-center">
-            <DialogTitle className="py-2">
-              Select {capitalize(type)} date
-            </DialogTitle>
+            <DialogTitle className="py-2">{title}</DialogTitle>
             <DialogDescription>
-              Select the {capitalize(type)} date.{" "}
+              Select the {capitalize(type)} Date from the calendar.
             </DialogDescription>
             {calendarUI}
           </DialogContent>

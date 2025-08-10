@@ -13,6 +13,7 @@ import React, { useState, useMemo } from "react";
 import CustomCard from "../cards/CustomCard";
 import Heading2 from "../headings/h2";
 import MessageCard from "../cards/MessageCard";
+import { getBarColor } from "@/lib/frontendHelper";
 
 interface BarChartContainerProps<T> {
   data: T[];
@@ -84,13 +85,6 @@ const BarChartContainer = <T extends Record<string, any>>({
     if (key === "female") return "Female";
     return key.charAt(0).toUpperCase() + key.slice(1);
   };
-
-  const getBarColor = (key: string) => {
-    if (key === "male") return "#3B82F6";
-    if (key === "female") return "#EC4899";
-    return "#10B981";
-  };
-
   if (data.length === 0) {
     return (
       <MessageCard

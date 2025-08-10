@@ -9,6 +9,7 @@ import { GetGuestListKpisData } from "@/types/convex-types";
 import HorizontalBarChartContainer from "@/components/shared/analytics/HorizontalBarChartContainer";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { isManager } from "@/utils/permissions";
+import { getBarColor } from "@/lib/frontendHelper";
 
 interface GuestListAnalyticsContentProps {
   guestListKpisData: GetGuestListKpisData;
@@ -78,6 +79,7 @@ const GuestListAnalyticsContent = ({
           tooltipFormatter={(v) => `${v} check-ins`}
           valueFormatter={(v) => `${v}`}
           emptyDescription="No promoter breakdown data available during this period."
+          getBarColor={getBarColor}
         />
       )}
     </SectionContainer>

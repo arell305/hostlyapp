@@ -81,3 +81,9 @@ export const isTicketTypeSalesOpen = (
 
   return isAfterNowInPacificTime(ticketType.ticketSalesEndTime);
 };
+
+export const getBarColor = (key: string) => {
+  if (key === "male") return "#3B82F6";
+  if (key === "female") return "#EC4899";
+  return "#10B981";
+};
