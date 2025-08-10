@@ -97,6 +97,7 @@ export const internalUpdateEventTicketType = internalMutation({
     ticketSalesEndTime: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
     stripePriceId: v.optional(v.string()),
+    activeUntil: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<void> => {
     const {
@@ -107,6 +108,7 @@ export const internalUpdateEventTicketType = internalMutation({
       ticketSalesEndTime,
       isActive,
       stripePriceId,
+      activeUntil,
     } = args;
 
     try {
@@ -117,6 +119,7 @@ export const internalUpdateEventTicketType = internalMutation({
         ticketSalesEndTime: number;
         isActive: boolean;
         stripePriceId: string;
+        activeUntil: number;
       }> = {};
 
       if (name !== undefined) updates.name = name;
@@ -126,6 +129,7 @@ export const internalUpdateEventTicketType = internalMutation({
         updates.ticketSalesEndTime = ticketSalesEndTime;
       if (isActive !== undefined) updates.isActive = isActive;
       if (stripePriceId !== undefined) updates.stripePriceId = stripePriceId;
+      if (activeUntil !== undefined) updates.activeUntil = activeUntil;
 
       await ctx.db.patch(eventTicketTypeId, updates);
     } catch (error) {

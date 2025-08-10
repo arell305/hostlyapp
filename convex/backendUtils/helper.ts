@@ -407,23 +407,21 @@ export async function handleTicketUpdateData(
     throw new Error(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND);
   }
 
+  const now = Date.now();
   const newTicketIds: Id<"eventTicketTypes">[] = [];
 
   for (const ticket of ticketData) {
     if (ticket.eventTicketTypeId) {
-      // Update existing ticket
+      // ----- Update existing ticket -----
       const existing = existingTicketTypes.find(
         (t) => t._id === ticket.eventTicketTypeId
       );
-
-      if (!existing) {
-        throw new Error("Existing ticket type not found.");
-      }
-
-      let stripePriceId = existing.stripePriceId;
+      if (!existing) throw new Error("Existing ticket type not found.");
 
       const priceChanged = existing.price !== ticket.price;
+
       if (priceChanged) {
+        // Create a NEW Stripe Price on the SAME Product
         const newPrice = await createStripePrices(
           existing.stripeProductId,
           ticket.price,
@@ -431,24 +429,51 @@ export async function handleTicketUpdateData(
           eventId,
           connectedAccount.stripeAccountId
         );
-        stripePriceId = newPrice.id;
+
+        // 1) Archive the OLD ticket type row
+        await ctx.runMutation(
+          internal.eventTicketTypes.internalUpdateEventTicketType,
+          {
+            eventTicketTypeId: existing._id,
+            isActive: false,
+            activeUntil: now,
+          }
+        );
+
+        // 2) Create a NEW ticket type row with the new price
+        const newTicketTypeId = await ctx.runMutation(
+          internal.eventTicketTypes.createEventTicketTypes,
+          {
+            eventId,
+            name: ticket.name,
+            price: ticket.price,
+            capacity: ticket.capacity,
+            stripeProductId: existing.stripeProductId, // keep product
+            stripePriceId: newPrice.id, // new price
+            ticketSalesEndTime: ticket.ticketSalesEndTime,
+            // ensure active on create (your create mutation can default to true)
+          }
+        );
+
+        newTicketIds.push(newTicketTypeId);
+      } else {
+        // No price change → update in place
+        await ctx.runMutation(
+          internal.eventTicketTypes.internalUpdateEventTicketType,
+          {
+            eventTicketTypeId: existing._id,
+            name: ticket.name,
+            price: ticket.price,
+            capacity: ticket.capacity,
+            ticketSalesEndTime: ticket.ticketSalesEndTime,
+            // keep current stripePriceId / product
+            isActive: true, // ensure it stays active
+          }
+        );
+        newTicketIds.push(existing._id);
       }
-
-      await ctx.runMutation(
-        internal.eventTicketTypes.internalUpdateEventTicketType,
-        {
-          eventTicketTypeId: ticket.eventTicketTypeId,
-          name: ticket.name,
-          price: ticket.price,
-          capacity: ticket.capacity,
-          ticketSalesEndTime: ticket.ticketSalesEndTime,
-          stripePriceId,
-        }
-      );
-
-      newTicketIds.push(ticket.eventTicketTypeId);
     } else {
-      // Create new product/price and ticket type
+      // ----- Create brand new ticket type -----
       const product = await createStripeProduct(
         eventId,
         connectedAccount.stripeAccountId,
@@ -480,7 +505,7 @@ export async function handleTicketUpdateData(
     }
   }
 
-  // Deactivate removed ticket types
+  // ----- Deactivate removed ticket types -----
   const incomingIds = new Set(
     ticketData
       .map((t) => t.eventTicketTypeId)
@@ -488,7 +513,7 @@ export async function handleTicketUpdateData(
   );
 
   const toDeactivate = existingTicketTypes.filter(
-    (t) => !incomingIds.has(t._id)
+    (t) => t.isActive && !incomingIds.has(t._id)
   );
 
   for (const t of toDeactivate) {
@@ -497,6 +522,7 @@ export async function handleTicketUpdateData(
       {
         eventTicketTypeId: t._id,
         isActive: false,
+        activeUntil: now,
       }
     );
   }
@@ -531,7 +557,6 @@ export async function getTicketSoldCounts(
     ctx.db
       .query("eventTicketTypes")
       .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
-      .filter((q) => q.eq(q.field("isActive"), true))
       .collect(),
   ]);
 
