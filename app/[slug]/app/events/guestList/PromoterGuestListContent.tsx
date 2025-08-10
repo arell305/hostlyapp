@@ -1,9 +1,8 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useCallback } from "react";
 import { useDeleteGuestName } from "../hooks/useDeleteGuestName";
 import { useUpdateGuestName } from "../hooks/useUpdateGuestName";
 import ResponsiveEditGuestName from "../../components/responsive/ResponsiveEditGuestName";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
-import _ from "lodash";
 import { filterGuestsByName } from "../../../../../utils/format";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import EmptyList from "@/components/shared/EmptyList";
@@ -11,7 +10,10 @@ import GuestListContainer from "./GuestListContainer";
 import { Id } from "convex/_generated/dataModel";
 import { validateGuestEditInput } from "@/utils/form-validation/validateEventForm";
 import SearchInput from "../components/SearchInput";
-import { GuestListEntryWithPromoter } from "@/types/schemas-types";
+import {
+  GuestListEntrySchema,
+  GuestListEntryWithPromoter,
+} from "@/types/schemas-types";
 
 type PromoterGuestListContentProps = {
   guestListData: GuestListEntryWithPromoter[];
@@ -53,17 +55,38 @@ const PromoterGuestListContent = ({
     setError: setDeleteNameError,
   } = useDeleteGuestName();
 
-  const handleEdit = (id: Id<"guestListEntries">, name: string) => {
-    setEditingId(id);
-    setEditName(name);
-    setInitialName(name);
+  const handleEdit = (guest: GuestListEntrySchema) => {
+    setEditingId(guest._id);
+    setEditName(guest.name);
+    setInitialName(guest.name);
     setShowEditNameModal(true);
+    setEditPhoneNumber(guest.phoneNumber || "");
   };
 
   const handleShowDelete = (id: Id<"guestListEntries">) => {
     setDeletingId(id);
     setShowConfirmDeleteGuest(true);
   };
+
+  const resetEditState = useCallback(() => {
+    setEditingId(null);
+    setInitialName(null);
+    setEditName("");
+    setEditPhoneNumber("");
+    setErrors({});
+    setUpdateGuestNameError(null);
+  }, [setUpdateGuestNameError]);
+
+  const handleEditModalOpenChange = useCallback(
+    (open: boolean) => {
+      setShowEditNameModal(open);
+      if (!open) {
+        // When the modal closes, wipe inputs + errors
+        resetEditState();
+      }
+    },
+    [resetEditState]
+  );
 
   const handleSave = async () => {
     setErrors({});
@@ -80,7 +103,7 @@ const PromoterGuestListContent = ({
     }
 
     if (result.noChanges) {
-      setShowEditNameModal(false);
+      handleEditModalOpenChange(false);
       return;
     }
 
@@ -88,10 +111,11 @@ const PromoterGuestListContent = ({
       setErrors(result.errors);
       if (Object.keys(result.errors).length === 0) {
         // Name is unchanged, no error needed, just close
-        setShowEditNameModal(false);
+        handleEditModalOpenChange(false);
       }
       return;
     }
+
     const formattedPhoneNumber =
       editPhoneNumber?.trim() === "" ? null : editPhoneNumber;
 
@@ -102,7 +126,7 @@ const PromoterGuestListContent = ({
     );
 
     if (success) {
-      handleCloseUpdateGuestNameModal();
+      handleEditModalOpenChange(false);
     }
   };
 
@@ -130,17 +154,12 @@ const PromoterGuestListContent = ({
     setDeleteNameError(null);
   };
 
-  const handleCloseUpdateGuestNameModal = () => {
-    setShowEditNameModal(false);
-    setErrors({});
-    setUpdateGuestNameError(null);
-  };
-
   const isEmptyGuestList = guestListData.length === 0;
 
   const filteredGuests = useMemo(() => {
     return filterGuestsByName(guestListData, searchTerm);
   }, [guestListData, searchTerm]);
+
   return (
     <SectionContainer>
       {isEmptyGuestList ? (
@@ -169,9 +188,10 @@ const PromoterGuestListContent = ({
           />
         </>
       )}
+
       <ResponsiveEditGuestName
         isOpen={showEditNameModal}
-        onOpenChange={setShowEditNameModal}
+        onOpenChange={handleEditModalOpenChange} // 👈 single source of truth
         editName={editName}
         setEditName={setEditName}
         error={updateGuestNameError}
@@ -188,6 +208,7 @@ const PromoterGuestListContent = ({
           setErrors((prev) => ({ ...prev, phone: err || undefined }))
         }
       />
+
       <ResponsiveConfirm
         isOpen={showConfirmDeleteGuest}
         title="Confirm Deletion"

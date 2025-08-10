@@ -3,7 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { formatArrivalTime } from "../../../../utils/luxon";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import { Pencil, Trash } from "lucide-react";
-import { GuestListEntryWithPromoter } from "@/types/schemas-types";
+import {
+  GuestListEntrySchema,
+  GuestListEntryWithPromoter,
+} from "@/types/schemas-types";
 
 import { Id } from "convex/_generated/dataModel";
 import { formatPhoneNumber } from "@/utils/format";
@@ -12,7 +15,7 @@ interface GuestCardProps {
   editingId?: Id<"guestListEntries"> | null;
   editName?: string;
   canEditGuests: boolean;
-  onEdit?: (id: Id<"guestListEntries">, name: string) => void;
+  onEdit?: (guest: GuestListEntrySchema) => void;
   onShowDelete?: (id: Id<"guestListEntries">) => void;
   onCancelEdit?: () => void;
   setEditName?: (name: string) => void;
@@ -96,7 +99,7 @@ const GuestCard: React.FC<GuestCardProps> = ({
               title="Edit"
               onClick={(e) => {
                 e.stopPropagation();
-                onEdit(guest._id, guest.name);
+                onEdit(guest);
               }}
             />
           )}
