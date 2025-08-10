@@ -473,10 +473,9 @@ export const getEventsWithTickets = internalQuery({
       let promoterUserId: Id<"users"> | null = null;
 
       if (promoCode) {
-        const normalizedInputName = promoCode.toLowerCase();
         const promoterPromoCode: PromoterPromoCodeSchema | null = await ctx.db
           .query("promoterPromoCode")
-          .withIndex("by_name", (q) => q.eq("name", normalizedInputName))
+          .withIndex("by_name", (q) => q.eq("name", promoCode))
           .unique();
 
         if (!promoterPromoCode) {
