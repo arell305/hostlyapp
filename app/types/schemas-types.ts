@@ -209,4 +209,5 @@ export interface EventTicketTypesSchema {
   stripePriceId: string;
   ticketSalesEndTime: number;
   isActive: boolean;
+  activeUntil?: number;
 }

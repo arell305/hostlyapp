@@ -194,6 +194,7 @@ export default defineSchema({
     stripePriceId: v.string(),
     ticketSalesEndTime: v.number(),
     isActive: v.boolean(),
+    activeUntil: v.optional(v.number()),
   }).index("by_eventId", ["eventId"]),
 
   guestListInfo: defineTable({

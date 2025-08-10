@@ -14,6 +14,7 @@ const MAX_POLLS = 6;
 const POLL_INTERVAL = 1000; // 1 second
 
 const RedirectingSignUpPage = () => {
+  console.log("RedirectingSignUpPage");
   const router = useRouter();
   const { user, isLoaded: userLoaded } = useUser();
   const { setActive, isLoaded: orgListLoaded } = useOrganizationList();
