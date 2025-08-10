@@ -32,7 +32,6 @@ const InnerLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const CompanyLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <OrganizationProvider>
-      <EnsureClerkOrgActive />
       <InnerLayout>{children}</InnerLayout>
     </OrganizationProvider>
   );

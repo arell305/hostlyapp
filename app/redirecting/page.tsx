@@ -242,6 +242,12 @@ export default function RedirectingPage() {
 
     const org = orgRes?.data?.organization ?? null;
 
+    if (org?.slug === "admin") {
+      didRouteRef.current = true;
+      router.replace("/admin/app/companies");
+      return;
+    }
+
     if (org) {
       didRouteRef.current = true;
       router.replace(`/${org.slug}/app`); // go to org
