@@ -93,8 +93,8 @@ export const createGuestListCreditPaymentIntent = action({
       const identity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
       const clerkUserId = identity.id as string;
 
-      const user = await ctx.runQuery(
-        internal.users.internalFindUserByClerkId,
+      const { customer, user } = await ctx.runQuery(
+        internal.customers.findUserAndCustomerByClerkId,
         {
           clerkUserId,
         }
@@ -102,12 +102,16 @@ export const createGuestListCreditPaymentIntent = action({
 
       const result = await createPaymentIntent({
         amount,
+        customer: customer.stripeCustomerId,
         metadata: {
           organizationId: user.organizationId as string,
           userId: user._id.toString(),
           credits: totalCredits.toString(),
           quantity: quantity.toString(),
+          purchaseType: "guestlist_credit",
         },
+        description: `${totalCredits} guestlist credits purchased`,
+        receiptEmail: customer.email,
       });
 
       if (result.success && result.paymentIntent.client_secret) {

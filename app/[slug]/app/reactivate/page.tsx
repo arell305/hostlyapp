@@ -1,10 +1,8 @@
 "use client";
 import React from "react";
-import { Elements } from "@stripe/react-stripe-js";
-import ReactivateForm from "./ReactivateForm";
-import { stripePromise } from "../../../../utils/stripe";
 import { RedirectToSignIn, useClerk } from "@clerk/nextjs";
 import FullLoading from "../components/loading/FullLoading";
+import MessagePage from "@/components/shared/shared-page/MessagePage";
 
 const ReactivatePage = () => {
   const { user } = useClerk();
@@ -18,9 +16,10 @@ const ReactivatePage = () => {
   }
 
   return (
-    <Elements stripe={stripePromise}>
-      <ReactivateForm user={user} />
-    </Elements>
+    <MessagePage
+      title="Reactivate Subscription"
+      description="Please email support to reactivate your subscription."
+    />
   );
 };
 

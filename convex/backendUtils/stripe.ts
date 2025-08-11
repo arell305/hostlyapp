@@ -151,24 +151,24 @@ export async function setDefaultPaymentMethod(
 export async function createSubscription(
   stripeCustomerId: string,
   priceId: string,
+  idempotencyKey: string,
   trialPeriodDays?: number,
   promoCodeId?: string | null
 ): Promise<Stripe.Subscription> {
   try {
-    const subscriptionOptions: Stripe.SubscriptionCreateParams = {
+    const params: Stripe.SubscriptionCreateParams = {
       customer: stripeCustomerId,
       items: [{ price: priceId }],
-      expand: ["latest_invoice.payment_intent"],
-      ...(trialPeriodDays && { trial_period_days: trialPeriodDays }),
+      ...(trialPeriodDays ? { trial_period_days: trialPeriodDays } : {}),
+      ...(promoCodeId ? { discounts: [{ promotion_code: promoCodeId }] } : {}),
     };
 
-    if (promoCodeId) {
-      subscriptionOptions.promotion_code = promoCodeId;
-    }
-
-    return await stripe.subscriptions.create(subscriptionOptions);
+    return await stripe.subscriptions.create(
+      params,
+      idempotencyKey ? { idempotencyKey } : undefined
+    );
   } catch (error) {
-    console.error("Error setting default payment method:", error);
+    console.error("Error creating subscription:", error);
     throw new Error(ErrorMessages.STRIPE_CREATE_SUBSCRIPTION);
   }
 }
@@ -459,15 +459,24 @@ type CreatePaymentIntentResult =
 export async function createPaymentIntent({
   amount,
   metadata,
+  customer,
+  description,
+  receiptEmail,
 }: {
   amount: number;
   metadata: Record<string, string | number>;
+  customer: string;
+  description: string;
+  receiptEmail: string;
 }): Promise<CreatePaymentIntentResult> {
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "usd",
+      customer,
+      description,
       metadata,
+      receipt_email: receiptEmail,
     });
 
     return { success: true, paymentIntent };

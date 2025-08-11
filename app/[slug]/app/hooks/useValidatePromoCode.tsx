@@ -20,7 +20,7 @@ export const useValidatePromoCode = () => {
     } catch (error) {
       console.error("Error validating promo code", error);
       setError(FrontendErrorMessages.GENERIC_ERROR);
-      return { isValid: false, promoCodeId: null, discount: null };
+      return { isValid: false, approvedPromoCode: null, discount: null };
     } finally {
       setLoading(false);
     }

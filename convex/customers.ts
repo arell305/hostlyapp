@@ -423,3 +423,45 @@ export const updateCustomerByStripeCustomerId = internalMutation({
     }
   },
 });
+
+export const findUserAndCustomerByClerkId = internalQuery({
+  args: {
+    clerkUserId: v.string(),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ user: UserSchema; customer: CustomerSchema }> => {
+    const user: UserSchema | null = await ctx.db
+      .query("users")
+      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .first();
+
+    if (!user?.customerId) {
+      throw Error(ErrorMessages.USER_NOT_FOUND);
+    }
+
+    const customer: CustomerSchema | null = await ctx.db.get(user.customerId);
+
+    if (!customer) {
+      throw Error(ErrorMessages.CUSTOMER_NOT_FOUND);
+    }
+
+    if (!user.organizationId) {
+      throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
+    }
+
+    const organization: OrganizationSchema | null = await ctx.db.get(
+      user.organizationId
+    );
+
+    if (!organization) {
+      throw new Error(ErrorMessages.COMPANY_NOT_FOUND);
+    }
+
+    return {
+      user,
+      customer,
+    };
+  },
+});

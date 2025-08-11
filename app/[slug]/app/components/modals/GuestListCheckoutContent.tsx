@@ -25,6 +25,7 @@ import { PaymentForm } from "./PaymentForm";
 import { Minus, Plus } from "lucide-react";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import { stripeAppearance } from "@/utils/frontend-stripe/stripeAppearance";
+import { formatCurrency } from "@/utils/helpers";
 
 interface GuestListCheckoutProps {
   open: boolean;
@@ -65,7 +66,6 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
 
   const handleContinue = async () => {
     const clientSecret = await createPaymentIntent({ quantity });
-    console.log("clientSecret", clientSecret);
 
     if (clientSecret) {
       setClientSecret(clientSecret);
@@ -93,7 +93,7 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
 
       <div className="text-center">
         <p className="text-lg font-semibold">
-          Total: ${totalAmount.toFixed(2)}
+          Total: ${formatCurrency(totalAmount)}
         </p>
         <p className="text-sm text-gray-500">
           (${(amountInCents / 100).toFixed(2)} per credit)

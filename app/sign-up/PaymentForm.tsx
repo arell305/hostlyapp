@@ -21,6 +21,7 @@ import {
 } from "../../utils/frontend-stripe/stripeHelpers";
 import NProgress from "nprogress";
 import { StripeCardElementChangeEvent } from "@stripe/stripe-js";
+import { v4 as uuidv4 } from "uuid";
 
 const PaymentForm = () => {
   const stripe = useStripe();
@@ -48,7 +49,7 @@ const PaymentForm = () => {
     discount: 0,
     promoCode: "",
     promoCodeApplied: false,
-    promoCodeId: null as string | null,
+    approvedPromoCode: null as string | null,
   });
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
@@ -70,7 +71,7 @@ const PaymentForm = () => {
         ...prevState,
         discount: result.discount ?? 0,
         promoCodeApplied: true,
-        promoCodeId: result.promoCodeId || null,
+        approvedPromoCode: result.approvedPromoCode || null,
       }));
     } else {
       setPromoCodeError("Invalid promo code.");
@@ -100,12 +101,14 @@ const PaymentForm = () => {
         return;
       }
 
+      const idempotencyKey = uuidv4();
+
       const success = await createStripeSubscription({
         email: finalEmail,
         paymentMethodId: ev.paymentMethod.id,
-        priceId: selectedPlan.priceId,
-        promoCodeId: promoState.promoCodeId,
         subscriptionTier: selectedPlan.tier,
+        promoCode: promoState.approvedPromoCode,
+        idempotencyKey,
       });
 
       ev.complete(success ? "success" : "fail");
@@ -133,6 +136,7 @@ const PaymentForm = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!selectedPlan) return;
 
     if (!isValidEmail(email)) {
       setErrors((prev) => ({
@@ -151,13 +155,14 @@ const PaymentForm = () => {
 
     try {
       const paymentMethod = await getCardPaymentMethod(stripe, elements, email);
+      const idempotencyKey = uuidv4();
 
       const success = await createStripeSubscription({
         email,
         paymentMethodId: paymentMethod.id,
-        priceId: selectedPlan!.priceId,
-        promoCodeId: promoState.promoCodeId,
-        subscriptionTier: selectedPlan!.tier,
+        promoCode: promoState.approvedPromoCode,
+        subscriptionTier: selectedPlan.tier,
+        idempotencyKey,
       });
 
       if (success) {

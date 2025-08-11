@@ -23,6 +23,7 @@ export const useCreatePaymentIntent = () => {
   const createPaymentIntent = async (
     totalAmount: number,
     stripeAccountId: string,
+    description: string,
     metadata?: PaymentMetadata
   ): Promise<string | null> => {
     setIsLoading(true);
@@ -34,6 +35,7 @@ export const useCreatePaymentIntent = () => {
         totalAmount,
         stripeAccountId,
         metadata,
+        description,
       });
 
       if (response.status === ResponseStatus.SUCCESS) {

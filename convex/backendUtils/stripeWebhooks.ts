@@ -227,7 +227,6 @@ export const handleStripePaymentIntentSucceeded = async (
   ctx: GenericActionCtx<any>,
   paymentIntent: Stripe.PaymentIntent
 ) => {
-  console.log("paymentIntent", paymentIntent.metadata);
   try {
     const metadata = paymentIntent.metadata;
     const organizationId = metadata.organizationId;

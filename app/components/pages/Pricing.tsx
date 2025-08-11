@@ -36,7 +36,7 @@ const plans = [
   {
     name: "Elite",
     badge: "Full Access",
-    price: "$199.99/month",
+    price: "$299.99/month",
     features: [
       "Unlimited Ticketed Events",
       "Unlimited Guest List Events",

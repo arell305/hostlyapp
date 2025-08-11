@@ -6,9 +6,9 @@ import { api } from "../../../convex/_generated/api";
 type CreateSubscriptionArgs = {
   email: string;
   paymentMethodId: string;
-  priceId: string;
-  promoCodeId?: string | null;
   subscriptionTier: SubscriptionTier;
+  idempotencyKey: string;
+  promoCode?: string | null;
 };
 
 export const useCreateStripeSubscription = () => {
@@ -21,9 +21,9 @@ export const useCreateStripeSubscription = () => {
   const createStripeSubscription = async ({
     email,
     paymentMethodId,
-    priceId,
-    promoCodeId,
     subscriptionTier,
+    idempotencyKey,
+    promoCode,
   }: CreateSubscriptionArgs): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
@@ -32,9 +32,9 @@ export const useCreateStripeSubscription = () => {
       const response = await createSubscriptionAction({
         email,
         paymentMethodId,
-        priceId,
-        promoCodeId,
         subscriptionTier,
+        idempotencyKey,
+        promoCode,
       });
 
       if (response.status === ResponseStatus.SUCCESS) {

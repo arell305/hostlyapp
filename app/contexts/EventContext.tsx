@@ -35,7 +35,11 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   // Build ALL derived values (useMemo is a hook!) BEFORE any return
-  const ticketTypes = response?.data?.ticketTypes ?? [];
+  const ticketTypes = useMemo<EventTicketTypesSchema[]>(
+    () =>
+      (response?.data?.ticketTypes ?? []).filter((t) => t.isActive === true),
+    [response?.data?.ticketTypes]
+  );
   const eventWithTicketTypes: EventWithTicketTypes | null = useMemo(() => {
     const ev = response?.data?.event;
     return ev ? { ...ev, ticketTypes } : null;

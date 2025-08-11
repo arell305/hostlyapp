@@ -19,11 +19,11 @@ export const pricingOptions: PricingOption[] = [
     priceId: "price_1PxfAnRv8MX5Pza1kFwM4gmI",
   },
   {
-    id: "prod_QpJaBAWi59Guz9",
+    id: "prod_SqWluQ6a2eiIhq",
     tier: SubscriptionTier.ELITE,
     price: "299.99",
     description: "Unlimited Tickets & Guest List",
     isFree: false,
-    priceId: "price_1PxfD5Rv8MX5Pza1TJKtcBHK",
+    priceId: "price_1Rupi4Rv8MX5Pza1FVIlr1Id",
   },
 ];

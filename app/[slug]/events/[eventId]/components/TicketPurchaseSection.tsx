@@ -8,6 +8,7 @@ import { Stripe } from "@stripe/stripe-js";
 import { useEventCheckout } from "@/contexts/EventCheckoutContext";
 import { useCreatePaymentIntent } from "../../hooks/useCreatePaymentIntent";
 import { FrontendErrorMessages } from "@/types/enums";
+import { useEventContext } from "@/contexts/EventContext";
 
 interface TicketPurchaseSectionProps {
   eventId: string;
@@ -42,6 +43,8 @@ const TicketPurchaseSection: React.FC<TicketPurchaseSectionProps> = ({
     setError,
   } = useCreatePaymentIntent();
 
+  const { event } = useEventContext();
+
   const handleCheckout = useCallback(async () => {
     if (!email || !email.includes("@")) {
       setEmailError("Valid email required");
@@ -60,9 +63,23 @@ const TicketPurchaseSection: React.FC<TicketPurchaseSectionProps> = ({
         quantity,
       }));
 
+    const ticketsPart = (pricing.perTicketPrices ?? [])
+      .filter((t) => t.quantity > 0)
+      .map((t) => `${t.ticketType.name} x${t.quantity}`)
+      .join(", ");
+
+    const description = [
+      event.name,
+      email,
+      ticketsPart,
+      promoCode ? `Promo: ${promoCode}` : null,
+    ]
+      .filter(Boolean)
+      .join(" • ");
     const clientSecret = await createPaymentIntent(
       pricing.totalPrice,
       stripeAccountId,
+      description,
       {
         eventId,
         promoCode,

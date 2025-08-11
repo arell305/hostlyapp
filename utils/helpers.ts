@@ -3,7 +3,7 @@ import { PricingOption } from "@/types/types";
 import { OrganizationJSON } from "@clerk/backend";
 import { WEBSITE } from "@/types/constants";
 import { DateTime } from "luxon";
-import { UserSchema } from "@/types/schemas-types";
+import { SubscriptionSchema, UserSchema } from "@/types/schemas-types";
 import _ from "lodash";
 
 export const getPricingOptionById = (id: string): number | undefined => {
@@ -184,4 +184,19 @@ export function getInitial(name?: string | null): string {
   if (!name || typeof name !== "string") return "?";
   const trimmed = name.trim();
   return trimmed.length > 0 ? trimmed[0].toUpperCase() : "?";
+}
+
+export function formatSubscriptionAmount(sub: SubscriptionSchema): string {
+  const pctRaw = sub.discount?.discountPercentage;
+  const pct = Number.isFinite(pctRaw)
+    ? Math.min(Math.max(pctRaw as number, 0), 100)
+    : 0;
+
+  const discountedCents = Math.max(0, Math.round(sub.amount * (1 - pct / 100)));
+  const dollars = discountedCents / 100;
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(dollars);
 }

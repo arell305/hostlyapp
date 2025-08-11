@@ -720,7 +720,7 @@ export interface UpdateStripeSubscriptionData {
 
 export type ValidatePromoCodeResponse = {
   isValid: boolean;
-  promoCodeId: string | null;
+  approvedPromoCode: string | null;
   discount: number | null;
 };
 

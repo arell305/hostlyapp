@@ -12,7 +12,7 @@ import { Plus } from "lucide-react";
 import ClickableField from "@/components/shared/fields/ClickableField";
 import { GuestListCheckout } from "../components/modals/GuestListCheckoutContent";
 import { CONTACT_EMAIL, PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
-import { formatCurrency } from "@/utils/helpers";
+import { formatSubscriptionAmount } from "@/utils/helpers";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { useGetCustomer } from "./hooks/useGetCustomer";
 import { isAdmin } from "@/utils/permissions";
@@ -21,7 +21,6 @@ const SubscriptionContent = () => {
   const { subscription, availableCredits, orgRole } = useContextOrganization();
   const [showGuestListCheckout, setShowGuestListCheckout] =
     useState<boolean>(false);
-
   const { component: customerComponent, customer: customerDetails } =
     useGetCustomer();
 
@@ -49,6 +48,7 @@ const SubscriptionContent = () => {
     subscriptionTier === SubscriptionTier.STANDARD;
   const showGuestEventsThisCycle = subscriptionTier === SubscriptionTier.PLUS;
 
+  const amount = formatSubscriptionAmount(subscription);
   return (
     <div>
       <CustomCard>
@@ -61,10 +61,7 @@ const SubscriptionContent = () => {
               : "N/A"
           }
         />
-        <StaticField
-          label="Amount"
-          value={`${formatCurrency(subscription.amount)}/month`}
-        />
+        <StaticField label="Amount" value={`${amount}/month`} />
         {showGuestEventsThisCycle && (
           <StaticField
             label="Guest Events This Cycle"

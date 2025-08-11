@@ -72,8 +72,6 @@ export const handlePaymentIntentSucceeded = async (
         quantity: Number(t.quantity),
       })
     );
-    console.log("meta", session.metadata);
-    console.log("ticketCounts", ticketCounts);
 
     await ctx.runAction(api.tickets.insertTicketsSold, {
       eventId: session.metadata.eventId as Id<"events">,

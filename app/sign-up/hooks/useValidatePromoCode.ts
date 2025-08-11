@@ -1,9 +1,10 @@
 import { useAction } from "convex/react";
 import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
+
 export type ValidatePromoCodeResult = {
   isValid: boolean;
-  promoCodeId: string | null;
+  approvedPromoCode: string | null;
   discount: number | null;
 };
 
@@ -26,7 +27,7 @@ export const useValidatePromoCode = () => {
     } catch (err: any) {
       console.error("Promo code validation error:", err);
       setError(err.message || "Failed to validate promo code.");
-      return { isValid: false, promoCodeId: null, discount: null };
+      return { isValid: false, approvedPromoCode: null, discount: null };
     } finally {
       setIsLoading(false);
     }
