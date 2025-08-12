@@ -63,8 +63,7 @@ const TicketTimeCard = ({
 
             <CustomCard className={isDeactivated ? "opacity-80" : ""}>
               <StaticField
-                className="border-none"
-                label="Price"
+                label="Price:"
                 value={formatCurrency(ticket.price)}
                 icon={<Ticket className="text-xl text-grayText" />}
               />
