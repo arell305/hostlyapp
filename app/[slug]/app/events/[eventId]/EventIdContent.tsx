@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   EventFormInput,
   GuestListFormInput,
@@ -82,15 +82,16 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
     error: deleteError,
   } = useCancelEvent();
 
-  const tabs: Tab[] = [
-    { label: "Summary", value: ActiveTab.SUMMARY },
-    ...(data.guestListInfo
-      ? [{ label: "Guest List", value: ActiveTab.GUEST_LIST }]
-      : []),
-    ...(data.ticketTypes && data.ticketTypes.length > 0
-      ? [{ label: "Tickets", value: ActiveTab.TICKET_INFO }]
-      : []),
-  ];
+  const tabs: Tab[] = useMemo(() => {
+    const base: Tab[] = [{ label: "Summary", value: ActiveTab.SUMMARY }];
+    if (data.guestListInfo) {
+      base.push({ label: "Guest List", value: ActiveTab.GUEST_LIST });
+    }
+    if (data.ticketTypes && data.ticketTypes.length > 0) {
+      base.push({ label: "Tickets", value: ActiveTab.TICKET_INFO });
+    }
+    return base;
+  }, [data.guestListInfo, data.ticketTypes]);
 
   useEffect(() => {
     const availableValues = new Set(tabs.map((t) => t.value));

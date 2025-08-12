@@ -102,6 +102,7 @@ const TicketPurchaseSection: React.FC<TicketPurchaseSectionProps> = ({
     setClientSecret,
     setEmailError,
     setError,
+    event.name,
   ]);
 
   const shouldShowPurchaseForm =

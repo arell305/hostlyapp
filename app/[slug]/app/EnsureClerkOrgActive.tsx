@@ -48,6 +48,7 @@ export default function EnsureClerkOrgActive({ children }: Props) {
     expectedId,
     clerkOrganization?.id,
     setActive,
+    skipAdmin,
   ]);
 
   // Works as wrapper or self-closing

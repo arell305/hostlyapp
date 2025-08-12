@@ -68,13 +68,7 @@ export const PublicOrganizationProvider: React.FC<{
       // If still loading the photo query, keep it null; otherwise string or null
       displayCompanyPhoto: displayCompanyPhoto ?? null,
     }),
-    [
-      organizationPublic,
-      response?.status,
-      response?.data,
-      user,
-      displayCompanyPhoto,
-    ]
+    [organizationPublic, response, user, displayCompanyPhoto, cleanSlug]
   );
 
   // Now gate what you render (no hooks below this point)
