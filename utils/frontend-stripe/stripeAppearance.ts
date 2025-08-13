@@ -5,12 +5,41 @@ export const stripeAppearance: Appearance = {
   variables: {
     colorPrimary: "#315DDF",
     colorBackground: "#1a1a1a",
-    colorText: "#ffffff",
-    // 👇 error color (borders, icons, messages)
-    colorDanger: "#EF4444", // tailwind red-500
+    colorText: "#F9FAFA",
+    colorDanger: "#EF4444",
   },
   rules: {
-    // ensure the input border uses your red
+    // Payment method tabs (Card, Cash App Pay, etc.)
+    ".Tab": {
+      backgroundColor: "transparent",
+      borderColor: "#1B1C20",
+      borderWidth: "2px",
+      boxShadow: "none",
+    },
+    ".Tab:hover, .Tab:focus, .Tab:active": {
+      backgroundColor: "transparent",
+      boxShadow: "none",
+    },
+    ".Tab--selected": {
+      backgroundColor: "transparent",
+      borderColor: "#315DDF",
+      boxShadow: "none",
+    },
+
+    // Inputs
+    ".Input": {
+      backgroundColor: "transparent",
+      borderColor: "#1B1C20",
+      borderWidth: "2px",
+      paddingTop: "0.375rem",
+      paddingBottom: "0.375rem",
+      paddingLeft: "0.625rem",
+      paddingRight: "0.625rem",
+    },
+    ".Input:focus": {
+      borderColor: "#324E78",
+      boxShadow: "0 0 0 1px #324E78",
+    },
     ".Input--invalid": {
       borderColor: "#EF4444",
     },
@@ -18,7 +47,6 @@ export const stripeAppearance: Appearance = {
       borderColor: "#EF4444",
       boxShadow: "0 0 0 1px #EF4444",
     },
-    // error message text
     ".Error": {
       color: "#EF4444",
     },

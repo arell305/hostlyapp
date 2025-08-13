@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useElements, useStripe } from "@stripe/react-stripe-js";
 import { useRouter } from "next/navigation";
 import { pricingOptions } from "../../constants/pricingOptions";
-import { calculateDiscountedAmount, isValidEmail } from "../../utils/helpers";
+import { isValidEmail } from "../../utils/helpers";
 import { PricingOption } from "@/types/types";
 import { FrontendErrorMessages } from "@/types/enums";
 import { useCreateStripeSubscription } from "./hooks/useCreateStripeSubscription";
@@ -13,14 +13,8 @@ import LabeledInputField from "@/components/shared/fields/LabeledInputField";
 import PromoCodeInput from "@/components/shared/fields/PromoCodeInput";
 import CountdownTimer from "./components/CountdownTimer";
 import PlanSelector from "./components/PlanSelector";
-import PaymentMethodSelector from "./components/PaymentMethodSelector";
 import PaymentDetailsSection from "./components/PaymentDetailsSection";
-import {
-  createApplePaymentRequest,
-  getCardPaymentMethod,
-} from "../../utils/frontend-stripe/stripeHelpers";
 import NProgress from "nprogress";
-import { StripeCardElementChangeEvent } from "@stripe/stripe-js";
 import { v4 as uuidv4 } from "uuid";
 
 const PaymentForm = () => {
@@ -35,15 +29,9 @@ const PaymentForm = () => {
   const [errors, setErrors] = useState<{ email?: string; promoCode?: string }>(
     {}
   );
-  const [focused, setFocused] = useState<boolean>(false);
-  const [cardError, setCardError] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<PricingOption | null>(
     pricingOptions[1]
   );
-  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
-    null
-  );
-  const [canMakePayment, setCanMakePayment] = useState<boolean>(false);
   const [isCardComplete, setIsCardComplete] = useState<boolean>(false);
   const [promoState, setPromoState] = useState({
     discount: 0,
@@ -52,9 +40,6 @@ const PaymentForm = () => {
     approvedPromoCode: null as string | null,
   });
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    "apple" | "card"
-  >("card");
 
   const {
     validatePromoCode,
@@ -78,61 +63,9 @@ const PaymentForm = () => {
     }
   };
 
-  const handleCardChange = (event: StripeCardElementChangeEvent) => {
-    setIsCardComplete(event.complete);
-    setCardError(!!event.error);
+  const handleElementChange = (event: { complete?: boolean }) => {
+    setIsCardComplete(!!event.complete);
   };
-
-  useEffect(() => {
-    if (!stripe || !selectedPlan) return;
-
-    const amount = calculateDiscountedAmount(
-      selectedPlan.price,
-      promoState.discount
-    );
-    if (isNaN(amount)) return;
-
-    createApplePaymentRequest(stripe, amount, async (ev) => {
-      setIsLoading(true);
-      const finalEmail = email || ev.payerEmail;
-      if (!finalEmail) {
-        setError("Invalid email");
-        setIsLoading(false);
-        return;
-      }
-
-      const idempotencyKey = uuidv4();
-
-      const success = await createStripeSubscription({
-        email: finalEmail,
-        paymentMethodId: ev.paymentMethod.id,
-        subscriptionTier: selectedPlan.tier,
-        promoCode: promoState.approvedPromoCode,
-        idempotencyKey,
-      });
-
-      ev.complete(success ? "success" : "fail");
-
-      if (success) {
-        NProgress.start();
-        router.push("/confirmation");
-      } else setError("Failed to create subscription. Please try again.");
-    }).then((pr) => {
-      if (pr) {
-        setPaymentRequest(pr);
-        setCanMakePayment(true);
-      }
-    });
-  }, [
-    stripe,
-    selectedPlan,
-    promoState,
-    email,
-    router,
-    setError,
-    setIsLoading,
-    createStripeSubscription,
-  ]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -154,7 +87,29 @@ const PaymentForm = () => {
     setIsLoading(true);
 
     try {
-      const paymentMethod = await getCardPaymentMethod(stripe, elements, email);
+      // Trigger client-side validation on the Payment Element
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        setError(submitError.message || FrontendErrorMessages.GENERIC_ERROR);
+        setIsLoading(false);
+        return;
+      }
+
+      // Create a PaymentMethod from the Payment Element
+      const { error: pmError, paymentMethod } =
+        await stripe.createPaymentMethod({
+          elements,
+          params: {
+            billing_details: { email },
+          },
+        });
+
+      if (pmError || !paymentMethod) {
+        setError(pmError?.message || "Unable to create payment method.");
+        setIsLoading(false);
+        return;
+      }
+
       const idempotencyKey = uuidv4();
 
       const success = await createStripeSubscription({
@@ -170,10 +125,11 @@ const PaymentForm = () => {
         router.push("/confirmation");
       } else {
         setError("Failed to create subscription. Please try again.");
+        setIsLoading(false);
       }
     } catch (err: any) {
-      setIsLoading(true);
-      setError(err.message);
+      setIsLoading(false);
+      setError(err.message || FrontendErrorMessages.GENERIC_ERROR);
     }
   };
 
@@ -202,9 +158,9 @@ const PaymentForm = () => {
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
-            setErrors((prevErrors) => ({ ...prevErrors, email: undefined })); // Reset the email error
+            setErrors((prevErrors) => ({ ...prevErrors, email: undefined }));
           }}
-          error={errors.email} // Pass the error state here
+          error={errors.email}
         />
 
         {/* Promo Code */}
@@ -219,23 +175,12 @@ const PaymentForm = () => {
           success={promoState.promoCodeApplied}
         />
 
-        <PaymentMethodSelector
-          selected={selectedPaymentMethod}
-          onSelect={setSelectedPaymentMethod}
-        />
-
+        {/* Payment Element-driven details */}
         <PaymentDetailsSection
-          method={selectedPaymentMethod}
           stripeReady={!!stripe}
           isLoading={isLoading}
           error={error}
-          cardError={cardError}
-          focused={focused}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          onCardChange={handleCardChange}
-          onApplePayClick={() => paymentRequest?.show()}
-          paymentRequest={paymentRequest}
+          onCardChange={handleElementChange}
           handleSubmit={handleSubmit}
           isCardComplete={isCardComplete}
           email={email}
