@@ -6,6 +6,10 @@ import {
   SubscriptionStatus,
   UserRole,
   SubscriptionTier,
+  SmsMessageType,
+  SmsMessageDirection,
+  AuthorType,
+  MessageStatus,
 } from "@/types/enums";
 
 export const UserRoleEnumConvex = v.union(
@@ -52,6 +56,30 @@ export const StripeAccountStatusConvex = v.union(
   v.literal(StripeAccountStatus.REJECTED),
   v.literal(StripeAccountStatus.DISABLED),
   v.literal(StripeAccountStatus.INCOMPLETE)
+);
+
+export const SmsMessageTypeConvex = v.union(
+  v.literal(SmsMessageType.ALL_DB_GUESTS),
+  v.literal(SmsMessageType.ATTENDED_EVENT),
+  v.literal(SmsMessageType.NOT_ATTENDED_EVENT),
+  v.literal(SmsMessageType.BEFORE_EVENT)
+);
+
+export const SmsMessageDirectionConvex = v.union(
+  v.literal(SmsMessageDirection.INBOUND),
+  v.literal(SmsMessageDirection.OUTBOUND)
+);
+
+export const AuthorTypeConvex = v.union(
+  v.literal(AuthorType.GUEST),
+  v.literal(AuthorType.HOST),
+  v.literal(AuthorType.AI)
+);
+
+export const MessageStatusConvex = v.union(
+  v.literal(MessageStatus.PENDING),
+  v.literal(MessageStatus.SENT),
+  v.literal(MessageStatus.FAILED)
 );
 
 export const GuestListNames = v.object({
@@ -269,4 +297,66 @@ export default defineSchema({
     creditsUsed: v.number(), // cumulative total used
     lastUpdated: v.number(), // for cache validation or auditing
   }).index("by_organizationId", ["organizationId"]),
+  faq: defineTable({
+    answer: v.string(),
+    isActive: v.boolean(),
+    organizationId: v.id("organizations"),
+    question: v.string(),
+    updatedAt: v.number(),
+  }).index("by_organizationId", ["organizationId"]),
+  smsTemplates: defineTable({
+    body: v.string(),
+    isActive: v.boolean(),
+    messageType: SmsMessageTypeConvex,
+    name: v.string(),
+    updatedAt: v.number(),
+    userId: v.id("users"),
+  }).index("by_userId_updatedAt", ["userId", "updatedAt"]),
+  campaigns: defineTable({
+    eventId: v.optional(v.id("events")),
+    isActive: v.boolean(),
+    name: v.string(),
+    promptResponse: v.optional(v.string()),
+    relativeOffsetMinutes: v.optional(v.number()),
+    scheduleTime: v.optional(v.number()),
+    updatedAt: v.number(),
+    userId: v.id("users"),
+  }).index("by_userId_updatedAt", ["userId", "updatedAt"]),
+  contacts: defineTable({
+    isActive: v.boolean(),
+    name: v.string(),
+    phoneNumber: v.optional(v.string()),
+    updatedAt: v.number(),
+    userId: v.id("users"),
+  }).index("by_userId_name", ["userId", "name"]),
+  smsMessages: defineTable({
+    authorType: AuthorTypeConvex, // "ai" | "human" | "guest" (whatever you use)
+    campaignId: v.id("campaigns"),
+    direction: SmsMessageDirectionConvex, // "inbound" | "outbound"
+    guestId: v.id("guests"),
+    message: v.string(),
+    providerMessageId: v.optional(v.string()), // for webhook idempotency
+    sentAt: v.number(), // server/provider time used for ordering
+    status: MessageStatusConvex,
+    threadId: v.id("smsThreads"),
+    toPhoneE164: v.string(),
+    updatedAt: v.number(),
+    userId: v.id("users"),
+  })
+    .index("by_threadId_sentAt", ["threadId", "sentAt"]) // fast "latest in thread"
+    .index("by_userId_updatedAt", ["userId", "updatedAt"])
+    .index("by_providerMessageId", ["providerMessageId"]),
+  smsThreads: defineTable({
+    awaitingResponse: v.boolean(), // true after your outbound, false after inbound
+    campaignId: v.id("campaigns"),
+    createdAt: v.number(),
+    guestId: v.id("guests"),
+    lastAiOutboundAt: v.optional(v.number()),
+    lastHumanOutboundAt: v.optional(v.number()),
+    lastMessageAt: v.number(), // for sort/pagination
+    lastMessageDirection: SmsMessageDirectionConvex, // cheap filter
+    lastMessageId: v.optional(v.id("smsMessages")), // hydrate preview text lazily
+    updatedAt: v.number(),
+    userId: v.id("users"),
+  }).index("by_campaignId_updatedAt", ["campaignId", "updatedAt"]),
 });

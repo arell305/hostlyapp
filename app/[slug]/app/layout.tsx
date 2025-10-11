@@ -8,7 +8,6 @@ import Sidebar from "./components/shared/nav/Sidebar";
 import TicketScannerFAB from "./components/ui/TicketScannerFAB";
 import Navbar from "./components/shared/nav/Navbar";
 import { isModerator } from "@/utils/permissions";
-import EnsureClerkOrgActive from "./EnsureClerkOrgActive";
 
 const InnerLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { orgRole } = useContextOrganization();

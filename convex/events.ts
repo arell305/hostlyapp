@@ -352,6 +352,7 @@ export const getEventsByMonth = query({
 
     try {
       const identity = await requireAuthenticatedUser(ctx);
+      console.log("identity", identity);
       const organization = validateOrganization(
         await ctx.db.get(organizationId)
       );

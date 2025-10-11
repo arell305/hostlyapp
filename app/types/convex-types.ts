@@ -1170,3 +1170,128 @@ export interface GetEventSummaryData {
   tickets: TicketSalesByPromoter[];
   ticketTotals: TicketTotalsItem[] | null;
 }
+
+export type GetCompanyFaqResponse = GetCompanyFaqSuccess | ErrorResponse;
+
+export interface GetCompanyFaqSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetCompanyFaqData;
+}
+
+export interface GetCompanyFaqData {
+  faq: Doc<"faq">[];
+}
+
+export type UpdateCompanyFaqResponse = UpdateCompanyFaqSuccess | ErrorResponse;
+
+export interface UpdateCompanyFaqSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateCompanyFaqData;
+}
+
+export interface UpdateCompanyFaqData {
+  faqId: Id<"faq">;
+}
+
+export type GetSmsTemplatesResponse = GetSmsTemplatesSuccess | ErrorResponse;
+
+export interface GetSmsTemplatesSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetSmsTemplatesData;
+}
+
+export interface GetSmsTemplatesData {
+  smsTemplates: Doc<"smsTemplates">[];
+}
+
+export type InsertSmsTemplateResponse =
+  | InsertSmsTemplateSuccess
+  | ErrorResponse;
+
+export interface InsertSmsTemplateSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: InsertSmsTemplateData;
+}
+
+export interface InsertSmsTemplateData {
+  smsTemplateId: Id<"smsTemplates">;
+}
+
+export type UpdateSmsTemplateResponse =
+  | UpdateSmsTemplateSuccess
+  | ErrorResponse;
+
+export interface UpdateSmsTemplateSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateSmsTemplateData;
+}
+
+export interface UpdateSmsTemplateData {
+  smsTemplateId: Id<"smsTemplates">;
+}
+
+export type GetCampaignsResponse = GetCampaignsSuccess | ErrorResponse;
+
+export interface GetCampaignsSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetCampaignsData;
+}
+
+export interface GetCampaignsData {
+  campaigns: Doc<"campaigns">[];
+}
+
+export type InsertCampaignResponse = InsertCampaignSuccess | ErrorResponse;
+
+export interface InsertCampaignSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: InsertCampaignData;
+}
+
+export interface InsertCampaignData {
+  campaignId: Id<"campaigns">;
+}
+
+export type UpdateCampaignResponse = UpdateCampaignSuccess | ErrorResponse;
+
+export interface UpdateCampaignSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateCampaignData;
+}
+
+export interface UpdateCampaignData {
+  campaignId: Id<"campaigns">;
+}
+
+export type GetGuestsResponse = GetGuestsSuccess | ErrorResponse;
+
+export interface GetGuestsSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: GetGuestsData;
+}
+
+export interface GetGuestsData {
+  guests: Doc<"guests">[];
+}
+
+export type InsertGuestResponse = InsertGuestSuccess | ErrorResponse;
+
+export interface InsertGuestSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: InsertGuestData;
+}
+
+export interface InsertGuestData {
+  guestId: Id<"guests">;
+}
+
+export type UpdateGuestResponse = UpdateGuestSuccess | ErrorResponse;
+
+export interface UpdateGuestSuccess {
+  status: ResponseStatus.SUCCESS;
+  data: UpdateGuestData;
+}
+
+export interface UpdateGuestData {
+  guestId: Id<"guests">;
+}

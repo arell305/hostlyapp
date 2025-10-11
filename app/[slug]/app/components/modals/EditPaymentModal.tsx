@@ -7,14 +7,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 import { CardElement, Elements } from "@stripe/react-stripe-js";
 import { stripePromise } from "../../../../../utils/stripe";
 
 interface EditPaymentModaltModalProps {
   onClose: () => void;
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
   error: string | null;
   isLoading: boolean;
   onEditPayment: () => void;
@@ -24,7 +22,6 @@ interface EditPaymentModaltModalProps {
 const EditPaymentModal: React.FC<EditPaymentModaltModalProps> = ({
   onClose,
   isOpen,
-  onOpenChange,
   onEditPayment,
   error,
   isLoading,

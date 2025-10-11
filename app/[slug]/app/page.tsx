@@ -3,7 +3,6 @@ import { useContextOrganization } from "@/contexts/OrganizationContext";
 import HomeContent from "./HomeContent";
 import { canCreateEvent } from "../../../utils/permissions";
 import { usePathname } from "next/navigation";
-import SectionContainer from "@/components/shared/containers/SectionContainer";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";

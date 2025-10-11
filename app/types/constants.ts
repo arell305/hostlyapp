@@ -85,3 +85,22 @@ export const ticketNameOptions = [
   "VIP - Male",
   "VIP - Female",
 ];
+export const ERROR_TITLES: Record<string, string> = {
+  UNAUTHORIZED: "Please sign in",
+  FORBIDDEN: "You don\u2019t have access",
+  NOT_FOUND: "Not found",
+  INTERNAL_ERROR: "Something went wrong",
+};
+
+export const ERROR_MESSAGES: Record<string, string> = {
+  UNAUTHORIZED: "Your session may have expired.",
+  FORBIDDEN: "You don't have permission to view this.",
+  NOT_FOUND: "We couldn't find what you're looking for.",
+  VALIDATION_FAILED: "Please review the form and try again.",
+  CONFLICT: "That action conflicts with the current state.",
+  RATE_LIMITED: "You're doing that too quickly. Please try again shortly.",
+  INTERNAL_ERROR: "Something went wrong. Please try again.",
+};
+
+export const DEFAULT_ERROR_MESSAGE =
+  "An unexpected error occurred. Please try again.";

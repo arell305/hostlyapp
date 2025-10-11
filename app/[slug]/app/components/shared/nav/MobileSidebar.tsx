@@ -12,9 +12,8 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import SidebarContent from "./SidebarContent";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
-interface MobileSidebarProps {}
 
-const MobileSidebar: React.FC<MobileSidebarProps> = () => {
+const MobileSidebar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   return (
     <div className="lg:hidden">

@@ -5,16 +5,13 @@ import SelectedDateEvents from "./components/calendar/SelectedDateEvents";
 import ToggleCalendar from "./components/calendar/ToggleCalendar";
 import {
   doesDateHaveEvent,
-  getEventsForDate,
   getEventsForDateRange,
   getVisibleRange,
   navigateDate,
-  normalizeCalendarDate,
 } from "../../../utils/calendar";
 import { CalendarSwitcher } from "./components/calendar/CalendarSwitcher";
 import { EventWithExtras } from "@/types/convex-types";
 import { useMonthlyEvents } from "./hooks/useMonthlyEvents";
-import { CalendarValue } from "@/types/types";
 import { DateTime } from "luxon";
 
 interface HomeContentProps {

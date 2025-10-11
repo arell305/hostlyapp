@@ -21,6 +21,8 @@ import { GuestListSchema, OrganizationSchema } from "@/types/types";
 import { DateTime } from "luxon";
 import { formatToTimeAndShortDate } from "../../utils/luxon";
 import { StripeAccountStatus } from "@/types/enums";
+import { Doc } from "convex/_generated/dataModel";
+import { ConvexError } from "convex/values";
 export function validateOrganization(
   organization: OrganizationSchema | null,
   checkActive: boolean = true
@@ -270,4 +272,63 @@ export const validateEventTicketType = (
     throw new Error(ErrorMessages.EVENT_TICKET_TYPE_NOT_FOUND);
   }
   return eventTicketType;
+};
+
+export const validateFaq = (faq: Doc<"faq"> | null): Doc<"faq"> => {
+  if (!faq) {
+    throw new Error(ShowErrorMessages.FAQ_NOT_FOUND);
+  }
+  return faq;
+};
+
+export const validateSmsTemplate = (
+  smsTemplate: Doc<"smsTemplates"> | null
+): Doc<"smsTemplates"> => {
+  if (!smsTemplate) {
+    throw new Error(ShowErrorMessages.SMS_TEMPLATE_NOT_FOUND);
+  }
+  return smsTemplate;
+};
+
+export const validateCampaign = (
+  campaign: Doc<"campaigns"> | null
+): Doc<"campaigns"> => {
+  if (!campaign) {
+    throw new Error(ShowErrorMessages.CAMPAIGN_NOT_FOUND);
+  }
+  return campaign;
+};
+
+export const validateContact = (
+  contact: Doc<"contacts"> | null
+): Doc<"contacts"> => {
+  if (!contact) {
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ShowErrorMessages.CONTACT_DB_NOT_FOUND,
+    });
+  }
+  return contact;
+};
+
+export const validateThread = (
+  thread: Doc<"smsThreads"> | null
+): Doc<"smsThreads"> => {
+  if (!thread) {
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ShowErrorMessages.THREAD_NOT_FOUND,
+    });
+  }
+  return thread;
+};
+
+export const validateUser2 = (user: Doc<"users"> | null): Doc<"users"> => {
+  if (!user) {
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ErrorMessages.USER_NOT_FOUND,
+    });
+  }
+  return user;
 };

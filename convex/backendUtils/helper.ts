@@ -24,6 +24,7 @@ import { internal } from "../_generated/api";
 import { validateSubscription } from "./validation";
 import { createStripePrices, createStripeProduct } from "./stripe";
 import { DateTime } from "luxon";
+import { ConvexError } from "convex/values";
 
 export function isUserInOrganization(
   identity: UserIdentity,
@@ -37,6 +38,26 @@ export function isUserInOrganization(
 
   if (identity.clerk_org_id !== clerkOrgId) {
     throw new Error(ErrorMessages.FOBIDDEN_COMPANY);
+  }
+
+  return true;
+}
+
+export function isUserTheSameAsIdentity(
+  identity: UserIdentity,
+  clerkUserId: string
+): boolean {
+  const allowedRoles = [UserRole.Hostly_Moderator, UserRole.Hostly_Admin];
+
+  if (allowedRoles.includes(identity.role as UserRole)) {
+    return true;
+  }
+
+  if (identity.id !== clerkUserId) {
+    throw new ConvexError({
+      code: "FORBIDDEN",
+      message: ErrorMessages.FOBIDDEN_COMPANY,
+    });
   }
 
   return true;
@@ -705,4 +726,24 @@ export function withFormattedTimes<
     startHour: start.toFormat(TIME_FMT),
     endHour: end.toFormat(TIME_FMT),
   };
+}
+
+// utils/pickDefined.ts
+export function pickDefined<T extends Record<string, unknown>>(source: {
+  [K in keyof T]?: T[K] | undefined;
+}): Partial<T> {
+  return (Object.entries(source) as [keyof T, T[keyof T] | undefined][]).reduce<
+    Partial<T>
+  >((accumulator, [key, value]) => {
+    if (value !== undefined) {
+      accumulator[key] = value as T[keyof T];
+    }
+    return accumulator;
+  }, {});
+}
+
+export function isEmptyObject(value: object): void {
+  if (Object.keys(value).length === 0) {
+    throw new Error(ErrorMessages.NO_FIELDS_PROVIDED_TO_UPDATE);
+  }
 }

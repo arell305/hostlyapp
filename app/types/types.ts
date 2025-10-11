@@ -2,18 +2,14 @@ import { Id } from "../../convex/_generated/dataModel";
 import {
   ActiveStripeTab,
   ErrorMessages,
-  Gender,
   ResponseStatus,
   ActiveTab,
   SubscriptionStatus,
   SubscriptionTier,
   UserRole,
+  SmsMessageType,
 } from "./enums";
-import {
-  EventSchema,
-  EventWithTicketTypes,
-  GuestListEntrySchema,
-} from "./schemas-types";
+import { EventWithTicketTypes, GuestListEntrySchema } from "./schemas-types";
 
 export interface PricingOption {
   id: string;
@@ -495,3 +491,46 @@ export type TicketTotalsItem = {
   name: string;
   count: number;
 };
+
+export enum QueryStatus {
+  LOADING = "loading",
+  ERROR = "error",
+  SUCCESS = "success",
+}
+
+export type FaqValues = { question: string; answer: string };
+
+export type ContactValues = {
+  name: string;
+  phoneNumber: string;
+};
+
+export type TemplateValues = {
+  body: string;
+  name: string;
+  messageType: SmsMessageType;
+};
+
+export type CampaignValues = {
+  name: string;
+  promptResponse: string;
+  relativeOffsetMinutes: number;
+  scheduleTime: number;
+};
+
+export type ConvexClientError = Error & {
+  digest?: string;
+  data?: { code?: string; message?: string; details?: unknown };
+};
+
+export const ERROR_CODES = [
+  "UNAUTHORIZED",
+  "FORBIDDEN",
+  "NOT_FOUND",
+  "VALIDATION_FAILED",
+  "CONFLICT",
+  "RATE_LIMITED",
+  "INTERNAL_ERROR",
+] as const;
+
+export type ErrorCode = (typeof ERROR_CODES)[number];

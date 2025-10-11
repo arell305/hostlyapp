@@ -16,7 +16,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
   const router = useRouter();
 
   return (
-    <div>
+    <div className="flex items-center justify-center min-h-screen px-2 -translate-y-[100px]">
       <MessageCard
         title={title}
         description={description}

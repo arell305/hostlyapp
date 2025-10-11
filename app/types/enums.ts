@@ -8,6 +8,13 @@ export enum StripeAccountStatus {
   INCOMPLETE = "Incomplete", // Stripe account is incomplete
 }
 
+export enum SmsMessageType {
+  ALL_DB_GUESTS = "all_guests",
+  ATTENDED_EVENT = "attended_event",
+  BEFORE_EVENT = "before_event",
+  NOT_ATTENDED_EVENT = "not_attended_event",
+}
+
 export enum SubscriptionStatus {
   ACTIVE = "active",
   TRIALING = "trialing",
@@ -55,6 +62,23 @@ export enum UserRole {
   Admin = "org:admin",
   Hostly_Admin = "org:hostly_admin",
   Hostly_Moderator = "org:hostly_moderator",
+}
+
+export enum SmsMessageDirection {
+  INBOUND = "inbound",
+  OUTBOUND = "outbound",
+}
+
+export enum AuthorType {
+  GUEST = "guest",
+  HOST = "host",
+  AI = "ai",
+}
+
+export enum MessageStatus {
+  PENDING = "pending",
+  SENT = "sent",
+  FAILED = "failed",
 }
 
 export const roleMap: Record<UserRole, string> = {
@@ -287,6 +311,8 @@ export enum ErrorMessages {
   EVENT_TICKET_TYPE_NOT_FOUND = "Event ticket type not found",
   EVENT_TICKET_TYPES_DB_QUERY = "DB error querying event ticket types",
   TICKETS_DB_QUERY_BY_EVENT_ID_ERROR = "DB error querying tickets by event id",
+  NO_FIELDS_PROVIDED_TO_UPDATE = "No fields provided to update",
+  CONTEXT_USER_TEMPLATE_PROVIDER = "useContextUserTemplate must be used within a UserTemplateProvider",
 }
 
 export enum ShowErrorMessages {
@@ -315,6 +341,12 @@ export enum ShowErrorMessages {
   NOT_ENOUGH_GUEST_LIST_CREDITS = "Not enough guest list credits available.",
   GUEST_LIST_CLOSED = "Guest list is closed",
   GUEST_LIST_NOT_FOUND = "Guest list not found",
+  FAQ_NOT_FOUND = "FAQ not found",
+  SMS_TEMPLATE_NOT_FOUND = "SMS template not found",
+  CAMPAIGN_NOT_FOUND = "Campaign not found",
+  GUEST_DB_NOT_FOUND = "Guest not found",
+  THREAD_NOT_FOUND = "Thread not found",
+  CONTACT_DB_NOT_FOUND = "Contact not found",
 }
 
 export enum FrontendErrorMessages {
