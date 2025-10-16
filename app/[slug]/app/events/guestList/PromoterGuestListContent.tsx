@@ -7,13 +7,10 @@ import { filterGuestsByName } from "../../../../../utils/format";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
 import EmptyList from "@/components/shared/EmptyList";
 import GuestListContainer from "./GuestListContainer";
-import { Id } from "convex/_generated/dataModel";
+import { Doc, Id } from "convex/_generated/dataModel";
 import { validateGuestEditInput } from "@/utils/form-validation/validateEventForm";
 import SearchInput from "../components/SearchInput";
-import {
-  GuestListEntrySchema,
-  GuestListEntryWithPromoter,
-} from "@/types/schemas-types";
+import { GuestListEntryWithPromoter } from "@/types/schemas-types";
 
 type PromoterGuestListContentProps = {
   guestListData: GuestListEntryWithPromoter[];
@@ -55,7 +52,7 @@ const PromoterGuestListContent = ({
     setError: setDeleteNameError,
   } = useDeleteGuestName();
 
-  const handleEdit = (guest: GuestListEntrySchema) => {
+  const handleEdit = (guest: Doc<"guestListEntries">) => {
     setEditingId(guest._id);
     setEditName(guest.name);
     setInitialName(guest.name);

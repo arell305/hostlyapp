@@ -13,23 +13,18 @@ import { useParams, useRouter } from "next/navigation";
 import { useUser, useOrganization, useOrganizationList } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import {
-  ErrorMessages,
-  ResponseStatus,
-  StripeAccountStatus,
-  UserRole,
-} from "@/types/enums";
-import type { OrganizationSchema, UserWithPromoCode } from "@/types/types";
-import type { SubscriptionSchema } from "@/types/schemas-types";
+import { ErrorMessages, StripeAccountStatus, UserRole } from "@/types/enums";
+import type { UserWithPromoCode } from "@/types/types";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
 import { isHostlyUser } from "@/utils/permissions";
+import { Doc } from "convex/_generated/dataModel";
 
 type OrganizationContextType = {
-  organization: OrganizationSchema;
+  organization: Doc<"organizations">;
   connectedAccountId: string;
   connectedAccountEnabled: boolean;
-  subscription: SubscriptionSchema;
+  subscription: Doc<"subscriptions">;
   availableCredits: number;
   user: UserWithPromoCode;
   orgRole?: UserRole;
@@ -81,10 +76,12 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
       return;
     }
 
-    if (orgContext.status !== ResponseStatus.SUCCESS) return;
+    if (!orgContext) {
+      return;
+    }
 
-    const org = orgContext.data?.organization as OrganizationSchema | undefined;
-    const u = (orgContext.data?.user as UserWithPromoCode | null) ?? null;
+    const org = orgContext.organization;
+    const u = orgContext.user;
     const isHostlyModerator =
       orgRole === UserRole.Hostly_Moderator ||
       orgRole === UserRole.Hostly_Admin;
@@ -125,10 +122,10 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
 
   // Track last successful load for TTL refresh
   useEffect(() => {
-    if (orgContext?.status === ResponseStatus.SUCCESS) {
+    if (orgContext) {
       lastLoadedRef.current = Date.now();
     }
-  }, [orgContext?.status]);
+  }, [orgContext]);
 
   // Refresh on focus with TTL
   useEffect(() => {
@@ -157,9 +154,9 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
   useEffect(() => {
     if (!isClerkLoaded || !isSignedIn) return;
     if (!orgLoaded || !orgListLoaded) return;
-    if (orgContext?.status !== ResponseStatus.SUCCESS) return;
+    if (!orgContext) return;
 
-    const org = orgContext.data?.organization as OrganizationSchema | undefined;
+    const org = orgContext.organization;
     if (!org?.clerkOrganizationId || !setActive) return;
 
     const role =
@@ -182,23 +179,23 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
     isSignedIn,
     orgLoaded,
     orgListLoaded,
-    orgContext?.status,
-    orgContext?.data?.organization, // triggers when org changes
+    orgContext,
+    orgContext?.organization, // triggers when org changes
     clerkOrg?.id,
     setActive,
     clerkUser?.publicMetadata?.role,
   ]);
 
   // --- Derived data (plain variables) ---
-  const ctxUser = (orgContext?.data?.user as UserWithPromoCode | null) ?? null;
-  const org = orgContext?.data?.organization as OrganizationSchema | undefined;
-  const connectedAccountId = orgContext?.data?.connectedAccountId ?? "";
+  const ctxUser = orgContext?.user;
+  const org = orgContext?.organization;
+  const connectedAccountId = orgContext?.connectedAccountId ?? "";
   const connectedAccountEnabled =
-    orgContext?.data?.connectedAccountStatus === StripeAccountStatus.VERIFIED;
-  const subscription = orgContext?.data?.subscription as
-    | SubscriptionSchema
+    orgContext?.connectedAccountStatus === StripeAccountStatus.VERIFIED;
+  const subscription = orgContext?.subscription as
+    | Doc<"subscriptions">
     | undefined;
-  const availableCredits = orgContext?.data?.availableCredits ?? 0;
+  const availableCredits = orgContext?.availableCredits ?? 0;
 
   const stillLoading = !shouldQueryOrg || orgContext === undefined;
 
@@ -226,8 +223,6 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
     cleanSlug,
   ]);
 
-  // --- Safe returns AFTER all hooks ---
-
   if (isClerkLoaded && !isSignedIn) {
     return (
       <MessagePage
@@ -252,15 +247,8 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
     );
   }
 
-  if (orgContext?.status === ResponseStatus.ERROR) {
-    return (
-      <MessagePage
-        title="Failed to load organization"
-        description={orgContext.error || "Please try again."}
-        buttonLabel="Retry"
-        onButtonClick={() => router.refresh()}
-      />
-    );
+  if (!orgContext) {
+    return <FullLoading />;
   }
 
   if (!org) {
@@ -290,6 +278,8 @@ export const OrganizationProvider: React.FC<PropsWithChildren> = ({
 
 export const useContextOrganization = () => {
   const ctx = useContext(OrganizationContext);
-  if (!ctx) throw new Error(ErrorMessages.CONTEXT_ORGANIZATION_PROVER);
+  if (!ctx) {
+    throw new Error(ErrorMessages.CONTEXT_ORGANIZATION_PROVER);
+  }
   return ctx;
 };

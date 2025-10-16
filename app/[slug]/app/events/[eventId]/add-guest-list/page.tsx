@@ -2,13 +2,12 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
-import { handleQueryState } from "@/utils/handleQueryState";
 import { api } from "convex/_generated/api";
-import { QueryState } from "@/types/enums";
 import AddGuestListContent from "./AddGuestListContent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
 import NProgress from "nprogress";
+import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 
 const AddGuestListPage: React.FC = () => {
   const params = useParams();
@@ -18,13 +17,9 @@ const AddGuestListPage: React.FC = () => {
 
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
 
-  const result = handleQueryState(getEventByIdResponse);
-
-  if (result.type === QueryState.Loading || result.type === QueryState.Error) {
-    return result.element;
+  if (!getEventByIdResponse) {
+    return <FullLoading />;
   }
-
-  const eventData = result.data.event;
 
   const handleGoBack = () => {
     router.back();
@@ -35,7 +30,7 @@ const AddGuestListPage: React.FC = () => {
     router.push(`/${cleanSlug}/app/`);
   };
 
-  if (!eventData.isActive) {
+  if (!getEventByIdResponse.event.isActive) {
     return (
       <MessagePage
         buttonLabel="Home"
@@ -48,7 +43,7 @@ const AddGuestListPage: React.FC = () => {
 
   return (
     <AddGuestListContent
-      eventData={eventData}
+      eventData={getEventByIdResponse.event}
       handleGoBack={handleGoBack}
       handleNavigateHome={handleNavigateHome}
     />

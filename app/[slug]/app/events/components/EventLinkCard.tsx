@@ -4,13 +4,12 @@ import { FiLink } from "react-icons/fi";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import StaticField from "@/components/shared/fields/StaticField";
 import { usePathname } from "next/navigation";
-import { Id } from "convex/_generated/dataModel";
-import { EventSchema } from "@/types/schemas-types";
+import { Doc } from "convex/_generated/dataModel";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { formatDateMDY, formatTime } from "@/utils/luxon";
 
 interface EventLinkCardProps {
-  event: EventSchema;
+  event: Doc<"events">;
 }
 
 const EventLinkCard: React.FC<EventLinkCardProps> = ({ event }) => {

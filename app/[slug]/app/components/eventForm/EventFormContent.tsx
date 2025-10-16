@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { Doc, Id } from "../../../../../convex/_generated/dataModel";
 import { EventFormInput, GuestListFormInput, TicketType } from "@/types/types";
-import { GuestListInfoSchema, SubscriptionSchema } from "@/types/schemas-types";
 import EventDetailsSection from "./EventDetailsSection";
 import GuestListToggleSection from "./GuestListToggleSection";
 import TicketToggleSection from "./TicketToggleSection";
@@ -10,7 +9,7 @@ import Backdrop from "./Backdrop";
 
 interface EventFormContentProps {
   initialTicketData?: TicketType[] | null;
-  initialGuestListData?: GuestListInfoSchema | null;
+  initialGuestListData?: Doc<"guestListInfo"> | null;
   onSubmit: (
     organizationId: Id<"organizations">,
     eventData: EventFormInput,
@@ -22,7 +21,7 @@ interface EventFormContentProps {
   saveEventError?: string | null;
   isStripeEnabled: boolean;
   isUpdateEventLoading?: boolean;
-  subscription: SubscriptionSchema;
+  subscription: Doc<"subscriptions">;
   organizationId?: Id<"organizations">;
   submitError?: string | null;
   handleBuyCredit: () => void;

@@ -3,16 +3,16 @@ import { MdOutlineCalendarToday } from "react-icons/md";
 import { FiClock } from "react-icons/fi";
 import { LuMapPin } from "react-icons/lu";
 import { formatTime, formatDateMDY } from "../../../../../utils/luxon";
-import { EventSchema } from "@/types/schemas-types";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import EventImagePreview from "./EventImagePreview";
 import EventTitle from "./EventTitle";
 import IconTextRow from "../../components/ui/IconTextRow";
 import AddressTextRow from "../../components/ui/AddressTextRow";
 import clsx from "clsx";
+import { Doc } from "convex/_generated/dataModel";
 
 interface DetailsViewProps {
-  eventData: EventSchema;
+  eventData: Doc<"events">;
   className?: string;
 }
 
@@ -31,12 +31,10 @@ const DetailsView: React.FC<DetailsViewProps> = ({ eventData, className }) => {
         className
       )}
     >
-      {/* Image Column */}
       <div className="w-full md:w-2/5">
         <EventImagePreview storageId={eventData.photo} />
       </div>
 
-      {/* Info Column */}
       <div className="w-full md:w-3/5 flex flex-col ">
         <EventTitle title={eventData.name} />
         <CustomCard className="mt-4">

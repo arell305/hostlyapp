@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useMutation } from "convex/react";
-import { ResponseStatus, FrontendErrorMessages } from "@/types/enums";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useAddPublicGuestListEntry = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -21,17 +21,9 @@ export const useAddPublicGuestListEntry = () => {
     setError(null);
 
     try {
-      const response = await addPublicEntry({ eventId, name, phoneNumber });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        return true;
-      }
-
-      setError(response.error || FrontendErrorMessages.GENERIC_ERROR);
-      return false;
+      return await addPublicEntry({ eventId, name, phoneNumber });
     } catch (err) {
-      console.error(err);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
+      setErrorFromConvexError(err, setError);
       return false;
     } finally {
       setIsLoading(false);

@@ -1,9 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useAction } from "convex/react";
-import { ResponseStatus } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
-import { FrontendErrorMessages } from "@/types/enums";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useStripeDashboardLink = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -16,20 +15,10 @@ export const useStripeDashboardLink = () => {
     setError(null);
 
     try {
-      const response = await getStripeDashboardLink();
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        return response.data.url;
-      }
-      console.error(response.error);
-      setError(response.error);
-      return null;
+      return await getStripeDashboardLink();
     } catch (error) {
-      console.error("Error fetching Stripe dashboard link:", error);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
+      setErrorFromConvexError(error, setError);
       return null;
-    } finally {
-      setIsLoading(false);
     }
   };
 

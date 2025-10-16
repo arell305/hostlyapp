@@ -1,33 +1,16 @@
 "use node";
 
 import { action, internalAction } from "./_generated/server";
-import { v } from "convex/values";
-import {
-  GetPendingInvitationListResponse,
-  PendingInvitationUser,
-} from "@/types/types";
+import { ConvexError, v } from "convex/values";
+import { PendingInvitationUser } from "@/types/types";
 import {
   RoleConvex,
   SubscriptionStatusConvex,
   SubscriptionTierConvex,
 } from "./schema";
 import { internal } from "./_generated/api";
-import {
-  ErrorMessages,
-  ShowErrorMessages,
-  ResponseStatus,
-  UserRole,
-} from "@/types/enums";
-import {
-  RevokeOrganizationInvitationResponse,
-  CreateOrganizationResponse,
-  UpdateClerkOrganizationPhotoResponse,
-  UpdateOrganizationMembershipsResponse,
-  UpdateOrganizationNameResponse,
-  CreateClerkInvitationResponse,
-  UpdateOrganizationMetadataResponse,
-  WebhookResponse,
-} from "@/types/convex-types";
+import { ErrorMessages, ShowErrorMessages, UserRole } from "@/types/enums";
+import { CreateOrganizationData, WebhookResponse } from "@/types/convex-types";
 import { requireAuthenticatedUser } from "../utils/auth";
 import slugify from "slugify";
 import {
@@ -38,11 +21,9 @@ import {
   updateClerkOrganization,
   updateClerkOrganizationMetadata,
   updateOrganizationLogo,
-  updateOrganizationMembershipHelper,
 } from "../utils/clerk";
 import {
   getActingClerkUserId,
-  handleError,
   isUserInOrganization,
 } from "./backendUtils/helper";
 import {
@@ -54,22 +35,7 @@ import {
 import {
   validateCustomer,
   validateOrganization,
-  validateUser,
 } from "./backendUtils/validation";
-
-/*
-  Clerk Webhook Event Order (Accepting Organization Invitation):
-
-  1. user.created
-     - Triggered if the invited user did not already have a Clerk account.
-
-  2. organizationInvitation.accepted
-     - Fired when the user accepts the org invite (after signing up or signing in).
-
-  3. user.updated
-     - Fired after the user is linked to the organization and 
-       their organizationMemberships are updated.
-*/
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -99,90 +65,24 @@ export const fulfill = internalAction({
 
 export const getPendingInvitationList = action({
   args: { clerkOrgId: v.string() },
-  handler: async (ctx, args): Promise<GetPendingInvitationListResponse> => {
+  handler: async (ctx, args): Promise<PendingInvitationUser[]> => {
     const { clerkOrgId } = args;
-    try {
-      const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(ctx);
 
-      isUserInOrganization(identity, clerkOrgId);
+    isUserInOrganization(identity, clerkOrgId);
 
-      const { data } =
-        await clerkClient.organizations.getOrganizationInvitationList({
-          organizationId: clerkOrgId,
-          status: ["pending"],
-        });
+    const { data } =
+      await clerkClient.organizations.getOrganizationInvitationList({
+        organizationId: clerkOrgId,
+        status: ["pending"],
+      });
 
-      const users: PendingInvitationUser[] = data.map((invitation) => ({
-        clerkInvitationId: invitation.id,
-        email: invitation.emailAddress,
-        role: invitation.publicMetadata.role as UserRole,
-      }));
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          pendingInvitationUsers: users,
-        },
-      };
-    } catch (error) {
-      return handleError(error);
-    }
-  },
-});
-
-export const updateOrganizationMemberships = action({
-  args: {
-    role: RoleConvex,
-    userId: v.id("users"),
-  },
-  handler: async (
-    ctx,
-    args
-  ): Promise<UpdateOrganizationMembershipsResponse> => {
-    const { role, userId } = args;
-    try {
-      const idenitity = await requireAuthenticatedUser(ctx, [
-        UserRole.Admin,
-        UserRole.Manager,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
-
-      const user = validateUser(
-        await ctx.runQuery(internal.users.getUserByIdInternal, {
-          userId,
-        }),
-        false,
-        false,
-        true,
-        true
-      );
-
-      const organization = validateOrganization(
-        await ctx.runQuery(internal.organizations.getOrganizationById, {
-          organizationId: user.organizationId,
-        })
-      );
-
-      const clerkOrgId = organization.clerkOrganizationId;
-      isUserInOrganization(idenitity, clerkOrgId);
-
-      await Promise.all([
-        updateOrganizationMembershipHelper(clerkOrgId, user.clerkUserId, role),
-        ctx.runMutation(internal.users.internalUpdateUserById, {
-          userId,
-          role,
-        }),
-      ]);
-
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          userId,
-        },
-      };
-    } catch (error) {
-      return handleError(error);
-    }
+    const users: PendingInvitationUser[] = data.map((invitation) => ({
+      clerkInvitationId: invitation.id,
+      email: invitation.emailAddress,
+      role: invitation.publicMetadata.role as UserRole,
+    }));
+    return users;
   },
 });
 
@@ -192,41 +92,31 @@ export const createClerkInvitation = action({
     role: RoleConvex,
     email: v.string(),
   },
-  handler: async (ctx, args): Promise<CreateClerkInvitationResponse> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const { clerkOrgId, role, email } = args;
-    try {
-      const idenitity = await requireAuthenticatedUser(ctx, [
-        UserRole.Admin,
-        UserRole.Manager,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
+    const idenitity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+    ]);
 
-      isUserInOrganization(idenitity, clerkOrgId);
+    isUserInOrganization(idenitity, clerkOrgId);
 
-      const user = await ctx.runQuery(internal.users.findUserByEmail, {
-        email,
+    const user = await ctx.runQuery(internal.users.findUserByEmail, {
+      email,
+    });
+
+    if (user) {
+      throw new ConvexError({
+        code: "BAD_REQUEST",
+        message: ShowErrorMessages.USER_ALREADY_EXISTS,
       });
-
-      if (user) {
-        throw new Error(ShowErrorMessages.USER_ALREADY_EXISTS);
-      }
-
-      const response = await clerkInviteUserToOrganization(
-        clerkOrgId,
-        email,
-        role
-      );
-
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          clerkInvitationId: response.id,
-        },
-      };
-    } catch (error) {
-      return handleError(error);
     }
+
+    await clerkInviteUserToOrganization(clerkOrgId, email, role);
+
+    return true;
   },
 });
 
@@ -236,38 +126,26 @@ export const revokeOrganizationInvitation = action({
     clerkInvitationId: v.string(),
     organizationId: v.id("organizations"),
   },
-  handler: async (ctx, args): Promise<RevokeOrganizationInvitationResponse> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const { clerkOrgId, clerkInvitationId, organizationId } = args;
-    try {
-      const identity = await requireAuthenticatedUser(ctx, [
-        UserRole.Admin,
-        UserRole.Manager,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
 
-      isUserInOrganization(identity, clerkOrgId);
-      let clerkUserId = await getActingClerkUserId(
-        ctx,
-        identity,
-        organizationId
-      );
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+    ]);
 
-      await revokeOrganizationInvitationHelper(
-        clerkInvitationId,
-        clerkOrgId,
-        clerkUserId
-      );
+    isUserInOrganization(identity, clerkOrgId);
+    let clerkUserId = await getActingClerkUserId(ctx, identity, organizationId);
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          clerkInvitationId,
-        },
-      };
-    } catch (error) {
-      return handleError(error);
-    }
+    await revokeOrganizationInvitationHelper(
+      clerkInvitationId,
+      clerkOrgId,
+      clerkUserId
+    );
+
+    return true;
   },
 });
 
@@ -277,97 +155,96 @@ export const createClerkOrganization = action({
     photo: v.union(v.id("_storage"), v.null()),
     promoDiscount: v.union(v.number(), v.null()),
   },
-  handler: async (ctx, args): Promise<CreateOrganizationResponse> => {
+  handler: async (ctx, args): Promise<CreateOrganizationData> => {
     const { companyName, photo } = args;
     let { promoDiscount } = args;
 
     promoDiscount = promoDiscount ?? 0;
-    try {
-      const identity = await requireAuthenticatedUser(ctx);
-      const clerkUserId = identity.id as string;
 
-      const user = await ctx.runQuery(
-        internal.users.internalFindUserByClerkId,
-        { clerkUserId }
-      );
+    const identity = await requireAuthenticatedUser(ctx);
+    const clerkUserId = identity.id as string;
 
-      if (user.organizationId) {
-        throw new Error(ShowErrorMessages.USER_ALREADY_HAS_COMPANY);
-      }
+    const user = await ctx.runQuery(internal.users.internalFindUserByClerkId, {
+      clerkUserId,
+    });
 
-      if (!user.customerId) {
-        throw new Error(ShowErrorMessages.USER_NOT_CUSTOMER);
-      }
-
-      const customer = validateCustomer(
-        await ctx.runQuery(internal.customers.findCustomerById, {
-          customerId: user.customerId,
-        })
-      );
-
-      const existingOrganization = await ctx.runQuery(
-        internal.organizations.getOrganizationByName,
-        { name: companyName }
-      );
-
-      if (existingOrganization) {
-        throw new Error(ShowErrorMessages.COMPANY_NAME_ALREADY_EXISTS);
-      }
-
-      const slug: string = slugify(companyName, { lower: true, strict: true });
-
-      const clerkOrganization = await createClerkOrg({
-        companyName,
-        publicMetadata: {
-          urlSlug: slug,
-        },
-        createdBy: clerkUserId,
+    if (user.organizationId) {
+      throw new ConvexError({
+        code: "CONFLICT",
+        message: ShowErrorMessages.USER_ALREADY_HAS_COMPANY,
       });
+    }
 
-      const organizationId = await ctx.runMutation(
-        internal.organizations.createConvexOrganization,
-        {
-          clerkOrganizationId: clerkOrganization.id,
-          name: companyName,
-          slug,
-          promoDiscount,
-          customerId: customer._id,
-          photo,
-          userId: user._id,
-        }
-      );
+    if (!user.customerId) {
+      throw new ConvexError({
+        code: "BAD_REQUEST",
+        message: ShowErrorMessages.USER_NOT_CUSTOMER,
+      });
+    }
 
-      if (photo) {
-        const blob = await ctx.storage.get(photo);
-        if (!blob) {
-          console.error(ErrorMessages.FILE_CREATION_ERROR);
-          return {
-            status: ResponseStatus.SUCCESS,
-            data: {
-              organizationId,
-              slug,
-              clerkOrganizationId: organizationId,
-            },
-          };
-        }
-        await updateOrganizationLogo({
-          organizationId: clerkOrganization.id,
-          file: blob,
-          uploaderUserId: clerkUserId,
-        });
+    const customer = validateCustomer(
+      await ctx.runQuery(internal.customers.findCustomerById, {
+        customerId: user.customerId,
+      })
+    );
+
+    const existingOrganization = await ctx.runQuery(
+      internal.organizations.getOrganizationByName,
+      { name: companyName }
+    );
+
+    if (existingOrganization) {
+      throw new ConvexError({
+        code: "CONFLICT",
+        message: ShowErrorMessages.COMPANY_NAME_ALREADY_EXISTS,
+      });
+    }
+
+    const slug: string = slugify(companyName, { lower: true, strict: true });
+
+    const clerkOrganization = await createClerkOrg({
+      companyName,
+      publicMetadata: {
+        urlSlug: slug,
+      },
+      createdBy: clerkUserId,
+    });
+
+    const organizationId = await ctx.runMutation(
+      internal.organizations.createConvexOrganization,
+      {
+        clerkOrganizationId: clerkOrganization.id,
+        name: companyName,
+        slug,
+        promoDiscount,
+        customerId: customer._id,
+        photo,
+        userId: user._id,
       }
+    );
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
+    if (photo) {
+      const blob = await ctx.storage.get(photo);
+      if (!blob) {
+        console.error(ErrorMessages.FILE_CREATION_ERROR);
+        return {
           organizationId,
           slug,
-          clerkOrganizationId: clerkOrganization.id,
-        },
-      };
-    } catch (error) {
-      return handleError(error);
+          clerkOrganizationId: organizationId,
+        };
+      }
+      await updateOrganizationLogo({
+        organizationId: clerkOrganization.id,
+        file: blob,
+        uploaderUserId: clerkUserId,
+      });
     }
+
+    return {
+      organizationId,
+      slug,
+      clerkOrganizationId: clerkOrganization.id,
+    };
   },
 });
 
@@ -376,58 +253,51 @@ export const updateClerkOrganizationPhoto = action({
     organizationId: v.id("organizations"),
     photo: v.union(v.id("_storage"), v.null()),
   },
-  handler: async (ctx, args): Promise<UpdateClerkOrganizationPhotoResponse> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const { organizationId, photo } = args;
 
-    try {
-      const idenitity = await requireAuthenticatedUser(ctx, [
-        UserRole.Admin,
-        UserRole.Manager,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
+    const idenitity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+    ]);
 
-      const organization = validateOrganization(
-        await ctx.runQuery(internal.organizations.getOrganizationById, {
-          organizationId,
-        })
-      );
-
-      isUserInOrganization(idenitity, organization.clerkOrganizationId);
-
-      const clerkUserId = idenitity.id as string;
-
-      let blob: Blob | null = null;
-      if (photo) {
-        blob = await ctx.storage.get(photo);
-        if (!blob) {
-          console.error("Failed to get photo from storage");
-          throw new Error(ErrorMessages.FILE_CREATION_ERROR);
-        } else {
-          await updateOrganizationLogo({
-            organizationId: organization.clerkOrganizationId,
-            file: blob,
-            uploaderUserId: clerkUserId,
-          });
-        }
-      } else {
-        console.log("No photo provided, skipping Clerk logo update");
-      }
-
-      await ctx.runMutation(internal.organizations.updateOrganizationById, {
+    const organization = validateOrganization(
+      await ctx.runQuery(internal.organizations.getOrganizationById, {
         organizationId,
-        updates: {
-          photo,
-        },
-      });
+      })
+    );
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: { organizationId },
-      };
-    } catch (error) {
-      return handleError(error);
+    isUserInOrganization(idenitity, organization.clerkOrganizationId);
+
+    const clerkUserId = idenitity.id as string;
+
+    let blob: Blob | null = null;
+    if (photo) {
+      blob = await ctx.storage.get(photo);
+      if (!blob) {
+        console.error("Failed to get photo from storage");
+        throw new Error(ErrorMessages.FILE_CREATION_ERROR);
+      } else {
+        await updateOrganizationLogo({
+          organizationId: organization.clerkOrganizationId,
+          file: blob,
+          uploaderUserId: clerkUserId,
+        });
+      }
+    } else {
+      console.log("No photo provided, skipping Clerk logo update");
     }
+
+    await ctx.runMutation(internal.organizations.updateOrganizationById, {
+      organizationId,
+      updates: {
+        photo,
+      },
+    });
+
+    return true;
   },
 });
 
@@ -436,53 +306,45 @@ export const updateOrganizationName = action({
     name: v.string(),
     organizationId: v.id("organizations"),
   },
-  handler: async (ctx, args): Promise<UpdateOrganizationNameResponse> => {
+  handler: async (ctx, args): Promise<{ slug: string }> => {
     const { name, organizationId } = args;
-    try {
-      await requireAuthenticatedUser(ctx, [
-        UserRole.Admin,
-        UserRole.Manager,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
 
-      const slug: string = slugify(name, { lower: true, strict: true });
+    await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+    ]);
 
-      const existingOrganization = await ctx.runQuery(
-        internal.organizations.getOrganizationByName,
-        { name }
-      );
+    const slug: string = slugify(name, { lower: true, strict: true });
 
-      if (existingOrganization) {
-        throw new Error(ShowErrorMessages.COMPANY_NAME_ALREADY_EXISTS);
-      }
+    const existingOrganization = await ctx.runQuery(
+      internal.organizations.getOrganizationByName,
+      { name }
+    );
 
-      const organization = validateOrganization(
-        await ctx.runQuery(internal.organizations.getOrganizationById, {
-          organizationId,
-        })
-      );
+    if (existingOrganization) {
+      throw new Error(ShowErrorMessages.COMPANY_NAME_ALREADY_EXISTS);
+    }
 
-      await Promise.all([
-        updateClerkOrganization(organization.clerkOrganizationId, name),
-        ctx.runMutation(internal.organizations.updateOrganizationById, {
-          organizationId,
-          updates: {
-            name,
-            slug,
-          },
-        }),
-      ]);
+    const organization = validateOrganization(
+      await ctx.runQuery(internal.organizations.getOrganizationById, {
+        organizationId,
+      })
+    );
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
+    await Promise.all([
+      updateClerkOrganization(organization.clerkOrganizationId, name),
+      ctx.runMutation(internal.organizations.updateOrganizationById, {
+        organizationId,
+        updates: {
+          name,
           slug,
         },
-      };
-    } catch (error) {
-      return handleError(error);
-    }
+      }),
+    ]);
+
+    return { slug };
   },
 });
 
@@ -495,46 +357,37 @@ export const updateOrganizationMetadata = action({
       promoDiscount: v.optional(v.number()),
     }),
   },
-  handler: async (ctx, args): Promise<UpdateOrganizationMetadataResponse> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const { params, organizationId } = args;
-    try {
-      const identity = await requireAuthenticatedUser(ctx, [
-        UserRole.Admin,
-        UserRole.Manager,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
 
-      const organization = validateOrganization(
-        await ctx.runQuery(internal.organizations.getOrganizationById, {
-          organizationId,
-        })
-      );
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+    ]);
 
-      isUserInOrganization(identity, organization.clerkOrganizationId);
+    const organization = validateOrganization(
+      await ctx.runQuery(internal.organizations.getOrganizationById, {
+        organizationId,
+      })
+    );
 
-      await updateClerkOrganizationMetadata(
-        organization.clerkOrganizationId,
-        params
-      );
+    isUserInOrganization(identity, organization.clerkOrganizationId);
 
-      if (params.promoDiscount !== undefined) {
-        await ctx.runMutation(internal.organizations.updateOrganizationById, {
-          organizationId,
-          updates: {
-            promoDiscount: params.promoDiscount,
-          },
-        });
-      }
+    await updateClerkOrganizationMetadata(
+      organization.clerkOrganizationId,
+      params
+    );
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          organizationId,
+    if (params.promoDiscount !== undefined) {
+      await ctx.runMutation(internal.organizations.updateOrganizationById, {
+        organizationId,
+        updates: {
+          promoDiscount: params.promoDiscount,
         },
-      };
-    } catch (error) {
-      return handleError(error);
+      });
     }
+    return true;
   },
 });

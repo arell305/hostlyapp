@@ -1,7 +1,8 @@
 import { useMutation } from "convex/react";
 import { useState } from "react";
 import { api } from "../../../../convex/_generated/api";
-import { ResponseStatus } from "@/types/enums";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
+
 const useRedeemTicket = () => {
   const [redeemTicketError, setRedeemTicketError] = useState<string | null>(
     null
@@ -22,21 +23,15 @@ const useRedeemTicket = () => {
 
     setIsRedeemTicketLoading(true);
     try {
-      const response = await checkInTicket({
+      await checkInTicket({
         ticketUniqueId: selectedTicketId,
       });
 
-      if (response.status === ResponseStatus.SUCCESS) {
-        setSelectedTicketId("");
-        return true;
-      } else {
-        console.error("Error redeeming ticket", response.error);
-        setRedeemTicketError(response.error);
-        return false;
-      }
+      setSelectedTicketId("");
+      return true;
     } catch (error) {
-      console.error("Error redeeming ticket", error);
-      setRedeemTicketError("Error Redeeming Ticket");
+      setErrorFromConvexError(error, setRedeemTicketError);
+
       return false;
     } finally {
       setIsRedeemTicketLoading(false);

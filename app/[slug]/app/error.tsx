@@ -1,4 +1,3 @@
-// app/(app)/[userId]/templates/error.tsx
 "use client";
 
 import Link from "next/link";

@@ -87,7 +87,6 @@ const PaymentForm = () => {
     setIsLoading(true);
 
     try {
-      // Trigger client-side validation on the Payment Element
       const { error: submitError } = await elements.submit();
       if (submitError) {
         setError(submitError.message || FrontendErrorMessages.GENERIC_ERROR);
@@ -95,7 +94,6 @@ const PaymentForm = () => {
         return;
       }
 
-      // Create a PaymentMethod from the Payment Element
       const { error: pmError, paymentMethod } =
         await stripe.createPaymentMethod({
           elements,
@@ -139,10 +137,8 @@ const PaymentForm = () => {
   return (
     <main className="justify-center max-w-2xl mx-auto mt-4 mb-10">
       <form onSubmit={handleSubmit} className="px-4">
-        {/* Countdown */}
         <CountdownTimer expiryTimestamp={expiryTimestamp} className="mb-6" />
 
-        {/* Plan Selection */}
         <PlanSelector
           options={pricingOptions}
           selectedPlan={selectedPlan}
@@ -163,7 +159,6 @@ const PaymentForm = () => {
           error={errors.email}
         />
 
-        {/* Promo Code */}
         <PromoCodeInput
           promoCode={promoState.promoCode}
           onChange={(value) =>
@@ -175,7 +170,6 @@ const PaymentForm = () => {
           success={promoState.promoCodeApplied}
         />
 
-        {/* Payment Element-driven details */}
         <PaymentDetailsSection
           stripeReady={!!stripe}
           isLoading={isLoading}

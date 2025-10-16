@@ -1,21 +1,16 @@
-import { QueryState } from "@/types/enums";
-import { handleQueryState } from "@/utils/handleQueryState";
-import { api } from "convex/_generated/api";
-import { Id } from "convex/_generated/dataModel";
-import { useQuery } from "convex/react";
+import { Doc, Id } from "convex/_generated/dataModel";
 import PromoterGuestListContent from "./PromoterGuestListContent";
 import ModeratorGuestListContent from "./ModeratorGuestListContent";
-import { GuestListInfoSchema } from "@/types/schemas-types";
 import { isPast } from "@/utils/luxon";
 import SubPageContainer from "@/components/shared/containers/SubPageContainer";
 import { useEventWithGuestLists } from "../hooks/useEventWithGuestLists";
-import { isError, isLoading, isSuccess } from "@/types/types";
+import GuestListSkeleton from "@/components/shared/skeleton/GuestListSkeleton";
 
 interface GuestListPageProps {
   eventId: Id<"events">;
   canUploadGuest: boolean;
   canCheckInGuests: boolean;
-  guestListInfo: GuestListInfoSchema;
+  guestListInfo: Doc<"guestListInfo">;
 }
 
 const GuestListPage: React.FC<GuestListPageProps> = ({
@@ -29,23 +24,21 @@ const GuestListPage: React.FC<GuestListPageProps> = ({
 
   const resultGuestList = useEventWithGuestLists(eventId);
 
-  if (isLoading(resultGuestList) || isError(resultGuestList)) {
-    return resultGuestList.component;
+  if (!resultGuestList) {
+    return <GuestListSkeleton className="mt-4" />;
   }
-
-  const guestListData = resultGuestList.data;
 
   return (
     <SubPageContainer>
       {canUploadGuest ? (
         <PromoterGuestListContent
-          guestListData={guestListData}
+          guestListData={resultGuestList}
           isGuestListOpen={isGuestListOpen}
         />
       ) : (
         <ModeratorGuestListContent
           isCheckInOpen={isCheckInOpen}
-          guestListData={guestListData}
+          guestListData={resultGuestList}
           canCheckInGuests={canCheckInGuests}
         />
       )}

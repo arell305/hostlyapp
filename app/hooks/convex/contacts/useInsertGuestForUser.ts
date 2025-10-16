@@ -4,17 +4,12 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { Id } from "convex/_generated/dataModel";
 import { api } from "convex/_generated/api";
-import { FrontendErrorMessages } from "@/types/enums";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 interface InsertContactInput {
   name: string;
   userId: Id<"users">;
   phoneNumber: string;
-}
-
-interface InsertContactResult {
-  success: boolean;
-  contactId?: Id<"contacts">;
 }
 
 export const useInsertContact = () => {
@@ -23,19 +18,15 @@ export const useInsertContact = () => {
 
   const insertContactMutation = useMutation(api.contacts.insertContact);
 
-  const insertContact = async (
-    data: InsertContactInput
-  ): Promise<InsertContactResult> => {
+  const insertContact = async (data: InsertContactInput): Promise<boolean> => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await insertContactMutation(data);
-      return { success: true, contactId: response };
+      return await insertContactMutation(data);
     } catch (error) {
-      console.error(error);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
-      return { success: false };
+      setErrorFromConvexError(error, setError);
+      return false;
     } finally {
       setLoading(false);
     }

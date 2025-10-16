@@ -3,19 +3,16 @@ import { Badge } from "@/components/ui/badge";
 import { formatArrivalTime } from "../../../../utils/luxon";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import { Pencil, Trash } from "lucide-react";
-import {
-  GuestListEntrySchema,
-  GuestListEntryWithPromoter,
-} from "@/types/schemas-types";
+import { GuestListEntryWithPromoter } from "@/types/schemas-types";
 
-import { Id } from "convex/_generated/dataModel";
+import { Doc, Id } from "convex/_generated/dataModel";
 import { formatPhoneNumber } from "@/utils/format";
 interface GuestCardProps {
   guest: GuestListEntryWithPromoter;
   editingId?: Id<"guestListEntries"> | null;
   editName?: string;
   canEditGuests: boolean;
-  onEdit?: (guest: GuestListEntrySchema) => void;
+  onEdit?: (guest: Doc<"guestListEntries">) => void;
   onShowDelete?: (id: Id<"guestListEntries">) => void;
   onCancelEdit?: () => void;
   setEditName?: (name: string) => void;

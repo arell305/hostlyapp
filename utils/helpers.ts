@@ -3,8 +3,8 @@ import { PricingOption } from "@/types/types";
 import { OrganizationJSON } from "@clerk/backend";
 import { WEBSITE } from "@/types/constants";
 import { DateTime } from "luxon";
-import { SubscriptionSchema, UserSchema } from "@/types/schemas-types";
 import _ from "lodash";
+import { Doc } from "convex/_generated/dataModel";
 
 export const getPricingOptionById = (id: string): number | undefined => {
   const option = pricingOptions.find((option) => option.id === id);
@@ -154,7 +154,7 @@ export const getBaseUrl = (): string => {
   return WEBSITE;
 };
 
-export const sortUsersByName = (users: UserSchema[]): UserSchema[] => {
+export const sortUsersByName = (users: Doc<"users">[]): Doc<"users">[] => {
   return [...users].sort((a, b) => {
     const [aFirst, aLast] = splitName(a.name);
     const [bFirst, bLast] = splitName(b.name);
@@ -186,7 +186,7 @@ export function getInitial(name?: string | null): string {
   return trimmed.length > 0 ? trimmed[0].toUpperCase() : "?";
 }
 
-export function formatSubscriptionAmount(sub: SubscriptionSchema): string {
+export function formatSubscriptionAmount(sub: Doc<"subscriptions">): string {
   const pctRaw = sub.discount?.discountPercentage;
   const pct = Number.isFinite(pctRaw)
     ? Math.min(Math.max(pctRaw as number, 0), 100)

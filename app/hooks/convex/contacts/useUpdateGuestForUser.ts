@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
-
-import { FrontendErrorMessages } from "@/types/enums";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 interface UpdateContactInput {
   contactId: Id<"contacts">;
@@ -17,34 +16,24 @@ interface UpdateContactInput {
   };
 }
 
-interface UpdateContactResult {
-  success: boolean;
-  contactId?: Id<"contacts">;
-}
-
 export const useUpdateContact = () => {
   const [updateContactLoading, setLoading] = useState<boolean>(false);
   const [updateContactError, setError] = useState<string | null>(null);
 
   const updateContactMutation = useMutation(api.contacts.updateContact);
 
-  const updateContact = async (
-    data: UpdateContactInput
-  ): Promise<UpdateContactResult> => {
+  const updateContact = async (data: UpdateContactInput): Promise<boolean> => {
     setLoading(true);
     setError(null);
     const { contactId, updates } = data;
     try {
-      const response = await updateContactMutation({
+      return await updateContactMutation({
         contactId,
         updates,
       });
-
-      return { success: true, contactId: response };
     } catch (err) {
-      console.error(FrontendErrorMessages.GENERIC_ERROR, err);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
-      return { success: false };
+      setErrorFromConvexError(err, setError);
+      return false;
     } finally {
       setLoading(false);
     }

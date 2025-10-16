@@ -1,4 +1,3 @@
-// components/faqs/ResponsiveAddFaq.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -56,7 +55,7 @@ const ResponsiveAddFaq: React.FC<ResponsiveAddFaqProps> = ({
       phoneNumber,
     });
 
-    if (result.success) {
+    if (result) {
       handleClose();
     }
   };

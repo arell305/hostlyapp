@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import {
   query,
   mutation,
@@ -6,29 +6,15 @@ import {
   internalMutation,
   internalQuery,
 } from "./_generated/server";
-import { CancelEventResponse, OrganizationSchema } from "@/types/types";
+import { ShowErrorMessages, UserRole } from "@/types/enums";
+import { Doc, Id } from "./_generated/dataModel";
 import {
-  ErrorMessages,
-  ShowErrorMessages,
-  ResponseStatus,
-  UserRole,
-} from "@/types/enums";
-import { Id } from "./_generated/dataModel";
-import {
-  AddEventResponse,
-  GetEventByIdResponse,
-  UpdateEventResponse,
-  GetEventsByMonthResponse,
   GetEventWithTicketsData,
+  GetEventByIdData,
+  EventWithExtras,
 } from "@/types/convex-types";
 import { TIME_ZONE } from "@/types/constants";
-import {
-  EventSchema,
-  EventTicketTypesSchema,
-  GuestListInfoSchema,
-  PromoterPromoCodeSchema,
-  UserSchema,
-} from "@/types/schemas-types";
+
 import { internal } from "./_generated/api";
 import { requireAuthenticatedUser } from "../utils/auth";
 import {
@@ -45,7 +31,6 @@ import {
   handleTicketUpdateData,
   hasTicketDataChanged,
   isUserInOrganization,
-  performAddEventCleanup,
 } from "./backendUtils/helper";
 import { DateTime } from "luxon";
 
@@ -75,7 +60,7 @@ export const addEvent = action({
       v.null()
     ),
   },
-  handler: async (ctx, args): Promise<AddEventResponse> => {
+  handler: async (ctx, args): Promise<Id<"events">> => {
     const {
       organizationId,
       name,
@@ -92,94 +77,81 @@ export const addEvent = action({
     let guestListInfoId: Id<"guestListInfo"> | null = null;
     let eventTicketTypesIds: Id<"eventTicketTypes">[] = [];
 
-    try {
-      const identity = await requireAuthenticatedUser(ctx, [
-        UserRole.Admin,
-        UserRole.Manager,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
-      const organization = validateOrganization(
-        await ctx.runQuery(internal.organizations.getOrganizationById, {
-          organizationId,
-        })
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+    ]);
+    const organization = validateOrganization(
+      await ctx.runQuery(internal.organizations.getOrganizationById, {
+        organizationId,
+      })
+    );
+    isUserInOrganization(identity, organization.clerkOrganizationId);
+
+    eventId = await ctx.runMutation(internal.events.createEvent, {
+      organizationId: organization._id,
+      name,
+      description,
+      startTime,
+      endTime,
+      photo,
+      address,
+    });
+
+    if (ticketData.length > 0) {
+      eventTicketTypesIds = await handleTicketData(
+        ctx,
+        eventId,
+        ticketData,
+        organization
       );
-      isUserInOrganization(identity, organization.clerkOrganizationId);
-
-      eventId = await ctx.runMutation(internal.events.createEvent, {
-        organizationId: organization._id,
-        name,
-        description,
-        startTime,
-        endTime,
-        photo,
-        address,
-      });
-
-      if (ticketData.length > 0) {
-        eventTicketTypesIds = await handleTicketData(
-          ctx,
-          eventId,
-          ticketData,
-          organization
-        );
-      }
-
-      if (guestListData) {
-        guestListInfoId = await handleGuestListData(
-          ctx,
-          organization,
-          eventId,
-          guestListData,
-          identity.id as string
-        );
-      }
-
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: { eventId, guestListInfoId },
-      };
-    } catch (error) {
-      await performAddEventCleanup(ctx, eventId, eventTicketTypesIds);
-
-      return handleError(error);
     }
+
+    if (guestListData) {
+      guestListInfoId = await handleGuestListData(
+        ctx,
+        organization,
+        eventId,
+        guestListData,
+        identity.id as string
+      );
+    }
+
+    return eventId;
   },
 });
 
 export const getEventById = query({
   args: { eventId: v.string() },
-  handler: async (ctx, { eventId }): Promise<GetEventByIdResponse> => {
-    try {
-      const normalizedId = ctx.db.normalizeId("events", eventId);
-      if (!normalizedId) {
-        throw new Error(ShowErrorMessages.EVENT_NOT_FOUND);
-      }
-
-      const event = validateEvent(await ctx.db.get(normalizedId));
-
-      const { ticketSoldCounts, ticketTypes } = await getTicketSoldCounts(
-        ctx,
-        event._id
-      );
-
-      const guestListInfo: GuestListInfoSchema | null = await ctx.db
-        .query("guestListInfo")
-        .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
-        .first();
-
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          event,
-          ticketTypes,
-          guestListInfo,
-          ticketSoldCounts,
-        },
-      };
-    } catch (error) {
-      return handleError(error);
+  handler: async (ctx, { eventId }): Promise<GetEventByIdData> => {
+    const normalizedId = ctx.db.normalizeId("events", eventId);
+    if (!normalizedId) {
+      throw new ConvexError({
+        code: "NOT_FOUND",
+        message: ShowErrorMessages.EVENT_NOT_FOUND,
+      });
     }
+
+    const event = validateEvent(await ctx.db.get(normalizedId));
+
+    const { ticketSoldCounts, ticketTypes } = await getTicketSoldCounts(
+      ctx,
+      event._id
+    );
+
+    const guestListInfo = await ctx.db
+      .query("guestListInfo")
+      .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+      .first();
+
+    return {
+      event,
+      ticketTypes,
+      guestListInfo,
+      ticketSoldCounts,
+    };
   },
 });
 
@@ -195,11 +167,11 @@ export const updateEvent = action({
     address: v.optional(v.string()),
     ticketData: v.array(
       v.object({
-        eventTicketTypeId: v.optional(v.id("eventTicketTypes")), // <-- optional ID
+        eventTicketTypeId: v.optional(v.id("eventTicketTypes")),
         name: v.string(),
         price: v.number(),
         capacity: v.number(),
-        stripeProductId: v.optional(v.string()), // optional for existing
+        stripeProductId: v.optional(v.string()),
         stripePriceId: v.optional(v.string()),
         ticketSalesEndTime: v.number(),
       })
@@ -213,7 +185,7 @@ export const updateEvent = action({
       v.null()
     ),
   },
-  handler: async (ctx, args): Promise<UpdateEventResponse> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const {
       eventId,
       organizationId,
@@ -227,107 +199,86 @@ export const updateEvent = action({
       guestListData,
     } = args;
 
-    try {
-      const identity = await requireAuthenticatedUser(ctx, [
-        UserRole.Admin,
-        UserRole.Manager,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+    ]);
 
-      const organization = await ctx.runQuery(
-        internal.organizations.getOrganizationById,
-        {
-          organizationId,
-        }
-      );
-
-      const validatedOrganization = validateOrganization(organization, true);
-
-      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
-
-      const existingEventTicketTypes = await ctx.runQuery(
-        internal.eventTicketTypes.internalGetEventTicketTypesByEventId,
-        {
-          eventId,
-        }
-      );
-
-      if (hasTicketDataChanged(existingEventTicketTypes, ticketData)) {
-        await handleTicketUpdateData(
-          ctx,
-          eventId,
-          ticketData,
-          validatedOrganization,
-          existingEventTicketTypes
-        );
+    const organization = await ctx.runQuery(
+      internal.organizations.getOrganizationById,
+      {
+        organizationId,
       }
+    );
 
-      const guestListInfoId: Id<"guestListInfo"> | null =
-        await handleGuestListUpdateData(
-          ctx,
-          validatedOrganization,
-          eventId,
-          guestListData,
-          identity.id as string
-        );
+    const validatedOrganization = validateOrganization(organization, true);
 
-      await ctx.runMutation(internal.events.internalUpdateEvent, {
+    isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
+
+    const existingEventTicketTypes = await ctx.runQuery(
+      internal.eventTicketTypes.internalGetEventTicketTypesByEventId,
+      {
         eventId,
-        name,
-        description,
-        startTime,
-        endTime,
-        photo,
-        address,
-      });
+      }
+    );
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          eventId,
-          guestListInfoId,
-        },
-      };
-    } catch (error) {
-      return handleError(error);
+    if (hasTicketDataChanged(existingEventTicketTypes, ticketData)) {
+      await handleTicketUpdateData(
+        ctx,
+        eventId,
+        ticketData,
+        validatedOrganization,
+        existingEventTicketTypes
+      );
     }
+
+    const guestListInfoId: Id<"guestListInfo"> | null =
+      await handleGuestListUpdateData(
+        ctx,
+        validatedOrganization,
+        eventId,
+        guestListData,
+        identity.id as string
+      );
+
+    await ctx.runMutation(internal.events.internalUpdateEvent, {
+      eventId,
+      name,
+      description,
+      startTime,
+      endTime,
+      photo,
+      address,
+    });
+
+    return true;
   },
 });
 
 export const cancelEvent = mutation({
   args: { eventId: v.id("events") },
-  handler: async (ctx, args): Promise<CancelEventResponse> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const { eventId } = args;
 
-    try {
-      const identity = await requireAuthenticatedUser(ctx, [
-        UserRole.Admin,
-        UserRole.Manager,
-        UserRole.Hostly_Moderator,
-        UserRole.Hostly_Admin,
-      ]);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+    ]);
 
-      const event: EventSchema | null = await ctx.db.get(eventId);
-      const validatedEvent = validateEvent(event, false);
+    const event = await ctx.db.get(eventId);
+    const validatedEvent = validateEvent(event, false);
 
-      const organization: OrganizationSchema | null = await ctx.db.get(
-        validatedEvent.organizationId
-      );
-      const validatedOrganization = validateOrganization(organization);
+    const organization = await ctx.db.get(validatedEvent.organizationId);
+    const validatedOrganization = validateOrganization(organization);
 
-      isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
+    isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
 
-      await ctx.db.patch(validatedEvent._id, { isActive: false });
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          eventId,
-        },
-      };
-    } catch (error) {
-      return handleError(error);
-    }
+    await ctx.db.patch(validatedEvent._id, { isActive: false });
+    return true;
   },
 });
 
@@ -337,7 +288,7 @@ export const getEventsByMonth = query({
     year: v.number(),
     month: v.number(),
   },
-  handler: async (ctx, args): Promise<GetEventsByMonthResponse> => {
+  handler: async (ctx, args): Promise<EventWithExtras[]> => {
     const { organizationId, year, month } = args;
 
     const startDate = DateTime.fromObject(
@@ -350,56 +301,42 @@ export const getEventsByMonth = query({
       { zone: TIME_ZONE }
     ).endOf("month");
 
-    try {
-      const identity = await requireAuthenticatedUser(ctx);
-      console.log("identity", identity);
-      const organization = validateOrganization(
-        await ctx.db.get(organizationId)
-      );
-      isUserInOrganization(identity, organization.clerkOrganizationId);
+    const identity = await requireAuthenticatedUser(ctx);
+    const organization = validateOrganization(await ctx.db.get(organizationId));
+    isUserInOrganization(identity, organization.clerkOrganizationId);
 
-      // Step 1: Fetch events
-      const events = await ctx.db
-        .query("events")
-        .filter((q) => q.eq(q.field("organizationId"), organization._id))
-        .filter((q) => q.gte(q.field("startTime"), startDate.toMillis()))
-        .filter((q) => q.lte(q.field("startTime"), endDate.toMillis()))
-        .filter((q) => q.eq(q.field("isActive"), true))
-        .collect();
+    const events = await ctx.db
+      .query("events")
+      .filter((q) => q.eq(q.field("organizationId"), organization._id))
+      .filter((q) => q.gte(q.field("startTime"), startDate.toMillis()))
+      .filter((q) => q.lte(q.field("startTime"), endDate.toMillis()))
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
 
-      // Step 2: For each event, fetch guestListInfo and ticketTypes
-      const eventData: (EventSchema & {
-        guestListInfo: GuestListInfoSchema | null;
-        ticketTypes: EventTicketTypesSchema[];
-      })[] = await Promise.all(
-        events.map(async (event) => {
-          const [guestListInfo] = await ctx.db
-            .query("guestListInfo")
-            .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
-            .collect();
+    const eventData: (Doc<"events"> & {
+      guestListInfo: Doc<"guestListInfo"> | null;
+      ticketTypes: Doc<"eventTicketTypes">[];
+    })[] = await Promise.all(
+      events.map(async (event) => {
+        const [guestListInfo] = await ctx.db
+          .query("guestListInfo")
+          .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+          .collect();
 
-          const ticketTypes = await ctx.db
-            .query("eventTicketTypes")
-            .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
-            .collect();
+        const ticketTypes = await ctx.db
+          .query("eventTicketTypes")
+          .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+          .collect();
 
-          return {
-            ...event,
-            guestListInfo: guestListInfo || null,
-            ticketTypes,
-          };
-        })
-      );
+        return {
+          ...event,
+          guestListInfo: guestListInfo || null,
+          ticketTypes,
+        };
+      })
+    );
 
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          eventData,
-        },
-      };
-    } catch (error) {
-      return handleError(error);
-    }
+    return eventData;
   },
 });
 
@@ -414,23 +351,16 @@ export const createEvent = internalMutation({
     address: v.string(),
   },
   handler: async (ctx, args): Promise<Id<"events">> => {
-    try {
-      const eventId: Id<"events"> = await ctx.db.insert("events", {
-        organizationId: args.organizationId,
-        name: args.name,
-        description: args.description,
-        startTime: args.startTime,
-        endTime: args.endTime,
-        photo: args.photo,
-        address: args.address,
-        isActive: true,
-      });
-
-      return eventId;
-    } catch (error) {
-      console.error("Error creating event:", error);
-      throw new Error(ErrorMessages.EVENT_DB_CREATE_ERROR);
-    }
+    return await ctx.db.insert("events", {
+      organizationId: args.organizationId,
+      name: args.name,
+      description: args.description,
+      startTime: args.startTime,
+      endTime: args.endTime,
+      photo: args.photo,
+      address: args.address,
+      isActive: true,
+    });
   },
 });
 
@@ -447,20 +377,15 @@ export const internalUpdateEvent = internalMutation({
   handler: async (ctx, args): Promise<Id<"events">> => {
     const { eventId, ...updateFields } = args;
 
-    try {
-      validateEvent(await ctx.db.get(eventId));
+    validateEvent(await ctx.db.get(eventId));
 
-      const fieldsToUpdate = Object.fromEntries(
-        Object.entries(updateFields).filter(([_, value]) => value !== undefined)
-      );
+    const fieldsToUpdate = Object.fromEntries(
+      Object.entries(updateFields).filter(([_, value]) => value !== undefined)
+    );
 
-      await ctx.db.patch(eventId, fieldsToUpdate);
+    await ctx.db.patch(eventId, fieldsToUpdate);
 
-      return eventId;
-    } catch (error) {
-      console.error("Error updating event:", error);
-      throw new Error(ErrorMessages.EVENT_DB_UPDATE);
-    }
+    return eventId;
   },
 });
 
@@ -468,41 +393,43 @@ export const getEventsWithTickets = internalQuery({
   args: { eventId: v.id("events"), promoCode: v.union(v.string(), v.null()) },
   handler: async (ctx, args): Promise<GetEventWithTicketsData> => {
     const { eventId, promoCode } = args;
-    try {
-      const event = validateEvent(await ctx.db.get(eventId));
 
-      let promoterUserId: Id<"users"> | null = null;
+    const event = validateEvent(await ctx.db.get(eventId));
 
-      if (promoCode) {
-        const promoterPromoCode: PromoterPromoCodeSchema | null = await ctx.db
-          .query("promoterPromoCode")
-          .withIndex("by_name", (q) => q.eq("name", promoCode))
-          .unique();
+    let promoterUserId: Id<"users"> | null = null;
 
-        if (!promoterPromoCode) {
-          throw new Error(ShowErrorMessages.INVALID_PROMO_CODE);
-        }
-        const user: UserSchema | null = validateUser(
-          await ctx.db.get(promoterPromoCode.promoterUserId),
-          true,
-          false,
-          true
-        );
+    if (promoCode) {
+      const promoterPromoCode = await ctx.db
+        .query("promoterPromoCode")
+        .withIndex("by_name", (q) => q.eq("name", promoCode))
+        .unique();
 
-        if (event.organizationId !== user.organizationId) {
-          throw new Error(ShowErrorMessages.INVALID_PROMO_CODE);
-        }
-        promoterUserId = user._id;
+      if (!promoterPromoCode) {
+        throw new ConvexError({
+          code: "BAD_REQUEST",
+          message: ShowErrorMessages.INVALID_PROMO_CODE,
+        });
       }
+      const user = validateUser(
+        await ctx.db.get(promoterPromoCode.promoterUserId),
+        true,
+        false,
+        true
+      );
 
-      return {
-        event,
-        promoterUserId,
-      };
-    } catch (error) {
-      console.error("Error fetching event", error);
-      throw new Error(ErrorMessages.EVENT_DB_QUERY);
+      if (event.organizationId !== user.organizationId) {
+        throw new ConvexError({
+          code: "BAD_REQUEST",
+          message: ShowErrorMessages.INVALID_PROMO_CODE,
+        });
+      }
+      promoterUserId = user._id;
     }
+
+    return {
+      event,
+      promoterUserId,
+    };
   },
 });
 
@@ -511,13 +438,8 @@ export const deleteEvent = internalMutation({
   handler: async (ctx, args): Promise<void> => {
     const { eventId } = args;
 
-    try {
-      validateEvent(await ctx.db.get(eventId));
+    validateEvent(await ctx.db.get(eventId));
 
-      await ctx.db.delete(eventId);
-    } catch (error) {
-      console.error(` Failed to delete event ${eventId}:`, error);
-      throw new Error(ErrorMessages.EVENT_DB_DELETE);
-    }
+    await ctx.db.delete(eventId);
   },
 });

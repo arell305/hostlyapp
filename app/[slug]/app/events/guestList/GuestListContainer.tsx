@@ -1,12 +1,9 @@
 import CustomCard from "@/components/shared/cards/CustomCard";
 import EmptyList from "@/components/shared/EmptyList";
-import {
-  GuestListEntrySchema,
-  GuestListEntryWithPromoter,
-} from "@/types/schemas-types";
+import { GuestListEntryWithPromoter } from "@/types/schemas-types";
 import React from "react";
 import GuestCard from "../../components/GuestCard";
-import { Id } from "convex/_generated/dataModel";
+import { Doc, Id } from "convex/_generated/dataModel";
 
 interface GuestListContainerProps {
   filteredGuests: GuestListEntryWithPromoter[];
@@ -16,7 +13,7 @@ interface GuestListContainerProps {
   canSeePhoneNumber: boolean;
   editingId?: Id<"guestListEntries"> | null;
   editName?: string;
-  onEdit?: (guest: GuestListEntrySchema) => void;
+  onEdit?: (guest: Doc<"guestListEntries">) => void;
   onShowDelete?: (id: Id<"guestListEntries">) => void;
   onCancelEdit?: () => void;
   setEditName?: (name: string) => void;

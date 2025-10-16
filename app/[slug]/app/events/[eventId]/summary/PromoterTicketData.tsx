@@ -8,7 +8,9 @@ interface PromoterTicketDataProps {
 const PromoterTicketData: React.FC<PromoterTicketDataProps> = ({
   promoterTicketData,
 }) => {
-  if (!promoterTicketData) return null;
+  if (!promoterTicketData) {
+    return null;
+  }
 
   const { promoterName, sales } = promoterTicketData;
 

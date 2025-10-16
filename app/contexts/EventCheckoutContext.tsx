@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useMemo } from "react";
 import { PromoterPromoCodeWithDiscount } from "@/types/schemas-types";
 import { calculateTicketPricing } from "@/lib/frontendHelper";
-import { EventTicketTypesSchema } from "@/types/schemas-types";
+import { Doc } from "convex/_generated/dataModel";
 
 interface EventCheckoutContextValue {
   ticketCounts: Record<string, number>;
@@ -53,7 +53,7 @@ export const EventCheckoutProvider = ({
   ticketTypes,
 }: {
   children: React.ReactNode;
-  ticketTypes: EventTicketTypesSchema[];
+  ticketTypes: Doc<"eventTicketTypes">[];
 }) => {
   const [ticketCounts, setTicketCounts] = useState<Record<string, number>>({});
   const [email, setEmail] = useState<string>("");

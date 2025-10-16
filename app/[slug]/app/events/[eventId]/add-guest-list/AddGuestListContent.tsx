@@ -5,12 +5,12 @@ import { useAddGuestList } from "../../hooks/useAddGuestList";
 import { parseGuestListInput } from "../../../../../../utils/format";
 import FormActions from "@/components/shared/buttonContainers/FormActions";
 import LabeledTextAreaField from "@/components/shared/fields/LabeledTextAreaField";
-import { EventSchema } from "@/types/schemas-types";
 import AddGuestTopRow from "./AddGuestTopRow";
 import SectionContainer from "@/components/shared/containers/SectionContainer";
+import { Doc } from "convex/_generated/dataModel";
 
 interface AddGuestListContentProps {
-  eventData: EventSchema;
+  eventData: Doc<"events">;
   handleGoBack: () => void;
   handleNavigateHome: () => void;
 }
@@ -29,8 +29,9 @@ const AddGuestListPage: React.FC<AddGuestListContentProps> = ({
     setSuccessMessage(null);
     setError(null);
 
-    if (guestInput.trim() === "") return;
-
+    if (guestInput.trim() === "") {
+      return;
+    }
     const { guests, invalidPhones } = parseGuestListInput(guestInput);
     if (invalidPhones.length > 0) {
       setGuestInputError(

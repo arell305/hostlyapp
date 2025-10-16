@@ -8,9 +8,6 @@ import { isModerator, isPromoter } from "@/utils/permissions";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import { Id } from "convex/_generated/dataModel";
-import { handleQueryState } from "@/utils/handleQueryState";
-import { QueryState } from "@/types/enums";
-import { GetEventByIdData } from "@/types/convex-types";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
 import NProgress from "nprogress";
 
@@ -55,19 +52,11 @@ export default function EventPageWrapper() {
     router.push(`/${cleanSlug}/app`);
   };
 
-  const eventResult = handleQueryState(getEventByIdResponse);
-
-  if (eventResult.type === QueryState.Loading) {
+  if (!getEventByIdResponse) {
     return <FullLoading />;
   }
 
-  if (eventResult.type === QueryState.Error) {
-    return eventResult.element;
-  }
-
-  const eventData: GetEventByIdData = eventResult.data;
-
-  if (!eventData.event.isActive) {
+  if (!getEventByIdResponse.event.isActive) {
     return (
       <MessagePage
         buttonLabel="Home"
@@ -77,6 +66,7 @@ export default function EventPageWrapper() {
       />
     );
   }
+  const event = getEventByIdResponse.event;
 
   return (
     <EventIdContent
@@ -89,7 +79,12 @@ export default function EventPageWrapper() {
       canEditEvent={canEditEvent}
       handleAddGuestList={handleAddGuestList}
       handleBuyCredit={handleBuyCredit}
-      data={eventData}
+      data={{
+        event,
+        ticketTypes: getEventByIdResponse.ticketTypes,
+        guestListInfo: getEventByIdResponse.guestListInfo,
+        ticketSoldCounts: getEventByIdResponse.ticketSoldCounts,
+      }}
       isCompanyAdmin={isCompanyAdmin}
       availableCredits={availableCredits}
       onDeleteSuccess={handleDeleteSuccess}

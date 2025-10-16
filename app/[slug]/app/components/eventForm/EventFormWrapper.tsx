@@ -2,19 +2,14 @@
 
 import React from "react";
 import { EventFormInput, GuestListFormInput, TicketType } from "@/types/types";
-import {
-  EventSchema,
-  GuestListInfoSchema,
-  SubscriptionSchema,
-} from "@/types/schemas-types";
-import { Id } from "convex/_generated/dataModel";
+import { Doc, Id } from "convex/_generated/dataModel";
 import { EventFormProvider } from "@/contexts/EventFormContext";
 import EventFormContent from "./EventFormContent";
 
 export interface EventFormProps {
-  initialEventData?: EventSchema;
+  initialEventData?: Doc<"events">;
   initialTicketData?: TicketType[] | null;
-  initialGuestListData?: GuestListInfoSchema | null;
+  initialGuestListData?: Doc<"guestListInfo"> | null;
   onSubmit: (
     organizationId: Id<"organizations">,
     eventData: EventFormInput,
@@ -26,7 +21,7 @@ export interface EventFormProps {
   saveEventError?: string | null;
   isStripeEnabled: boolean;
   isUpdateEventLoading?: boolean;
-  subscription: SubscriptionSchema;
+  subscription: Doc<"subscriptions">;
   organizationId?: Id<"organizations">;
   isSubmitLoading?: boolean;
   submitError?: string | null;

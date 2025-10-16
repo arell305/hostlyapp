@@ -1,8 +1,3 @@
-import {
-  EventSchema,
-  EventTicketTypesSchema,
-  GuestListInfoSchema,
-} from "@/types/schemas-types";
 import EmptyStateCard from "../../components/EmptyStateCard";
 import {
   formatToTimeAndShortDate,
@@ -21,18 +16,19 @@ import { TicketIcon } from "lucide-react";
 import SubPageContainer from "@/components/shared/containers/SubPageContainer";
 import EventLinkCard from "../../components/EventLinkCard";
 import { TicketTotalsItem } from "@/types/types";
+import { Doc } from "convex/_generated/dataModel";
 
 interface SummaryContentProps {
-  guestListInfo?: GuestListInfoSchema | null;
+  guestListInfo?: Doc<"guestListInfo"> | null;
   isPromoter: boolean;
-  ticketInfo?: EventTicketTypesSchema[] | null;
+  ticketInfo?: Doc<"eventTicketTypes">[] | null;
   promoterGuestStats: Omit<PromoterGuestStatsData, "entries">[];
   ticketSalesByPromoterData: {
     tickets: GetTicketSalesByPromoterData["tickets"];
     ticketTotals: TicketTotalsItem[] | null;
   } | null;
   canEditEvent: boolean;
-  event: EventSchema;
+  event: Doc<"events">;
 }
 
 const SummaryContent: React.FC<SummaryContentProps> = ({

@@ -97,14 +97,13 @@ const UpdateTierModal: React.FC<UpdateTierModalProps> = ({
         newTier: selectedPlan.tier,
       });
 
-      if (response.status === ResponseStatus.SUCCESS) {
+      if (response) {
         toast({
           title: "Success",
           description: "Subscription tier updated.",
         });
         onClose();
       } else {
-        console.error(response.error);
         setUpdateTierError(FrontendErrorMessages.GENERIC_ERROR);
       }
     } catch (err) {

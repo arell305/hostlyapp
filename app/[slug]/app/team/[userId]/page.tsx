@@ -1,36 +1,33 @@
 "use client";
-import { useParams } from "next/navigation";
-import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { QueryState } from "@/types/enums";
-import UserIdContent from "./UserIdContent";
-import { useUser } from "@clerk/nextjs";
-import FullLoading from "../../components/loading/FullLoading";
-import { Id } from "../../../../../convex/_generated/dataModel";
-import { handleQueryState } from "../../../../../utils/handleQueryState";
+import { notFound } from "next/navigation";
 import { isManager } from "../../../../../utils/permissions";
 import { useRouter } from "next/navigation";
+import FindUserById from "@/components/users/FindUserById";
+import { use } from "react";
+import { normalizeUserId } from "@/lib/normalizeParams";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
 
-const UserPage = () => {
-  const params = useParams();
-  const userId = params.userId as Id<"users">;
+interface UserPageProps {
+  params: Promise<{ userId: string }>;
+}
+const UserPage = ({ params }: UserPageProps) => {
+  const { userId: raw } = use(params);
+  const userId = normalizeUserId(raw);
+  const { orgRole } = useContextOrganization();
+  if (!userId) {
+    notFound();
+  }
+
   const router = useRouter();
-
-  const { user } = useUser();
 
   const handleBack = () => {
     router.back();
   };
 
-  if (!user) {
-    return <FullLoading />;
-  }
-
-  const orgRole = user?.publicMetadata.role as string;
   const canEditUsers = isManager(orgRole);
 
   return (
-    <UserIdContent
+    <FindUserById
       canEditUsers={canEditUsers}
       handleBack={handleBack}
       userId={userId}

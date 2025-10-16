@@ -1,12 +1,18 @@
 "use client";
-import React from "react";
-import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
 
-const page = () => {
-  const test = useContextOrganization();
-  console.log(test);
-  return <div>page</div>;
+import PageContainer from "@/components/shared/containers/PageContainer";
+import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
+import React from "react";
+import UsersByOrgForModQuery from "@/components/moderators/UsersByOrgForModQuery";
+const FAQPage = () => {
+  return (
+    <PageContainer>
+      <SectionHeaderWithAction title="Templates For Users" />
+      <p className="text-grayText ">Select a user to view their campaigns</p>
+
+      <UsersByOrgForModQuery page="templates" />
+    </PageContainer>
+  );
 };
 
-export default page;
+export default FAQPage;

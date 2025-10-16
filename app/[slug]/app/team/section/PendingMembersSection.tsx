@@ -72,9 +72,7 @@ const PendingMembersSection = ({
         clerkOrgId: organization.clerkOrganizationId,
       });
 
-      if (membership.data?.pendingInvitationUsers) {
-        setPendingUsers(membership.data.pendingInvitationUsers);
-      }
+      setPendingUsers(membership);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch organizational memberships or pending users.");

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useAction, useMutation } from "convex/react";
-import { ResponseStatus } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
 import { compressAndUploadImage } from "../../../../../utils/image";
 import { Id } from "../../../../../convex/_generated/dataModel";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useUploadOrganizationPhoto = () => {
   const generateUploadUrl = useMutation(api.photo.generateUploadUrl);
@@ -23,23 +23,17 @@ export const useUploadOrganizationPhoto = () => {
 
     try {
       const response = await compressAndUploadImage(file, generateUploadUrl);
-      if (!response.ok) throw new Error("Photo upload failed");
-
+      if (!response.ok) {
+        throw new Error("Photo upload failed");
+      }
       const { storageId } = await response.json();
 
-      const updateResponse = await updateClerkOrganizationPhoto({
+      return await updateClerkOrganizationPhoto({
         organizationId,
         photo: storageId as Id<"_storage">,
       });
-
-      if (updateResponse.status !== ResponseStatus.SUCCESS) {
-        throw new Error("Photo update failed");
-      }
-
-      return true;
     } catch (err) {
-      console.error(err);
-      setError((err as Error).message || "Photo update failed");
+      setErrorFromConvexError(err, setError);
       return false;
     } finally {
       setIsLoading(false);

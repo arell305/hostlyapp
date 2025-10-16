@@ -1,4 +1,3 @@
-// convex/smsThreads.ts
 import {
   requireAuthenticatedUser,
   requireAuthenticatedUser2,

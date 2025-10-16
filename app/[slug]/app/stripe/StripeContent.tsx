@@ -1,18 +1,18 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { StripeAccountStatus } from "@/types/enums";
-import { ConnectedAccountsSchema } from "@/types/schemas-types";
 import { useShowOnboardingLink } from "./hooks/useShowOnboardingLink";
 import { useStripeDashboardLink } from "./hooks/useStripeDashboardLink";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import StaticField from "@/components/shared/fields/StaticField";
 import PageContainer from "@/components/shared/containers/PageContainer";
+import { Doc } from "convex/_generated/dataModel";
 
 const StripeContent = ({
   connectedAccount,
 }: {
-  connectedAccount: ConnectedAccountsSchema | undefined;
+  connectedAccount: Doc<"connectedAccounts"> | null;
 }) => {
   const {
     getOnboardingLink,

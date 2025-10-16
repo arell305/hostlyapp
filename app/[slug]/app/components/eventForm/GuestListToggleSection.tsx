@@ -6,16 +6,16 @@ import ToggleSectionCard from "@/components/shared/toggle/ToggleSectionCard";
 import GuestListSection from "./GuestListSection";
 import { useEventForm } from "@/contexts/EventFormContext";
 import ResponsiveConfirm from "../responsive/ResponsiveConfirm";
-import { GuestListInfoSchema, SubscriptionSchema } from "@/types/schemas-types";
 import { SubscriptionTier } from "@/types/enums";
 import { PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
+import { Doc } from "convex/_generated/dataModel";
 
 interface GuestListToggleSectionProps {
   isCompanyAdmin: boolean;
   handleBuyCredit: () => void;
   isEdit: boolean;
-  initialGuestListData?: GuestListInfoSchema | null;
-  subscription: SubscriptionSchema;
+  initialGuestListData?: Doc<"guestListInfo"> | null;
+  subscription: Doc<"subscriptions">;
   availableCredits?: number;
 }
 

@@ -1,9 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useAction } from "convex/react";
-import { ResponseStatus } from "@/types/enums";
-import { FrontendErrorMessages } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useShowOnboardingLink = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -21,19 +20,10 @@ export const useShowOnboardingLink = () => {
       const origin = window.location.origin;
       const response = await createStripeOnboardingLinkAction({ origin });
 
-      if (response.status === ResponseStatus.SUCCESS && response.data) {
-        return response.data.url;
-      }
-
-      console.error(response.error);
-      setError(response.error || FrontendErrorMessages.GENERIC_ERROR);
-      return null;
+      return response;
     } catch (error) {
-      console.error(error);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
+      setErrorFromConvexError(error, setError);
       return null;
-    } finally {
-      setIsLoading(false);
     }
   };
 

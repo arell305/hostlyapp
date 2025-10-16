@@ -11,8 +11,10 @@ import {
 } from "../../../utils/calendar";
 import { CalendarSwitcher } from "./components/calendar/CalendarSwitcher";
 import { EventWithExtras } from "@/types/convex-types";
-import { useMonthlyEvents } from "./hooks/useMonthlyEvents";
 import { DateTime } from "luxon";
+import { useMonthlyEvents } from "@/hooks/convex/events";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import CalendarSwitcherLoading from "@/components/shared/skeleton/ CalendarSwitcherLoading";
 
 interface HomeContentProps {
   pathname: string;
@@ -23,14 +25,14 @@ const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
   const [date, setDate] = useState<Date>(today);
   const [isWeekView, setIsWeekView] = useState<boolean>(true);
   const [selectedEvents, setSelectedEvents] = useState<EventWithExtras[]>([]);
+  const { organization } = useContextOrganization();
 
   const { month, year } = useMemo(() => {
     const dt = DateTime.fromJSDate(date);
     return { month: dt.month, year: dt.year };
   }, [date]);
 
-  const { component: monthlyEventsComponent, events: monthlyEventsData } =
-    useMonthlyEvents({ month, year }, isWeekView);
+  const monthlyEventsData = useMonthlyEvents(organization._id, month, year);
 
   const { start, end } = useMemo(
     () => getVisibleRange(date, isWeekView),
@@ -51,11 +53,13 @@ const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
 
   const hasEventOnDate = (d: Date) =>
     doesDateHaveEvent(monthlyEventsData ?? [], d);
-  // HomeContent.tsx
   const handleNavigation = (direction: "prev" | "next") =>
     setDate((prev) => navigateDate(prev, direction, isWeekView));
 
-  if (monthlyEventsComponent) return monthlyEventsComponent;
+  if (!monthlyEventsData)
+    return (
+      <CalendarSwitcherLoading isWeekView={isWeekView} date={new Date()} />
+    );
 
   return (
     <div>

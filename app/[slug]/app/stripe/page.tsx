@@ -1,30 +1,14 @@
 "use client";
-import { useQuery } from "convex/react";
 import React from "react";
-import { api } from "../../../../convex/_generated/api";
-import { QueryState } from "@/types/enums";
-import StripeContent from "./StripeContent";
-import { handleQueryState } from "../../../../utils/handleQueryState";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { isAdmin } from "@/utils/permissions";
 import ErrorPage from "../components/errors/ErrorPage";
+import ConnectedAccountQueryByClerkId from "@/components/connectedAccount/queries/ConnectedAccountQueryByClerkId";
 
 const StripePage = () => {
-  const connectedAccountData = useQuery(
-    api.connectedAccounts.getConnectedAccountByClerkUserId
-  );
-
   const { orgRole } = useContextOrganization();
 
   const isCompanymin = isAdmin(orgRole);
-
-  const result = handleQueryState(connectedAccountData);
-
-  if (result.type === QueryState.Loading || result.type === QueryState.Error) {
-    return result.element;
-  }
-
-  const connectedAccount = result.data?.connectedAccount;
 
   if (!isCompanymin) {
     return (
@@ -34,8 +18,7 @@ const StripePage = () => {
       />
     );
   }
-
-  return <StripeContent connectedAccount={connectedAccount} />;
+  return <ConnectedAccountQueryByClerkId />;
 };
 
 export default StripePage;

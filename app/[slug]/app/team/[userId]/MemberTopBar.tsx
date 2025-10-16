@@ -33,9 +33,7 @@ const MemberTopBar: React.FC<MemberTopBarProps> = ({
           title="Back"
         />
       </div>
-      {/* Centered event name */}
       <CenteredTitle title={"Team Member"} />
-      {/* Right side: Edit button or empty space to keep layout consistent */}
       {canDelete && (
         <div className=" flex justify-end">
           <TrashButton onDelete={handleShowDeleteConfirmation} />

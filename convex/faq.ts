@@ -9,7 +9,7 @@ import {
 } from "./backendUtils/helper";
 import { UserRole } from "@/types/enums";
 import { FaqPatch } from "@/types/patch-types";
-import { Doc, Id } from "./_generated/dataModel";
+import { Doc } from "./_generated/dataModel";
 
 export const getCompanyFaqs = query({
   args: { organizationId: v.id("organizations") },
@@ -39,7 +39,7 @@ export const insertCompanyFaq = mutation({
     question: v.string(),
     answer: v.string(),
   },
-  handler: async (ctx, args): Promise<Id<"faq">> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const { organizationId, question, answer } = args;
 
     const identity = await requireAuthenticatedUser(ctx, [
@@ -52,7 +52,7 @@ export const insertCompanyFaq = mutation({
     const organization = validateOrganization(await ctx.db.get(organizationId));
     isUserInOrganization(identity, organization.clerkOrganizationId);
 
-    const faqId = await ctx.db.insert("faq", {
+    await ctx.db.insert("faq", {
       organizationId,
       question,
       answer,
@@ -60,7 +60,7 @@ export const insertCompanyFaq = mutation({
       updatedAt: Date.now(),
     });
 
-    return faqId;
+    return true;
   },
 });
 
@@ -73,7 +73,7 @@ export const updateCompanyFaq = mutation({
       isActive: v.optional(v.boolean()),
     }),
   },
-  handler: async (ctx, args): Promise<Id<"faq">> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const { faqId, updates } = args;
     const { question, answer, isActive } = updates;
 
@@ -97,6 +97,6 @@ export const updateCompanyFaq = mutation({
 
     await ctx.db.patch(faqId, { ...patch, updatedAt: Date.now() });
 
-    return faqId;
+    return true;
   },
 });

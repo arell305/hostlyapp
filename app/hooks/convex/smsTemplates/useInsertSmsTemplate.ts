@@ -14,11 +14,6 @@ interface InsertSmsTemplateInput {
   userId: Id<"users">;
 }
 
-interface InsertSmsTemplateResult {
-  success: boolean;
-  smsTemplateId?: Id<"smsTemplates">;
-}
-
 export const useInsertSmsTemplate = () => {
   const [insertSmsTemplateLoading, setLoading] = useState<boolean>(false);
   const [insertSmsTemplateError, setError] = useState<string | null>(null);
@@ -29,18 +24,16 @@ export const useInsertSmsTemplate = () => {
 
   const insertSmsTemplate = async (
     data: InsertSmsTemplateInput
-  ): Promise<InsertSmsTemplateResult> => {
+  ): Promise<boolean> => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await insertSmsTemplateMutation(data);
-
-      return { success: true, smsTemplateId: response };
+      return await insertSmsTemplateMutation(data);
     } catch (error) {
       console.error(FrontendErrorMessages.GENERIC_ERROR, error);
       setError(FrontendErrorMessages.GENERIC_ERROR);
-      return { success: false };
+      return false;
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,4 @@
 import { useAction } from "convex/react";
-import { ResponseStatus } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
 import { useState } from "react";
 import { Id } from "../../../../../convex/_generated/dataModel";
@@ -8,6 +7,7 @@ import {
   GuestListFormInput,
   TicketUpdateInput,
 } from "@/types/types";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useUpdateEvent = () => {
   const updateEventMutation = useAction(api.events.updateEvent);
@@ -25,26 +25,16 @@ export const useUpdateEvent = () => {
     setError(null);
 
     try {
-      const response = await updateEventMutation({
+      return await updateEventMutation({
         organizationId,
         ...updatedEventData,
         ticketData: updatedTicketData,
         guestListData: updatedGuestListData,
         eventId,
       });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        return true;
-      }
-
-      setError(response.error);
+    } catch (error) {
+      setErrorFromConvexError(error, setError);
       return false;
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "An unexpected error occurred.");
-      return false;
-    } finally {
-      setIsLoading(false);
     }
   };
 

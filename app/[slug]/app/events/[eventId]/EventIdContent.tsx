@@ -8,34 +8,28 @@ import {
 } from "@/types/types";
 import TopRowNav from "./TopRowNav";
 import ResponsiveConfirm from "../../components/responsive/ResponsiveConfirm";
-import {
-  EventSchema,
-  EventTicketTypesSchema,
-  GuestListInfoSchema,
-  SubscriptionSchema,
-} from "@/types/schemas-types";
 import { ActiveStripeTab, ActiveTab } from "@/types/enums";
 import { useUpdateEvent } from "../hooks/useUpdateEvent";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { Doc, Id } from "../../../../../convex/_generated/dataModel";
 import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
-import SummaryPage from "./summary/SummaryPage";
 import { isPast } from "date-fns";
 import TicketPage from "../../components/tickets/TicketPage";
 import GuestListPage from "../guestList/GuestListPage";
 import EventFormWrapper from "../../components/eventForm/EventFormWrapper";
 import { useCancelEvent } from "../hooks/useCancelEvent";
 import PageContainer from "@/components/shared/containers/PageContainer";
+import GetEventSummary from "@/components/tickets/GetEventSummary";
 
 interface EventIdContentProps {
   data: {
-    event: EventSchema;
-    ticketTypes?: EventTicketTypesSchema[] | null;
-    guestListInfo?: GuestListInfoSchema | null;
+    event: Doc<"events">;
+    ticketTypes?: Doc<"eventTicketTypes">[] | null;
+    guestListInfo?: Doc<"guestListInfo"> | null;
     ticketSoldCounts?: TicketSoldCountByType[] | null;
   };
   isAppAdmin: boolean;
   isStripeEnabled: boolean;
-  subscription: SubscriptionSchema;
+  subscription: Doc<"subscriptions">;
   handleNavigateHome: () => void;
   canCheckInGuests: boolean;
   canUploadGuest: boolean;
@@ -143,8 +137,8 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   const handleConfirmDelete = async () => {
     const success = await cancelEvent(data.event._id);
     if (success) {
-      setShowConfirmDelete(false); // optional: close dialog before navigating
-      onDeleteSuccess(); // delegate navigation to parent
+      setShowConfirmDelete(false);
+      onDeleteSuccess();
     }
   };
   return (
@@ -188,7 +182,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
             onChange={setActiveTab}
           />
           {activeTab === ActiveTab.SUMMARY && (
-            <SummaryPage
+            <GetEventSummary
               guestListInfo={data.guestListInfo}
               isPromoter={canUploadGuest}
               ticketInfo={data.ticketTypes}

@@ -42,11 +42,11 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
     if (!faqIdToDelete) {
       return;
     }
-    const result = await updateCompanyFaq({
+    const success = await updateCompanyFaq({
       faqId: faqIdToDelete,
       updates: { isActive: false },
     });
-    if (result.success) {
+    if (success) {
       handleCloseConfirmDeleteModal();
     }
   };
@@ -56,7 +56,7 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
       faqId,
       updates: { ...update },
     });
-    return result.success;
+    return result;
   };
 
   return (

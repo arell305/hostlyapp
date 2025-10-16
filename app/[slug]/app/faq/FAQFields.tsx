@@ -1,4 +1,3 @@
-// components/faqs/FaqFields.tsx
 "use client";
 
 import * as React from "react";

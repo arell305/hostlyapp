@@ -1,8 +1,8 @@
 import { useAction } from "convex/react";
 import { useState } from "react";
-import { ResponseStatus } from "@/types/enums"; // Adjust path if needed
 import { Id } from "convex/_generated/dataModel";
 import { api } from "convex/_generated/api";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 type CreateClerkOrgArgs = {
   companyName: string;
@@ -33,21 +33,10 @@ export const useCreateClerkOrganization = () => {
         promoDiscount,
       });
 
-      if (response.status === ResponseStatus.SUCCESS) {
-        return {
-          slug: response.data?.slug,
-          clerkOrganizationId: response.data?.clerkOrganizationId,
-        };
-      }
-
-      setError(response.error);
+      return response;
+    } catch (error) {
+      setErrorFromConvexError(error, setError);
       return null;
-    } catch (err: any) {
-      console.error("Create organization error:", err);
-      setError(err.message || "An unexpected error occurred.");
-      return null;
-    } finally {
-      setIsLoading(false);
     }
   };
 

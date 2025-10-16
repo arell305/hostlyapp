@@ -1,7 +1,7 @@
 import { useAction } from "convex/react";
 import { useState } from "react";
-import { ResponseStatus } from "@/types/enums"; // Adjust path if needed
 import { api } from "../../../../convex/_generated/api";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 type PaymentMetadata = {
   eventId: string;
@@ -38,16 +38,10 @@ export const useCreatePaymentIntent = () => {
         description,
       });
 
-      if (response.status === ResponseStatus.SUCCESS) {
-        setClientSecret(response.data.clientSecret);
-        return response.data.clientSecret;
-      }
-
-      setError("Failed to create payment intent.");
-      return null;
-    } catch (err: any) {
-      console.error("Create payment intent error:", err);
-      setError(err.message || "An unexpected error occurred.");
+      setClientSecret(response);
+      return response;
+    } catch (error) {
+      setErrorFromConvexError(error, setError);
       return null;
     } finally {
       setIsLoading(false);

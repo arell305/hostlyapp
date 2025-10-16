@@ -1,60 +1,62 @@
 import { ErrorMessages, ShowErrorMessages, UserRole } from "@/types/enums";
 import {
-  ConnectedAccountsSchema,
-  CustomerSchema,
-  EventSchema,
-  SubscriptionSchema,
-  UserSchema,
-  TicketSchema,
   UserWithOrganizationId,
   UserWithOrgAndCustomer,
   UserWithCustomerId,
   UserWithClerkId,
   UserWithOrgAndCustomerAndClerkId,
   UserWithOrgAndClerkId,
-  GuestListEntrySchema,
-  OrganizationCreditSchema,
-  GuestListInfoSchema,
-  EventTicketTypesSchema,
 } from "@/types/schemas-types";
-import { GuestListSchema, OrganizationSchema } from "@/types/types";
 import { DateTime } from "luxon";
 import { formatToTimeAndShortDate } from "../../utils/luxon";
 import { StripeAccountStatus } from "@/types/enums";
 import { Doc } from "convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
+
 export function validateOrganization(
-  organization: OrganizationSchema | null,
+  organization: Doc<"organizations"> | null,
   checkActive: boolean = true
-): OrganizationSchema {
+): Doc<"organizations"> {
   if (!organization) {
-    throw new Error(ShowErrorMessages.COMPANY_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ShowErrorMessages.COMPANY_NOT_FOUND,
+    });
   }
 
   if (checkActive && !organization.isActive) {
-    throw new Error(ErrorMessages.COMPANY_INACTIVE);
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: ErrorMessages.COMPANY_INACTIVE,
+    });
   }
 
   return organization;
 }
 
 export function validateCustomer(
-  customer: CustomerSchema | null,
+  customer: Doc<"customers"> | null,
   checkActive: boolean = true
-): CustomerSchema {
+): Doc<"customers"> {
   if (!customer) {
-    throw new Error(ErrorMessages.CUSTOMER_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ErrorMessages.CUSTOMER_NOT_FOUND,
+    });
   }
 
   if (checkActive && !customer.isActive) {
-    throw new Error(ErrorMessages.CUSTOMER_INACTIVE);
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: ErrorMessages.CUSTOMER_INACTIVE,
+    });
   }
 
   return customer;
 }
 
 export function validateUser(
-  user: UserSchema | null,
+  user: Doc<"users"> | null,
   checkActive?: boolean,
   checkCustomerId?: true,
   checkOrganizationId?: true,
@@ -62,7 +64,7 @@ export function validateUser(
 ): UserWithOrgAndCustomerAndClerkId;
 
 export function validateUser(
-  user: UserSchema | null,
+  user: Doc<"users"> | null,
   checkActive?: boolean,
   checkCustomerId?: boolean,
   checkOrganizationId?: true,
@@ -70,7 +72,7 @@ export function validateUser(
 ): UserWithOrgAndClerkId;
 
 export function validateUser(
-  user: UserSchema | null,
+  user: Doc<"users"> | null,
   checkActive?: boolean,
   checkCustomerId?: boolean,
   checkOrganizationId?: boolean,
@@ -78,7 +80,7 @@ export function validateUser(
 ): UserWithClerkId;
 
 export function validateUser(
-  user: UserSchema | null,
+  user: Doc<"users"> | null,
   checkActive?: boolean,
   checkCustomerId?: true,
   checkOrganizationId?: true,
@@ -86,7 +88,7 @@ export function validateUser(
 ): UserWithOrgAndCustomer;
 
 export function validateUser(
-  user: UserSchema | null,
+  user: Doc<"users"> | null,
   checkActive?: boolean,
   checkCustomerId?: true,
   checkOrganizationId?: false,
@@ -94,7 +96,7 @@ export function validateUser(
 ): UserWithCustomerId;
 
 export function validateUser(
-  user: UserSchema | null,
+  user: Doc<"users"> | null,
   checkActive?: boolean,
   checkCustomerId?: false,
   checkOrganizationId?: true,
@@ -102,103 +104,137 @@ export function validateUser(
 ): UserWithOrganizationId;
 
 export function validateUser(
-  user: UserSchema | null,
+  user: Doc<"users"> | null,
   checkActive?: boolean,
   checkCustomerId?: boolean,
   checkOrganizationId?: boolean,
   checkClerkUserId?: boolean
-): UserSchema;
-
-// --- Implementation ---
+): Doc<"users">;
 
 export function validateUser(
-  user: UserSchema | null,
+  user: Doc<"users"> | null,
   checkActive: boolean = true,
   checkCustomerId: boolean = false,
   checkOrganizationId: boolean = false
-): UserSchema {
+): Doc<"users"> {
   if (!user) {
-    throw new Error(ErrorMessages.USER_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ErrorMessages.USER_NOT_FOUND,
+    });
   }
 
   if (checkActive && !user.isActive) {
-    throw new Error(ErrorMessages.USER_INACTIVE);
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: ErrorMessages.USER_INACTIVE,
+    });
   }
 
   if (checkCustomerId && !user.customerId) {
-    throw new Error(ErrorMessages.USER_NOT_CUSTOMER);
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: ErrorMessages.USER_NOT_CUSTOMER,
+    });
   }
 
   if (checkOrganizationId && !user.organizationId) {
-    throw new Error(ErrorMessages.USER_NO_COMPANY);
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: ErrorMessages.USER_NO_COMPANY,
+    });
   }
 
   return user;
 }
 
 export function validateConnectedAccount(
-  connectedAccount: ConnectedAccountsSchema | null,
+  connectedAccount: Doc<"connectedAccounts"> | null,
   checkActive: boolean = true
-): ConnectedAccountsSchema {
+): Doc<"connectedAccounts"> {
   if (!connectedAccount) {
-    throw new Error(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND,
+    });
   }
 
   if (checkActive && connectedAccount.status !== StripeAccountStatus.VERIFIED) {
-    throw new Error(ErrorMessages.CONNECTED_ACCOUNT_INACTIVE);
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: ErrorMessages.CONNECTED_ACCOUNT_INACTIVE,
+    });
   }
 
   return connectedAccount;
 }
 
 export function validateEvent(
-  event: EventSchema | null,
+  event: Doc<"events"> | null,
   checkActive: boolean = true
-): EventSchema {
+): Doc<"events"> {
   if (!event) {
-    throw new Error(ErrorMessages.EVENT_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ErrorMessages.EVENT_NOT_FOUND,
+    });
   }
 
   if (checkActive && !event.isActive) {
-    throw new Error(ErrorMessages.EVENT_INACTIVE);
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: ErrorMessages.EVENT_INACTIVE,
+    });
   }
 
   return event;
 }
 
 export function validateGuestList(
-  guestList: GuestListSchema | null
-): GuestListSchema {
+  guestList: Doc<"guestListInfo"> | null
+): Doc<"guestListInfo"> {
   if (!guestList) {
-    throw new Error(ErrorMessages.GUEST_LIST_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ErrorMessages.GUEST_LIST_NOT_FOUND,
+    });
   }
   return guestList;
 }
 
 export function validateSubscription(
-  subscription: SubscriptionSchema | null
-): SubscriptionSchema {
+  subscription: Doc<"subscriptions"> | null
+): Doc<"subscriptions"> {
   if (!subscription) {
-    throw new Error(ErrorMessages.SUBSCRIPTION_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ErrorMessages.SUBSCRIPTION_NOT_FOUND,
+    });
   }
   return subscription;
 }
 
-export const validateTicket = (ticket: TicketSchema | null): TicketSchema => {
+export const validateTicket = (
+  ticket: Doc<"tickets"> | null
+): Doc<"tickets"> => {
   if (!ticket) {
-    throw new Error(ShowErrorMessages.TICKET_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ShowErrorMessages.TICKET_NOT_FOUND,
+    });
   }
   return ticket;
 };
 
 export const validateTicketCheckIn = (
-  ticket: TicketSchema,
-  event: EventSchema
+  ticket: Doc<"tickets">,
+  event: Doc<"events">
 ): void => {
   if (ticket.checkInTime) {
-    throw new Error(
-      `Ticket already checked in on ${formatToTimeAndShortDate(ticket.checkInTime)}`
-    );
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: `Ticket already checked in on ${formatToTimeAndShortDate(ticket.checkInTime)}`,
+    });
   }
 
   const now = DateTime.now().toMillis();
@@ -215,23 +251,29 @@ export const validateTicketCheckIn = (
 };
 
 export function validateGuestEntry(
-  guestEntry: GuestListEntrySchema | null,
+  guestEntry: Doc<"guestListEntries"> | null,
   requireActive: boolean = true
-): GuestListEntrySchema {
+): Doc<"guestListEntries"> {
   if (!guestEntry) {
-    throw new Error(ShowErrorMessages.GUEST_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ShowErrorMessages.GUEST_NOT_FOUND,
+    });
   }
 
   if (requireActive && guestEntry.isActive === false) {
-    throw new Error(ShowErrorMessages.GUEST_INACTIVE);
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: ShowErrorMessages.GUEST_INACTIVE,
+    });
   }
 
   return guestEntry;
 }
 
 export function validateGuestEntryOwnership(
-  guestEntry: GuestListEntrySchema,
-  user: UserSchema
+  guestEntry: Doc<"guestListEntries">,
+  user: Doc<"users">
 ): void {
   const isHostlyUser =
     user.role === UserRole.Hostly_Moderator ||
@@ -241,35 +283,50 @@ export function validateGuestEntryOwnership(
 
   if (!isOwner && !isHostlyUser) {
     if (user.role === UserRole.Promoter) {
-      throw new Error(ShowErrorMessages.GUEST_DOES_NOT_BELONG_TO_PROMOTER);
+      throw new ConvexError({
+        code: "FORBIDDEN",
+        message: ShowErrorMessages.GUEST_DOES_NOT_BELONG_TO_PROMOTER,
+      });
     }
-    throw new Error(ShowErrorMessages.FORBIDDEN_PRIVILEGES);
+    throw new ConvexError({
+      code: "FORBIDDEN",
+      message: ShowErrorMessages.FORBIDDEN_PRIVILEGES,
+    });
   }
 }
 
 export function validateOrganizationCredit(
-  organizationCredit: OrganizationCreditSchema | null
-): OrganizationCreditSchema {
+  organizationCredit: Doc<"organizationCredits"> | null
+): Doc<"organizationCredits"> {
   if (!organizationCredit) {
-    throw new Error(ErrorMessages.ORGANIZATION_CREDIT_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ErrorMessages.ORGANIZATION_CREDIT_NOT_FOUND,
+    });
   }
   return organizationCredit;
 }
 
 export const validateGuestListInfo = (
-  guestListInfo: GuestListInfoSchema | null
-): GuestListInfoSchema => {
+  guestListInfo: Doc<"guestListInfo"> | null
+): Doc<"guestListInfo"> => {
   if (!guestListInfo) {
-    throw new Error(ShowErrorMessages.GUEST_LIST_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ShowErrorMessages.GUEST_LIST_NOT_FOUND,
+    });
   }
   return guestListInfo;
 };
 
 export const validateEventTicketType = (
-  eventTicketType: EventTicketTypesSchema | null
-): EventTicketTypesSchema => {
+  eventTicketType: Doc<"eventTicketTypes"> | null
+): Doc<"eventTicketTypes"> => {
   if (!eventTicketType) {
-    throw new Error(ErrorMessages.EVENT_TICKET_TYPE_NOT_FOUND);
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ErrorMessages.EVENT_TICKET_TYPE_NOT_FOUND,
+    });
   }
   return eventTicketType;
 };

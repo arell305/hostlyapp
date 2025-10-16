@@ -8,9 +8,8 @@ import React, {
   useEffect,
 } from "react";
 import { TicketType, TicketTypeForm, AddressValue } from "@/types/types";
-import { EventSchema, GuestListInfoSchema } from "@/types/schemas-types";
 import { ticketNameOptions } from "@/types/constants";
-import { Id } from "convex/_generated/dataModel";
+import { Doc, Id } from "convex/_generated/dataModel";
 import { EventFormErrors } from "@/utils/form-validation/validateEventForm";
 import { isIOS } from "@/utils/helpers";
 
@@ -66,9 +65,9 @@ export const EventFormProvider = ({
   initialGuestListData,
 }: {
   children: ReactNode;
-  initialEventData?: EventSchema;
+  initialEventData?: Doc<"events">;
   initialTicketData?: TicketType[] | null;
-  initialGuestListData?: GuestListInfoSchema | null;
+  initialGuestListData?: Doc<"guestListInfo"> | null;
 }) => {
   // Event Details
   const [eventName, setEventName] = useState(initialEventData?.name || "");

@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import {
-  ResponseStatus,
-  FrontendErrorMessages,
-  SubscriptionTier,
-} from "@/types/enums";
+import { SubscriptionTier } from "@/types/enums";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useUpdateSubscriptionTier = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -20,17 +17,9 @@ export const useUpdateSubscriptionTier = () => {
     setError(null);
 
     try {
-      const response = await updateTierAction({ newTier });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        return true;
-      }
-
-      setError(response.error);
-      return false;
+      return await updateTierAction({ newTier });
     } catch (err) {
-      console.error(err);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
+      setErrorFromConvexError(err, setError);
       return false;
     } finally {
       setIsLoading(false);

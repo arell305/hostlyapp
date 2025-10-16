@@ -7,27 +7,23 @@ import StaticField from "@/components/shared/fields/StaticField";
 import ProfileHeader from "@/components/shared/headings/ProfileHeader";
 import _ from "lodash";
 import MemberTopBar from "./MemberTopBar";
-import { useUserFromDb } from "@/hooks/queries/users/useUserFromDb";
-import { Id } from "convex/_generated/dataModel";
 import PageContainer from "@/components/shared/containers/PageContainer";
+import { UserWithPromoCode } from "@/types/types";
 
 interface UserIdContentProps {
   canEditUsers: boolean;
   handleBack: () => void;
-  userId: Id<"users">;
+  user: UserWithPromoCode;
 }
 
 const UserIdContent: React.FC<UserIdContentProps> = ({
   canEditUsers,
   handleBack,
-  userId,
+  user,
 }) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] =
     useState<boolean>(false);
   const { updateUserById, error, isLoading, setError } = useUpdateUser();
-
-  const { component, user } = useUserFromDb(userId);
-  if (component) return component;
 
   const handleShowDeleteConfirmation = () => {
     setError(null);

@@ -2,16 +2,16 @@
 import { RiArrowRightSLine } from "react-icons/ri";
 import Image from "next/image";
 import { UserRole, roleMap } from "@/types/enums";
-import { UserSchema } from "@/types/schemas-types";
 import { capitalizeWords } from "@/utils/helpers";
 import ClickableRow from "@/components/shared/cards/ClickableRow";
 import Link from "next/link";
 import NProgress from "nprogress";
 import { useState } from "react";
 import clsx from "clsx";
+import { Doc } from "convex/_generated/dataModel";
 
 interface MemberCardProps {
-  user: UserSchema;
+  user: Doc<"users">;
   slug: string;
 }
 

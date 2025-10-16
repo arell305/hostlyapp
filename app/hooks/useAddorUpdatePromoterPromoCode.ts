@@ -1,7 +1,7 @@
 import { useMutation } from "convex/react";
 import { useState } from "react";
 import { api } from "../../convex/_generated/api";
-import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useAddOrUpdatePromoterPromoCode = () => {
   const addOrUpdate = useMutation(
@@ -14,16 +14,9 @@ export const useAddOrUpdatePromoterPromoCode = () => {
     setError(null);
     setIsLoading(true);
     try {
-      const response = await addOrUpdate({ name });
-      if (response.status === ResponseStatus.SUCCESS) {
-        return true;
-      } else {
-        setError(response.error);
-        return false;
-      }
+      return await addOrUpdate({ name });
     } catch (error) {
-      setError(FrontendErrorMessages.GENERIC_ERROR);
-      console.error("Error adding/updating promoter promo code:", error);
+      setErrorFromConvexError(error, setError);
       return false;
     } finally {
       setIsLoading(false);

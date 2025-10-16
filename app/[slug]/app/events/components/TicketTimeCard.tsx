@@ -5,13 +5,13 @@ import { FiClock } from "react-icons/fi";
 import { formatToTimeAndShortDate, isPast } from "../../../../../utils/luxon";
 import { Badge } from "@/components/ui/badge";
 import { Ticket } from "lucide-react";
-import { EventTicketTypesSchema } from "@/types/schemas-types";
 import { TicketTypeTotal } from "@/types/convex-types";
 import { formatCurrency } from "@/utils/helpers";
+import { Doc } from "convex/_generated/dataModel";
 
 interface TicketTimeCardProps {
   className?: string;
-  ticketInfo: EventTicketTypesSchema[];
+  ticketInfo: Doc<"eventTicketTypes">[];
   ticketTotals: TicketTypeTotal[] | null;
   canEditEvent: boolean;
   isPromoter: boolean;

@@ -1,8 +1,6 @@
-import {
-  EventTicketTypesSchema,
-  PromoterPromoCodeWithDiscount,
-} from "@/types/schemas-types";
+import { PromoterPromoCodeWithDiscount } from "@/types/schemas-types";
 import { isAfterNowInPacificTime } from "../../utils/luxon";
+import { Doc } from "convex/_generated/dataModel";
 
 interface TicketPricing {
   totalPrice: number;
@@ -10,7 +8,7 @@ interface TicketPricing {
   discountAmount: number;
   perTicketPrices: {
     ticketTypeId: string;
-    ticketType: EventTicketTypesSchema;
+    ticketType: Doc<"eventTicketTypes">;
     quantity: number;
     originalPrice: number;
     discountedPrice: number;
@@ -19,7 +17,7 @@ interface TicketPricing {
 }
 
 export const calculateTicketPricing = (
-  ticketTypes: EventTicketTypesSchema[],
+  ticketTypes: Doc<"eventTicketTypes">[],
   ticketCounts: Record<string, number>,
   validationResult: PromoterPromoCodeWithDiscount | null
 ): TicketPricing => {
@@ -57,7 +55,7 @@ export const calculateTicketPricing = (
 };
 
 export const isTicketSalesOpen = (
-  ticketTypes: EventTicketTypesSchema[] | null | undefined
+  ticketTypes: Doc<"eventTicketTypes">[] | null | undefined
 ): boolean | null => {
   if (!ticketTypes || ticketTypes.length === 0) {
     return null;
@@ -73,7 +71,7 @@ export function isValidDollarAmount(value: string): boolean {
 }
 
 export const isTicketTypeSalesOpen = (
-  ticketType: EventTicketTypesSchema | null | undefined
+  ticketType: Doc<"eventTicketTypes"> | null | undefined
 ): boolean | null => {
   if (!ticketType) {
     return null;

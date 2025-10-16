@@ -1,4 +1,3 @@
-// components/faqs/ResponsiveAddFaq.tsx
 "use client";
 
 import * as React from "react";
@@ -46,13 +45,15 @@ const ResponsiveAddFaq: React.FC<ResponsiveAddFaqProps> = ({
     const question = values.question.trim();
     const answer = values.answer.trim();
 
-    const result = await insertCompanyFaq({
+    const success = await insertCompanyFaq({
       organizationId,
       question,
       answer,
     });
 
-    if (result.success) handleClose();
+    if (success) {
+      handleClose();
+    }
   };
 
   const isDisabled =

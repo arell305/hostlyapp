@@ -3,14 +3,13 @@ import React, { useState } from "react";
 import ResponsiveInviteUser from "../components/responsive/ResponsiveInviteUser";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
 import ToggleTabs from "@/components/shared/toggle/ToggleTabs";
-import ActiveMembersSection from "./section/ActiveMembersSection";
-import DeletedMembersSection from "./section/DeletedMembersSection";
 import PendingMembersSection from "./section/PendingMembersSection";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { isAdminOrg, isManager } from "@/utils/permissions";
 import PageContainer from "@/components/shared/containers/PageContainer";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
+import GetUsersByCompany from "@/components/companies/GetUsersByCompany";
 
 const TeamPage = () => {
   const { organization, orgRole } = useContextOrganization();
@@ -48,11 +47,15 @@ const TeamPage = () => {
           onChange={setSelectedTab}
         />
       )}
-      {selectedTab === "active" && <ActiveMembersSection />}
+      {selectedTab === "active" && (
+        <GetUsersByCompany isActive={true} organizationId={organization._id} />
+      )}
       {selectedTab === "pending" && (
         <PendingMembersSection canManageTeam={canManageTeam} />
       )}
-      {selectedTab === "deleted" && <DeletedMembersSection />}
+      {selectedTab === "deleted" && (
+        <GetUsersByCompany isActive={false} organizationId={organization._id} />
+      )}
 
       <ResponsiveInviteUser
         isOpen={isInviteModalOpen}

@@ -5,19 +5,15 @@ import { useParams } from "next/navigation";
 import { api } from "convex/_generated/api";
 import FullLoading from "@/[slug]/app/components/loading/FullLoading";
 import MessagePage from "@/components/shared/shared-page/MessagePage";
-import { ResponseStatus } from "@/types/enums";
-import type {
-  EventTicketTypesSchema,
-  EventWithTicketTypes,
-  GuestListInfoSchema,
-} from "@/types/schemas-types";
+import type { EventWithTicketTypes } from "@/types/schemas-types";
 import type { TicketSoldCountByType } from "@/types/types";
+import { Doc } from "convex/_generated/dataModel";
 
 type EventContextType = {
-  event: EventWithTicketTypes; // non-null in consumers
-  guestListInfo: GuestListInfoSchema | null;
+  event: EventWithTicketTypes;
+  guestListInfo: Doc<"guestListInfo"> | null;
   ticketSoldCounts: TicketSoldCountByType[] | null;
-  ticketTypes: EventTicketTypesSchema[];
+  ticketTypes: Doc<"eventTicketTypes">[];
 };
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
@@ -35,20 +31,19 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   // Build ALL derived values (useMemo is a hook!) BEFORE any return
-  const ticketTypes = useMemo<EventTicketTypesSchema[]>(
-    () =>
-      (response?.data?.ticketTypes ?? []).filter((t) => t.isActive === true),
-    [response?.data?.ticketTypes]
+  const ticketTypes = useMemo<Doc<"eventTicketTypes">[]>(
+    () => (response?.ticketTypes ?? []).filter((t) => t.isActive === true),
+    [response?.ticketTypes]
   );
   const eventWithTicketTypes: EventWithTicketTypes | null = useMemo(() => {
-    const ev = response?.data?.event;
+    const ev = response?.event;
     return ev ? { ...ev, ticketTypes } : null;
   }, [response, ticketTypes]);
 
-  const guestListInfo: GuestListInfoSchema | null =
-    response?.data?.guestListInfo ?? null;
+  const guestListInfo: Doc<"guestListInfo"> | null =
+    response?.guestListInfo ?? null;
   const ticketSoldCounts: TicketSoldCountByType[] | null =
-    response?.data?.ticketSoldCounts ?? null;
+    response?.ticketSoldCounts ?? null;
 
   const contextValue: EventContextType | null = useMemo(() => {
     if (!eventWithTicketTypes) return null;
@@ -60,16 +55,8 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [eventWithTicketTypes, guestListInfo, ticketSoldCounts, ticketTypes]);
 
-  // Now gate rendering AFTER all hooks have run
-  if (response === undefined) return <FullLoading />;
-
-  if (response.status === ResponseStatus.ERROR) {
-    return (
-      <MessagePage
-        title="Failed to load event"
-        description={response.error || "Failed to load event"}
-      />
-    );
+  if (response === undefined) {
+    return <FullLoading />;
   }
 
   if (!contextValue) {

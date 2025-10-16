@@ -25,7 +25,6 @@ const AnalyticsContent = () => {
   );
   const [preset, setPreset] = useState<PresetOption>("Last 7 Days");
 
-  // Default range from preset
   const defaultRange = getDateRangeFromPreset("Last 7 Days");
 
   const [startDate, setStartDate] = useState<Date | null>(
@@ -33,7 +32,6 @@ const AnalyticsContent = () => {
   );
   const [endDate, setEndDate] = useState<Date | null>(defaultRange.to ?? null);
 
-  // 👉 Derive dateRange so it always updates when start/end change
   const dateRange = useMemo(
     () => ({
       from: startDate ?? undefined,
@@ -52,7 +50,6 @@ const AnalyticsContent = () => {
 
       setStartDate(from);
       setEndDate(to);
-      // no setDateRange needed — it's derived from start/end
     }
   };
 

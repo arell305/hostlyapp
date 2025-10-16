@@ -14,12 +14,6 @@ interface UpdateCompanyFaqInput {
     isActive?: boolean;
   };
 }
-
-interface UpdateCompanyFaqResult {
-  success: boolean;
-  faqId?: Id<"faq">;
-}
-
 export const useUpdateCompanyFaq = () => {
   const [updateCompanyFaqLoading, setLoading] = useState<boolean>(false);
   const [updateCompanyFaqError, setError] = useState<string | null>(null);
@@ -28,18 +22,16 @@ export const useUpdateCompanyFaq = () => {
 
   const updateCompanyFaq = async (
     data: UpdateCompanyFaqInput
-  ): Promise<UpdateCompanyFaqResult> => {
+  ): Promise<boolean> => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await updateCompanyFaqMutation(data);
-
-      return { success: true, faqId: response };
+      return await updateCompanyFaqMutation(data);
     } catch (err) {
       console.error(FrontendErrorMessages.GENERIC_ERROR, err);
       setError(FrontendErrorMessages.GENERIC_ERROR);
-      return { success: false };
+      return false;
     } finally {
       setLoading(false);
     }

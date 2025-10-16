@@ -1,8 +1,6 @@
-import { ErrorMessages } from "@/types/enums";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { Id } from "./_generated/dataModel";
-import { EventTicketTypesSchema } from "@/types/schemas-types";
+import { Doc, Id } from "./_generated/dataModel";
 
 export const createEventTicketTypes = internalMutation({
   args: {
@@ -15,8 +13,19 @@ export const createEventTicketTypes = internalMutation({
     ticketSalesEndTime: v.number(),
   },
   handler: async (ctx, args): Promise<Id<"eventTicketTypes">> => {
-    try {
-      const {
+    const {
+      eventId,
+      name,
+      price,
+      capacity,
+      stripeProductId,
+      stripePriceId,
+      ticketSalesEndTime,
+    } = args;
+
+    const eventTicketTypesId: Id<"eventTicketTypes"> = await ctx.db.insert(
+      "eventTicketTypes",
+      {
         eventId,
         name,
         price,
@@ -24,27 +33,11 @@ export const createEventTicketTypes = internalMutation({
         stripeProductId,
         stripePriceId,
         ticketSalesEndTime,
-      } = args;
+        isActive: true,
+      }
+    );
 
-      const eventTicketTypesId: Id<"eventTicketTypes"> = await ctx.db.insert(
-        "eventTicketTypes",
-        {
-          eventId,
-          name,
-          price,
-          capacity,
-          stripeProductId,
-          stripePriceId,
-          ticketSalesEndTime,
-          isActive: true,
-        }
-      );
-
-      return eventTicketTypesId;
-    } catch (error) {
-      console.error("Error creating event ticket types:", error);
-      throw new Error(ErrorMessages.EVENT_TICKET_TYPES_DB_CREATE);
-    }
+    return eventTicketTypesId;
   },
 });
 
@@ -54,13 +47,8 @@ export const internalDeleteEventTicketTypes = internalMutation({
   },
   handler: async (ctx, args): Promise<void> => {
     const { eventTicketTypesIds } = args;
-    try {
-      for (const id of eventTicketTypesIds) {
-        await ctx.db.delete(id);
-      }
-    } catch (error) {
-      console.error("Error deleting event ticket types:", error);
-      throw new Error(ErrorMessages.EVENT_TICKET_TYPES_DB_DELETE);
+    for (const id of eventTicketTypesIds) {
+      await ctx.db.delete(id);
     }
   },
 });
@@ -69,22 +57,16 @@ export const internalGetEventTicketTypesByEventId = internalQuery({
   args: {
     eventId: v.id("events"),
   },
-  handler: async (ctx, args): Promise<EventTicketTypesSchema[]> => {
+  handler: async (ctx, args): Promise<Doc<"eventTicketTypes">[]> => {
     const { eventId } = args;
-    try {
-      const results = await ctx.db
-        .query("eventTicketTypes")
-        .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
-        .filter((q) => q.eq(q.field("isActive"), true))
-        .collect();
 
-      return results;
-    } catch (error) {
-      console.error("Error fetching event ticket types by event ID:", error);
-      throw new Error(
-        ErrorMessages.EVENT_TICKET_TYPES_DB_QUERY_BY_EVENT_ID_ERROR
-      );
-    }
+    const results = await ctx.db
+      .query("eventTicketTypes")
+      .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    return results;
   },
 });
 
@@ -111,31 +93,26 @@ export const internalUpdateEventTicketType = internalMutation({
       activeUntil,
     } = args;
 
-    try {
-      const updates: Partial<{
-        name: string;
-        price: number;
-        capacity: number;
-        ticketSalesEndTime: number;
-        isActive: boolean;
-        stripePriceId: string;
-        activeUntil: number;
-      }> = {};
+    const updates: Partial<{
+      name: string;
+      price: number;
+      capacity: number;
+      ticketSalesEndTime: number;
+      isActive: boolean;
+      stripePriceId: string;
+      activeUntil: number;
+    }> = {};
 
-      if (name !== undefined) updates.name = name;
-      if (price !== undefined) updates.price = price;
-      if (capacity !== undefined) updates.capacity = capacity;
-      if (ticketSalesEndTime !== undefined)
-        updates.ticketSalesEndTime = ticketSalesEndTime;
-      if (isActive !== undefined) updates.isActive = isActive;
-      if (stripePriceId !== undefined) updates.stripePriceId = stripePriceId;
-      if (activeUntil !== undefined) updates.activeUntil = activeUntil;
+    if (name !== undefined) updates.name = name;
+    if (price !== undefined) updates.price = price;
+    if (capacity !== undefined) updates.capacity = capacity;
+    if (ticketSalesEndTime !== undefined)
+      updates.ticketSalesEndTime = ticketSalesEndTime;
+    if (isActive !== undefined) updates.isActive = isActive;
+    if (stripePriceId !== undefined) updates.stripePriceId = stripePriceId;
+    if (activeUntil !== undefined) updates.activeUntil = activeUntil;
 
-      await ctx.db.patch(eventTicketTypeId, updates);
-    } catch (error) {
-      console.error("Error updating event ticket type:", error);
-      throw new Error(ErrorMessages.EVENT_TICKET_TYPES_DB_UPDATE);
-    }
+    await ctx.db.patch(eventTicketTypeId, updates);
   },
 });
 
@@ -143,13 +120,8 @@ export const getEventTicketTypes = internalQuery({
   args: {
     eventTicketTypesId: v.id("eventTicketTypes"),
   },
-  handler: async (ctx, args): Promise<EventTicketTypesSchema | null> => {
+  handler: async (ctx, args): Promise<Doc<"eventTicketTypes"> | null> => {
     const { eventTicketTypesId } = args;
-    try {
-      return await ctx.db.get(eventTicketTypesId);
-    } catch (error) {
-      console.error("Error fetching event ticket types by event ID:", error);
-      throw new Error(ErrorMessages.EVENT_TICKET_TYPES_DB_QUERY);
-    }
+    return await ctx.db.get(eventTicketTypesId);
   },
 });

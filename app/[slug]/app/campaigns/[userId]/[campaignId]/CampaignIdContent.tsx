@@ -1,3 +1,4 @@
+import ResponsiveConfirm from "@/[slug]/app/components/responsive/ResponsiveConfirm";
 import { useUpdateCampaign } from "@/hooks/convex/campaigns";
 import { CampaignValues } from "@/types/types";
 import { Doc } from "convex/_generated/dataModel";
@@ -22,7 +23,49 @@ const CampaignIdContent = ({ campaign }: CampaignIdContentProps) => {
     });
     return result.success;
   };
-  return <div>CampaignIdContent</div>;
+
+  const showConfirmDeleteModal = (campaignId: Doc<"campaigns">["_id"]) => {
+    setShowConfirmDelete(true);
+    setUpdateCampaignError(null);
+  };
+
+  const handleDelete = async (): Promise<void> => {
+    const result = await updateCampaign({
+      campaignId: campaign._id,
+      updates: { isActive: false },
+    });
+    if (result.success) {
+      handleCloseConfirmDeleteModal();
+      setShowConfirmDelete(false);
+    }
+  };
+
+  const handleCloseConfirmDeleteModal = () => {
+    setShowConfirmDelete(false);
+    setUpdateCampaignError(null);
+  };
+
+  return (
+    <div>
+      CampaignIdContent
+      <ResponsiveConfirm
+        isOpen={showConfirmDelete}
+        title="Confirm Deletion"
+        confirmText="Yes, Delete"
+        cancelText="No, Cancel"
+        confirmVariant="destructive"
+        content={
+          "Are you sure you want to delete this FAQ? This action cannot be undone."
+        }
+        error={updateCampaignError}
+        isLoading={updateCampaignLoading}
+        modalProps={{
+          onClose: handleCloseConfirmDeleteModal,
+          onConfirm: handleDelete,
+        }}
+      />
+    </div>
+  );
 };
 
 export default CampaignIdContent;

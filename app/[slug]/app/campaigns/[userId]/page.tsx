@@ -17,7 +17,7 @@ const CampaignsPage = () => {
         title="Campaigns"
         actions={
           <Link href={`${pathname}/add`}>
-            <AddButton onClick={() => NProgress.start()} label="Contact" />
+            <AddButton onClick={() => NProgress.start()} label="Campaign" />
           </Link>
         }
       />

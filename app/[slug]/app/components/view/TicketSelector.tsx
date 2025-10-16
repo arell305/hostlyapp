@@ -1,10 +1,10 @@
 import CountInputField from "@/components/shared/fields/CountInputField";
 import { formatCurrency } from "../../../../../utils/helpers";
-import { EventTicketTypesSchema } from "@/types/schemas-types";
 import { isAfterNowInPacificTime } from "@/utils/luxon";
+import { Doc } from "convex/_generated/dataModel";
 
 interface TicketSelectorProps {
-  ticketType: EventTicketTypesSchema;
+  ticketType: Doc<"eventTicketTypes">;
   count: number;
   soldCount: number;
   setCount: (count: number) => void;

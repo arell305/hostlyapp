@@ -1,4 +1,4 @@
-import { Id } from "../../convex/_generated/dataModel";
+import { Doc, Id } from "../../convex/_generated/dataModel";
 import {
   ActiveStripeTab,
   ErrorMessages,
@@ -9,7 +9,7 @@ import {
   UserRole,
   SmsMessageType,
 } from "./enums";
-import { EventWithTicketTypes, GuestListEntrySchema } from "./schemas-types";
+import { EventWithTicketTypes } from "./schemas-types";
 
 export interface PricingOption {
   id: string;
@@ -189,17 +189,6 @@ export interface GuestCheckIn {
   name: string;
   malesInGroup?: number;
   femalesInGroup?: number;
-}
-
-export interface OrganizationSchema {
-  _id: Id<"organizations">;
-  clerkOrganizationId: string;
-  name: string;
-  photo: Id<"_storage"> | null;
-  customerId: Id<"customers">;
-  promoDiscount: number;
-  isActive: boolean;
-  slug: string;
 }
 
 export interface EventFormInput {
@@ -390,7 +379,7 @@ export type CalendarValue = Date | null | [Date | null, Date | null];
 export interface PromoterGuestSummary {
   promoterId: string;
   promoterName: string;
-  entries: GuestListEntrySchema[];
+  entries: Doc<"guestListEntries">[];
   totalMales: number;
   totalFemales: number;
   totalAttended: number;

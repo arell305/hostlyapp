@@ -1,25 +1,16 @@
 "use client";
 
-import CompanyCard from "../components/cards/CompanyCard";
 import { OrganizationDetails } from "@/types/types";
 import CustomCard from "@/components/shared/cards/CustomCard";
 import SectionHeaderWithAction from "@/components/shared/headings/SectionHeaderWithAction";
-import { useQuery } from "convex/react";
-import { api } from "convex/_generated/api";
-import { handleQueryComponentState } from "@/utils/handleQueryState";
-import { QueryState } from "@/types/enums";
 import PageContainer from "@/components/shared/containers/PageContainer";
+import CompanyCard from "@/[slug]/app/components/cards/CompanyCard";
 
-const CompaniesContent = () => {
-  const organizationsResponse = useQuery(api.organizations.getAllOrganizations);
-  const result = handleQueryComponentState(organizationsResponse);
+interface CompaniesContentProps {
+  companies: OrganizationDetails[];
+}
 
-  if (result.type === QueryState.Loading || result.type === QueryState.Error) {
-    return result.element;
-  }
-
-  const companies = result.data.organizationDetails;
-
+const CompaniesContent = ({ companies }: CompaniesContentProps) => {
   return (
     <PageContainer>
       <SectionHeaderWithAction title="Companies" />

@@ -2,28 +2,45 @@ import React from "react";
 import { DateRange } from "react-day-picker";
 import TicketAnalyticsContent from "./TicketAnalyticsContent";
 import PromoterTicketAnalyticsContent from "./PromoterTicketAnalyticsContent";
-import { useTicketKpis } from "../hooks/useTicketKpis";
-import { isError, isLoading } from "@/types/types";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { isManager, isPromoter } from "@/utils/permissions";
+import { useTotalRevenueByOrganization } from "@/hooks/convex/connectedPayments";
+import AnalyticsSkeleton from "@/components/shared/skeleton/AnalyticsSkeleton";
+import { usePromoterTicketKpis } from "@/hooks/convex/tickets/usePromoterTicketKpis";
 
 interface TicketAnalyticsPageProps {
   dateRange: DateRange;
 }
 
 const TicketAnalyticsPage = ({ dateRange }: TicketAnalyticsPageProps) => {
-  const result = useTicketKpis({ dateRange });
+  const { organization, orgRole } = useContextOrganization();
+  const organizationId = organization._id;
 
-  if (isLoading(result) || isError(result)) {
-    return result.component;
+  const fromTimestamp = dateRange.from?.getTime() ?? 0;
+  const toTimestamp = dateRange.to?.getTime() ?? Date.now();
+
+  const canCompany = !!organizationId && isManager(orgRole);
+  const canPromoter = !canCompany && isPromoter(orgRole);
+
+  const companyRes = useTotalRevenueByOrganization(
+    { organizationId, fromTimestamp, toTimestamp },
+    canCompany
+  );
+  const promoterRes = usePromoterTicketKpis(
+    { fromTimestamp, toTimestamp },
+    canPromoter
+  );
+
+  if (!companyRes || !promoterRes) {
+    return <AnalyticsSkeleton />;
   }
 
-  const { mode, data } = result.data;
-
-  if (mode === "company") {
-    return <TicketAnalyticsContent revenueData={data} />;
+  if (companyRes && canCompany) {
+    return <TicketAnalyticsContent revenueData={companyRes} />;
   }
 
-  if (mode === "promoter") {
-    return <PromoterTicketAnalyticsContent promoterTicketData={data} />;
+  if (promoterRes && canPromoter) {
+    return <PromoterTicketAnalyticsContent promoterTicketData={promoterRes} />;
   }
 };
 

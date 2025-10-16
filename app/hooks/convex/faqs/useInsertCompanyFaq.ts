@@ -12,11 +12,6 @@ interface InsertCompanyFaqInput {
   answer: string;
 }
 
-interface InsertCompanyFaqResult {
-  success: boolean;
-  faqId?: Id<"faq">;
-}
-
 export const useInsertCompanyFaq = () => {
   const [insertCompanyFaqLoading, setLoading] = useState<boolean>(false);
   const [insertCompanyFaqError, setError] = useState<string | null>(null);
@@ -25,18 +20,16 @@ export const useInsertCompanyFaq = () => {
 
   const insertCompanyFaq = async (
     data: InsertCompanyFaqInput
-  ): Promise<InsertCompanyFaqResult> => {
+  ): Promise<boolean> => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await insertCompanyFaqMutation(data);
-
-      return { success: true, faqId: response };
+      return await insertCompanyFaqMutation(data);
     } catch (error) {
       console.error(FrontendErrorMessages.GENERIC_ERROR, error);
       setError(FrontendErrorMessages.GENERIC_ERROR);
-      return { success: false };
+      return false;
     } finally {
       setLoading(false);
     }

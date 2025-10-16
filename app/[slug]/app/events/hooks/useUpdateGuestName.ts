@@ -1,14 +1,14 @@
 import { useMutation } from "convex/react";
 import { useState } from "react";
-import { ResponseStatus } from "@/types/enums"; // Update this path if needed
 import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useUpdateGuestName = () => {
   const updateGuestNameMutation = useMutation(
     api.guestListEntries.updateGuestListEntry
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const updateGuestName = async (
@@ -20,23 +20,15 @@ export const useUpdateGuestName = () => {
     setError(null);
 
     try {
-      const response = await updateGuestNameMutation({
+      return await updateGuestNameMutation({
         guestId,
         updates: {
           name: newName,
           phoneNumber,
         },
       });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        return true;
-      }
-
-      setError(response.error || "Failed to update guest name.");
-      return false;
-    } catch (err: any) {
-      console.error("Update guest name error:", err);
-      setError(err.message || "An unexpected error occurred.");
+    } catch (err) {
+      setErrorFromConvexError(err, setError);
       return false;
     } finally {
       setIsLoading(false);

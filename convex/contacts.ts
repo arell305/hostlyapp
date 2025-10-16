@@ -9,7 +9,7 @@ import {
 } from "./backendUtils/helper";
 
 import { GuestPatch } from "@/types/patch-types";
-import { Doc, Id } from "./_generated/dataModel";
+import { Doc } from "./_generated/dataModel";
 
 export const getContacts = query({
   args: { userId: v.id("users") },
@@ -37,7 +37,7 @@ export const insertContact = mutation({
     userId: v.id("users"),
     phoneNumber: v.optional(v.string()),
   },
-  handler: async (ctx, args): Promise<Id<"contacts">> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const { name, userId, phoneNumber } = args;
 
     const identity = await requireAuthenticatedUser2(ctx);
@@ -45,7 +45,7 @@ export const insertContact = mutation({
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
 
-    const contactId = await ctx.db.insert("contacts", {
+    await ctx.db.insert("contacts", {
       name,
       userId,
       phoneNumber,
@@ -53,7 +53,7 @@ export const insertContact = mutation({
       updatedAt: Date.now(),
     });
 
-    return contactId;
+    return true;
   },
 });
 
@@ -66,7 +66,7 @@ export const updateContact = mutation({
       isActive: v.optional(v.boolean()),
     }),
   },
-  handler: async (ctx, args): Promise<Id<"contacts">> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const { contactId, updates } = args;
     const { name, phoneNumber, isActive } = updates;
 
@@ -86,6 +86,6 @@ export const updateContact = mutation({
 
     await ctx.db.patch(contactId, { ...patch, updatedAt: Date.now() });
 
-    return contactId;
+    return true;
   },
 });

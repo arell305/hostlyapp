@@ -1,5 +1,5 @@
 import { internalQuery } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 
 export const findPromoIdByCode = internalQuery({
   args: { promoCode: v.string() },
@@ -10,7 +10,10 @@ export const findPromoIdByCode = internalQuery({
       .first();
 
     if (!promo) {
-      throw new Error("Promo code not found");
+      throw new ConvexError({
+        code: "NOT_FOUND",
+        message: "Promo code not found",
+      });
     }
 
     return promo;

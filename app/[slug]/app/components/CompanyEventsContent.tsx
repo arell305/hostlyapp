@@ -1,4 +1,3 @@
-import type { UserResource } from "@clerk/types";
 import _ from "lodash";
 import { EventWithTicketTypes } from "@/types/schemas-types";
 import EventPreview from "./events/EventPreview";

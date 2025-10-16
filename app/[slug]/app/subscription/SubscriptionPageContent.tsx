@@ -14,19 +14,17 @@ import { GuestListCheckout } from "../components/modals/GuestListCheckoutContent
 import { CONTACT_EMAIL, PLUS_GUEST_LIST_LIMIT } from "@/types/constants";
 import { formatSubscriptionAmount } from "@/utils/helpers";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
-import { useGetCustomer } from "./hooks/useGetCustomer";
 import { isAdmin } from "@/utils/permissions";
+import { Doc } from "convex/_generated/dataModel";
 
-const SubscriptionContent = () => {
+interface SubscriptionContentProps {
+  customer: Doc<"customers">;
+}
+
+const SubscriptionContent = ({ customer }: SubscriptionContentProps) => {
   const { subscription, availableCredits, orgRole } = useContextOrganization();
   const [showGuestListCheckout, setShowGuestListCheckout] =
     useState<boolean>(false);
-  const { component: customerComponent, customer: customerDetails } =
-    useGetCustomer();
-
-  if (customerComponent) {
-    return customerComponent;
-  }
 
   let subscriptionStatusText: string = "Unknown Status";
   if (subscription) {
@@ -77,8 +75,8 @@ const SubscriptionContent = () => {
         <StaticField
           label="Payment Details"
           value={
-            customerDetails?.last4
-              ? `**** **** **** ${customerDetails?.last4}`
+            customer?.last4
+              ? `**** **** **** ${customer?.last4}`
               : "No details available"
           }
         />

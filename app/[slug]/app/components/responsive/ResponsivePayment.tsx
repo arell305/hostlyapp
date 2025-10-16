@@ -18,10 +18,11 @@ import { cn } from "@/lib/utils";
 import BaseDrawer from "../drawer/BaseDrawer";
 import { useAction } from "convex/react";
 import { toast } from "@/hooks/use-toast";
-import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
+import { FrontendErrorMessages } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
 import { DESKTOP_WIDTH } from "@/types/constants";
 import FormActions from "@/components/shared/buttonContainers/FormActions";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 type ResponsivePaymentProps = {
   isOpen: boolean;
@@ -80,15 +81,14 @@ const PaymentForm: React.FC<ResponsivePaymentProps> = ({
         newPaymentMethodId: paymentMethod.id,
       });
 
-      if (response.status === ResponseStatus.SUCCESS) {
+      if (response) {
         toast({
           title: "Payment Updated",
           description: "Your payment method has been updated",
         });
         handleClose();
       } else {
-        console.error(response.error);
-        setEditPaymentError(FrontendErrorMessages.GENERIC_ERROR);
+        setErrorFromConvexError(error, setEditPaymentError);
       }
     } catch (error) {
       console.error(error);

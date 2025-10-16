@@ -1,4 +1,3 @@
-// convex/smsThreads.ts
 import { requireAuthenticatedUser } from "@/utils/auth";
 import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";

@@ -150,7 +150,7 @@ export async function clerkInviteUserToOrganization(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`, // Use your Clerk API key
+          Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
         },
         body: JSON.stringify({
           email_address: email,

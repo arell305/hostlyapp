@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus, UserRole, FrontendErrorMessages } from "@/types/enums";
+import { UserRole } from "@/types/enums";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useInviteUser = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -18,20 +19,13 @@ export const useInviteUser = () => {
     setError(null);
 
     try {
-      const response = await createClerkInvitation({
+      return await createClerkInvitation({
         clerkOrgId,
         email,
         role,
       });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        return true;
-      }
-      setError(response.error);
-      return false;
     } catch (error) {
-      console.error(error);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
+      setErrorFromConvexError(error, setError);
       return false;
     } finally {
       setIsLoading(false);

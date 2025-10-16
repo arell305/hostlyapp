@@ -1,10 +1,10 @@
 "use client";
 
-import CompaniesContent from "./CompaniesContent";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { isHostlyUser } from "@/utils/permissions";
 import ErrorPage from "../components/errors/ErrorPage";
 import FullLoading from "../components/loading/FullLoading";
+import GetAllCompanies from "@/components/companies/GetAllCompanies";
 
 const CompaniesPage = () => {
   const { orgRole } = useContextOrganization();
@@ -24,7 +24,7 @@ const CompaniesPage = () => {
     );
   }
 
-  return <CompaniesContent />;
+  return <GetAllCompanies />;
 };
 
 export default CompaniesPage;

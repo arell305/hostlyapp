@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus, FrontendErrorMessages } from "@/types/enums";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { EventFormInput, GuestListFormInput, TicketType } from "@/types/types";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useAddEvent = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -16,7 +16,7 @@ export const useAddEvent = () => {
     eventData: EventFormInput,
     ticketData: TicketType[],
     guestListData: GuestListFormInput | null
-  ): Promise<{ success: boolean; eventId: string }> => {
+  ): Promise<{ success: boolean; eventId?: string }> => {
     setIsLoading(true);
     setError(null);
 
@@ -33,18 +33,10 @@ export const useAddEvent = () => {
         guestListData,
       });
 
-      if (response.status === ResponseStatus.SUCCESS) {
-        return { success: true, eventId: response.data.eventId };
-      }
-
-      setError(response.error);
-      return { success: false, eventId: "" };
-    } catch (err) {
-      console.error(err);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
-      return { success: false, eventId: "" };
-    } finally {
-      setIsLoading(false);
+      return { success: true, eventId: response };
+    } catch (error) {
+      setErrorFromConvexError(error, setError);
+      return { success: false };
     }
   };
 

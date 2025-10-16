@@ -2,7 +2,7 @@ import { action, internalMutation, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { handleError } from "./backendUtils/helper";
 import { requireAuthenticatedUser } from "../utils/auth";
-import { ErrorMessages, ResponseStatus, UserRole } from "@/types/enums";
+import { ResponseStatus, UserRole } from "@/types/enums";
 import { createPaymentIntent } from "./backendUtils/stripe";
 import { CreateGuestListCreditPaymentIntentResponse } from "@/types/convex-types";
 import { GUEST_LIST_CREDIT_PRICE } from "@/types/constants";
@@ -29,48 +29,41 @@ export const createGuestListCredit = internalMutation({
       credits,
       stripePaymentIntentId,
     } = args;
-    try {
-      const guestListCreditTransactionId = await ctx.db.insert(
-        "guestListCreditTransactions",
-        {
-          organizationId,
-          userId,
-          amountPaid,
-          credits,
-          stripePaymentIntentId,
-          type: "added",
-        }
-      );
 
-      const existing = await ctx.db
-        .query("organizationCredits")
-        .withIndex("by_organizationId", (q) =>
-          q.eq("organizationId", organizationId)
-        )
-        .unique();
-
-      if (existing) {
-        await ctx.db.patch(existing._id, {
-          totalCredits: existing.totalCredits + credits,
-          lastUpdated: Date.now(),
-        });
-      } else {
-        await ctx.db.insert("organizationCredits", {
-          organizationId,
-          totalCredits: credits,
-          creditsUsed: 0,
-          lastUpdated: Date.now(),
-        });
+    const guestListCreditTransactionId = await ctx.db.insert(
+      "guestListCreditTransactions",
+      {
+        organizationId,
+        userId,
+        amountPaid,
+        credits,
+        stripePaymentIntentId,
+        type: "added",
       }
+    );
 
-      return guestListCreditTransactionId;
-    } catch (error) {
-      console.error(
-        ErrorMessages.GUEST_LIST_CREDIT_TRANSACTION_CREATE_ERROR,
-        error
-      );
-      throw new Error(ErrorMessages.GUEST_LIST_CREDIT_TRANSACTION_CREATE_ERROR);
+    const existing = await ctx.db
+      .query("organizationCredits")
+      .withIndex("by_organizationId", (q) =>
+        q.eq("organizationId", organizationId)
+      )
+      .unique();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        totalCredits: existing.totalCredits + credits,
+        lastUpdated: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("organizationCredits", {
+        organizationId,
+        totalCredits: credits,
+        creditsUsed: 0,
+        lastUpdated: Date.now(),
+      });
     }
+
+    return guestListCreditTransactionId;
   },
 });
 
@@ -142,43 +135,39 @@ export const useGuestListCredit = internalMutation({
   },
   handler: async (ctx, args): Promise<Id<"guestListCreditTransactions">> => {
     const { organizationId, clerkUserId, eventId } = args;
-    try {
-      const user = validateUser(
-        await ctx.db
-          .query("users")
-          .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
-          .unique()
-      );
 
-      const guestListCreditTransactionId = await ctx.db.insert(
-        "guestListCreditTransactions",
-        {
-          organizationId,
-          userId: user._id,
-          credits: 1,
-          type: "used",
-          eventId,
-        }
-      );
+    const user = validateUser(
+      await ctx.db
+        .query("users")
+        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+        .unique()
+    );
 
-      const existing = validateOrganizationCredit(
-        await ctx.db
-          .query("organizationCredits")
-          .withIndex("by_organizationId", (q) =>
-            q.eq("organizationId", organizationId)
-          )
-          .unique()
-      );
+    const guestListCreditTransactionId = await ctx.db.insert(
+      "guestListCreditTransactions",
+      {
+        organizationId,
+        userId: user._id,
+        credits: 1,
+        type: "used",
+        eventId,
+      }
+    );
 
-      await ctx.db.patch(existing._id, {
-        totalCredits: existing.totalCredits - 1,
-        lastUpdated: Date.now(),
-      });
+    const existing = validateOrganizationCredit(
+      await ctx.db
+        .query("organizationCredits")
+        .withIndex("by_organizationId", (q) =>
+          q.eq("organizationId", organizationId)
+        )
+        .unique()
+    );
 
-      return guestListCreditTransactionId;
-    } catch (error) {
-      console.error(ErrorMessages.ORGANIZATION_CREDIT_DB_USE, error);
-      throw new Error(ErrorMessages.ORGANIZATION_CREDIT_DB_USE);
-    }
+    await ctx.db.patch(existing._id, {
+      totalCredits: existing.totalCredits - 1,
+      lastUpdated: Date.now(),
+    });
+
+    return guestListCreditTransactionId;
   },
 });

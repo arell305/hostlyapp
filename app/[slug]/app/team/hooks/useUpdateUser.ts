@@ -1,8 +1,9 @@
 import { useMutation } from "convex/react";
-import { FrontendErrorMessages, ResponseStatus, UserRole } from "@/types/enums";
+import { UserRole } from "@/types/enums";
 import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { useState } from "react";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useUpdateUser = () => {
   const updateUser = useMutation(api.users.updateUserById);
@@ -20,17 +21,9 @@ export const useUpdateUser = () => {
     setError(null);
 
     try {
-      const response = await updateUser({ userId, update });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        return true;
-      }
-
-      setError(response.error);
-      return false;
+      return await updateUser({ userId, update });
     } catch (error) {
-      console.error(error);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
+      setErrorFromConvexError(error, setError);
       return false;
     } finally {
       setIsLoading(false);

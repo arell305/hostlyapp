@@ -47,7 +47,7 @@ const AddEventContent: React.FC<AddEventContentProps> = ({
       ticketData,
       guestListData
     );
-    if (result.success) {
+    if (result.eventId) {
       onSubmitSuccess(result.eventId);
     }
   };

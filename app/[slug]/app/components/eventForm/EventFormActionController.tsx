@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import EventFormActions from "@/components/shared/buttonContainers/EventFormActions";
-import { EventSchema } from "@/types/schemas-types";
 import { useEventForm } from "@/contexts/EventFormContext";
 import { EventFormInput, GuestListFormInput, TicketType } from "@/types/types";
 import { validateEventForm } from "@/utils/form-validation/validateEventForm";

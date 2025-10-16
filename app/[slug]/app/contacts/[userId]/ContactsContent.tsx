@@ -30,7 +30,7 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
       contactId,
       updates: { ...update },
     });
-    return result.success;
+    return result;
   };
 
   const showConfirmDeleteModal = (contactId: Doc<"contacts">["_id"]) => {
@@ -53,7 +53,7 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
       contactId: contactIdToDelete,
       updates: { isActive: false },
     });
-    if (result.success) {
+    if (result) {
       handleCloseConfirmDeleteModal();
     }
   };

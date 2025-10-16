@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { validatePromoDiscount } from "../../../../utils/frontend-validation";
-import { OrganizationSchema } from "@/types/types";
 import { useUpdateOrganizationName } from "./hooks/useUpdateOrganizationName";
 import { useUpdateOrganizationMetadata } from "./hooks/useUpdateOrganizationMetadata";
 import { useUploadOrganizationPhoto } from "./hooks/useUploadOrganizationPhoto";
@@ -16,9 +15,10 @@ import EditableContainer from "@/components/shared/containers/EditableContainer"
 import EditableImageContainer from "@/components/shared/containers/EditableImageContainer";
 import EditableCurrencyField from "@/components/shared/editable/EditableCurrencyField";
 import PageContainer from "@/components/shared/containers/PageContainer";
+import { Doc } from "convex/_generated/dataModel";
 
 interface CompanySettingsContentProps {
-  organization: OrganizationSchema;
+  organization: Doc<"organizations">;
   displayCompanyPhoto: string | null | undefined;
   canEditSettings: boolean;
 }
@@ -59,7 +59,9 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     const success = await uploadOrganizationPhoto(file, organization._id);
     if (success) {
@@ -90,7 +92,6 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
 
   const handleToggleEditing = () => {
     if (isEditing) {
-      // Reset unsaved changes
       setCompanyName(organization?.name);
       setPromoDiscount(organization?.promoDiscount.toString() || "");
     }

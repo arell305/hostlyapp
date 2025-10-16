@@ -1,9 +1,7 @@
-// components/faqs/ResponsiveAddFaq.tsx
 "use client";
 
 import ResponsiveModal from "../../components/responsive/ResponsiveModal";
 import FormActions from "@/components/shared/buttonContainers/FormActions";
-import { Id } from "convex/_generated/dataModel";
 import { TemplateValues } from "@/types/types";
 import { useInsertSmsTemplate } from "@/hooks/convex/smsTemplates";
 import { SmsMessageType } from "@/types/enums";
@@ -52,14 +50,14 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
     const body = values.body.trim();
     const name = values.name.trim();
 
-    const result = await insertSmsTemplate({
+    const success = await insertSmsTemplate({
       userId,
       body,
       name,
       messageType: values.messageType,
     });
 
-    if (result.success) {
+    if (success) {
       handleClose();
     }
   };

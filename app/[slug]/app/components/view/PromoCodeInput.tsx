@@ -7,7 +7,7 @@ import FieldErrorMessage from "@/components/shared/error/FieldErrorMessage";
 import { useEventCheckout } from "@/contexts/EventCheckoutContext";
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
-import { FrontendErrorMessages, ResponseStatus } from "@/types/enums";
+import { FrontendErrorMessages } from "@/types/enums";
 import { api } from "convex/_generated/api";
 
 const PromoCodeInput: React.FC<{ eventId: string }> = ({ eventId }) => {
@@ -30,19 +30,18 @@ const PromoCodeInput: React.FC<{ eventId: string }> = ({ eventId }) => {
   );
 
   useEffect(() => {
-    if (!shouldValidate) return;
+    if (!shouldValidate) {
+      return;
+    }
 
     setIsLoading(true);
 
-    if (validatePromoQuery === undefined) return;
-
-    if (validatePromoQuery.status === ResponseStatus.ERROR) {
-      setPromoCodeError(validatePromoQuery.error);
-      setIsPromoApplied(false);
-    } else {
-      setValidationResult(validatePromoQuery.data.promoterPromoCode);
-      setIsPromoApplied(true);
+    if (validatePromoQuery === undefined) {
+      return;
     }
+
+    setValidationResult(validatePromoQuery);
+    setIsPromoApplied(true);
 
     setIsLoading(false);
     setShouldValidate(false);

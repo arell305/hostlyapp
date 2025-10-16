@@ -2,8 +2,9 @@
 
 import React from "react";
 import GuestListAnalyticsContent from "./GuestListAnalyticsContent";
-import { useGuestListKpis } from "../hooks/useGuestListKpis";
-import { isError, isLoading } from "@/types/types";
+import { useGuestListKpis } from "@/hooks/convex/guestListEntries/useGuestListKpis";
+import { useContextOrganization } from "@/contexts/OrganizationContext";
+import AnalyticsSkeleton from "@/components/shared/skeleton/AnalyticsSkeleton";
 
 interface GuestListAnalyticsPageProps {
   dateRange: {
@@ -13,15 +14,18 @@ interface GuestListAnalyticsPageProps {
 }
 
 const GuestListAnalyticsPage = ({ dateRange }: GuestListAnalyticsPageProps) => {
-  const result = useGuestListKpis(dateRange);
+  const { organization } = useContextOrganization();
+  const organizationId = organization._id;
+  const fromTimestamp = dateRange.from?.getTime() ?? 0;
+  const toTimestamp = dateRange.to?.getTime() ?? Date.now();
 
-  if (isLoading(result) || isError(result)) {
-    return result.component;
+  const result = useGuestListKpis(organizationId, fromTimestamp, toTimestamp);
+
+  if (!result) {
+    return <AnalyticsSkeleton />;
   }
 
-  const guestListKpisData = result.data;
-
-  return <GuestListAnalyticsContent guestListKpisData={guestListKpisData} />;
+  return <GuestListAnalyticsContent guestListKpisData={result} />;
 };
 
 export default GuestListAnalyticsPage;

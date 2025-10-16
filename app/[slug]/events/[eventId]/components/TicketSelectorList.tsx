@@ -1,13 +1,13 @@
 "use client";
 
 import TicketSelector from "@/[slug]/app/components/view/TicketSelector";
-import { EventTicketTypesSchema } from "@/types/schemas-types";
 import { useEventCheckout } from "@/contexts/EventCheckoutContext";
 import React from "react";
 import { TicketSoldCountByType } from "@/types/types";
+import { Doc } from "convex/_generated/dataModel";
 
 interface TicketSelectorListProps {
-  ticketTypes: EventTicketTypesSchema[];
+  ticketTypes: Doc<"eventTicketTypes">[];
   ticketSoldCounts?: TicketSoldCountByType[] | null;
 }
 

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { GuestListInfoSchema } from "@/types/schemas-types";
 import { useAddPublicGuestListEntry } from "./hooks/addPublicGuestListEntry";
 import LabeledInputField from "@/components/shared/fields/LabeledInputField";
 import SingleSubmitButton from "@/components/shared/buttonContainers/SingleSubmitButton";
@@ -10,9 +9,10 @@ import {
   isValidFullName,
   isValidPhoneNumber,
 } from "@/utils/frontend-validation";
+import { Doc } from "convex/_generated/dataModel";
 
 interface EventGuestListFormProps {
-  guestListInfo: GuestListInfoSchema;
+  guestListInfo: Doc<"guestListInfo">;
   onBrowseMore?: () => void;
 }
 

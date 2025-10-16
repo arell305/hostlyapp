@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import { ResponseStatus, FrontendErrorMessages } from "@/types/enums";
 import { Id } from "../../../../../convex/_generated/dataModel";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 export const useUpdateOrganizationName = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -23,14 +23,9 @@ export const useUpdateOrganizationName = () => {
         name,
       });
 
-      if (response.status === ResponseStatus.SUCCESS) {
-        return { success: true, slug: response.data.slug };
-      }
-      setError(response.error);
-      return { success: false };
+      return { success: true, slug: response.slug };
     } catch (error) {
-      console.error(error);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
+      setErrorFromConvexError(error, setError);
       return { success: false };
     } finally {
       setIsLoading(false);

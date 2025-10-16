@@ -7,18 +7,8 @@ import {
   UserRole,
   SubscriptionTier,
 } from "@/types/enums";
-import {
-  GuestListSchema,
-  OrganizationSchema,
-  TicketSoldCountByType,
-  TicketType,
-} from "@/types/types";
-import {
-  EventSchema,
-  EventTicketTypesSchema,
-  UserSchema,
-} from "@/types/schemas-types";
-import { Id } from "../_generated/dataModel";
+import { TicketSoldCountByType, TicketType } from "@/types/types";
+import { Doc, Id } from "../_generated/dataModel";
 import { PLUS_GUEST_LIST_LIMIT, TIME_ZONE } from "@/types/constants";
 import { internal } from "../_generated/api";
 import { validateSubscription } from "./validation";
@@ -64,8 +54,8 @@ export function isUserTheSameAsIdentity(
 }
 
 export function isUserThePromoter(
-  guestList: GuestListSchema,
-  user: UserSchema
+  guestList: Doc<"guestListEntries">,
+  user: Doc<"users">
 ): boolean {
   if (user.role === UserRole.Hostly_Admin || UserRole.Hostly_Moderator) {
     return true;
@@ -77,14 +67,17 @@ export function isUserThePromoter(
 }
 
 export function isUserInCompanyOfEvent(
-  user: UserSchema,
-  event: EventSchema
+  user: Doc<"users">,
+  event: Doc<"events">
 ): boolean {
   if (user.role === UserRole.Hostly_Admin || UserRole.Hostly_Moderator) {
     return true;
   }
   if (event.organizationId !== user.organizationId) {
-    throw new Error(ErrorMessages.PROMOTER_NOT_BELONG_TO_COMPANY_OF_EVENT);
+    throw new ConvexError({
+      code: "FORBIDDEN",
+      message: ErrorMessages.PROMOTER_NOT_BELONG_TO_COMPANY_OF_EVENT,
+    });
   }
 
   return true;
@@ -98,7 +91,7 @@ export function shouldExposeError(errorMessage: string): boolean {
 
 export async function handleGuestListData(
   ctx: GenericActionCtx<any>,
-  organization: OrganizationSchema,
+  organization: Doc<"organizations">,
   eventId: Id<"events">,
   guestListData: {
     guestListCloseTime: number;
@@ -185,22 +178,11 @@ export async function handleGuestListData(
   return guestListInfoId;
 }
 
-interface TicketData {
-  ticketTypes: {
-    name: string;
-    price: number;
-    capacity: number;
-    stripeProductId: string;
-    stripePriceId: string;
-    ticketSalesEndTime: number;
-  }[];
-}
-
 export async function handleTicketData(
   ctx: GenericActionCtx<any>,
   eventId: Id<"events">,
   ticketData: TicketType[],
-  organization: OrganizationSchema
+  organization: Doc<"organizations">
 ): Promise<Id<"eventTicketTypes">[]> {
   const connectedAccount = await ctx.runQuery(
     internal.connectedAccounts.getConnectedAccountByCustomerId,
@@ -277,7 +259,6 @@ export function handleError(error: unknown): {
     error instanceof Error ? error.message : ErrorMessages.GENERIC_ERROR;
   console.error(ErrorMessages.INTERNAL_ERROR, errorMessage, error);
 
-  // Check if the error message contains dynamic ticket check-in information
   const isTicketCheckInError =
     errorMessage.includes("Ticket already checked in") ||
     errorMessage.includes("Invalid check-in");
@@ -294,7 +275,7 @@ export function handleError(error: unknown): {
 
 export async function handleGuestListUpdateData(
   ctx: GenericActionCtx<any>,
-  organization: OrganizationSchema,
+  organization: Doc<"organizations">,
   eventId: Id<"events">,
   guestListData: {
     guestListCloseTime: number;
@@ -319,7 +300,6 @@ export async function handleGuestListUpdateData(
     )
   );
 
-  // If guestListData is provided, handle creation or update
   if (guestListData) {
     if (existingGuestListInfo) {
       return await ctx.runMutation(internal.guestListInfo.updateGuestListInfo, {
@@ -413,8 +393,8 @@ export async function handleTicketUpdateData(
     stripePriceId?: string;
     ticketSalesEndTime: number;
   }[],
-  organization: OrganizationSchema,
-  existingTicketTypes: EventTicketTypesSchema[]
+  organization: Doc<"organizations">,
+  existingTicketTypes: Doc<"eventTicketTypes">[]
 ): Promise<Id<"eventTicketTypes">[]> {
   const connectedAccount = await ctx.runQuery(
     internal.connectedAccounts.getConnectedAccountByCustomerId,
@@ -563,7 +543,7 @@ export function calculateDiscount(
 }
 export interface GetTicketSoldCountsResponse {
   ticketSoldCounts: TicketSoldCountByType[];
-  ticketTypes: EventTicketTypesSchema[];
+  ticketTypes: Doc<"eventTicketTypes">[];
 }
 
 export async function getTicketSoldCounts(
@@ -614,7 +594,6 @@ export async function validateTicketAvailability({
   eventId,
   requestedTicketTypes,
 }: ValidateTicketAvailabilityArgs): Promise<void> {
-  // Fetch ticket types for this event
   const ticketTypes = await ctx.runQuery(
     internal.eventTicketTypes.internalGetEventTicketTypesByEventId,
     { eventId }
@@ -622,7 +601,6 @@ export async function validateTicketAvailability({
 
   const ticketTypeMap = new Map(ticketTypes.map((t) => [t._id, t]));
 
-  // Count how many tickets are already sold per type
   const soldTickets = await ctx.runQuery(
     internal.tickets.internalGetTicketsByEventId,
     { eventId }
@@ -680,7 +658,7 @@ export async function getActingClerkUserId(
 }
 
 export function hasTicketDataChanged(
-  existingTickets: EventTicketTypesSchema[],
+  existingTickets: Doc<"eventTicketTypes">[],
   newTickets: {
     name: string;
     price: number;
@@ -728,7 +706,6 @@ export function withFormattedTimes<
   };
 }
 
-// utils/pickDefined.ts
 export function pickDefined<T extends Record<string, unknown>>(source: {
   [K in keyof T]?: T[K] | undefined;
 }): Partial<T> {
