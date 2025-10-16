@@ -242,11 +242,12 @@ export const validateTicketCheckIn = (
   const eventEndTime = DateTime.fromMillis(event.endTime).toMillis();
 
   if (now < eventStartTime || now > eventEndTime) {
-    throw new Error(
-      `Invalid check-in. Ticket is for ${event.name} on ${formatToTimeAndShortDate(
+    throw new ConvexError({
+      code: "BAD_REQUEST",
+      message: `Invalid check-in. Ticket is for ${event.name} on ${formatToTimeAndShortDate(
         event.startTime
-      )}`
-    );
+      )}`,
+    });
   }
 };
 

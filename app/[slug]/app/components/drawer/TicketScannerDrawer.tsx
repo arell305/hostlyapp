@@ -4,9 +4,9 @@ import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
-import { ResponseStatus } from "@/types/enums";
 import IconButton from "@/components/shared/buttonContainers/IconButton";
 import { X } from "lucide-react";
+import { setErrorFromConvexError } from "@/lib/errorHelper";
 
 const TicketScannerModal = ({
   open,
@@ -19,7 +19,6 @@ const TicketScannerModal = ({
 
   const checkInTicket = useMutation(api.tickets.checkInTicket);
 
-  // Reset status any time the modal opens OR closes
   useEffect(() => {
     setCheckInStatus(null);
   }, [open]);
@@ -27,31 +26,25 @@ const TicketScannerModal = ({
   const handleScan = async (detectedCodes: IDetectedBarcode[]) => {
     if (!detectedCodes.length) return;
 
+    const qrData = detectedCodes[0].rawValue;
+    let ticketId: string | undefined;
+
     try {
-      const qrData = detectedCodes[0].rawValue;
-      let ticketId: string | undefined;
-
+      const parsedData = JSON.parse(qrData);
+      ticketId = parsedData?.ticketUniqueId;
+    } catch {
+      ticketId = qrData;
+    }
+    if (ticketId) {
       try {
-        const parsedData = JSON.parse(qrData);
-        ticketId = parsedData?.ticketUniqueId;
-      } catch {
-        ticketId = qrData; // plain string fallback
-      }
-
-      if (ticketId) {
         const response = await checkInTicket({ ticketUniqueId: ticketId });
 
-        if (response.status === ResponseStatus.SUCCESS) {
+        if (response) {
           setCheckInStatus("✅ Check-in successful!");
-        } else {
-          setCheckInStatus(`❌ Check-in failed: ${response.error}`);
         }
-      } else {
-        setCheckInStatus("❌ Invalid QR code format");
+      } catch (error) {
+        setErrorFromConvexError(error, setCheckInStatus);
       }
-    } catch (error) {
-      console.error(error);
-      setCheckInStatus("❌ Error parsing QR code");
     }
   };
 
@@ -59,7 +52,9 @@ const TicketScannerModal = ({
     <Drawer
       open={open}
       onOpenChange={(isOpen: boolean) => {
-        if (!isOpen) onClose(); // only trigger close callback when closing
+        if (!isOpen) {
+          onClose();
+        }
       }}
     >
       <DrawerContent className="fixed inset-x-0 bottom-0 h-[100vh] rounded-t-lg flex flex-col">
