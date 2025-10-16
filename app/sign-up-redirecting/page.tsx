@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useUser, useOrganizationList } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
@@ -34,20 +34,25 @@ export default function RedirectingSignUpPage() {
     user ? { clerkUserId: user.id } : "skip"
   );
 
-  const scheduleRetry = () => {
+  const scheduleRetry = useCallback(() => {
     if (attempt >= MAX_POLLS) return;
+
     const delay = Math.floor(BASE_INTERVAL * Math.pow(BACKOFF, attempt));
+
     if (timerRef.current) clearTimeout(timerRef.current);
+
     timerRef.current = setTimeout(() => {
       if (!mountedRef.current) return;
+
       setAttempt((a) => a + 1);
     }, delay);
-  };
+  }, [attempt]);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
@@ -65,10 +70,8 @@ export default function RedirectingSignUpPage() {
       }
 
       if (!organizationResponse) {
-        if (attempt < MAX_POLLS) {
-          scheduleRetry();
-          return;
-        }
+        if (attempt < MAX_POLLS) scheduleRetry();
+
         return;
       }
 
@@ -82,10 +85,7 @@ export default function RedirectingSignUpPage() {
           return;
         }
 
-        if (attempt < MAX_POLLS) {
-          scheduleRetry();
-          return;
-        }
+        if (attempt < MAX_POLLS) scheduleRetry();
 
         setError("No organization found. Please contact support.");
         return;

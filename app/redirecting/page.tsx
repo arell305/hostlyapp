@@ -98,23 +98,26 @@ export default async function PostSignIn() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in?redirect_url=/post-sign-in");
 
-  // Get Clerk user to read publicMetadata with proper typing
   const user = await currentUser();
   const role =
     (user?.publicMetadata?.role as UserRole | undefined) ?? undefined;
 
-  const res = await convex.query(
+  const org = await convex.query(
     api.organizations.getOrganizationByClerkUserId,
     {
       clerkUserId: userId,
     }
   );
 
-  const org = res?.data?.organization ?? null;
-
-  if (org?.slug === "admin") redirect("/admin/app/companies");
-  if (org) redirect(`/${org.slug}/app`);
-  if (role === UserRole.Admin) redirect("/create-company");
+  if (org?.slug === "admin") {
+    redirect("/admin/app/companies");
+  }
+  if (org) {
+    redirect(`/${org.slug}/app`);
+  }
+  if (role === UserRole.Admin) {
+    redirect("/create-company");
+  }
 
   redirect("/");
 }
