@@ -119,6 +119,7 @@ export default function RedirectingSignUpPage() {
     role,
     attempt,
     error,
+    scheduleRetry,
   ]);
 
   if (error) {
