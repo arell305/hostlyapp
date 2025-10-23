@@ -3,7 +3,7 @@
 import { action, internalAction } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
-import { StripeAccountStatus } from "@/types/enums";
+import { StripeAccountStatus } from "@/shared/types/enums";
 import { SubscriptionTierConvex } from "./schema";
 import {
   ErrorMessages,
@@ -12,7 +12,7 @@ import {
   SubscriptionStatus,
   SubscriptionTier,
   UserRole,
-} from "@/types/enums";
+} from "@/shared/types/enums";
 import {
   CreateStripeSubscriptionResponse,
   GetOnboardingLinkResponse,
@@ -20,9 +20,9 @@ import {
   ValidatePromoCodeResponse,
   DisconnectStripeActionResponse,
   WebhookResponse,
-} from "@/types/convex-types";
-import { USD_CURRENCY } from "@/types/constants";
-import { sendClerkInvitation } from "../utils/clerk";
+} from "@/shared/types/convex-types";
+import { USD_CURRENCY } from "@/shared/types/constants";
+import { sendClerkInvitation } from "../shared/utils/clerk";
 import {
   attachPaymentMethod,
   createStripeCustomer,
@@ -35,8 +35,8 @@ import {
   stripe,
   updateSubscriptionTierInStripe,
   verifyStripeWebhook,
-} from "./backendUtils/stripe";
-import { requireAuthenticatedUser } from "../utils/auth";
+} from "./functions/stripe";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
 import {
   validateCustomer,
   validateSubscription,
@@ -46,7 +46,7 @@ import {
   createStripeConnectedAccount,
   createStripeDashboardLoginLink,
   createStripeOnboardingSession,
-} from "./backendUtils/stripeConnect";
+} from "./functions/stripeConnect";
 import { deactivateStripeConnectedAccount } from "./connectedAccounts";
 import { handleError, validateTicketAvailability } from "./backendUtils/helper";
 import {
@@ -56,7 +56,7 @@ import {
   handleStripePaymentIntentSucceeded,
   handleSubscriptionDeleted,
   handleSubscriptionUpdated,
-} from "./backendUtils/stripeWebhooks";
+} from "./webhooks/stripeWebhooks";
 import { Id } from "./_generated/dataModel";
 import Stripe from "stripe";
 

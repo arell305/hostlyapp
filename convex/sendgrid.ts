@@ -1,9 +1,9 @@
 import { v } from "convex/values";
 import { action } from "./_generated/server";
-import { ErrorMessages, ResponseStatus } from "@/types/enums";
-import { SendContactFormEmailResponse } from "@/types/convex-types";
+import { ErrorMessages, ResponseStatus } from "@/shared/types/enums";
+import { SendContactFormEmailResponse } from "@/shared/types/convex-types";
 import { handleError } from "./backendUtils/helper";
-import { CONTACT_EMAIL } from "@/types/constants";
+import { CONTACT_EMAIL } from "@/shared/types/constants";
 
 const apiKey = process.env.SENDGRID_API_KEY;
 if (!apiKey) {

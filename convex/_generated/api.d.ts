@@ -13,13 +13,8 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as backendUtils_clerkWebhooks from "../backendUtils/clerkWebhooks.js";
 import type * as backendUtils_helper from "../backendUtils/helper.js";
 import type * as backendUtils_kpiHelper from "../backendUtils/kpiHelper.js";
-import type * as backendUtils_pdfMonkeyWebhooks from "../backendUtils/pdfMonkeyWebhooks.js";
-import type * as backendUtils_stripe from "../backendUtils/stripe.js";
-import type * as backendUtils_stripeConnect from "../backendUtils/stripeConnect.js";
-import type * as backendUtils_stripeWebhooks from "../backendUtils/stripeWebhooks.js";
 import type * as backendUtils_validation from "../backendUtils/validation.js";
 import type * as campaigns from "../campaigns.js";
 import type * as clerk from "../clerk.js";
@@ -30,6 +25,8 @@ import type * as customers from "../customers.js";
 import type * as eventTicketTypes from "../eventTicketTypes.js";
 import type * as events from "../events.js";
 import type * as faq from "../faq.js";
+import type * as functions_stripe from "../functions/stripe.js";
+import type * as functions_stripeConnect from "../functions/stripeConnect.js";
 import type * as guestListCreditTransactions from "../guestListCreditTransactions.js";
 import type * as guestListEntries from "../guestListEntries.js";
 import type * as guestListInfo from "../guestListInfo.js";
@@ -49,6 +46,9 @@ import type * as stripeConnectedCustomers from "../stripeConnectedCustomers.js";
 import type * as subscription from "../subscription.js";
 import type * as tickets from "../tickets.js";
 import type * as users from "../users.js";
+import type * as webhooks_clerkWebhooks from "../webhooks/clerkWebhooks.js";
+import type * as webhooks_pdfMonkeyWebhooks from "../webhooks/pdfMonkeyWebhooks.js";
+import type * as webhooks_stripeWebhooks from "../webhooks/stripeWebhooks.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -59,13 +59,8 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  "backendUtils/clerkWebhooks": typeof backendUtils_clerkWebhooks;
   "backendUtils/helper": typeof backendUtils_helper;
   "backendUtils/kpiHelper": typeof backendUtils_kpiHelper;
-  "backendUtils/pdfMonkeyWebhooks": typeof backendUtils_pdfMonkeyWebhooks;
-  "backendUtils/stripe": typeof backendUtils_stripe;
-  "backendUtils/stripeConnect": typeof backendUtils_stripeConnect;
-  "backendUtils/stripeWebhooks": typeof backendUtils_stripeWebhooks;
   "backendUtils/validation": typeof backendUtils_validation;
   campaigns: typeof campaigns;
   clerk: typeof clerk;
@@ -76,6 +71,8 @@ declare const fullApi: ApiFromModules<{
   eventTicketTypes: typeof eventTicketTypes;
   events: typeof events;
   faq: typeof faq;
+  "functions/stripe": typeof functions_stripe;
+  "functions/stripeConnect": typeof functions_stripeConnect;
   guestListCreditTransactions: typeof guestListCreditTransactions;
   guestListEntries: typeof guestListEntries;
   guestListInfo: typeof guestListInfo;
@@ -95,6 +92,9 @@ declare const fullApi: ApiFromModules<{
   subscription: typeof subscription;
   tickets: typeof tickets;
   users: typeof users;
+  "webhooks/clerkWebhooks": typeof webhooks_clerkWebhooks;
+  "webhooks/pdfMonkeyWebhooks": typeof webhooks_pdfMonkeyWebhooks;
+  "webhooks/stripeWebhooks": typeof webhooks_stripeWebhooks;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

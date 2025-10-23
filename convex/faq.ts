@@ -1,14 +1,14 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAuthenticatedUser } from "@/utils/auth";
+import { requireAuthenticatedUser } from "@/shared/utils/auth";
 import { validateFaq, validateOrganization } from "./backendUtils/validation";
 import {
   isEmptyObject,
   isUserInOrganization,
   pickDefined,
 } from "./backendUtils/helper";
-import { UserRole } from "@/types/enums";
-import { FaqPatch } from "@/types/patch-types";
+import { UserRole } from "@/shared/types/enums";
+import { FaqPatch } from "@/shared/types/patch-types";
 import { Doc } from "./_generated/dataModel";
 
 export const getCompanyFaqs = query({

@@ -1,7 +1,7 @@
 import {
   requireAuthenticatedUser,
   requireAuthenticatedUser2,
-} from "@/utils/auth";
+} from "@/shared/utils/auth";
 import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { validateThread, validateUser } from "./backendUtils/validation";

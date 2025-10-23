@@ -1,4 +1,8 @@
-import { ErrorMessages, ShowErrorMessages, UserRole } from "@/types/enums";
+import {
+  ErrorMessages,
+  ShowErrorMessages,
+  UserRole,
+} from "@/shared/types/enums";
 import {
   UserWithOrganizationId,
   UserWithOrgAndCustomer,
@@ -6,10 +10,10 @@ import {
   UserWithClerkId,
   UserWithOrgAndCustomerAndClerkId,
   UserWithOrgAndClerkId,
-} from "@/types/schemas-types";
+} from "@/shared/types/schemas-types";
 import { DateTime } from "luxon";
-import { formatToTimeAndShortDate } from "../../utils/luxon";
-import { StripeAccountStatus } from "@/types/enums";
+import { formatToTimeAndShortDate } from "../../shared/utils/luxon";
+import { StripeAccountStatus } from "@/shared/types/enums";
 import { Doc } from "convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 

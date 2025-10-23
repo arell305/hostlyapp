@@ -1,13 +1,13 @@
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { internalMutation, query } from "./_generated/server";
-import { requireAuthenticatedUser } from "../utils/auth";
-import { UserRole } from "@/types/enums";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
+import { UserRole } from "@/shared/types/enums";
 import { validateOrganization } from "./backendUtils/validation";
 import { isUserInOrganization } from "./backendUtils/helper";
-import { GetTotalRevenueByOrganizationData } from "@/types/convex-types";
-import { startOfPstDay } from "@/utils/luxon";
-import { formatToPstShortDate } from "@/utils/luxon";
+import { GetTotalRevenueByOrganizationData } from "@/shared/types/convex-types";
+import { startOfPstDay } from "@/shared/utils/luxon";
+import { formatToPstShortDate } from "@/shared/utils/luxon";
 
 export const insertConnectedPayment = internalMutation({
   args: {

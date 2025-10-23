@@ -6,12 +6,12 @@ import {
   query,
 } from "./_generated/server";
 import { RoleConvex } from "./schema";
-import { UserWithPromoCode } from "@/types/types";
+import { UserWithPromoCode } from "@/shared/types/types";
 import { Doc, Id } from "./_generated/dataModel";
-import { requireAuthenticatedUser } from "../utils/auth";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
 import { isUserInOrganization } from "./backendUtils/helper";
 import { validateOrganization, validateUser } from "./backendUtils/validation";
-import { ErrorMessages, UserRole } from "@/types/enums";
+import { ErrorMessages, UserRole } from "@/shared/types/enums";
 
 export const createUser = internalMutation({
   args: {

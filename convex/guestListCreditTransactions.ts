@@ -1,11 +1,11 @@
-import { action, internalMutation, mutation } from "./_generated/server";
+import { action, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { handleError } from "./backendUtils/helper";
-import { requireAuthenticatedUser } from "../utils/auth";
-import { ResponseStatus, UserRole } from "@/types/enums";
-import { createPaymentIntent } from "./backendUtils/stripe";
-import { CreateGuestListCreditPaymentIntentResponse } from "@/types/convex-types";
-import { GUEST_LIST_CREDIT_PRICE } from "@/types/constants";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
+import { ResponseStatus, UserRole } from "@/shared/types/enums";
+import { createPaymentIntent } from "@/convex/functions/stripe";
+import { CreateGuestListCreditPaymentIntentResponse } from "@/shared/types/convex-types";
+import { GUEST_LIST_CREDIT_PRICE } from "@/shared/types/constants";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import {

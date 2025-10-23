@@ -4,10 +4,10 @@ import {
   OrganizationProvider,
   useContextOrganization,
 } from "@/contexts/OrganizationContext";
-import Sidebar from "./components/shared/nav/Sidebar";
-import TicketScannerFAB from "./components/ui/TicketScannerFAB";
-import Navbar from "./components/shared/nav/Navbar";
-import { isModerator } from "@/utils/permissions";
+import Sidebar from "@/shared/ui/nav/Sidebar";
+import TicketScannerFAB from "@/shared/ui/fab/TicketScannerFAB";
+import Navbar from "@/shared/ui/nav/Navbar";
+import { isModerator } from "@/shared/utils/permissions";
 
 const InnerLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { orgRole } = useContextOrganization();

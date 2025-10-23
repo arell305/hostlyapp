@@ -3,9 +3,9 @@ import { action, internalAction } from "./_generated/server";
 import {
   handleGenerateSuccess,
   verifypdfMonkeyWebhook,
-} from "./backendUtils/pdfMonkeyWebhooks";
-import { WebhookResponse } from "@/types/convex-types";
-import { ErrorMessages } from "@/types/enums";
+} from "./webhooks/pdfMonkeyWebhooks";
+import { WebhookResponse } from "@/shared/types/convex-types";
+import { ErrorMessages } from "@/shared/types/enums";
 import { withFormattedTimes } from "./backendUtils/helper";
 
 export const fulfill = internalAction({

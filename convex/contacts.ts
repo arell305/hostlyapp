@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAuthenticatedUser2 } from "@/utils/auth";
+import { requireAuthenticatedUser2 } from "@/shared/utils/auth";
 import { validateContact, validateUser } from "./backendUtils/validation";
 import {
   isEmptyObject,
@@ -8,7 +8,7 @@ import {
   pickDefined,
 } from "./backendUtils/helper";
 
-import { GuestPatch } from "@/types/patch-types";
+import { GuestPatch } from "@/shared/types/patch-types";
 import { Doc } from "./_generated/dataModel";
 
 export const getContacts = query({

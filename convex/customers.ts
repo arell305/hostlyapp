@@ -1,8 +1,8 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, internalQuery, query } from "./_generated/server";
-import { ErrorMessages, UserRole } from "@/types/enums";
-import { CustomerWithCompanyName } from "@/types/schemas-types";
-import { requireAuthenticatedUser } from "../utils/auth";
+import { ErrorMessages, UserRole } from "@/shared/types/enums";
+import { CustomerWithCompanyName } from "@/shared/types/schemas-types";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
 import {
   validateCustomer,
   validateOrganization,

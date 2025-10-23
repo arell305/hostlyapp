@@ -1,11 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import Footer from "./components/layout/Footer";
-import Navbar from "./components/layout/Navbar";
-import Demo from "./components/pages/Demo";
-import Features from "./components/pages/Features";
-import Hero from "./components/pages/Hero";
-import Pricing from "./components/pages/Pricing";
+import Demo from "../shared/ui/marketing/Demo";
+import Features from "../shared/ui/marketing/Features";
+import Hero from "../shared/ui/marketing/Hero";
+import Pricing from "../shared/ui/marketing/Pricing";
+import Footer from "@/shared/ui/layout/Footer";
+import MarketingNavbar from "@/shared/ui/layout/MarketingNavbar";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -13,7 +13,7 @@ export default async function Home() {
 
   return (
     <>
-      <Navbar />
+      <MarketingNavbar />
       <main className="relative">
         <section className="max-w-4xl mx-auto">
           <Hero />

@@ -1,4 +1,4 @@
-import { requireAuthenticatedUser } from "@/utils/auth";
+import { requireAuthenticatedUser } from "@/shared/utils/auth";
 import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { validateCampaign, validateUser } from "./backendUtils/validation";

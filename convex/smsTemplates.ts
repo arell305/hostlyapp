@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAuthenticatedUser2 } from "@/utils/auth";
+import { requireAuthenticatedUser2 } from "@/shared/utils/auth";
 import { validateSmsTemplate, validateUser } from "./backendUtils/validation";
 import {
   isEmptyObject,

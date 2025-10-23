@@ -2,16 +2,23 @@
 
 import { action, internalAction } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-import { PendingInvitationUser } from "@/types/types";
+import { PendingInvitationUser } from "@/shared/types/types";
 import {
   RoleConvex,
   SubscriptionStatusConvex,
   SubscriptionTierConvex,
 } from "./schema";
 import { internal } from "./_generated/api";
-import { ErrorMessages, ShowErrorMessages, UserRole } from "@/types/enums";
-import { CreateOrganizationData, WebhookResponse } from "@/types/convex-types";
-import { requireAuthenticatedUser } from "../utils/auth";
+import {
+  ErrorMessages,
+  ShowErrorMessages,
+  UserRole,
+} from "@/shared/types/enums";
+import {
+  CreateOrganizationData,
+  WebhookResponse,
+} from "@/shared/types/convex-types";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
 import slugify from "slugify";
 import {
   clerkClient,
@@ -21,7 +28,7 @@ import {
   updateClerkOrganization,
   updateClerkOrganizationMetadata,
   updateOrganizationLogo,
-} from "../utils/clerk";
+} from "../shared/utils/clerk";
 import {
   getActingClerkUserId,
   isUserInOrganization,
@@ -31,7 +38,7 @@ import {
   handleUserCreated,
   handleUserUpdated,
   verifyClerkWebhook,
-} from "./backendUtils/clerkWebhooks";
+} from "./webhooks/clerkWebhooks";
 import {
   validateCustomer,
   validateOrganization,

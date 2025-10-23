@@ -5,21 +5,25 @@ import {
   internalQuery,
   query,
 } from "./_generated/server";
-import { ErrorMessages, UserRole, StripeAccountStatus } from "@/types/enums";
-import { WebhookResponse } from "@/types/convex-types";
+import {
+  ErrorMessages,
+  UserRole,
+  StripeAccountStatus,
+} from "@/shared/types/enums";
+import { WebhookResponse } from "@/shared/types/convex-types";
 import { StripeAccountStatusConvex } from "./schema";
 import { Doc, Id } from "./_generated/dataModel";
 import {
   validateConnectedAccount,
   validateUser,
 } from "./backendUtils/validation";
-import { stripe } from "./backendUtils/stripe";
-import { requireAuthenticatedUser } from "../utils/auth";
+import { stripe } from "@/convex/functions/stripe";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
 import {
   handleConnectedAccountUpdated,
   handlePaymentIntentSucceeded,
   verifyStripeConnectedWebhook,
-} from "./backendUtils/stripeConnect";
+} from "./functions/stripeConnect";
 
 export const saveConnectedAccount = internalMutation({
   args: {

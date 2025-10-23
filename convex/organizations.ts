@@ -5,18 +5,22 @@ import {
   OrganizationDetails,
   OrganizationPublic,
   UserWithPromoCode,
-} from "@/types/types";
-import { ErrorMessages, StripeAccountStatus, UserRole } from "@/types/enums";
-import { GetOrganizationContextData } from "@/types/convex-types";
+} from "@/shared/types/types";
+import {
+  ErrorMessages,
+  StripeAccountStatus,
+  UserRole,
+} from "@/shared/types/enums";
+import { GetOrganizationContextData } from "@/shared/types/convex-types";
 import { Doc, Id } from "./_generated/dataModel";
-import { requireAuthenticatedUser } from "../utils/auth";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
 import { isUserInOrganization } from "./backendUtils/helper";
 import {
   validateOrganization,
   validateSubscription,
   validateUser,
 } from "./backendUtils/validation";
-import { EventWithTicketTypes } from "@/types/schemas-types";
+import { EventWithTicketTypes } from "@/shared/types/schemas-types";
 
 export const createConvexOrganization = internalMutation({
   args: {
@@ -330,9 +334,7 @@ export const getOrganizationContext = query({
 });
 
 export const getPublicOrganizationContext = query({
-  args: {
-    slug: v.string(),
-  },
+  args: { slug: v.string() },
   handler: async (ctx, args): Promise<OrganizationPublic> => {
     const { slug } = args;
 
@@ -362,7 +364,7 @@ export const getPublicOrganizationContext = query({
       .order("asc")
       .collect();
 
-    const eventIds = events.map((event) => event._id);
+    const eventIds = events.map((e) => e._id);
 
     const ticketTypes = await ctx.db
       .query("eventTicketTypes")
@@ -372,10 +374,10 @@ export const getPublicOrganizationContext = query({
       .collect();
 
     const ticketMap = new Map<string, Doc<"eventTicketTypes">[]>();
-    ticketTypes.forEach((ticket) => {
-      const list = ticketMap.get(ticket.eventId) ?? [];
-      list.push(ticket);
-      ticketMap.set(ticket.eventId, list);
+    ticketTypes.forEach((t) => {
+      const list = ticketMap.get(t.eventId) ?? [];
+      list.push(t);
+      ticketMap.set(t.eventId, list);
     });
 
     const enrichedEvents: EventWithTicketTypes[] = events.map((event) => ({
@@ -383,14 +385,24 @@ export const getPublicOrganizationContext = query({
       ticketTypes: ticketMap.get(event._id) ?? [],
     }));
 
+    let photoUrl: string | null = null;
+    if (organization.photo) {
+      try {
+        photoUrl = await ctx.storage.getUrl(organization.photo);
+      } catch {
+        photoUrl = null;
+      }
+    }
+
     return {
       id: organization._id,
       name: organization.name,
-      photo: organization.photo,
+      photoUrl,
       connectedAccountStripeId: connectedAccount?.stripeAccountId,
       isStripeEnabled:
         connectedAccount?.status === StripeAccountStatus.VERIFIED,
       events: enrichedEvents,
+      slug: organization.slug,
     };
   },
 });

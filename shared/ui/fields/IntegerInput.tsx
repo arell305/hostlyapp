@@ -1,0 +1,58 @@
+"use client";
+
+import { NumericFormat } from "react-number-format";
+import { Label } from "@shared/ui/primitive/label";
+import LabelWrapper from "./LabelWrapper";
+import FieldErrorMessage from "../error/FieldErrorMessage";
+
+interface IntegerInputProps {
+  label?: string;
+  value: number | null;
+  onChange: (value: number | null) => void;
+  isEditing?: boolean;
+  error?: string | null;
+  name: string;
+  placeholder?: string;
+}
+
+const IntegerInput: React.FC<IntegerInputProps> = ({
+  label,
+  value,
+  onChange,
+  isEditing = true,
+  error,
+  name,
+  placeholder = "0",
+}) => {
+  return (
+    <div>
+      <LabelWrapper>
+        <Label htmlFor={name}>{label}</Label>
+        <NumericFormat
+          value={value === null ? "" : value}
+          onValueChange={(values) => {
+            if (values.value === "") {
+              onChange(null);
+            } else {
+              const numericValue = values.floatValue ?? 0;
+              onChange(numericValue);
+            }
+          }}
+          allowNegative={false}
+          decimalScale={0}
+          thousandSeparator
+          placeholder={placeholder}
+          disabled={!isEditing}
+          className={`focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full rounded-md border px-2 py-1 text-base bg-transparent text-white ${
+            error
+              ? "border-red-500 focus-visible:ring-red-500"
+              : "border-grayCustom"
+          }`}
+        />
+      </LabelWrapper>
+      <FieldErrorMessage error={error} />
+    </div>
+  );
+};
+
+export default IntegerInput;

@@ -1,6 +1,6 @@
 import { use } from "react";
 import { notFound } from "next/navigation";
-import { normalizeUserId } from "@/lib/normalizeParams";
+import { normalizeUserId } from "@shared/lib/normalizeParams";
 import { UserScopeProvider } from "@/contexts/UserScope";
 
 export default function Layout({

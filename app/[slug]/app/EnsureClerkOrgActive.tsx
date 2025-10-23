@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import { useOrganization, useOrganizationList, useUser } from "@clerk/nextjs";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
-import { isHostlyUser } from "@/utils/permissions";
+import { isHostlyUser } from "@/shared/utils/permissions";
 
 type Props = { children?: React.ReactNode };
 

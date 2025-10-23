@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { TITLE, DESC, META_DESC, WEBSITE } from "./types/constants";
+import { TITLE, DESC, META_DESC, WEBSITE } from "../shared/types/constants";
 import { Providers } from "./providers";
 import React, { Suspense } from "react";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/shared/ui/primitive/toaster";
 import { Settings } from "luxon";
-import RouteChangeProgress from "./components/layout/Nprogress";
+import RouteChangeProgress from "@/shared/ui/layout/Nprogress";
 
 Settings.defaultZone = "America/Los_Angeles";
 

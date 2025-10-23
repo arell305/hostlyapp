@@ -10,7 +10,7 @@ import {
   SmsMessageDirection,
   AuthorType,
   MessageStatus,
-} from "@/types/enums";
+} from "@/shared/types/enums";
 
 export const UserRoleEnumConvex = v.union(
   v.literal(UserRoleEnum.APP_ADMIN),

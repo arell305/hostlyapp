@@ -6,13 +6,16 @@ import {
   ResponseStatus,
   UserRole,
   SubscriptionTier,
-} from "@/types/enums";
-import { TicketSoldCountByType, TicketType } from "@/types/types";
+} from "@/shared/types/enums";
+import { TicketSoldCountByType, TicketType } from "@/shared/types/types";
 import { Doc, Id } from "../_generated/dataModel";
-import { PLUS_GUEST_LIST_LIMIT, TIME_ZONE } from "@/types/constants";
+import { PLUS_GUEST_LIST_LIMIT, TIME_ZONE } from "@/shared/types/constants";
 import { internal } from "../_generated/api";
 import { validateSubscription } from "./validation";
-import { createStripePrices, createStripeProduct } from "./stripe";
+import {
+  createStripePrices,
+  createStripeProduct,
+} from "@/convex/functions/stripe";
 import { DateTime } from "luxon";
 import { ConvexError } from "convex/values";
 

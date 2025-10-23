@@ -10,22 +10,22 @@ import {
   TicketInput,
   TicketSalesByPromoter,
   TicketTotalsItem,
-} from "@/types/types";
-import { ErrorMessages, UserRole, ResponseStatus } from "@/types/enums";
+} from "@/shared/types/types";
+import { ErrorMessages, UserRole, ResponseStatus } from "@/shared/types/enums";
 import { Doc, Id } from "./_generated/dataModel";
 import {
   CustomerTicket,
   TicketSchemaWithPromoter,
-} from "@/types/schemas-types";
+} from "@/shared/types/schemas-types";
 import {
   CheckInData,
   GetEventSummaryData,
   GetPromoterTicketKpisData,
   PromoterGuestStatsData,
-} from "@/types/convex-types";
+} from "@/shared/types/convex-types";
 import { nanoid } from "nanoid";
 import { api, internal } from "./_generated/api";
-import { requireAuthenticatedUser } from "../utils/auth";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
 import {
   validateEvent,
   validateUser,
@@ -34,8 +34,8 @@ import {
 } from "./backendUtils/validation";
 import { handleError, isUserInCompanyOfEvent } from "./backendUtils/helper";
 import { DateTime } from "luxon";
-import { formatToPstShortDate } from "@/utils/luxon";
-import { startOfPstDay } from "@/utils/luxon";
+import { formatToPstShortDate } from "@/shared/utils/luxon";
+import { startOfPstDay } from "@/shared/utils/luxon";
 
 export const insertTicketsSold = action({
   args: {

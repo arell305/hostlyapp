@@ -5,7 +5,7 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { PropsWithChildren } from "react";
 import React from "react";
-import { ErrorMessages } from "./types/enums";
+import { ErrorMessages } from "../shared/types/enums";
 import { dark } from "@clerk/themes";
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL as string;

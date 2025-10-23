@@ -1,7 +1,7 @@
-import React from "react";
+import AddCampaignPage from "@/features/campaigns/AddCampaignPage";
 
-const page = () => {
-  return <div>page</div>;
+const Page = () => {
+  return <AddCampaignPage />;
 };
 
-export default page;
+export default Page;

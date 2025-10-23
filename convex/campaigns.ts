@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAuthenticatedUser } from "@/utils/auth";
+import { requireAuthenticatedUser } from "@/shared/utils/auth";
 import { Doc, Id } from "./_generated/dataModel";
 import {
   isUserTheSameAsIdentity,
@@ -8,7 +8,7 @@ import {
   isEmptyObject,
 } from "./backendUtils/helper";
 import { validateCampaign, validateUser } from "./backendUtils/validation";
-import { CampaignPatch } from "@/types/patch-types";
+import { CampaignPatch } from "@/shared/types/patch-types";
 
 export const getCampaigns = query({
   args: { userId: v.id("users") },

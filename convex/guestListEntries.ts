@@ -4,9 +4,9 @@ import {
   isUserInOrganization,
 } from "./backendUtils/helper";
 import { mutation, query } from "./_generated/server";
-import { GetGuestListKpisData } from "@/types/convex-types";
-import { requireAuthenticatedUser } from "@/utils/auth";
-import { ShowErrorMessages, UserRole } from "@/types/enums";
+import { GetGuestListKpisData } from "@/shared/types/convex-types";
+import { requireAuthenticatedUser } from "@/shared/utils/auth";
+import { ShowErrorMessages, UserRole } from "@/shared/types/enums";
 import {
   validateEvent,
   validateGuestEntry,
@@ -15,9 +15,9 @@ import {
   validateOrganization,
   validateUser,
 } from "./backendUtils/validation";
-import { Promoter } from "@/types/types";
+import { Promoter } from "@/shared/types/types";
 import { Doc, Id } from "./_generated/dataModel";
-import { GuestListEntryWithPromoter } from "@/types/schemas-types";
+import { GuestListEntryWithPromoter } from "@/shared/types/schemas-types";
 import { computeKpis, getPercentageChange } from "./backendUtils/kpiHelper";
 
 export const getEventWithGuestLists = query({

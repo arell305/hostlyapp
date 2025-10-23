@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
-import { SubscriptionStatus } from "@/types/enums";
+import { SubscriptionStatus } from "@/shared/types/enums";
 import {
   validateCustomer,
   validateOrganization,

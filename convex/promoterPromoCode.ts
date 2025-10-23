@@ -1,14 +1,18 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { ErrorMessages, ShowErrorMessages, UserRole } from "@/types/enums";
-import { PromoterPromoCodeWithDiscount } from "@/types/schemas-types";
+import {
+  ErrorMessages,
+  ShowErrorMessages,
+  UserRole,
+} from "@/shared/types/enums";
+import { PromoterPromoCodeWithDiscount } from "@/shared/types/schemas-types";
 import {
   validateEvent,
   validateOrganization,
   validateUser,
 } from "./backendUtils/validation";
 import { isUserInCompanyOfEvent } from "./backendUtils/helper";
-import { requireAuthenticatedUser } from "../utils/auth";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
 
 export const addOrUpdatePromoterPromoCode = mutation({
   args: {

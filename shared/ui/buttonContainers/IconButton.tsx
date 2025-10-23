@@ -1,0 +1,39 @@
+import { cn } from "@/shared/lib/utils";
+import { ButtonHTMLAttributes } from "react";
+
+type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  icon: React.ReactNode;
+  iconClassName?: string;
+  variant?: "default" | "outline" | "green" | "ghost";
+};
+
+const IconButton = ({
+  icon,
+  iconClassName,
+  className,
+  variant = "default",
+  disabled,
+  ...props
+}: IconButtonProps) => {
+  return (
+    <button
+      {...props}
+      disabled={disabled}
+      className={cn(
+        "p-1.5 rounded-full transition cursor-pointer",
+        variant === "default" &&
+          "bg-transparent hover:bg-cardBackgroundHover border ",
+        variant === "outline" &&
+          "bg-transparent border border-gray-600 hover:bg-gray-700",
+        variant === "green" && "bg-greenCustom",
+        variant === "ghost" && "bg-transparent hover:bg-cardBackgroundHover",
+        disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+        className
+      )}
+    >
+      <span className={cn("text-greenCustom", iconClassName)}>{icon}</span>
+    </button>
+  );
+};
+
+export default IconButton;

@@ -6,17 +6,17 @@ import {
   internalMutation,
   internalQuery,
 } from "./_generated/server";
-import { ShowErrorMessages, UserRole } from "@/types/enums";
+import { ShowErrorMessages, UserRole } from "@/shared/types/enums";
 import { Doc, Id } from "./_generated/dataModel";
 import {
   GetEventWithTicketsData,
   GetEventByIdData,
   EventWithExtras,
-} from "@/types/convex-types";
-import { TIME_ZONE } from "@/types/constants";
+} from "@/shared/types/convex-types";
+import { TIME_ZONE } from "@/shared/types/constants";
 
 import { internal } from "./_generated/api";
-import { requireAuthenticatedUser } from "../utils/auth";
+import { requireAuthenticatedUser } from "../shared/utils/auth";
 import {
   validateEvent,
   validateOrganization,
