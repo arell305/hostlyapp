@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
-import { WebhookHandlerResponse } from "@/types/convex-types";
+import { WebhookHandlerResponse } from "../shared/types/convex-types";
 
 const http = httpRouter();
 
