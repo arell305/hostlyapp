@@ -1,7 +1,4 @@
-import {
-  requireAuthenticatedUser,
-  requireAuthenticatedUser2,
-} from "@/shared/utils/auth";
+import { requireAuthenticatedUser } from "@/shared/utils/auth";
 import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { validateThread, validateUser } from "./backendUtils/validation";
@@ -10,7 +7,7 @@ import { isUserTheSameAsIdentity } from "./backendUtils/helper";
 export const getSmsMessagesForThread = query({
   args: { threadId: v.id("smsThreads") },
   handler: async (ctx, { threadId }) => {
-    const identity = await requireAuthenticatedUser2(ctx);
+    const identity = await requireAuthenticatedUser(ctx);
 
     const thread = validateThread(await ctx.db.get(threadId));
     const user = validateUser(await ctx.db.get(thread.userId));

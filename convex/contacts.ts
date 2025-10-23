@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAuthenticatedUser2 } from "@/shared/utils/auth";
+import { requireAuthenticatedUser } from "@/shared/utils/auth";
 import { validateContact, validateUser } from "./backendUtils/validation";
 import {
   isEmptyObject,
@@ -16,7 +16,7 @@ export const getContacts = query({
   handler: async (ctx, args): Promise<Doc<"contacts">[]> => {
     const { userId } = args;
 
-    const identity = await requireAuthenticatedUser2(ctx);
+    const identity = await requireAuthenticatedUser(ctx);
 
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
@@ -40,7 +40,7 @@ export const insertContact = mutation({
   handler: async (ctx, args): Promise<boolean> => {
     const { name, userId, phoneNumber } = args;
 
-    const identity = await requireAuthenticatedUser2(ctx);
+    const identity = await requireAuthenticatedUser(ctx);
 
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
@@ -70,7 +70,7 @@ export const updateContact = mutation({
     const { contactId, updates } = args;
     const { name, phoneNumber, isActive } = updates;
 
-    const identity = await requireAuthenticatedUser2(ctx);
+    const identity = await requireAuthenticatedUser(ctx);
 
     const contact = validateContact(await ctx.db.get(contactId));
     const user = validateUser(await ctx.db.get(contact.userId));

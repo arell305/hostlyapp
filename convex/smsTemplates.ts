@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAuthenticatedUser2 } from "@/shared/utils/auth";
+import { requireAuthenticatedUser } from "@/shared/utils/auth";
 import { validateSmsTemplate, validateUser } from "./backendUtils/validation";
 import {
   isEmptyObject,
@@ -8,7 +8,7 @@ import {
   pickDefined,
 } from "./backendUtils/helper";
 import { SmsMessageTypeConvex } from "./schema";
-import { SmsTemplatePatch } from "@/types/patch-types";
+import { SmsTemplatePatch } from "@/shared/types/patch-types";
 import { Doc } from "./_generated/dataModel";
 
 export const getSmsTemplates = query({
@@ -16,7 +16,7 @@ export const getSmsTemplates = query({
   handler: async (ctx, args): Promise<Doc<"smsTemplates">[]> => {
     const { userId } = args;
 
-    const identity = await requireAuthenticatedUser2(ctx);
+    const identity = await requireAuthenticatedUser(ctx);
 
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
@@ -42,7 +42,7 @@ export const insertSmsTemplate = mutation({
   handler: async (ctx, args): Promise<boolean> => {
     const { body, messageType, name, userId } = args;
 
-    const identity = await requireAuthenticatedUser2(ctx);
+    const identity = await requireAuthenticatedUser(ctx);
 
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
@@ -74,7 +74,7 @@ export const updateSmsTemplate = mutation({
     const { smsTemplateId, updates } = args;
     const { body, messageType, name, isActive } = updates;
 
-    const idenitity = await requireAuthenticatedUser2(ctx);
+    const idenitity = await requireAuthenticatedUser(ctx);
 
     const smsTemplate = validateSmsTemplate(await ctx.db.get(smsTemplateId));
     const user = validateUser(await ctx.db.get(smsTemplate.userId));
