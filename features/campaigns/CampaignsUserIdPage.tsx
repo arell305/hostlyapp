@@ -33,7 +33,7 @@ const CampaignsUserIdPage = () => {
         value={selectedTab}
         onChange={setSelectedTab}
       />
-      <CampaignsLoader />
+      <CampaignsLoader selectedTab={selectedTab} />
     </PageContainer>
   );
 };
