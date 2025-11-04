@@ -6,7 +6,7 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import { SubscriptionTier } from "./enums";
+import { SmsMessageType, SubscriptionTier } from "./enums";
 import { PricingOption } from "./types";
 
 export const TITLE = "Hostly";
@@ -132,3 +132,40 @@ export const ERROR_MESSAGES: Record<string, string> = {
 
 export const DEFAULT_ERROR_MESSAGE =
   "An unexpected error occurred. Please try again.";
+
+export const MESSAGE_TYPE_OPTIONS = [
+  { value: SmsMessageType.BEFORE_EVENT, label: "Before Event" },
+  { value: SmsMessageType.ATTENDED_EVENT, label: "Attended" },
+  { value: SmsMessageType.NOT_ATTENDED_EVENT, label: "Not Attended" },
+  { value: SmsMessageType.ALL_DB_GUESTS, label: "All Guests" },
+];
+
+export const TAGS_BY_TYPE: Record<
+  SmsMessageType,
+  { key: string; label: string }[]
+> = {
+  [SmsMessageType.BEFORE_EVENT]: [
+    { key: "firstName", label: "First Name" },
+    { key: "lastName", label: "Last Name" },
+    { key: "eventName", label: "Event Name" },
+    { key: "eventDate", label: "Event Date" },
+    { key: "eventTime", label: "Event Time" },
+    { key: "venueName", label: "Venue" },
+  ],
+  [SmsMessageType.ATTENDED_EVENT]: [
+    { key: "firstName", label: "First Name" },
+    { key: "lastName", label: "Last Name" },
+    { key: "eventName", label: "Event Name" },
+  ],
+  [SmsMessageType.NOT_ATTENDED_EVENT]: [
+    { key: "firstName", label: "First Name" },
+    { key: "lastName", label: "Last Name" },
+    { key: "eventName", label: "Event Name" },
+    { key: "nextEventDate", label: "Next Event" },
+  ],
+  [SmsMessageType.ALL_DB_GUESTS]: [
+    { key: "firstName", label: "First Name" },
+    { key: "lastName", label: "Last Name" },
+    { key: "companyName", label: "Company" },
+  ],
+};

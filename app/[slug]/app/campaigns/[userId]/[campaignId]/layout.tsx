@@ -1,7 +1,7 @@
 import { use } from "react";
 import { notFound } from "next/navigation";
 import { normalizeCampaignId } from "@/shared/lib/normalizeParams";
-import { CampaignIdScopeProvider } from "@/contexts/CampaignIdScope";
+import { CampaignScopeProvider } from "@/contexts/CampaignIdScope";
 
 export default function Layout({
   children,
@@ -17,8 +17,8 @@ export default function Layout({
   }
 
   return (
-    <CampaignIdScopeProvider campaignId={campaignId}>
+    <CampaignScopeProvider campaignId={campaignId}>
       {children}
-    </CampaignIdScopeProvider>
+    </CampaignScopeProvider>
   );
 }

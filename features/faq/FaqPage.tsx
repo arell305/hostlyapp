@@ -3,7 +3,7 @@
 import PageContainer from "@shared/ui/containers/PageContainer";
 import SectionHeaderWithAction from "@shared/ui/headings/SectionHeaderWithAction";
 import React, { useState } from "react";
-import FAQQuery from "@/features/faq/components/FAQQuery";
+import FaqLoader from "@/features/faq/components/FaqLoader";
 import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { canCreateEvent } from "@/shared/utils/permissions";
 import { Plus } from "lucide-react";
@@ -36,7 +36,7 @@ const FAQPage = () => {
           )
         }
       />
-      <FAQQuery />
+      <FaqLoader />
       {isAddingFAQ && (
         <ResponsiveAddFaq
           isOpen={isAddingFAQ}

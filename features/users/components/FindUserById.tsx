@@ -1,7 +1,6 @@
 "use client";
 
 import { useFindUserById } from "@/domain/users";
-import ProfileSkeleton from "@shared/ui/skeleton/ProfileSkeleton";
 import { Id } from "convex/_generated/dataModel";
 import UserIdContent from "@/features/users/components/UserIdContent";
 
@@ -18,7 +17,7 @@ const FindUserById = ({
   const user = useFindUserById(userId);
 
   if (!user) {
-    return <ProfileSkeleton />;
+    return;
   }
   return (
     <UserIdContent

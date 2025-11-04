@@ -18,6 +18,7 @@ interface LabeledDateTimeFieldProps {
   placeholder?: string;
   className?: string;
   isIOS?: boolean;
+  min?: string;
 }
 
 const LabeledDateTimeField: React.FC<LabeledDateTimeFieldProps> = ({
@@ -29,6 +30,7 @@ const LabeledDateTimeField: React.FC<LabeledDateTimeFieldProps> = ({
   placeholder = "Select date and time",
   className = "",
   isIOS = false,
+  min,
 }) => {
   const formattedValue = formatToDateTimeLocalPST(value);
   const isEmpty = !formattedValue;
@@ -49,6 +51,7 @@ const LabeledDateTimeField: React.FC<LabeledDateTimeFieldProps> = ({
             className={`h-10 ${isEmpty && isIOS ? "text-transparent" : ""} ${
               error ? "border-red-500" : ""
             } ${className}`}
+            min={min}
           />
           {isEmpty && isIOS && (
             <span className="pl-2 absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">

@@ -1,70 +1,65 @@
 "use client";
 
-import { InlineEditActions } from "@shared/ui/buttonContainers/InlineEditActions";
-import CustomCard from "@shared/ui/cards/CustomCard";
-import { ContactValues } from "@shared/types/types";
-import { Doc, Id } from "@convex/_generated/dataModel";
-import { useState } from "react";
+import { Badge } from "@/shared/ui/primitive/badge";
+import IconButton from "@/shared/ui/buttonContainers/IconButton";
+import { Pencil, Trash } from "lucide-react";
+import { Doc, Id } from "convex/_generated/dataModel";
+import { formatPhoneNumber } from "@/shared/utils/format";
+import {
+  CONSENT_STATUS_LABEL,
+  consentBadgeClass,
+} from "@/shared/lib/frontendHelper";
 
-interface ContactCardProps {
+type ContactCardProps = {
   contact: Doc<"contacts">;
-  onSave: (
-    contactId: Id<"contacts">,
-    update: ContactValues
-  ) => Promise<boolean | void>;
-  onDelete: (contactId: Id<"contacts">) => void;
-  isLoading: boolean;
-  error?: string | null;
-}
-const ContactCard = ({
+  onEdit: (contact: Doc<"contacts">) => void;
+  onShowDelete: (id: Id<"contacts">) => void;
+};
+
+const ContactCard: React.FC<ContactCardProps> = ({
   contact,
-  onSave,
-  onDelete,
-  isLoading,
-  error,
-}: ContactCardProps) => {
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [name, setName] = useState<string>(contact.name);
-  const [phoneNumber, setPhoneNumber] = useState<string>(
-    contact.phoneNumber || ""
-  );
+  onEdit,
+  onShowDelete,
+}) => {
+  const status = contact.consentStatus;
+  const badgeClass = consentBadgeClass(status);
+  const statusLabel = CONSENT_STATUS_LABEL[status];
 
-  const canSave = name.trim().length > 0 && phoneNumber.trim().length > 0;
-
-  const startEdit = () => setIsEditing(true);
-  const cancelEdit = () => setIsEditing(false);
-
-  const handleSave = async () => {
-    if (!onSave || !canSave) {
-      return;
-    }
-
-    const ok = await onSave(contact._id, { name, phoneNumber });
-    if (ok) {
-      setIsEditing(false);
-    }
-  };
-
-  const handleDelete = () => {
-    if (onDelete) {
-      onDelete(contact._id);
-    }
-  };
   return (
-    <CustomCard>
-      <InlineEditActions
-        isEditing={isEditing}
-        canSave={canSave}
-        isSaving={isLoading}
-        onEdit={startEdit}
-        onCancel={cancelEdit}
-        onSave={handleSave}
-        onDelete={handleDelete}
-        showEditButton={true}
-      />
-      <h1>{contact.name}</h1>
-      <p>{contact.phoneNumber}</p>
-    </CustomCard>
+    <div className="border-b p-4 w-full flex justify-between items-center">
+      <div className="flex justify-center items-center">
+        <div>
+          <div className="flex items-center">
+            <p className="text-xl font-semibold">{contact.name}</p>
+            <p className="text-lg text-whiteText/70 font-normal pt-[2px] ml-2">
+              {formatPhoneNumber(contact.phoneNumber || "")}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 pt-[2px]">
+            <Badge className={badgeClass}>{statusLabel}</Badge>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <IconButton
+          icon={<Pencil size={20} />}
+          title="Edit"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(contact);
+          }}
+        />
+        <IconButton
+          icon={<Trash size={20} />}
+          title="Delete"
+          onClick={(e) => {
+            e.stopPropagation();
+            onShowDelete(contact._id);
+          }}
+        />
+      </div>
+    </div>
   );
 };
 

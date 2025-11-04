@@ -2,7 +2,6 @@
 
 import { useGetEventSummary } from "@/domain/tickets/useGetEventSummary";
 import { Doc } from "convex/_generated/dataModel";
-import GuestListSkeleton from "@shared/ui/skeleton/GuestListSkeleton";
 import SummaryContent from "@/features/events/components/summary/SummaryContent";
 
 interface GetEventSummaryProps {
@@ -23,7 +22,7 @@ const GetEventSummary = ({
   const result = useGetEventSummary({ eventId: event._id });
 
   if (!result) {
-    return <GuestListSkeleton className="mt-4" />;
+    return;
   }
 
   const { promoterGuestStats, tickets, ticketTotals } = result;

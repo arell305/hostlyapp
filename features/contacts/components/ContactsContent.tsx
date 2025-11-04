@@ -2,10 +2,11 @@
 
 import { Doc, Id } from "convex/_generated/dataModel";
 import { useState } from "react";
-import ContactCard from "./ContactCard";
 import { useUpdateContact } from "@/domain/contacts";
-import { ContactValues } from "@/shared/types/types";
 import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
+import CustomCard from "@/shared/ui/cards/CustomCard";
+import ContactCard from "./ContactCard";
+import ResponsiveEditContact from "./ResponsiveEditContact";
 
 interface ContactsContentProps {
   contacts: Doc<"contacts">[];
@@ -16,6 +17,11 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
   const [contactIdToDelete, setContactIdToDelete] =
     useState<Id<"contacts"> | null>(null);
 
+  const [showEdit, setShowEdit] = useState<boolean>(false);
+  const [contactToEdit, setContactToEdit] = useState<Doc<"contacts"> | null>(
+    null
+  );
+
   const {
     updateContact,
     updateContactLoading,
@@ -23,15 +29,16 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
     setUpdateContactError,
   } = useUpdateContact();
 
-  const handleSave = async (
-    contactId: Doc<"contacts">["_id"],
-    update: ContactValues
-  ) => {
-    const result = await updateContact({
-      contactId,
-      updates: { ...update },
-    });
-    return result;
+  const openEdit = (contact: Doc<"contacts">) => {
+    setContactToEdit(contact);
+    setUpdateContactError(null);
+    setShowEdit(true);
+  };
+
+  const closeEdit = () => {
+    setShowEdit(false);
+    setContactToEdit(null);
+    setUpdateContactError(null);
   };
 
   const showConfirmDeleteModal = (contactId: Doc<"contacts">["_id"]) => {
@@ -60,17 +67,26 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
   };
 
   return (
-    <div>
+    <CustomCard>
       {contacts.map((contact) => (
         <ContactCard
           key={contact._id}
           contact={contact}
-          onSave={handleSave}
-          onDelete={showConfirmDeleteModal}
-          isLoading={updateContactLoading}
-          error={updateContactError}
+          onEdit={() => openEdit(contact)}
+          onShowDelete={() => showConfirmDeleteModal(contact._id)}
         />
       ))}
+
+      <ResponsiveEditContact
+        isOpen={showEdit}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeEdit();
+          }
+        }}
+        contact={contactToEdit}
+      />
+
       <ResponsiveConfirm
         isOpen={showConfirmDelete}
         title="Confirm Deletion"
@@ -78,7 +94,7 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
         cancelText="No, Cancel"
         confirmVariant="destructive"
         content={
-          "Are you sure you want to delete this FAQ? This action cannot be undone."
+          "Are you sure you want to delete this contact? This action cannot be undone."
         }
         error={updateContactError}
         isLoading={updateContactLoading}
@@ -86,8 +102,14 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
           onClose: handleCloseConfirmDeleteModal,
           onConfirm: handleDelete,
         }}
+        drawerProps={{
+          onOpenChange: (open: boolean) => {
+            if (!open) handleCloseConfirmDeleteModal();
+          },
+          onSubmit: handleDelete,
+        }}
       />
-    </div>
+    </CustomCard>
   );
 };
 

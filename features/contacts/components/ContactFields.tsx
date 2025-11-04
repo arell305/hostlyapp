@@ -3,6 +3,7 @@
 import FormContainer from "@shared/ui/containers/FormContainer";
 import LabeledInputField from "@shared/ui/fields/LabeledInputField";
 import type { ContactValues } from "@shared/types/types";
+import PhoneNumberInput from "@/shared/ui/fields/PhoneNumberInput";
 
 export function ContactFields({
   values,
@@ -18,19 +19,19 @@ export function ContactFields({
   return (
     <FormContainer className={className}>
       <LabeledInputField
-        label="Name"
+        label="Name*"
         type="text"
         placeholder="Enter name"
         name="name"
         value={values.name}
         onChange={(e) => onChange({ name: e.target.value })}
       />
-      <LabeledInputField
-        label="Phone Number"
+      <PhoneNumberInput
+        label="Phone Number*"
+        value={values.phoneNumber ?? ""}
+        onChange={(val) => onChange({ phoneNumber: val })}
         placeholder="Enter phone number"
         name="phoneNumber"
-        value={values.phoneNumber}
-        onChange={(e) => onChange({ phoneNumber: e.target.value })}
       />
       {children}
     </FormContainer>

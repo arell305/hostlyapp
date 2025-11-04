@@ -1,7 +1,7 @@
-import CampaignsPage from "@/features/campaigns/CampaignsPage";
+import CampaignsUserIdPage from "@/features/campaigns/CampaignsUserIdPage";
 
 const Page = () => {
-  return <CampaignsPage />;
+  return <CampaignsUserIdPage />;
 };
 
 export default Page;

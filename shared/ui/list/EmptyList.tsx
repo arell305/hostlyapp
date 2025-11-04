@@ -8,7 +8,7 @@ interface EmptyListProps {
 
 const EmptyList: React.FC<EmptyListProps> = ({
   items,
-  message = "No results found",
+  message = "No results found.",
   className = "",
 }) => {
   if (items && items.length > 0) return null;

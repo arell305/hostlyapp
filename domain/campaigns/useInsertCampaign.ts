@@ -8,9 +8,8 @@ import { FrontendErrorMessages } from "@/shared/types/enums";
 
 interface InsertCampaignInput {
   name: string;
-  isActive: boolean;
   userId: Id<"users">;
-  eventId?: Id<"events">;
+  eventId: Id<"events"> | null;
   scheduleTime?: number;
   relativeOffsetMinutes?: number;
   promptResponse?: string;

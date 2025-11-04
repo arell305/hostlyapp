@@ -1,9 +1,8 @@
 "use client";
 
-import SubscriptionSkeleton from "@shared/ui/skeleton/SubscriptionSkeleton";
 import { useContacts } from "@/domain/contacts";
 import { Id } from "convex/_generated/dataModel";
-import ContactsContent from "./ContactsContent";
+import ContactsSection from "./ContactsSection";
 
 type ContactsLoaderProps = {
   userId?: Id<"users">;
@@ -13,10 +12,10 @@ const ContactsLoader = ({ userId }: ContactsLoaderProps) => {
   const contacts = useContacts(userId);
 
   if (!contacts) {
-    return <SubscriptionSkeleton />;
+    return;
   }
 
-  return <ContactsContent contacts={contacts} />;
+  return <ContactsSection contacts={contacts} />;
 };
 
 export default ContactsLoader;

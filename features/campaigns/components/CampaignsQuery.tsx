@@ -1,18 +1,22 @@
 "use client";
-import SubscriptionSkeleton from "@shared/ui/skeleton/SubscriptionSkeleton";
 import { useCampaigns } from "@/domain/campaigns";
-import CampaignsContent from "./CampaignsContent";
 import { useUserScope } from "@/contexts/UserScope";
+import CampaignsSection from "../CampaignsSection";
+import { CampaignFilter } from "@/shared/types/types";
 
-const CampaignsQuery = () => {
+interface CampaignsLoaderProps {
+  selectedTab: CampaignFilter;
+}
+
+const CampaignsLoader = ({ selectedTab }: CampaignsLoaderProps) => {
   const { userId } = useUserScope();
-  const campaigns = useCampaigns(userId);
+  const campaigns = useCampaigns(userId, selectedTab);
 
   if (!campaigns) {
-    return <SubscriptionSkeleton />;
+    return;
   }
 
-  return <CampaignsContent campaigns={campaigns} />;
+  return <CampaignsSection campaigns={campaigns} />;
 };
 
-export default CampaignsQuery;
+export default CampaignsLoader;

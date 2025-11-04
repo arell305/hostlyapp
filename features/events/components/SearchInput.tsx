@@ -56,7 +56,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
             e.stopPropagation(); // prevent triggering focus scroll
             setSearchTerm("");
           }}
-          className="cursor-pointer absolute right-4 text-grayText hover:text-cardBackgroundHover: text-2xl"
+          className="cursor-pointer absolute right-4 text-grayText hover:opacity-80 text-2xl"
         />
       )}
     </div>

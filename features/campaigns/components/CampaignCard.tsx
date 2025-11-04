@@ -3,18 +3,22 @@
 import CustomCard from "@shared/ui/cards/CustomCard";
 import { CardHeader, CardTitle } from "@shared/ui/primitive/card";
 import { Doc } from "convex/_generated/dataModel";
+import Link from "next/link";
 
 interface CampaignCardProps {
   campaign: Doc<"campaigns">;
+  href: string;
 }
 
-const CampaignCard = ({ campaign }: CampaignCardProps) => {
+const CampaignCard = ({ campaign, href }: CampaignCardProps) => {
   return (
-    <CustomCard>
-      <CardHeader>
-        <CardTitle>{campaign.name}</CardTitle>
-      </CardHeader>
-    </CustomCard>
+    <Link href={href}>
+      <CustomCard className="cursor-pointer hover:bg-cardBackgroundHover">
+        <CardHeader>
+          <CardTitle>{campaign.name}</CardTitle>
+        </CardHeader>
+      </CustomCard>
+    </Link>
   );
 };
 

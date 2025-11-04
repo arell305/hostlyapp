@@ -7,14 +7,18 @@ import { Id } from "convex/_generated/dataModel";
 import { ContactValues } from "@/shared/types/types";
 import { useInsertContact } from "@/domain/contacts";
 import { ContactFields } from "@/features/contacts/components/ContactFields";
+import {
+  isValidFullName,
+  isValidPhoneNumber,
+} from "@/shared/utils/frontend-validation";
 
-interface ResponsiveAddFaqProps {
+interface ResponsiveAddContactProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   userId?: Id<"users">;
 }
 
-const ResponsiveAddFaq: React.FC<ResponsiveAddFaqProps> = ({
+const ResponsiveAddContact: React.FC<ResponsiveAddContactProps> = ({
   isOpen,
   onOpenChange,
   userId,
@@ -61,10 +65,10 @@ const ResponsiveAddFaq: React.FC<ResponsiveAddFaqProps> = ({
   };
 
   const isDisabled =
-    !values.name.trim() ||
-    !values.phoneNumber.trim() ||
+    !isValidFullName(values.name) ||
     insertContactLoading ||
-    !userId;
+    !userId ||
+    !isValidPhoneNumber(values.phoneNumber);
 
   return (
     <ResponsiveModal
@@ -90,4 +94,4 @@ const ResponsiveAddFaq: React.FC<ResponsiveAddFaqProps> = ({
   );
 };
 
-export default ResponsiveAddFaq;
+export default ResponsiveAddContact;

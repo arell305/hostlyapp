@@ -23,6 +23,9 @@ const buttonVariants = cva(
         sidebar:
           "bg-transparent justify-start gap-3 hover:bg-cardBackgroundHover",
         nav: "bg-cardBackgroundHover rounded-[20px] hover:bg-primaryBlue",
+        secondaryAction:
+          "bg-transparent border border-grayText hover:bg-grayText/10",
+        selection: "rounded-[20px] border font-normal",
       },
       size: {
         default:
@@ -34,7 +37,7 @@ const buttonVariants = cva(
         doubelButtons: "h-10 px-4 py-2 rounded-[20px] w-[200px]",
         nav: "text-base md:text-sm px-3 py-2 gap-1",
         navButton: "w-[90px] h-[42px] rounded-[12px] text-base font-medium",
-        xs: " px-3 py-2 h-9 font-medium",
+        xs: " px-3 py-2 h-9 font-normal",
         datePreset: "h-12 px-4 py-4",
         sidebar:
           "h-12 w-full px-4 text-base md:text-sm font-medium rounded-[12px]",

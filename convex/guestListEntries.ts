@@ -19,6 +19,8 @@ import { Promoter } from "@/shared/types/types";
 import { Doc, Id } from "./_generated/dataModel";
 import { GuestListEntryWithPromoter } from "@/shared/types/schemas-types";
 import { computeKpis, getPercentageChange } from "./backendUtils/kpiHelper";
+import { upsertContactForUser } from "./backendUtils/contactsHelper";
+import { isValidPhoneNumber } from "@/shared/utils/frontend-validation";
 
 export const getEventWithGuestLists = query({
   args: { eventId: v.id("events") },
@@ -244,10 +246,18 @@ export const addGuestListEntry = mutation({
     const event = validateEvent(await ctx.db.get(eventId));
     isUserInCompanyOfEvent(user, event);
 
-    const insertedGuestIds: Id<"guestListEntries">[] = [];
-
     for (const guest of guests) {
-      const guestId = await ctx.db.insert("guestListEntries", {
+      if (guest.phoneNumber !== undefined) {
+        const isPhoneNumberValid = isValidPhoneNumber(guest.phoneNumber.trim());
+        if (!isPhoneNumberValid) {
+          throw new ConvexError({
+            code: "BAD_REQUEST",
+            message: "Invalid phone number",
+          });
+        }
+      }
+
+      await ctx.db.insert("guestListEntries", {
         name: guest.name,
         phoneNumber: guest.phoneNumber,
         eventId,
@@ -255,7 +265,14 @@ export const addGuestListEntry = mutation({
         isActive: true,
       });
 
-      insertedGuestIds.push(guestId);
+      if (guest.phoneNumber && isValidPhoneNumber(guest.phoneNumber.trim())) {
+        await upsertContactForUser(
+          ctx,
+          user._id,
+          guest.name,
+          guest.phoneNumber.trim()
+        );
+      }
     }
 
     return true;

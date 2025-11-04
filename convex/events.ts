@@ -308,8 +308,8 @@ export const getEventsByMonth = query({
     const events = await ctx.db
       .query("events")
       .filter((q) => q.eq(q.field("organizationId"), organization._id))
-      .filter((q) => q.gte(q.field("startTime"), startDate.toMillis()))
-      .filter((q) => q.lte(q.field("startTime"), endDate.toMillis()))
+      // .filter((q) => q.gte(q.field("startTime"), startDate.toMillis()))
+      // .filter((q) => q.lte(q.field("startTime"), endDate.toMillis()))
       .filter((q) => q.eq(q.field("isActive"), true))
       .collect();
 
@@ -441,5 +441,65 @@ export const deleteEvent = internalMutation({
     validateEvent(await ctx.db.get(eventId));
 
     await ctx.db.delete(eventId);
+  },
+});
+
+export const getEventsForCampaign = query({
+  args: {
+    organizationId: v.id("organizations"),
+    range: v.union(v.literal("upcoming"), v.literal("past")),
+    search: v.optional(v.string()),
+  },
+  handler: async (
+    ctx,
+    { organizationId, range, search }
+  ): Promise<Doc<"events">[]> => {
+    const now = Date.now();
+    const limit = 30;
+
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+      UserRole.Promoter,
+    ]);
+    console.log("test");
+    const validatedOrganization = validateOrganization(
+      await ctx.db.get(organizationId),
+      true
+    );
+
+    isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
+
+    if (range === "upcoming") {
+      return await ctx.db
+        .query("events")
+        .withIndex("by_organizationId_and_startTime", (q) =>
+          q.eq("organizationId", organizationId)
+        )
+        .filter((q) => q.gte(q.field("startTime"), now))
+        .order("asc")
+        .take(limit);
+    }
+
+    const keyword = search?.trim().toLowerCase() ?? "";
+
+    if (keyword.length < 3) {
+      return [];
+    }
+
+    const pastEvents = await ctx.db
+      .query("events")
+      .withIndex("by_organizationId_and_startTime", (q) =>
+        q.eq("organizationId", organizationId)
+      )
+      .filter((q) => q.lt(q.field("startTime"), now))
+      .order("desc")
+      .take(200);
+
+    return pastEvents
+      .filter((event) => event.name.toLowerCase().includes(keyword))
+      .slice(0, limit);
   },
 });

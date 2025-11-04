@@ -498,7 +498,7 @@ export type ContactValues = {
 export type TemplateValues = {
   body: string;
   name: string;
-  messageType: SmsMessageType;
+  messageType: SmsMessageType | null;
 };
 
 export type CampaignValues = {
@@ -524,3 +524,10 @@ export const ERROR_CODES = [
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
+
+export type EventFilter = "upcoming" | "past" | "none";
+export type EventFilterWithoutNone = Exclude<EventFilter, "none">;
+
+export type CampaignTab = "messages" | "details";
+
+export type CampaignFilter = "upcoming" | "completed" | "archived";

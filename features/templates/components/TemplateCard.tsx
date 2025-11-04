@@ -1,23 +1,34 @@
 "use client";
 
-import { Doc } from "@convex/_generated/dataModel";
+import { Doc, Id } from "@convex/_generated/dataModel";
 import CustomCard from "@shared/ui/cards/CustomCard";
 import {
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@shared/ui/primitive/card";
+import EditDeleteIcons from "@/shared/ui/buttonContainers/EditDeleteIcons";
 
 interface TemplateCardProps {
   template: Doc<"smsTemplates">;
+  onDelete: (templateId: Id<"smsTemplates">) => void;
+  onEdit: (template: Doc<"smsTemplates">) => void;
 }
 
-const TemplateCard = ({ template }: TemplateCardProps) => {
+const TemplateCard = ({ template, onDelete, onEdit }: TemplateCardProps) => {
   return (
     <CustomCard>
       <CardHeader>
-        <CardTitle>{template.name}</CardTitle>
-        <CardDescription>{template.body}</CardDescription>
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <CardTitle className="truncate">{template.name}</CardTitle>
+          <EditDeleteIcons
+            onEdit={() => onEdit(template)}
+            onDelete={() => onDelete(template._id)}
+          />
+        </div>
+        <CardDescription className="line-clamp-2">
+          {template.body}
+        </CardDescription>
       </CardHeader>
     </CustomCard>
   );

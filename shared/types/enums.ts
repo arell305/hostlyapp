@@ -8,6 +8,11 @@ export enum StripeAccountStatus {
   INCOMPLETE = "Incomplete", // Stripe account is incomplete
 }
 
+export enum ConsentStatus {
+  ACTIVE = "active",
+  STOPPED = "stopped",
+}
+
 export enum SmsMessageType {
   ALL_DB_GUESTS = "all_guests",
   ATTENDED_EVENT = "attended_event",

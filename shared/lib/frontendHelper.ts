@@ -1,6 +1,7 @@
 import { PromoterPromoCodeWithDiscount } from "@/shared/types/schemas-types";
 import { isAfterNowInPacificTime } from "../utils/luxon";
 import { Doc } from "convex/_generated/dataModel";
+import { ConsentStatus } from "../types/enums";
 
 interface TicketPricing {
   totalPrice: number;
@@ -84,4 +85,15 @@ export const getBarColor = (key: string) => {
   if (key === "male") return "#3B82F6";
   if (key === "female") return "#EC4899";
   return "#10B981";
+};
+
+export function consentBadgeClass(status: ConsentStatus): string {
+  if (status === ConsentStatus.STOPPED) {
+    return "bg-red-500/15 text-red-500";
+  }
+  return "bg-green-500/15 text-green-500";
+}
+export const CONSENT_STATUS_LABEL: Record<ConsentStatus, string> = {
+  [ConsentStatus.ACTIVE]: "Active",
+  [ConsentStatus.STOPPED]: "Stopped",
 };

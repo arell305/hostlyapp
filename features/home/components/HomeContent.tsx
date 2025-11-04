@@ -33,6 +33,9 @@ const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
   }, [date]);
 
   const monthlyEventsData = useMonthlyEvents(organization._id, month, year);
+  console.log("month", month);
+  console.log("year", year);
+  console.log("monthlyEventsData", monthlyEventsData);
 
   const { start, end } = useMemo(
     () => getVisibleRange(date, isWeekView),

@@ -2,47 +2,56 @@
 
 import { Textarea } from "@shared/ui/primitive/textarea";
 import { Label } from "@shared/ui/primitive/label";
-import LabelWrapper from "./LabelWrapper";
 import FieldErrorMessage from "../error/FieldErrorMessage";
+import LabelWrapper from "./LabelWrapper";
+import { forwardRef } from "react";
 
-interface LabeledTextAreaFieldProps {
+interface LabeledTextAreaFieldProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  placeholder?: string;
-  rows?: number;
   error?: string | null;
-  name?: string;
   className?: string;
+  name: string;
 }
 
-const LabeledTextAreaField: React.FC<LabeledTextAreaFieldProps> = ({
-  label,
-  value,
-  onChange,
-  placeholder,
-  rows = 5,
-  error,
-  name,
-  className = "",
-}) => {
-  return (
-    <div>
-      <LabelWrapper>
-        <Label htmlFor={name}>{label}</Label>
-        <Textarea
-          id={name}
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          rows={rows}
-          className={`${error ? "border-red-500" : ""} ${className}`}
-        />
-      </LabelWrapper>
-      <FieldErrorMessage error={error} />
-    </div>
-  );
-};
+const LabeledTextAreaField = forwardRef<
+  HTMLTextAreaElement,
+  LabeledTextAreaFieldProps
+>(
+  (
+    {
+      label,
+      placeholder,
+      value,
+      onChange,
+      error,
+      className = "",
+      name,
+      ...rest
+    },
+    ref
+  ) => {
+    return (
+      <div>
+        <LabelWrapper>
+          <Label htmlFor={name}>{label}</Label>
+          <Textarea
+            ref={ref}
+            id={name}
+            name={name}
+            placeholder={placeholder}
+            value={value}
+            onChange={onChange}
+            className={`${error ? "border-red-500" : ""} ${className}`}
+            {...rest}
+          />
+        </LabelWrapper>
+        <FieldErrorMessage error={error} />
+      </div>
+    );
+  }
+);
+
+LabeledTextAreaField.displayName = "LabeledTextAreaField";
 
 export default LabeledTextAreaField;

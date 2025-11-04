@@ -29,7 +29,6 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
   onRemove,
   isEdit = false,
 }) => {
-  // Show skeleton if loading OR in edit mode with no image
   const showSkeleton = isLoading || (isEdit && !imageUrl);
 
   return (
@@ -38,7 +37,7 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
         <Label htmlFor={id} className="font-bold">
           {label}
         </Label>
-        <p className="text-xs text-gray-400 mt-0.5">
+        <p className="text-xs text-grayText mt-0.5">
           Recommended: 9:16 vertical image (portrait)
         </p>
 
@@ -54,7 +53,7 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
         <div className="flex">
           <Label
             htmlFor={id}
-            className={`focus:border-white w-[200px] aspect-[9/16] flex justify-center items-center cursor-pointer relative rounded-lg hover:bg-cardBackgroundHover ${
+            className={`mt-2 focus:border-white w-[200px] aspect-[9/16] flex justify-center items-center cursor-pointer relative rounded-lg hover:bg-cardBackgroundHover ${
               imageUrl ? "" : "border-2 border-dashed"
             }`}
           >
@@ -66,7 +65,7 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
                 alt="Uploaded Preview"
                 className="w-full h-full object-cover rounded-lg"
                 loading="lazy"
-                width={450} // keeps resolution sharp for portrait
+                width={450}
                 height={800}
               />
             ) : (
@@ -80,7 +79,7 @@ const LabeledImageUploadField: React.FC<LabeledImageUploadFieldProps> = ({
                 e.stopPropagation();
                 onRemove();
               }}
-              className="text-grayText text-3xl rounded-full p-1 cursor-pointer z-10 -ml-3 -mt-4"
+              className="text-grayText text-3xl rounded-full p-1 cursor-pointer z-10 -ml-3 -mt-2"
             />
           )}
         </div>

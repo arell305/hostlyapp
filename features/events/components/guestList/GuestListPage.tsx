@@ -6,7 +6,6 @@ import ModeratorGuestListContent from "./ModeratorGuestListContent";
 import { isPast } from "@/shared/utils/luxon";
 import SubPageContainer from "@/shared/ui/containers/SubPageContainer";
 import { useEventWithGuestLists } from "@/domain/guestListEntries";
-import GuestListSkeleton from "@/shared/ui/skeleton/GuestListSkeleton";
 
 interface GuestListPageProps {
   eventId: Id<"events">;
@@ -27,7 +26,7 @@ const GuestListPage: React.FC<GuestListPageProps> = ({
   const resultGuestList = useEventWithGuestLists(eventId);
 
   if (!resultGuestList) {
-    return <GuestListSkeleton className="mt-4" />;
+    return;
   }
 
   return (

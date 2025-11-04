@@ -94,7 +94,7 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
       <LabeledDateTimeField
         name="startTime"
         label="Starts*"
-        value={startTime} // ✅ pass number directly
+        value={startTime}
         onChange={(val) => {
           setStartTime(val);
           setErrors((prev: typeof errors) => ({

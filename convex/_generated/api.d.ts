@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as backendUtils_contactsHelper from "../backendUtils/contactsHelper.js";
 import type * as backendUtils_helper from "../backendUtils/helper.js";
 import type * as backendUtils_kpiHelper from "../backendUtils/kpiHelper.js";
 import type * as backendUtils_validation from "../backendUtils/validation.js";
@@ -59,6 +60,7 @@ import type * as webhooks_stripeWebhooks from "../webhooks/stripeWebhooks.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "backendUtils/contactsHelper": typeof backendUtils_contactsHelper;
   "backendUtils/helper": typeof backendUtils_helper;
   "backendUtils/kpiHelper": typeof backendUtils_kpiHelper;
   "backendUtils/validation": typeof backendUtils_validation;

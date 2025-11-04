@@ -4,7 +4,7 @@ import {
 } from "@/shared/types/schemas-types";
 import { GuestEntry, GuestListNameSchema } from "@/shared/types/types";
 import _ from "lodash";
-import { Id } from "@/convex/_generated/dataModel";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 import { isValidPhoneNumber } from "./frontend-validation";
 
 export function formatName(name: string): string {
@@ -41,6 +41,28 @@ export function filterGuestsByName(
 
   return guests.filter((guest) =>
     guest.name.toLowerCase().includes(normalizedTerm)
+  );
+}
+
+export function filterContactsByName(
+  contacts: Doc<"contacts">[],
+  searchTerm: string
+): Doc<"contacts">[] {
+  const normalizedTerm = searchTerm.trim().toLowerCase();
+  if (!normalizedTerm) return contacts;
+  return contacts.filter((contact) =>
+    contact.name.toLowerCase().includes(normalizedTerm)
+  );
+}
+
+export function filterCampaignsByName(
+  campaigns: Doc<"campaigns">[],
+  searchTerm: string
+): Doc<"campaigns">[] {
+  const normalizedTerm = searchTerm.trim().toLowerCase();
+  if (!normalizedTerm) return campaigns;
+  return campaigns.filter((campaign) =>
+    campaign.name.toLowerCase().includes(normalizedTerm)
   );
 }
 

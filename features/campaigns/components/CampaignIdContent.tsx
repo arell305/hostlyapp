@@ -5,12 +5,14 @@ import { useUpdateCampaign } from "@/domain/campaigns";
 import { CampaignValues } from "@shared/types/types";
 import { Doc } from "convex/_generated/dataModel";
 import { useState } from "react";
+import { useCampaignScope } from "@/contexts/CampaignIdScope";
 
-interface CampaignIdContentProps {
-  campaign: Doc<"campaigns">;
+interface CampaignDetailsProps {
+  isEditMode: boolean;
 }
-const CampaignIdContent = ({ campaign }: CampaignIdContentProps) => {
-  const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
+const CampaignDetails = ({ isEditMode }: CampaignDetailsProps) => {
+  const { campaign } = useCampaignScope();
+
   const {
     updateCampaign,
     updateCampaignLoading,
@@ -26,48 +28,7 @@ const CampaignIdContent = ({ campaign }: CampaignIdContentProps) => {
     return result.success;
   };
 
-  const showConfirmDeleteModal = (campaignId: Doc<"campaigns">["_id"]) => {
-    setShowConfirmDelete(true);
-    setUpdateCampaignError(null);
-  };
-
-  const handleDelete = async (): Promise<void> => {
-    const result = await updateCampaign({
-      campaignId: campaign._id,
-      updates: { isActive: false },
-    });
-    if (result.success) {
-      handleCloseConfirmDeleteModal();
-      setShowConfirmDelete(false);
-    }
-  };
-
-  const handleCloseConfirmDeleteModal = () => {
-    setShowConfirmDelete(false);
-    setUpdateCampaignError(null);
-  };
-
-  return (
-    <div>
-      CampaignIdContent
-      <ResponsiveConfirm
-        isOpen={showConfirmDelete}
-        title="Confirm Deletion"
-        confirmText="Yes, Delete"
-        cancelText="No, Cancel"
-        confirmVariant="destructive"
-        content={
-          "Are you sure you want to delete this FAQ? This action cannot be undone."
-        }
-        error={updateCampaignError}
-        isLoading={updateCampaignLoading}
-        modalProps={{
-          onClose: handleCloseConfirmDeleteModal,
-          onConfirm: handleDelete,
-        }}
-      />
-    </div>
-  );
+  return <div>CampaignIdContent</div>;
 };
 
-export default CampaignIdContent;
+export default CampaignDetails;

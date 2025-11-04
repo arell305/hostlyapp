@@ -1,5 +1,3 @@
-import React from "react";
-
 interface SectionContainerProps {
   children: React.ReactNode;
   className?: string;

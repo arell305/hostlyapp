@@ -10,6 +10,7 @@ import {
   SmsMessageDirection,
   AuthorType,
   MessageStatus,
+  ConsentStatus,
 } from "@/shared/types/enums";
 
 export const UserRoleEnumConvex = v.union(
@@ -82,6 +83,11 @@ export const MessageStatusConvex = v.union(
   v.literal(MessageStatus.FAILED)
 );
 
+export const ConsentStatusConvex = v.union(
+  v.literal(ConsentStatus.ACTIVE),
+  v.literal(ConsentStatus.STOPPED)
+);
+
 export const GuestListNames = v.object({
   id: v.string(),
   name: v.string(),
@@ -94,7 +100,7 @@ export const GuestListNames = v.object({
 
 export default defineSchema({
   campaigns: defineTable({
-    eventId: v.optional(v.id("events")),
+    eventId: v.union(v.id("events"), v.null()),
     isActive: v.boolean(),
     name: v.string(),
     promptResponse: v.optional(v.string()),
@@ -133,12 +139,16 @@ export default defineSchema({
     .index("by_organizationId", ["organizationId"])
     .index("by_stripePaymentIntentId", ["stripePaymentIntentId"]),
   contacts: defineTable({
+    consentStatus: ConsentStatusConvex,
     isActive: v.boolean(),
     name: v.string(),
-    phoneNumber: v.optional(v.string()),
+    phoneNumber: v.string(),
     updatedAt: v.number(),
     userId: v.id("users"),
-  }).index("by_userId_name", ["userId", "name"]),
+  })
+    .index("by_userId_phoneNumber", ["userId", "phoneNumber"])
+    .index("by_phoneNumber", ["phoneNumber"])
+    .index("by_userId", ["userId"]),
   customers: defineTable({
     cardBrand: v.optional(v.string()),
     email: v.string(),

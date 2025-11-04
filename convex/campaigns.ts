@@ -34,9 +34,8 @@ export const getCampaigns = query({
 export const insertCampaign = mutation({
   args: {
     name: v.string(),
-    isActive: v.boolean(),
     userId: v.id("users"),
-    eventId: v.optional(v.id("events")),
+    eventId: v.union(v.id("events"), v.null()),
     scheduleTime: v.optional(v.number()),
     relativeOffsetMinutes: v.optional(v.number()),
     promptResponse: v.optional(v.string()),
@@ -44,7 +43,6 @@ export const insertCampaign = mutation({
   handler: async (ctx, args): Promise<Id<"campaigns">> => {
     const {
       name,
-      isActive,
       userId,
       eventId,
       scheduleTime,
@@ -59,7 +57,7 @@ export const insertCampaign = mutation({
 
     const campaignId: Id<"campaigns"> = await ctx.db.insert("campaigns", {
       name,
-      isActive,
+      isActive: true,
       userId,
       eventId,
       scheduleTime,

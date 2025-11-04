@@ -22,7 +22,7 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
   const [values, setValues] = useState<TemplateValues>({
     body: "",
     name: "",
-    messageType: SmsMessageType.ALL_DB_GUESTS,
+    messageType: null,
   });
 
   const {
@@ -50,6 +50,10 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
     const body = values.body.trim();
     const name = values.name.trim();
 
+    if (!values.messageType || !body || !name) {
+      return;
+    }
+
     const success = await insertSmsTemplate({
       userId,
       body,
@@ -63,7 +67,10 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
   };
 
   const isDisabled =
-    !values.body.trim() || !values.name.trim() || insertSmsTemplateLoading;
+    !values.body.trim() ||
+    !values.name.trim() ||
+    !values.messageType ||
+    insertSmsTemplateLoading;
 
   return (
     <ResponsiveModal
