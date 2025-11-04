@@ -39,6 +39,7 @@ export const metadata: Metadata = {
     ],
   },
   metadataBase: new URL(WEBSITE),
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

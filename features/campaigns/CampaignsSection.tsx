@@ -6,8 +6,6 @@ import { Doc } from "@/convex/_generated/dataModel";
 import SectionContainer from "@/shared/ui/containers/SectionContainer";
 import SearchInput from "../events/components/SearchInput";
 import { filterCampaignsByName } from "@/shared/utils/format";
-import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
-import { CampaignFilter } from "@/shared/types/types";
 
 interface CampaignsSectionProps {
   campaigns: Doc<"campaigns">[];

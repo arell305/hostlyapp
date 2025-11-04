@@ -41,6 +41,7 @@
     "luxon": "^3.7.1",
     "nanoid": "^5.0.9",
     "next": "^15.1.7",
+    "next-pwa": "^5.6.0",
     "nextjs-progressbar": "^0.0.16",
     "pdfkit": "^0.16.0",
     "qrcode.react": "^4.2.0",
