@@ -15,7 +15,9 @@ export default async function Layout({
 }) {
   const { slug: raw } = await params;
   const slug = normalizeSlug(raw);
-  if (!slug) notFound();
+  if (!slug) {
+    notFound();
+  }
 
   const { userId } = await auth();
 
