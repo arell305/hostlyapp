@@ -2,7 +2,7 @@
 
 import GuestListAnalyticsContent from "./GuestListAnalyticsContent";
 import { useGuestListKpis } from "@/domain/guestListEntries";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import AnalyticsSkeleton from "@shared/ui/skeleton/AnalyticsSkeleton";
 
 interface GuestListAnalyticsPageProps {

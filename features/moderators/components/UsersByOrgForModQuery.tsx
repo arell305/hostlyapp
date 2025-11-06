@@ -1,6 +1,6 @@
 "use client";
 
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { useUsersByOrgForMod } from "@/domain/organizations";
 import MemberCardSkeleton from "@shared/ui/skeleton/MemberCardSkeleton";
 import UsersByOrgForModContent from "./UsersByOrgForModContent";

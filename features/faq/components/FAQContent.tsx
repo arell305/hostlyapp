@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Doc } from "@/convex/_generated/dataModel";
 import FaqCard from "./FaqCard";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { canCreateEvent } from "@/shared/utils/permissions";
 import { FaqValues } from "@shared/types/types";
 import { useUpdateCompanyFaq } from "@/domain/faqs";

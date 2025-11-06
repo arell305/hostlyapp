@@ -1,6 +1,6 @@
 "use client";
 
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import Sidebar from "@/shared/ui/nav/Sidebar";
 import TicketScannerFAB from "@/shared/ui/fab/TicketScannerFAB";
 import Navbar from "@/shared/ui/nav/Navbar";

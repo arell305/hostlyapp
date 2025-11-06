@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState } from "react";
 import {
   subscriptionBenefits,
   SubscriptionStatus,
@@ -13,7 +15,7 @@ import ClickableField from "@shared/ui/fields/ClickableField";
 import { GuestListCheckout } from "@shared/ui/modals/GuestListCheckoutContent";
 import { CONTACT_EMAIL, PLUS_GUEST_LIST_LIMIT } from "@shared/types/constants";
 import { formatSubscriptionAmount } from "@/shared/utils/helpers";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { isAdmin } from "@/shared/utils/permissions";
 import { Doc } from "convex/_generated/dataModel";
 

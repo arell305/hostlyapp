@@ -1,5 +1,5 @@
 "use client";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import HomeContent from "./components/HomeContent";
 import { canCreateEvent } from "@shared/utils/permissions";
 import { usePathname } from "next/navigation";

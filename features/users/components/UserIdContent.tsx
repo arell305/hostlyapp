@@ -12,7 +12,7 @@ import MemberTopBar from "./MemberTopBar";
 import PageContainer from "@shared/ui/containers/PageContainer";
 import { UserWithPromoCode } from "@shared/types/types";
 import { useRouter } from "next/navigation";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 
 interface UserIdContentProps {
   canEditUsers: boolean;

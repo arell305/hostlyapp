@@ -13,7 +13,7 @@ import ResponsiveConfirm from "@shared/ui/responsive/ResponsiveConfirm";
 import { Id } from "@convex/_generated/dataModel";
 import SectionHeaderWithAction from "@shared/ui/headings/SectionHeaderWithAction";
 import EventFormWrapper from "@/features/events/components/eventForm/EventFormWrapper";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { isAdmin } from "@/shared/utils/permissions";
 
 interface AddEventContentProps {

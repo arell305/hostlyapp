@@ -1,5 +1,5 @@
 "use client";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { isAdminOrHostlyAdmin } from "@/shared/utils/permissions";
 import ErrorPage from "@shared/ui/error/ErrorPage";
 import SectionHeaderWithAction from "@shared/ui/headings/SectionHeaderWithAction";

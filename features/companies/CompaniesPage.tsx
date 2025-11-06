@@ -1,6 +1,6 @@
 "use client";
 
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { isHostlyUser } from "@/shared/utils/permissions";
 import ErrorPage from "@shared/ui/error/ErrorPage";
 import FullLoading from "@shared/ui/loading/FullLoading";

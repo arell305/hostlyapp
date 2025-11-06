@@ -1,9 +1,8 @@
-// app/[slug]/app/EnsureClerkOrgActive.tsx
 "use client";
 
 import { useEffect } from "react";
 import { useOrganization, useOrganizationList, useUser } from "@clerk/nextjs";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { isHostlyUser } from "@/shared/utils/permissions";
 
 type Props = { children?: React.ReactNode };

@@ -1,5 +1,5 @@
 "use client";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import AnalyticsContent from "./components/AnalyticsContent";
 import { isManager, isPromoter } from "@/shared/utils/permissions";
 import MessagePage from "@shared/ui/shared-page/MessagePage";

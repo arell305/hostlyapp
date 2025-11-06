@@ -2,9 +2,9 @@
 
 import PageContainer from "@shared/ui/containers/PageContainer";
 import SectionHeaderWithAction from "@shared/ui/headings/SectionHeaderWithAction";
-import React, { useState } from "react";
+import { useState } from "react";
 import FaqLoader from "@/features/faq/components/FaqLoader";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { canCreateEvent } from "@/shared/utils/permissions";
 import { Plus } from "lucide-react";
 import ResponsiveAddFaq from "@/features/faq/components/ResponsiveAddFaq";

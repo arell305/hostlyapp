@@ -1,6 +1,6 @@
 "use client";
 
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { useCustomer } from "@/domain/customers";
 import SubscriptionPageContent from "./SubscriptionPageContent";
 import SubscriptionSkeleton from "@/shared/ui/skeleton/SubscriptionSkeleton";

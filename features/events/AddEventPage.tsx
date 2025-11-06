@@ -1,6 +1,6 @@
 "use client";
 
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import AddEventContent from "./components/AddEventContent";
 import { isManager } from "@/shared/utils/permissions";
 import MessagePage from "@shared/ui/shared-page/MessagePage";

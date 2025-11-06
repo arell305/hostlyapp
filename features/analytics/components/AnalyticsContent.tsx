@@ -10,7 +10,7 @@ import { PresetOption } from "@shared/types/constants";
 import { getDateRangeFromPreset } from "@shared/utils/luxon";
 import TicketAnalyticsPage from "./tickets/TicketAnalyticsPage";
 import GuestListAnalyticsPage from "./guestList/GuestListAnalyticsPage";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import PageContainer from "@shared/ui/containers/PageContainer";
 
 const AnalyticsContent = () => {

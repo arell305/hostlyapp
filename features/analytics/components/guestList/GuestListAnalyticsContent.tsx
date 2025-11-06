@@ -5,10 +5,10 @@ import KpiCard from "@/features/analytics/components/shared/KpiCard";
 import SectionContainer from "@shared/ui/containers/SectionContainer";
 import BarChartContainer from "@/features/analytics/components/shared/BarChartContainer";
 import HorizontalBarChartContainer from "@/features/analytics/components/shared/HorizontalBarChartContainer";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
 import { isManager } from "@/shared/utils/permissions";
 import { getBarColor } from "@shared/lib/frontendHelper";
 import { GetGuestListKpisData } from "@/shared/types/convex-types";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 
 interface GuestListAnalyticsContentProps {
   guestListKpisData: GetGuestListKpisData;

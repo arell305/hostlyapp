@@ -2,7 +2,7 @@
 import { isManager } from "@shared/utils/permissions";
 import { useRouter } from "next/navigation";
 import FindUserById from "@/features/users/components/FindUserById";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { Id } from "@/convex/_generated/dataModel";
 
 interface UserPageProps {

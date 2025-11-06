@@ -3,7 +3,7 @@
 import { DateRange } from "react-day-picker";
 import TicketAnalyticsContent from "./TicketAnalyticsContent";
 import PromoterTicketAnalyticsContent from "./PromoterTicketAnalyticsContent";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { isManager, isPromoter } from "@/shared/utils/permissions";
 import { useTotalRevenueByOrganization } from "@/domain/connectedPayments";
 import AnalyticsSkeleton from "@shared/ui/skeleton/AnalyticsSkeleton";

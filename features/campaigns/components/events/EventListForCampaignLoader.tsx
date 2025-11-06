@@ -1,4 +1,6 @@
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+"use client";
+
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { useEventsForCampaign } from "@/domain/events";
 import { EventFilterWithoutNone } from "@/shared/types/types";
 import CampaignEvents from "./CampaignEvents";

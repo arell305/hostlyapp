@@ -1,5 +1,5 @@
 "use client";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 import { isAdmin } from "@/shared/utils/permissions";
 import ErrorPage from "@shared/ui/error/ErrorPage";
 import ConnectedAccountQueryByClerkId from "@/features/stripe/components/ConnectedAccountQueryByClerkId";

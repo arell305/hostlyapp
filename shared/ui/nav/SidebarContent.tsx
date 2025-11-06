@@ -23,7 +23,7 @@ import {
 import Logo from "@/shared/ui/image/Logo";
 import _ from "lodash";
 import NavLink from "./NavLink";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts";
 
 type SidebarContentProps = {
   onNavigate?: () => void;
