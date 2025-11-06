@@ -53,7 +53,6 @@ export const handleUserCreated = async (
         role: UserRole.Admin,
         name: `${data.first_name} ${data.last_name}`.trim(),
         imageUrl: data.image_url,
-        isInvitationAccepted: true,
       });
       await updateClerkUserPublicMetadata(data.id, {
         convexUserId,
@@ -154,31 +153,4 @@ export const handleUserUpdated = async (
     console.error(" Error handling user.updated:", err);
     throw new Error(ErrorMessages.CLERK_WEBHOOK_UPDATED_USER);
   }
-};
-export const handleOrganizationMembershipCreated = async (
-  ctx: GenericActionCtx<any>,
-  data: OrganizationMembershipJSON
-) => {
-  console.log("handleOrganizationMembershipCreated", data);
-  const clerkOrgId = data.organization.id;
-  const clerkUserId = data.public_user_data.user_id;
-
-  const role = data.role as UserRole;
-
-  const organization = await ctx.runQuery(
-    internal.organizations.internalGetOrganizationByClerkId,
-    { clerkOrganizationId: clerkOrgId }
-  );
-
-  if (!organization) {
-    console.error("Organization not found in Convex:", clerkOrgId);
-    return;
-  }
-
-  await ctx.runMutation(internal.users.internalUpsertUserByClerkId, {
-    clerkUserId,
-    email: data.public_user_data.identifier,
-    role,
-    organizationId: organization._id,
-  });
 };

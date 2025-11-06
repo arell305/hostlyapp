@@ -2,7 +2,7 @@
 
 import CustomCard from "@shared/ui/cards/CustomCard";
 import MemberCard from "../MemberCard";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
 import { Doc } from "convex/_generated/dataModel";
 
 interface ActiveMembersSectionProps {
