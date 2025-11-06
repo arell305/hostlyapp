@@ -6,7 +6,6 @@ import {
   createClerkClient,
 } from "@clerk/backend";
 import { getBaseUrl } from "./helpers";
-import { Organization } from "@clerk/nextjs/server";
 import slugify from "slugify";
 
 if (!process.env.CLERK_SECRET_KEY) {
