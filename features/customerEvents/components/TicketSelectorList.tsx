@@ -1,7 +1,7 @@
 "use client";
 
 import TicketSelector from "@/features/customerEvents/components/view/TicketSelector";
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import { useEventCheckout } from "@/shared/hooks/contexts";
 import { TicketSoldCountByType } from "@shared/types/types";
 import { Doc } from "convex/_generated/dataModel";
 

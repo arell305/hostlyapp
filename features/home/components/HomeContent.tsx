@@ -13,7 +13,7 @@ import { CalendarSwitcher } from "@/features/home/components/calendar/CalendarSw
 import { EventWithExtras } from "@shared/types/convex-types";
 import { DateTime } from "luxon";
 import { useMonthlyEvents } from "@/domain/events";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
 import CalendarSwitcherLoading from "@/shared/ui/skeleton/CalendarSwitcherLoading";
 
 interface HomeContentProps {
@@ -28,14 +28,11 @@ const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
   const { organization } = useContextOrganization();
 
   const { month, year } = useMemo(() => {
-    const dt = DateTime.fromJSDate(date);
-    return { month: dt.month, year: dt.year };
+    const dateTime = DateTime.fromJSDate(date);
+    return { month: dateTime.month, year: dateTime.year };
   }, [date]);
 
   const monthlyEventsData = useMonthlyEvents(organization._id, month, year);
-  console.log("month", month);
-  console.log("year", year);
-  console.log("monthlyEventsData", monthlyEventsData);
 
   const { start, end } = useMemo(
     () => getVisibleRange(date, isWeekView),

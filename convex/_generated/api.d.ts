@@ -8,11 +8,6 @@
  * @module
  */
 
-import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
 import type * as backendUtils_contactsHelper from "../backendUtils/contactsHelper.js";
 import type * as backendUtils_helper from "../backendUtils/helper.js";
 import type * as backendUtils_kpiHelper from "../backendUtils/kpiHelper.js";
@@ -50,6 +45,12 @@ import type * as users from "../users.js";
 import type * as webhooks_clerkWebhooks from "../webhooks/clerkWebhooks.js";
 import type * as webhooks_pdfMonkeyWebhooks from "../webhooks/pdfMonkeyWebhooks.js";
 import type * as webhooks_stripeWebhooks from "../webhooks/stripeWebhooks.js";
+
+import type {
+  ApiFromModules,
+  FilterApi,
+  FunctionReference,
+} from "convex/server";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -98,11 +99,15 @@ declare const fullApi: ApiFromModules<{
   "webhooks/pdfMonkeyWebhooks": typeof webhooks_pdfMonkeyWebhooks;
   "webhooks/stripeWebhooks": typeof webhooks_stripeWebhooks;
 }>;
+declare const fullApiWithMounts: typeof fullApi;
+
 export declare const api: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "public">
 >;
 export declare const internal: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "internal">
 >;
+
+export declare const components: {};

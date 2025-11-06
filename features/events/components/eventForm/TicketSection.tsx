@@ -6,7 +6,7 @@ import LabeledInputField from "@/shared/ui/fields/LabeledInputField";
 import LabeledDateTimeField from "@/shared/ui/fields/LabeledDateTimeField";
 import { TicketType } from "@shared/types/types";
 import { ticketNameOptions } from "@shared/types/constants";
-import { useEventForm } from "@/contexts/EventFormContext";
+import { useEventForm } from "@/shared/hooks/contexts";
 import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
 import { Label } from "@/shared/ui/primitive/label";
 import CurrencyInput from "@/shared/ui/fields/CurrencyInput";

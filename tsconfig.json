@@ -1,10 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "module": "esnext",
     "moduleResolution": "bundler",
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "strict": true,
     "skipLibCheck": true,
     "allowJs": true,
@@ -13,20 +17,40 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "incremental": true,
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-
-      "@app/*": ["./app/*"],
-      "@features/*": ["./features/*"],
-      "@domains/*": ["./domains/*"],
-      "@shared/*": ["./shared/*"],
-      "@types/*": ["./shared/types/*"],
-      "@lib/*": ["./shared/lib/*"],
-
-      "@convex/*": ["./convex/*"],
-      "convex/_generated/*": ["./convex/_generated/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@app/*": [
+        "./app/*"
+      ],
+      "@features/*": [
+        "./features/*"
+      ],
+      "@domains/*": [
+        "./domains/*"
+      ],
+      "@shared/*": [
+        "./shared/*"
+      ],
+      "@types/*": [
+        "./shared/types/*"
+      ],
+      "@lib/*": [
+        "./shared/lib/*"
+      ],
+      "@convex/*": [
+        "./convex/*"
+      ],
+      "convex/_generated/*": [
+        "./convex/_generated/*"
+      ]
     }
   },
   "include": [
@@ -34,7 +58,10 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "babel.config.js"
+    "babel.config.js",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

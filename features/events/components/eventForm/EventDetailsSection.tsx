@@ -4,10 +4,9 @@ import LabeledInputField from "@/shared/ui/fields/LabeledInputField";
 import LabeledTextAreaField from "@/shared/ui/fields/LabeledTextAreaField";
 import LabeledAddressAutoComplete from "@/shared/ui/fields/LabeledAddressAutoComplete";
 import LabeledDateTimeField from "@/shared/ui/fields/LabeledDateTimeField";
-import { convertToPstTimestamp } from "@/shared/utils/luxon";
 import { AddressValue } from "@shared/types/types";
 import EventPhotoSection from "@/features/events/components/eventForm/EventPhotoSection";
-import { useEventForm } from "@/contexts/EventFormContext";
+import { useEventForm } from "@/shared/hooks/contexts";
 
 interface EventDetailsSectionProps {
   isEdit?: boolean;
@@ -33,13 +32,6 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
     setErrors,
     isIOSDevice,
   } = useEventForm();
-  const handleDateTimeChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    setter: (val: number | null) => void
-  ) => {
-    const timestamp = convertToPstTimestamp(e.target.value);
-    setter(timestamp);
-  };
 
   const handleSelect = (v: AddressValue | null) => {
     setValue(v);

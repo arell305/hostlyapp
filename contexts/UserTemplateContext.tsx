@@ -1,21 +1,20 @@
 "use client";
-import { createContext, useContext } from "react";
-import { ErrorMessages } from "@shared/types/enums";
+import { createContext } from "react";
 import { useParams } from "next/navigation";
 import { Id } from "convex/_generated/dataModel";
 import NotFoundMessage from "@shared/ui/shared-page/NotFoundMessage";
 import UnauthorizedMessage from "@shared/ui/shared-page/UnauthorizedMessage";
 import { normalizeUserId } from "@shared/lib/normalizeParams";
 import { isHostlyUser } from "@shared/utils/permissions";
-import { useContextOrganization } from "./OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
 
 type UserTemplateContextType = {
   userId: Id<"users">;
 };
 
-const UserTemplateContext = createContext<UserTemplateContextType | undefined>(
-  undefined
-);
+export const UserTemplateContext = createContext<
+  UserTemplateContextType | undefined
+>(undefined);
 
 export const UserTemplateProvider: React.FC<{
   children: React.ReactNode;
@@ -40,10 +39,4 @@ export const UserTemplateProvider: React.FC<{
       {children}
     </UserTemplateContext.Provider>
   );
-};
-
-export const useContextUserTemplate = () => {
-  const ctx = useContext(UserTemplateContext);
-  if (!ctx) throw new Error(ErrorMessages.CONTEXT_USER_TEMPLATE_PROVIDER);
-  return ctx;
 };

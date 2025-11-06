@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@shared/ui/primitive/button";
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import { useEventCheckout } from "@/shared/hooks/contexts";
 import FieldErrorMessage from "@shared/ui/error/FieldErrorMessage";
 import { isValidEmail } from "@/shared/utils/helpers";
 

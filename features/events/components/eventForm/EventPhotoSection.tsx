@@ -6,7 +6,7 @@ import LabeledImageUploadField from "@/shared/ui/fields/LabeledImageUploadField"
 import { compressAndUploadImage } from "@/shared/utils/image";
 import { Id } from "convex/_generated/dataModel";
 import { api } from "convex/_generated/api";
-import { useEventForm } from "@/contexts/EventFormContext";
+import { useEventForm } from "@/shared/hooks/contexts";
 
 interface EventPhotoSectionProps {
   isEdit?: boolean;

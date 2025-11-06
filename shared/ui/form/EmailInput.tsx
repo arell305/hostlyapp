@@ -2,7 +2,7 @@
 
 import { Input } from "@shared/ui/primitive/input";
 import { Label } from "@shared/ui/primitive/label";
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import { useEventCheckout } from "@/shared/hooks/contexts";
 import FieldErrorMessage from "@shared/ui/error/FieldErrorMessage";
 
 const EmailInput: React.FC = () => {

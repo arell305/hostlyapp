@@ -27,6 +27,7 @@ import {
   revokeOrganizationInvitationHelper,
   updateClerkOrganization,
   updateClerkOrganizationMetadata,
+  updateClerkUserPublicMetadata,
   updateOrganizationLogo,
 } from "../shared/utils/clerk";
 import {
@@ -42,7 +43,9 @@ import {
 import {
   validateCustomer,
   validateOrganization,
+  validateUser,
 } from "./backendUtils/validation";
+import { Id } from "./_generated/dataModel";
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -114,7 +117,14 @@ export const createClerkInvitation = action({
       email,
     });
 
-    if (user) {
+    await ctx.runQuery(
+      internal.organizations.internalGetOrganizationByClerkId,
+      {
+        clerkOrganizationId: clerkOrgId,
+      }
+    );
+
+    if (user?.isActive) {
       throw new ConvexError({
         code: "BAD_REQUEST",
         message: ShowErrorMessages.USER_ALREADY_EXISTS,
@@ -168,12 +178,14 @@ export const createClerkOrganization = action({
 
     promoDiscount = promoDiscount ?? 0;
 
-    const identity = await requireAuthenticatedUser(ctx);
-    const clerkUserId = identity.id as string;
+    const identity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
+    const convexUserId = identity.convexUserId as Id<"users">;
 
-    const user = await ctx.runQuery(internal.users.internalFindUserByClerkId, {
-      clerkUserId,
-    });
+    const user = validateUser(
+      await ctx.runQuery(internal.users.getUserByIdInternal, {
+        userId: convexUserId,
+      })
+    );
 
     if (user.organizationId) {
       throw new ConvexError({
@@ -186,6 +198,13 @@ export const createClerkOrganization = action({
       throw new ConvexError({
         code: "BAD_REQUEST",
         message: ShowErrorMessages.USER_NOT_CUSTOMER,
+      });
+    }
+
+    if (!user.clerkUserId) {
+      throw new ConvexError({
+        code: "BAD_REQUEST",
+        message: ShowErrorMessages.USER_NOT_CLERK_USER,
       });
     }
 
@@ -207,13 +226,10 @@ export const createClerkOrganization = action({
       });
     }
 
-    const slug: string = slugify(companyName, { lower: true, strict: true });
+    const clerkUserId = user.clerkUserId;
 
     const clerkOrganization = await createClerkOrg({
       companyName,
-      publicMetadata: {
-        urlSlug: slug,
-      },
       createdBy: clerkUserId,
     });
 
@@ -222,7 +238,7 @@ export const createClerkOrganization = action({
       {
         clerkOrganizationId: clerkOrganization.id,
         name: companyName,
-        slug,
+        slug: clerkOrganization.slug,
         promoDiscount,
         customerId: customer._id,
         photo,
@@ -230,13 +246,18 @@ export const createClerkOrganization = action({
       }
     );
 
+    await updateClerkUserPublicMetadata(user.clerkUserId!, {
+      convexSlug: clerkOrganization.slug,
+      convexOrgId: organizationId,
+    });
+
     if (photo) {
       const blob = await ctx.storage.get(photo);
       if (!blob) {
         console.error(ErrorMessages.FILE_CREATION_ERROR);
         return {
           organizationId,
-          slug,
+          slug: clerkOrganization.slug,
           clerkOrganizationId: organizationId,
         };
       }
@@ -249,7 +270,7 @@ export const createClerkOrganization = action({
 
     return {
       organizationId,
-      slug,
+      slug: clerkOrganization.slug,
       clerkOrganizationId: clerkOrganization.id,
     };
   },
@@ -340,15 +361,21 @@ export const updateOrganizationName = action({
       })
     );
 
+    const users = await ctx.runQuery(internal.users.getUsersByOrganizationId, {
+      organizationId,
+    });
+
     await Promise.all([
       updateClerkOrganization(organization.clerkOrganizationId, name),
       ctx.runMutation(internal.organizations.updateOrganizationById, {
         organizationId,
-        updates: {
-          name,
-          slug,
-        },
+        updates: { name, slug },
       }),
+      ...users
+        .filter((user) => user.clerkUserId)
+        .map((user) =>
+          updateClerkUserPublicMetadata(user.clerkUserId!, { convexSlug: slug })
+        ),
     ]);
 
     return { slug };

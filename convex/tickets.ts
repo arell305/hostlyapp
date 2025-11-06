@@ -176,14 +176,9 @@ export const getTicketsByEventId = query({
       UserRole.Promoter,
     ]);
 
-    const clerkUserId = identity.id as string;
+    const userId = identity.convexUserId as Id<"users">;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .first()
-    );
+    const user = validateUser(await ctx.db.get(userId));
 
     const event = validateEvent(await ctx.db.get(eventId));
 
@@ -263,14 +258,9 @@ export const checkInTicket = mutation({
       UserRole.Hostly_Admin,
     ]);
 
-    const clerkUserId = identity.id as string;
+    const userId = identity.convexUserId as Id<"users">;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .first()
-    );
+    const user = validateUser(await ctx.db.get(userId));
 
     const ticket = validateTicket(
       await ctx.db
@@ -342,14 +332,9 @@ export const getPromoterTicketKpis = query({
     const { fromTimestamp, toTimestamp } = args;
 
     const identity = await requireAuthenticatedUser(ctx, [UserRole.Promoter]);
-    const clerkUserId = identity.id as string;
+    const userId = identity.convexUserId as Id<"users">;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
-        .unique()
-    );
+    const user = validateUser(await ctx.db.get(userId));
 
     const events = await ctx.db
       .query("events")
@@ -519,14 +504,8 @@ export const getEventSummary = query({
       UserRole.Promoter,
     ]);
 
-    const clerkUserId = identity.id as string;
-
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .first()
-    );
+    const userId = identity.convexUserId as Id<"users">;
+    const user = validateUser(await ctx.db.get(userId));
 
     const event = validateEvent(await ctx.db.get(args.eventId));
     isUserInCompanyOfEvent(user, event);

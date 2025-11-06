@@ -45,6 +45,7 @@ export const updateUserByEmail = internalMutation({
     imageUrl: v.optional(v.string()),
     role: v.optional(v.union(RoleConvex, v.null())),
     newEmail: v.optional(v.string()),
+    clerkUserId: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<Id<"users">> => {
     const user = validateUser(
@@ -59,7 +60,8 @@ export const updateUserByEmail = internalMutation({
       email: args.newEmail ?? user.email,
       name: args.name ?? user.name,
       imageUrl: args.imageUrl ?? user.imageUrl,
-      role: args.role || user.role,
+      role: args.role ?? user.role,
+      clerkUserId: args.clerkUserId ?? user.clerkUserId,
     });
 
     return user._id;
@@ -209,5 +211,46 @@ export const getUserByIdInternal = internalQuery({
   handler: async (ctx, args): Promise<Doc<"users"> | null> => {
     const { userId } = args;
     return await ctx.db.get(userId);
+  },
+});
+
+export const getUsersByOrganizationId = internalQuery({
+  args: { organizationId: v.id("organizations") },
+  handler: async (ctx, args): Promise<Doc<"users">[]> => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_organizationId", (q) =>
+        q.eq("organizationId", args.organizationId)
+      )
+      .collect();
+  },
+});
+
+export const internalUpsertUserByClerkId = internalMutation({
+  args: {
+    clerkUserId: v.string(),
+    email: v.string(),
+    role: v.union(RoleConvex),
+    organizationId: v.id("organizations"),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .unique();
+
+    if (existing) {
+      return await ctx.db.patch(existing._id, {
+        organizationId: args.organizationId,
+      });
+    }
+
+    return await ctx.db.insert("users", {
+      clerkUserId: args.clerkUserId,
+      email: args.email,
+      role: args.role,
+      organizationId: args.organizationId,
+      isActive: true,
+    });
   },
 });

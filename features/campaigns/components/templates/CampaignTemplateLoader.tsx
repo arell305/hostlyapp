@@ -1,4 +1,4 @@
-import { useUserScope } from "@/contexts/UserScope";
+import { useUserScope } from "@/shared/hooks/contexts";
 import { useSmsTemplates } from "@/domain/smsTemplates";
 import CampaignTemplateContent from "./CampaignTemplateContent";
 

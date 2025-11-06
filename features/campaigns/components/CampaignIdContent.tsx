@@ -5,7 +5,7 @@ import { useUpdateCampaign } from "@/domain/campaigns";
 import { CampaignValues } from "@shared/types/types";
 import { Doc } from "convex/_generated/dataModel";
 import { useState } from "react";
-import { useCampaignScope } from "@/contexts/CampaignIdScope";
+import { useCampaignScope } from "@/shared/hooks/contexts/useCampaignScope";
 
 interface CampaignDetailsProps {
   isEditMode: boolean;

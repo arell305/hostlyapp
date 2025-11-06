@@ -7,6 +7,7 @@ import {
 } from "@clerk/backend";
 import { getBaseUrl } from "./helpers";
 import { Organization } from "@clerk/nextjs/server";
+import slugify from "slugify";
 
 if (!process.env.CLERK_SECRET_KEY) {
   throw new Error(ErrorMessages.ENV_NOT_SET_CLERK_SECRET_KEY);
@@ -38,23 +39,39 @@ export async function sendClerkInvitation(email: string): Promise<Invitation> {
 
 export async function createClerkOrg({
   companyName,
-  publicMetadata,
   createdBy,
 }: {
   companyName: string;
-  publicMetadata: Record<string, any>;
   createdBy: string;
-}): Promise<Organization> {
-  try {
-    return await clerkClient.organizations.createOrganization({
-      name: companyName,
-      publicMetadata,
-      createdBy,
-    });
-  } catch (error) {
-    console.error(ErrorMessages.CLERK_ORGANIZATION_CREATE_ERROR, error);
-    throw error;
+}): Promise<import("@clerk/backend").Organization> {
+  const baseSlug = slugify(companyName, { lower: true, strict: true });
+  let slug = baseSlug;
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  while (attempts < maxAttempts) {
+    try {
+      const organization = await clerkClient.organizations.createOrganization({
+        name: companyName,
+        slug,
+        createdBy,
+      });
+      return organization;
+    } catch (error: any) {
+      if (
+        error.errors?.[0]?.code === "duplicate_record" ||
+        error.errors?.[0]?.message?.includes("slug")
+      ) {
+        attempts++;
+        slug = `${baseSlug}-${attempts}`; // → acme-co-1, acme-co-2
+        continue;
+      }
+      console.error("Clerk org create error:", error);
+      throw error;
+    }
   }
+
+  throw new Error("Could not generate unique slug after 10 attempts");
 }
 
 export async function updateOrganizationLogo({
@@ -65,7 +82,7 @@ export async function updateOrganizationLogo({
   organizationId: string;
   file: File | Blob;
   uploaderUserId: string;
-}): Promise<Organization> {
+}): Promise<import("@clerk/backend").Organization> {
   try {
     const response = await clerkClient.organizations.updateOrganizationLogo(
       organizationId,
@@ -81,7 +98,7 @@ export async function updateOrganizationLogo({
 export async function updateClerkOrganization(
   clerkOrganizationId: string,
   name: string
-): Promise<Organization> {
+): Promise<import("@clerk/backend").Organization> {
   try {
     const updatedOrganization =
       await clerkClient.organizations.updateOrganization(clerkOrganizationId, {
@@ -97,7 +114,7 @@ export async function updateClerkOrganization(
 export async function updateClerkOrganizationMetadata(
   clerkOrganizationId: string,
   updatedMetadata: Record<string, any>
-): Promise<Organization> {
+): Promise<import("@clerk/backend").Organization> {
   try {
     const organization = await clerkClient.organizations.getOrganization({
       organizationId: clerkOrganizationId,

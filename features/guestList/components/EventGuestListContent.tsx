@@ -1,6 +1,6 @@
 "use client";
 import EventGuestListForm from "./EventGuestListForm";
-import { useEventContext } from "@/contexts/EventContext";
+import { useEventContext } from "@/shared/hooks/contexts";
 import DetailsView from "@/features/customerEvents/components/view/DetailsView";
 import About from "@/features/customerEvents/components/view/About";
 import GuestListRulesCard from "./GuestListRulesCard";

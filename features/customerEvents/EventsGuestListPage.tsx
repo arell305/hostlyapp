@@ -1,5 +1,5 @@
 "use client";
-import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
+import { useContextPublicOrganization } from "@/shared/hooks/contexts";
 import { usePathname, useRouter } from "next/navigation";
 import ProfileBanner from "@shared/ui/company/ProfileBanner";
 import HomeNav from "@shared/ui/nav/HomeNav";

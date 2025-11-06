@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import useMediaQuery from "@/shared/hooks/ui/useMediaQuery";
 import {

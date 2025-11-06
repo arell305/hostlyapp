@@ -1,11 +1,11 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 import type { Id } from "convex/_generated/dataModel";
 
-type UserScope = { userId: Id<"users"> };
+export type UserScope = { userId: Id<"users"> };
 
-const UserScopeContext = createContext<UserScope | null>(null);
+export const UserScopeContext = createContext<UserScope | null>(null);
 
 export function UserScopeProvider({
   userId,
@@ -19,13 +19,4 @@ export function UserScopeProvider({
       {children}
     </UserScopeContext.Provider>
   );
-}
-
-export function useUserScope(): UserScope {
-  const context = useContext(UserScopeContext);
-  if (!context) {
-    throw new Error("UserScopeProvider missing");
-  }
-
-  return context;
 }

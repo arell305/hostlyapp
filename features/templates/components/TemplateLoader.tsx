@@ -2,7 +2,7 @@
 
 import { useSmsTemplates } from "@/domain/smsTemplates";
 import TemplateContent from "./TemplateContent";
-import { useUserScope } from "@/contexts/UserScope";
+import { useUserScope } from "@/shared/hooks/contexts";
 
 const TemplatesLoader = () => {
   const { userId } = useUserScope();

@@ -14,11 +14,7 @@ const ActiveMembersSection = ({ users }: ActiveMembersSectionProps) => {
   return (
     <CustomCard className="p-0">
       {users.map((member) => (
-        <MemberCard
-          key={member.clerkUserId}
-          user={member}
-          slug={organization.slug}
-        />
+        <MemberCard key={member._id} user={member} slug={organization.slug} />
       ))}
     </CustomCard>
   );

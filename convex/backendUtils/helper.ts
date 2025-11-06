@@ -101,7 +101,7 @@ export async function handleGuestListData(
     checkInCloseTime: number;
     guestListRules: string;
   },
-  clerkUserId: string
+  userId: Id<"users">
 ): Promise<Id<"guestListInfo">> {
   const subscription = validateSubscription(
     await ctx.runQuery(
@@ -128,7 +128,7 @@ export async function handleGuestListData(
           internal.guestListCreditTransactions.useGuestListCredit,
           {
             organizationId: organization._id,
-            clerkUserId,
+            userId,
             eventId,
           }
         ),
@@ -152,7 +152,7 @@ export async function handleGuestListData(
           internal.guestListCreditTransactions.useGuestListCredit,
           {
             organizationId: organization._id,
-            clerkUserId,
+            userId,
             eventId,
           }
         ),
@@ -285,7 +285,7 @@ export async function handleGuestListUpdateData(
     checkInCloseTime: number;
     guestListRules: string;
   } | null,
-  clerkUserId: string
+  userId: Id<"users">
 ): Promise<Id<"guestListInfo"> | null> {
   const existingGuestListInfo = await ctx.runQuery(
     internal.guestListInfo.getGuestListInfoByEventId,
@@ -329,7 +329,7 @@ export async function handleGuestListUpdateData(
             internal.guestListCreditTransactions.useGuestListCredit,
             {
               organizationId: organization._id,
-              clerkUserId,
+              userId,
               eventId,
             }
           ),
@@ -353,7 +353,7 @@ export async function handleGuestListUpdateData(
             internal.guestListCreditTransactions.useGuestListCredit,
             {
               organizationId: organization._id,
-              clerkUserId,
+              userId,
               eventId,
             }
           ),

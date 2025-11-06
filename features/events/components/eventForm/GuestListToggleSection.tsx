@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Button } from "@/shared/ui/primitive/button";
 import ToggleSectionCard from "@/shared/ui/toggle/ToggleSectionCard";
 import GuestListSection from "./GuestListSection";
-import { useEventForm } from "@/contexts/EventFormContext";
 import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
 import { SubscriptionTier } from "@shared/types/enums";
 import { PLUS_GUEST_LIST_LIMIT } from "@shared/types/constants";
 import { Doc } from "convex/_generated/dataModel";
+import { useEventForm } from "@/shared/hooks/contexts";
 
 interface GuestListToggleSectionProps {
   isCompanyAdmin: boolean;

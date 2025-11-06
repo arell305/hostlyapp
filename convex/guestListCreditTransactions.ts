@@ -84,12 +84,12 @@ export const createGuestListCreditPaymentIntent = action({
 
     try {
       const identity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
-      const clerkUserId = identity.id as string;
+      const userId = identity.convexUserId as Id<"users">;
 
       const { customer, user } = await ctx.runQuery(
         internal.customers.findUserAndCustomerByClerkId,
         {
-          clerkUserId,
+          userId,
         }
       );
 
@@ -130,18 +130,13 @@ export const createGuestListCreditPaymentIntent = action({
 export const useGuestListCredit = internalMutation({
   args: {
     organizationId: v.id("organizations"),
-    clerkUserId: v.string(),
+    userId: v.id("users"),
     eventId: v.id("events"),
   },
   handler: async (ctx, args): Promise<Id<"guestListCreditTransactions">> => {
-    const { organizationId, clerkUserId, eventId } = args;
+    const { organizationId, userId, eventId } = args;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
-        .unique()
-    );
+    const user = validateUser(await ctx.db.get(userId));
 
     const guestListCreditTransactionId = await ctx.db.insert(
       "guestListCreditTransactions",

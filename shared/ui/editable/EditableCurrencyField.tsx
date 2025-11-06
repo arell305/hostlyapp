@@ -54,6 +54,8 @@ const EditableCurrencyField: React.FC<EditableCurrencyFieldProps> = ({
               thousandSeparator
               decimalScale={2}
               fixedDecimalScale
+              type="tel"
+              inputMode="decimal"
               prefix="$"
               allowNegative={false}
               placeholder="$0.00"

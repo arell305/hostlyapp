@@ -5,10 +5,9 @@ import OrderSummary from "@/features/customerEvents/components/view/OrderSummary
 import StripePaymentSection from "./StripePaymentSection";
 import TicketCheckoutForm from "./TicketCheckoutForm";
 import { Stripe } from "@stripe/stripe-js";
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
 import { useCreatePaymentIntent } from "@/domain/stripe";
 import { FrontendErrorMessages } from "@shared/types/enums";
-import { useEventContext } from "@/contexts/EventContext";
+import { useEventContext, useEventCheckout } from "@/shared/hooks/contexts";
 
 interface TicketPurchaseSectionProps {
   eventId: string;

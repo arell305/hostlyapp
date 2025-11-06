@@ -8,7 +8,7 @@ import ErrorComponent from "@shared/ui/error/ErrorComponent";
 import PendingUserCard from "../PendingUserCard";
 import ResponsiveConfirm from "@shared/ui/responsive/ResponsiveConfirm";
 import { useRevokeInvitation } from "@/domain/clerk/useRevokeInvitation";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
 import MemberCardSkeleton from "@shared/ui/skeleton/MemberCardSkeleton";
 
 interface PendingMembersSectionProps {
@@ -24,7 +24,6 @@ const PendingMembersSection = ({
   const [error, setError] = useState<string | null>(null);
   const [revokeUserId, setRevokeUserId] = useState<string | null>(null);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false);
-
   const getPendingInvitationList = useAction(
     api.clerk.getPendingInvitationList
   );

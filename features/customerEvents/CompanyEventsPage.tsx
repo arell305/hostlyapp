@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
+import { useContextPublicOrganization } from "@/shared/hooks/contexts";
 import CompanyEventsContent from "@/features/customerEvents/components/CompanyEventsContent";
 import NProgress from "nprogress";
 

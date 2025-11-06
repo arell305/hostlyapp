@@ -115,7 +115,7 @@ export const addEvent = action({
         organization,
         eventId,
         guestListData,
-        identity.id as string
+        identity.convexUserId as Id<"users">
       );
     }
 
@@ -234,14 +234,13 @@ export const updateEvent = action({
       );
     }
 
-    const guestListInfoId: Id<"guestListInfo"> | null =
-      await handleGuestListUpdateData(
-        ctx,
-        validatedOrganization,
-        eventId,
-        guestListData,
-        identity.id as string
-      );
+    await handleGuestListUpdateData(
+      ctx,
+      validatedOrganization,
+      eventId,
+      guestListData,
+      identity.convexUserId as Id<"users">
+    );
 
     await ctx.runMutation(internal.events.internalUpdateEvent, {
       eventId,
@@ -464,7 +463,6 @@ export const getEventsForCampaign = query({
       UserRole.Hostly_Admin,
       UserRole.Promoter,
     ]);
-    console.log("test");
     const validatedOrganization = validateOrganization(
       await ctx.db.get(organizationId),
       true

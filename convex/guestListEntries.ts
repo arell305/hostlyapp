@@ -36,14 +36,9 @@ export const getEventWithGuestLists = query({
       UserRole.Promoter,
     ]);
 
-    const clerkUserId = identity.id as string;
+    const convexUserId = identity.convexUserId as Id<"users">;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .first()
-    );
+    const user = validateUser(await ctx.db.get(convexUserId));
 
     const event = validateEvent(await ctx.db.get(eventId));
     isUserInCompanyOfEvent(user, event);
@@ -112,14 +107,9 @@ export const deleteGuestListEntry = mutation({
       UserRole.Hostly_Admin,
     ]);
 
-    const clerkUserId = identity.id as string;
+    const userId = identity.convexUserId as Id<"users">;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique()
-    );
+    const user = validateUser(await ctx.db.get(userId));
 
     const guestEntry = await ctx.db.get(guestId);
     if (!guestEntry) {
@@ -156,14 +146,9 @@ export const updateGuestListEntry = mutation({
       UserRole.Hostly_Admin,
     ]);
 
-    const clerkUserId = identity.id as string;
+    const userId = identity.convexUserId as Id<"users">;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique()
-    );
+    const user = validateUser(await ctx.db.get(userId));
 
     const guestEntry = validateGuestEntry(await ctx.db.get(guestId));
 
@@ -191,14 +176,9 @@ export const checkInGuestEntry = mutation({
       UserRole.Moderator,
     ]);
 
-    const clerkUserId = identity.id as string;
+    const userId = identity.convexUserId as Id<"users">;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique()
-    );
+    const user = validateUser(await ctx.db.get(userId));
 
     const guestEntry = validateGuestEntry(await ctx.db.get(guestId));
 
@@ -234,14 +214,9 @@ export const addGuestListEntry = mutation({
       UserRole.Hostly_Moderator,
       UserRole.Hostly_Admin,
     ]);
-    const clerkUserId = identity.id as string;
+    const userId = identity.convexUserId as Id<"users">;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("clerkUserId"), clerkUserId))
-        .unique()
-    );
+    const user = validateUser(await ctx.db.get(userId));
 
     const event = validateEvent(await ctx.db.get(eventId));
     isUserInCompanyOfEvent(user, event);
@@ -299,14 +274,9 @@ export const getGuestListKpis = query({
 
     isUserInOrganization(identity, organization.clerkOrganizationId);
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) =>
-          q.eq("clerkUserId", identity.id as string)
-        )
-        .unique()
-    );
+    const userId = identity.convexUserId as Id<"users">;
+
+    const user = validateUser(await ctx.db.get(userId));
 
     const events = await ctx.db
       .query("events")

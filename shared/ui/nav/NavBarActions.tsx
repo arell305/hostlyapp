@@ -11,7 +11,7 @@ import { UserRole } from "@/shared/types/enums";
 import { FaEdit } from "react-icons/fa";
 import { usePathname, useRouter } from "next/navigation";
 import NProgress from "nprogress";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
 
 const NavbarActions = () => {
   const { orgRole, user: userData } = useContextOrganization();

@@ -1,19 +1,13 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
+import React, { createContext, useState, ReactNode, useEffect } from "react";
 import { TicketType, TicketTypeForm, AddressValue } from "@shared/types/types";
 import { ticketNameOptions } from "@shared/types/constants";
 import { Doc, Id } from "convex/_generated/dataModel";
 import { EventFormErrors } from "@/shared/utils/form-validation/validateEventForm";
 import { isIOS } from "@/shared/utils/helpers";
 
-interface EventFormContextType {
+export interface EventFormContextType {
   // Event Details
   eventName: string;
   setEventName: (val: string) => void;
@@ -54,7 +48,7 @@ interface EventFormContextType {
   isIOSDevice: boolean;
 }
 
-const EventFormContext = createContext<EventFormContextType | undefined>(
+export const EventFormContext = createContext<EventFormContextType | undefined>(
   undefined
 );
 
@@ -160,12 +154,4 @@ export const EventFormProvider = ({
       {children}
     </EventFormContext.Provider>
   );
-};
-
-export const useEventForm = (): EventFormContextType => {
-  const context = useContext(EventFormContext);
-  if (!context) {
-    throw new Error("useEventForm must be used within an EventFormProvider");
-  }
-  return context;
 };

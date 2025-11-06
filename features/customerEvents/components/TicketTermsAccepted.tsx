@@ -1,7 +1,7 @@
 "use client";
 
 import TermsCheckbox from "@shared/ui/fields/TermsCheckbox";
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import { useEventCheckout } from "@/shared/hooks/contexts";
 
 const TicketTermsAccepted = () => {
   const { termsAccepted, setTermsAccepted } = useEventCheckout();

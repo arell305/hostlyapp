@@ -7,8 +7,7 @@ import TicketPurchaseSection from "./TicketPurchaseSection";
 import SectionContainer from "@shared/ui/containers/SectionContainer";
 import { Stripe } from "@stripe/stripe-js";
 import { isTicketSalesOpen } from "@shared/lib/frontendHelper";
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
-import { useEventContext } from "@/contexts/EventContext";
+import { useEventContext, useEventCheckout } from "@/shared/hooks/contexts";
 
 interface EventPurchaseSectionWrapperProps {
   stripePromise: Promise<Stripe | null>;

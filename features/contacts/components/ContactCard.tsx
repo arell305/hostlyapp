@@ -26,12 +26,12 @@ const ContactCard: React.FC<ContactCardProps> = ({
   const statusLabel = CONSENT_STATUS_LABEL[status];
 
   return (
-    <div className="border-b p-4 w-full flex justify-between items-center">
+    <div className="border-b py-4 px-3 w-full flex justify-between items-center">
       <div className="flex justify-center items-center">
         <div>
           <div className="flex items-center">
-            <p className="text-xl font-semibold">{contact.name}</p>
-            <p className="text-lg text-whiteText/70 font-normal pt-[2px] ml-2">
+            <p className=" font-semibold">{contact.name}</p>
+            <p className=" text-whiteText/70 font-normal pt-[2px] ml-2">
               {formatPhoneNumber(contact.phoneNumber || "")}
             </p>
           </div>
@@ -41,7 +41,7 @@ const ContactCard: React.FC<ContactCardProps> = ({
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-1">
         <IconButton
           icon={<Pencil size={20} />}
           title="Edit"

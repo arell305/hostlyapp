@@ -1,13 +1,11 @@
 "use client";
 
-import {
-  OrganizationProvider,
-  useContextOrganization,
-} from "@/contexts/OrganizationContext";
+import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import Sidebar from "@/shared/ui/nav/Sidebar";
 import TicketScannerFAB from "@/shared/ui/fab/TicketScannerFAB";
 import Navbar from "@/shared/ui/nav/Navbar";
 import { isModerator } from "@/shared/utils/permissions";
+import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
 
 const InnerLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { orgRole } = useContextOrganization();

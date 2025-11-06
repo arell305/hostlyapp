@@ -4,7 +4,7 @@ import { CampaignTab } from "@/shared/types/types";
 import PageContainer from "@/shared/ui/containers/PageContainer";
 import SectionHeaderWithAction from "@/shared/ui/headings/SectionHeaderWithAction";
 import { useState } from "react";
-import { useCampaignScope } from "@/contexts/CampaignIdScope";
+import { useCampaignScope } from "@/shared/hooks/contexts/useCampaignScope";
 import CampaignDetails from "./components/CampaignIdContent";
 import IconButton from "@/shared/ui/buttonContainers/IconButton";
 import { Archive, Pencil } from "lucide-react";

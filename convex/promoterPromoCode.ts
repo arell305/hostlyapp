@@ -13,6 +13,7 @@ import {
 } from "./backendUtils/validation";
 import { isUserInCompanyOfEvent } from "./backendUtils/helper";
 import { requireAuthenticatedUser } from "../shared/utils/auth";
+import { Id } from "./_generated/dataModel";
 
 export const addOrUpdatePromoterPromoCode = mutation({
   args: {
@@ -22,14 +23,9 @@ export const addOrUpdatePromoterPromoCode = mutation({
     const { name } = args;
 
     const identity = await requireAuthenticatedUser(ctx, [UserRole.Promoter]);
-    const clerkUserId = identity.id as string;
+    const userId = identity.convexUserId as Id<"users">;
 
-    const user = validateUser(
-      await ctx.db
-        .query("users")
-        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
-        .first()
-    );
+    const user = validateUser(await ctx.db.get(userId));
 
     const normalizedInputName = name.toLowerCase();
 

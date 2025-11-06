@@ -5,9 +5,9 @@ import FormActions from "@shared/ui/buttonContainers/FormActions";
 import { TemplateValues } from "@shared/types/types";
 import { useInsertSmsTemplate } from "@/domain/smsTemplates";
 import { SmsMessageType } from "@shared/types/enums";
-import React, { useState } from "react";
+import { useState } from "react";
 import TemplateFields from "./TemplateFields";
-import { useUserScope } from "@/contexts/UserScope";
+import { useUserScope } from "@/shared/hooks/contexts";
 
 interface ResponsiveAddTemplateProps {
   isOpen: boolean;

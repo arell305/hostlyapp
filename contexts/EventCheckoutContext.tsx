@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useMemo } from "react";
+import { createContext, useState, useMemo } from "react";
 import { PromoterPromoCodeWithDiscount } from "@shared/types/schemas-types";
 import { calculateTicketPricing } from "@shared/lib/frontendHelper";
 import { Doc } from "convex/_generated/dataModel";
@@ -35,18 +35,9 @@ interface EventCheckoutContextValue {
   setTermsAccepted: (val: boolean) => void;
 }
 
-const EventCheckoutContext = createContext<
+export const EventCheckoutContext = createContext<
   EventCheckoutContextValue | undefined
 >(undefined);
-
-export const useEventCheckout = () => {
-  const ctx = useContext(EventCheckoutContext);
-  if (!ctx)
-    throw new Error(
-      "useEventCheckout must be used within EventCheckoutProvider"
-    );
-  return ctx;
-};
 
 export const EventCheckoutProvider = ({
   children,

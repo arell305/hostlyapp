@@ -1,3 +1,5 @@
+"use client";
+
 import LabeledInputField from "@/shared/ui/fields/LabeledInputField";
 import FormContainer from "@/shared/ui/containers/FormContainer";
 import FormActions from "@/shared/ui/buttonContainers/FormActions";

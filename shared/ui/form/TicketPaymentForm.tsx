@@ -1,6 +1,6 @@
 "use client";
 
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import { useEventCheckout } from "@/shared/hooks/contexts";
 import {
   useStripe,
   useElements,

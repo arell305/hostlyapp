@@ -1,6 +1,6 @@
 "use client";
 import { useCampaigns } from "@/domain/campaigns";
-import { useUserScope } from "@/contexts/UserScope";
+import { useUserScope } from "@/shared/hooks/contexts";
 import CampaignsSection from "../CampaignsSection";
 import { CampaignFilter } from "@/shared/types/types";
 

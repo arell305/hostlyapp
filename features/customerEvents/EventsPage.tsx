@@ -1,5 +1,4 @@
 "use client";
-import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
 import { usePathname, useRouter } from "next/navigation";
 import { Stripe, loadStripe } from "@stripe/stripe-js";
 import ProfileBanner from "@shared/ui/company/ProfileBanner";
@@ -7,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import HomeNav from "@shared/ui/nav/HomeNav";
 import NProgress from "nprogress";
 import EventContentWrapper from "@/features/customerEvents/components/EventCheckoutWrapper";
+import { useContextPublicOrganization } from "@/shared/hooks/contexts";
 
 const EventsPage = () => {
   const { organizationPublic } = useContextPublicOrganization();

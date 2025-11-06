@@ -4,7 +4,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { Stripe } from "@stripe/stripe-js";
 import { Button } from "@shared/ui/primitive/button";
 import { stripeAppearance } from "@/shared/utils/frontend-stripe/stripeAppearance";
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import { useEventCheckout } from "@/shared/hooks/contexts";
 import TicketPaymentForm from "@/shared/ui/form/TicketPaymentForm";
 
 interface StripePaymentSectionProps {

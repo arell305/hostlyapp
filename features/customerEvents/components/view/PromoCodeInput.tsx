@@ -4,7 +4,7 @@ import { Input } from "@shared/ui/primitive/input";
 import { Button } from "@shared/ui/primitive/button";
 import { Label } from "@shared/ui/primitive/label";
 import FieldErrorMessage from "@shared/ui/error/FieldErrorMessage";
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import { useEventCheckout } from "@/shared/hooks/contexts";
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { FrontendErrorMessages } from "@shared/types/enums";

@@ -1,13 +1,13 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 import type { Id } from "convex/_generated/dataModel";
 import { useCampaignById } from "@/domain/campaigns";
 import type { Doc } from "@/convex/_generated/dataModel";
 
-type CampaignScope = { campaign: Doc<"campaigns"> };
+export type CampaignScope = { campaign: Doc<"campaigns"> };
 
-const CampaignScopeContext = createContext<CampaignScope | null>(null);
+export const CampaignScopeContext = createContext<CampaignScope | null>(null);
 
 export function CampaignScopeProvider({
   campaignId,
@@ -26,13 +26,4 @@ export function CampaignScopeProvider({
       {children}
     </CampaignScopeContext.Provider>
   );
-}
-
-export function useCampaignScope(): CampaignScope {
-  const context = useContext(CampaignScopeContext);
-  if (!context) {
-    throw new Error("CampaignScopeProvider missing");
-  }
-
-  return context;
 }

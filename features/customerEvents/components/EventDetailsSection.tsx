@@ -2,7 +2,7 @@
 
 import SectionContainer from "@shared/ui/containers/SectionContainer";
 import DetailsView from "@/features/customerEvents/components/view/DetailsView";
-import { useEventContext } from "@/contexts/EventContext";
+import { useEventContext } from "@/shared/hooks/contexts";
 
 const EventDetailsSection: React.FC = () => {
   const { event: eventData } = useEventContext();

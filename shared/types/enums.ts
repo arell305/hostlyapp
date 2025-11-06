@@ -321,6 +321,7 @@ export enum ErrorMessages {
 }
 
 export enum ShowErrorMessages {
+  USER_ALREADY_ACCEPTED_INVITATION = "User already accepted invitation",
   COMPANY_NAME_ALREADY_EXISTS = "Company name already exists.",
   FORBIDDEN_PRIVILEGES = "User does not have permission",
   FORBIDDEN_TIER = "Account does not have tier for this functionality",
@@ -352,6 +353,7 @@ export enum ShowErrorMessages {
   GUEST_DB_NOT_FOUND = "Guest not found",
   THREAD_NOT_FOUND = "Thread not found",
   CONTACT_DB_NOT_FOUND = "Contact not found",
+  USER_NOT_CLERK_USER = "User is not a Clerk user",
 }
 
 export enum FrontendErrorMessages {

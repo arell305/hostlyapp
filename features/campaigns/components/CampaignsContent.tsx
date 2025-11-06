@@ -3,8 +3,7 @@
 import { Doc } from "@/convex/_generated/dataModel";
 import CampaignCard from "./CampaignCard";
 import CustomCard from "@/shared/ui/cards/CustomCard";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
-import { useUserScope } from "@/contexts/UserScope";
+import { useContextOrganization, useUserScope } from "@/shared/hooks/contexts";
 
 interface CampaignsContentProps {
   campaigns: Doc<"campaigns">[];

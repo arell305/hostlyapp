@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import AddGuestListContent from "./components/AddGuestListContent";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import {
+  useContextOrganization,
+  useEventIdScope,
+} from "@/shared/hooks/contexts";
 import MessagePage from "@shared/ui/shared-page/MessagePage";
 import NProgress from "nprogress";
 import FullLoading from "@shared/ui/loading/FullLoading";
-import { useEventIdScope } from "@/contexts/EventIdScope";
 
 const AddGuestListPage: React.FC = () => {
   const router = useRouter();

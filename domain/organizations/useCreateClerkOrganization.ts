@@ -37,6 +37,8 @@ export const useCreateClerkOrganization = () => {
     } catch (error) {
       setErrorFromConvexError(error, setError);
       return null;
+    } finally {
+      setIsLoading(false);
     }
   };
 

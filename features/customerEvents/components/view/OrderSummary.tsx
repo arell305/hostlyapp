@@ -1,6 +1,6 @@
 "use client";
 
-import { useEventCheckout } from "@/contexts/EventCheckoutContext";
+import { useEventCheckout } from "@/shared/hooks/contexts";
 import { formatCurrency } from "@/shared/utils/helpers";
 
 const OrderSummary: React.FC = () => {

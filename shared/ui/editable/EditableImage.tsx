@@ -41,6 +41,7 @@ const EditableImage: React.FC<EditableImageProps> = ({
             fill
             sizes="100px"
             className="rounded-full object-cover aspect-square"
+            loading="eager"
           />
         ) : (
           <InitialAvatar

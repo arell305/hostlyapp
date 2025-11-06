@@ -3,9 +3,8 @@
 import { useInsertCampaign } from "@/domain/campaigns";
 import { useCampaignForm } from "../contexts/CampaignFormContext";
 import SingleSubmitButton from "@/shared/ui/buttonContainers/SingleSubmitButton";
-import { useUserScope } from "@/contexts/UserScope";
 import { useRouter } from "next/navigation";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization, useUserScope } from "@/shared/hooks/contexts";
 
 const CampaignSubmit = () => {
   const router = useRouter();

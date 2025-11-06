@@ -1,37 +1,34 @@
-import { redirect } from "next/navigation";
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "convex/_generated/api";
+"use client";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { UserRole } from "@shared/types/enums";
+import { useUser } from "@clerk/nextjs";
+import FullLoading from "@/shared/ui/loading/FullLoading";
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+export default function RedirectingSignUpPage() {
+  const router = useRouter();
+  const { user, isLoaded: userLoaded } = useUser();
 
-export default async function PostSignIn() {
-  const { userId } = await auth();
-  if (!userId) {
-    redirect("/sign-in?redirect_url=/post-sign-in");
-  }
+  const role = user?.publicMetadata?.role as UserRole | undefined;
+  const convexSlug = user?.publicMetadata?.convexSlug as string | undefined;
 
-  const user = await currentUser();
-  const role =
-    (user?.publicMetadata?.role as UserRole | undefined) ?? undefined;
-
-  const org = await convex.query(
-    api.organizations.getOrganizationByClerkUserId,
-    {
-      clerkUserId: userId,
+  useEffect(() => {
+    if (!userLoaded) {
+      return;
     }
-  );
 
-  if (org?.slug === "admin") {
-    redirect("/admin/app/companies");
-  }
-  if (org) {
-    redirect(`/${org.slug}/app`);
-  }
-  if (role === UserRole.Admin) {
-    redirect("/create-company");
-  }
+    switch (true) {
+      case !!convexSlug:
+        router.push(`/${convexSlug}/app`);
+        break;
+      case role === UserRole.Admin:
+        router.push("/create-company");
+        break;
+      case user === null:
+        router.push("/sign-in");
+        break;
+    }
+  }, [router, userLoaded, convexSlug, role, user]);
 
-  redirect("/");
+  return <FullLoading />;
 }

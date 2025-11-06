@@ -168,7 +168,7 @@ const CreateCompanyContent = ({
             isLoading={isLoading}
             error={clerkOrganizationError}
             onClick={handleSubmit}
-            disabled={isDisabled}
+            disabled={isDisabled || isLoading}
             label="Create"
           />
         </LabelWrapper>

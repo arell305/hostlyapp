@@ -8,7 +8,7 @@ import { Button } from "@shared/ui/primitive/button";
 import { Plus } from "lucide-react";
 import { isAdminOrg, isManager } from "@/shared/utils/permissions";
 import PageContainer from "@shared/ui/containers/PageContainer";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
 import GetUsersByCompany from "@/features/companies/components/GetUsersByCompany";
 
 const TeamPage = () => {

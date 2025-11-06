@@ -1,7 +1,7 @@
 "use client";
 
+import { useContextPublicOrganization } from "@/shared/hooks/contexts";
 import Logo from "@/shared/ui/image/Logo";
-import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
 import { UserButton } from "@clerk/nextjs";
 
 const HomeNav: React.FC = () => {

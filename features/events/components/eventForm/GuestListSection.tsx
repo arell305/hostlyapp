@@ -2,7 +2,7 @@
 
 import LabeledDateTimeField from "@/shared/ui/fields/LabeledDateTimeField";
 import LabeledTextAreaField from "@/shared/ui/fields/LabeledTextAreaField";
-import { useEventForm } from "@/contexts/EventFormContext";
+import { useEventForm } from "@/shared/hooks/contexts";
 
 const GuestListSection = () => {
   const {

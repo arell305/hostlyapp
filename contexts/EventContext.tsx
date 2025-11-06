@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import FullLoading from "@shared/ui/loading/FullLoading";
@@ -8,14 +8,16 @@ import type { EventWithTicketTypes } from "@shared/types/schemas-types";
 import type { TicketSoldCountByType } from "@shared/types/types";
 import { Doc, Id } from "convex/_generated/dataModel";
 
-type EventContextType = {
+export type EventContextType = {
   event: EventWithTicketTypes;
   guestListInfo: Doc<"guestListInfo"> | null;
   ticketSoldCounts: TicketSoldCountByType[] | null;
   ticketTypes: Doc<"eventTicketTypes">[];
 };
 
-const EventContext = createContext<EventContextType | undefined>(undefined);
+export const EventContext = createContext<EventContextType | undefined>(
+  undefined
+);
 
 export const EventProvider: React.FC<{
   eventId: Id<"events">;
@@ -86,16 +88,4 @@ export const EventProvider: React.FC<{
       {children}
     </EventContext.Provider>
   );
-};
-
-export const useEventContext = () => {
-  const eventContext = useContext(EventContext);
-
-  if (!eventContext) {
-    return (() => {
-      throw new Error("useEventContext must be used within EventProvider");
-    })() as never;
-  }
-
-  return eventContext;
 };

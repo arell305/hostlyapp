@@ -1,7 +1,7 @@
 "use client";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
 import CompanySettingsContent from "@/features/companySettings/components/CompanySettingsContent";
 import { isManager } from "@/shared/utils/permissions";
 

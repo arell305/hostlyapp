@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo } from "react";
-import { ErrorMessages } from "@shared/types/enums";
+import { createContext, useMemo } from "react";
 import type { OrganizationPublic } from "@shared/types/types";
 import { usePreloadedQuery, type Preloaded } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -18,7 +17,7 @@ type InitialPayload = {
   >;
 };
 
-const PublicOrganizationContext = createContext<
+export const PublicOrganizationContext = createContext<
   PublicOrganizationContextType | undefined
 >(undefined);
 
@@ -44,10 +43,4 @@ export function PublicOrganizationProvider({
       {children}
     </PublicOrganizationContext.Provider>
   );
-}
-
-export function useContextPublicOrganization() {
-  const ctx = useContext(PublicOrganizationContext);
-  if (!ctx) throw new Error(ErrorMessages.CONTEXT_ORGANIZATION_PROVER);
-  return ctx;
 }

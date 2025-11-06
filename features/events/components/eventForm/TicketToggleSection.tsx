@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ToggleSectionCard from "@/shared/ui/toggle/ToggleSectionCard";
 import TicketSection from "./TicketSection";
-import { useEventForm } from "@/contexts/EventFormContext";
+import { useEventForm } from "@/shared/hooks/contexts";
 import { TicketType } from "@shared/types/types";
 import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
 

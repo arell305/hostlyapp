@@ -5,7 +5,7 @@ import SectionHeaderWithAction from "@shared/ui/headings/SectionHeaderWithAction
 import { useState } from "react";
 import ContactsLoader from "@/features/contacts/components/ContactsLoader";
 import ResponsiveAddContact from "@/features/contacts/components/ResponsiveAddContact";
-import { useUserScope } from "@/contexts/UserScope";
+import { useUserScope } from "@/shared/hooks/contexts";
 import { ActionButton } from "@/shared/ui/buttonContainers/ActionButton";
 import { UploadIcon } from "lucide-react";
 import ResponsiveUploadContact from "./components/CsvUpload/ResponsiveUploadContact";

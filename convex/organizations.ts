@@ -246,10 +246,10 @@ export const getOrganizationContext = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }): Promise<GetOrganizationContextData> => {
     const identity = await requireAuthenticatedUser(ctx);
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("clerkUserId"), identity.id))
-      .unique();
+
+    const userId = identity.convexUserId as Id<"users">;
+
+    const user = validateUser(await ctx.db.get(userId));
 
     if (!user) {
       throw new ConvexError({

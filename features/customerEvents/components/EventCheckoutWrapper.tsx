@@ -3,7 +3,7 @@
 import { EventCheckoutProvider } from "@/contexts/EventCheckoutContext";
 import { Stripe } from "@stripe/stripe-js";
 import EventContent from "./EventContent";
-import { useEventContext } from "@/contexts/EventContext";
+import { useEventContext } from "@/shared/hooks/contexts";
 
 interface EventContentWrapperProps {
   isStripeEnabled: boolean;

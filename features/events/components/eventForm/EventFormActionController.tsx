@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import EventFormActions from "@/shared/ui/buttonContainers/EventFormActions";
-import { useEventForm } from "@/contexts/EventFormContext";
+import { useEventForm } from "@/shared/hooks/contexts";
 import {
   EventFormInput,
   GuestListFormInput,

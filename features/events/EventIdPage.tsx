@@ -2,14 +2,16 @@
 import { useRouter } from "next/navigation";
 import EventIdContent from "@/features/events/components/EventIdContent";
 import FullLoading from "@shared/ui/loading/FullLoading";
-import { useContextOrganization } from "@/contexts/OrganizationContext";
+import {
+  useContextOrganization,
+  useEventIdScope,
+} from "@/shared/hooks/contexts";
 import { isAdmin, isHostlyUser, isManager } from "@/shared/utils/permissions";
 import { isModerator, isPromoter } from "@/shared/utils/permissions";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import MessagePage from "@shared/ui/shared-page/MessagePage";
 import NProgress from "nprogress";
-import { useEventIdScope } from "@/contexts/EventIdScope";
 
 export default function EventIdPage() {
   const { eventId } = useEventIdScope();

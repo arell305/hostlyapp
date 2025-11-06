@@ -234,16 +234,13 @@ export const updateCustomerByStripeCustomerId = internalMutation({
 
 export const findUserAndCustomerByClerkId = internalQuery({
   args: {
-    clerkUserId: v.string(),
+    userId: v.id("users"),
   },
   handler: async (
     ctx,
     args
   ): Promise<{ user: Doc<"users">; customer: Doc<"customers"> }> => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", args.clerkUserId))
-      .first();
+    const user = validateUser(await ctx.db.get(args.userId));
 
     if (!user?.customerId) {
       throw new ConvexError({
