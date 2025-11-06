@@ -29,14 +29,8 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
-      {
-        protocol: "https",
-        hostname: "avatar.iran.liara.run",
-        pathname: "/**",
-      },
     ],
   },
-  // Optional: Add an empty turbopack config to silence Turbopack warning in Next.js 16+
   turbopack: {},
 };
 

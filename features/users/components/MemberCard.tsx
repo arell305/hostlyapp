@@ -2,13 +2,14 @@
 import { RiArrowRightSLine } from "react-icons/ri";
 import Image from "next/image";
 import { UserRole, roleMap } from "@/shared/types/enums";
-import { capitalizeWords } from "@/shared/utils/helpers";
+import { capitalizeWords, getInitial } from "@/shared/utils/helpers";
 import ClickableRow from "@shared/ui/cards/ClickableRow";
 import Link from "next/link";
 import NProgress from "nprogress";
 import { useState } from "react";
 import { cn } from "@/shared/lib/utils";
 import { Doc } from "convex/_generated/dataModel";
+import InitialAvatar from "@/shared/ui/avatars/InitialAvatar";
 
 interface MemberCardProps {
   user: Doc<"users">;
@@ -30,17 +31,26 @@ const MemberCard: React.FC<MemberCardProps> = ({ user, slug }) => {
             {!imageLoaded && (
               <div className="absolute inset-0 animate-pulse rounded-full bg-gray-300" />
             )}
-            <Image
-              src={user.imageUrl || "https://avatar.iran.liara.run/public"}
-              alt={`${user.name}`}
-              fill
-              sizes="64px"
-              onLoad={() => setImageLoaded(true)}
-              className={cn(
-                "rounded-full object-cover",
-                !imageLoaded && "opacity-0"
-              )}
-            />
+            {user.imageUrl ? (
+              <Image
+                src={user.imageUrl}
+                alt={`${user.name}`}
+                fill
+                sizes="64px"
+                onLoad={() => setImageLoaded(true)}
+                className={cn(
+                  "rounded-full object-cover",
+                  !imageLoaded && "opacity-0"
+                )}
+              />
+            ) : (
+              <InitialAvatar
+                initial={getInitial(user.name)}
+                size={64}
+                textSize="text-xl"
+                bgColor="bg-gray-600"
+              />
+            )}
           </div>
 
           <div className="flex-grow">
