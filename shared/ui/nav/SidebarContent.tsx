@@ -24,6 +24,7 @@ import Logo from "@/shared/ui/image/Logo";
 import _ from "lodash";
 import NavLink from "./NavLink";
 import { useContextOrganization } from "@/shared/hooks/contexts";
+import SidebarTitle from "./SidebarTitle";
 
 type SidebarContentProps = {
   onNavigate?: () => void;
@@ -74,7 +75,7 @@ const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
         <Logo />
       </div>
 
-      <div className="flex flex-col gap-2 md:gap-0 px-4 mt-2">
+      <div className="flex flex-col  px-4 mt-2">
         {isHostlyUserButton && (
           <div className="border-b-2">
             <NavLink href={hrefs.companies} onNavigate={onNavigate}>
@@ -90,25 +91,11 @@ const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
 
         {!shouldHideMainButtons && (
           <>
-            {isHostlyUserButton && (
-              <p className="text-xl text-grayText pl-4 pt-2">
-                {_.toUpper(slug)}
-              </p>
-            )}
+            {isHostlyUserButton && <SidebarTitle title={_.toUpper(slug)} />}
 
             <NavLink href={hrefs.home} onNavigate={onNavigate}>
               <Home size={20} />
               Home
-            </NavLink>
-
-            <NavLink href={hrefs.customerCalendar} onNavigate={onNavigate}>
-              <Calendar size={20} />
-              Customer Calendar
-            </NavLink>
-
-            <NavLink href={hrefs.team} onNavigate={onNavigate}>
-              <Users size={20} />
-              Team Members
             </NavLink>
 
             {isAnalyticsUserButton && (
@@ -118,6 +105,27 @@ const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               </NavLink>
             )}
 
+            <NavLink href={hrefs.customerCalendar} onNavigate={onNavigate}>
+              <Calendar size={20} />
+              Customer Calendar
+            </NavLink>
+
+            <SidebarTitle title={"Communications"} />
+
+            <NavLink href={hrefs.campaigns} onNavigate={onNavigate}>
+              <MessageCircle size={20} />
+              Campaigns
+            </NavLink>
+            <NavLink href={hrefs.contacts} onNavigate={onNavigate}>
+              <Users size={20} />
+              Contacts
+            </NavLink>
+            <NavLink href={hrefs.templates} onNavigate={onNavigate}>
+              <FileText size={20} />
+              Templates
+            </NavLink>
+            <SidebarTitle title={"Company"} />
+
             {isManagerButton && (
               <NavLink href={hrefs.companySettings} onNavigate={onNavigate}>
                 <Settings size={20} />
@@ -125,6 +133,17 @@ const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               </NavLink>
             )}
 
+            <NavLink href={hrefs.faq} onNavigate={onNavigate}>
+              <HelpCircle size={20} />
+              FAQ
+            </NavLink>
+
+            <NavLink href={hrefs.team} onNavigate={onNavigate}>
+              <Users size={20} />
+              Team Members
+            </NavLink>
+
+            {isAdminOrHostlyAdminButton && <SidebarTitle title={"Admin"} />}
             {isAdminButton && (
               <NavLink href={hrefs.stripe} onNavigate={onNavigate}>
                 <Banknote size={20} />
@@ -138,26 +157,6 @@ const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
                 Subscription
               </NavLink>
             )}
-
-            <NavLink href={hrefs.faq} onNavigate={onNavigate}>
-              <HelpCircle size={20} />
-              FAQ
-            </NavLink>
-
-            <NavLink href={hrefs.templates} onNavigate={onNavigate}>
-              <FileText size={20} />
-              Templates
-            </NavLink>
-
-            <NavLink href={hrefs.campaigns} onNavigate={onNavigate}>
-              <MessageCircle size={20} />
-              Campaigns
-            </NavLink>
-
-            <NavLink href={hrefs.contacts} onNavigate={onNavigate}>
-              <Users size={20} />
-              Contacts
-            </NavLink>
           </>
         )}
       </div>
