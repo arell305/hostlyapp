@@ -6,8 +6,7 @@ import { getInitial } from "@/shared/utils/helpers";
 import InitialAvatar from "../avatars/InitialAvatar";
 import clsx from "clsx";
 import Link from "next/link";
-import { useContextPublicOrganization } from "@/contexts/PublicOrganizationContext";
-
+import { useContextPublicOrganization } from "@/shared/hooks/contexts";
 interface ProfileBannerProps {
   displayPhoto: string | null | undefined;
   name: string;
