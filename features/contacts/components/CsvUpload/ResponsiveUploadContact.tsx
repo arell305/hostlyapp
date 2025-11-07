@@ -99,8 +99,13 @@ export default function ResponsiveUploadContact({
       isOpen={isOpen}
       onOpenChange={handleCloseModal}
       title="Upload Contacts (CSV)"
-      description="Upload a CSV with columns for name and phone number."
+      description="Upload a CSV with name and phone number columns."
     >
+      <div className="mb-4 text-sm space-y-1 text-grayText">
+        <p className="font-medium ">Supported column names:</p>
+        <p>• name, fullname, contactname</p>
+        <p>• phone, phonenumber, mobile, cell, tel</p>
+      </div>
       <UploadDropzone
         selectedFileName={selectedFileName}
         onFileChosen={handleChosenFile}

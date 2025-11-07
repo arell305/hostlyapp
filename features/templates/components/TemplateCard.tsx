@@ -19,8 +19,8 @@ const TemplateCard = ({ template, onDelete, onEdit }: TemplateCardProps) => {
   return (
     <CustomCard>
       <CardHeader>
-        <div className="flex items-start justify-between gap-4 mb-2">
-          <CardTitle className="truncate">{template.name}</CardTitle>
+        <div className="flex items-start justify-between gap-1 mb-2">
+          <CardTitle>{template.name}</CardTitle>
           <EditDeleteIcons
             onEdit={() => onEdit(template)}
             onDelete={() => onDelete(template._id)}

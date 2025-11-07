@@ -3,7 +3,7 @@
 import SearchInput from "@/features/events/components/SearchInput";
 import SectionContainer from "@/shared/ui/containers/SectionContainer";
 import { filterContactsByName } from "@/shared/utils/format";
-import React, { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import ContactsContent from "./ContactsContent";
 import { Doc } from "@/convex/_generated/dataModel";
 

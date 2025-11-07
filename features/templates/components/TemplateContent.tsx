@@ -24,7 +24,6 @@ const TemplateContent = ({ smsTemplates }: TemplateContentProps) => {
     deleteSmsTemplate,
     deleteSmsTemplateLoading,
     deleteSmsTemplateError,
-    setDeleteSmsTemplateError,
   } = useDeleteSmsTemplate();
 
   const showConfirmDeleteModal = (templateId: Id<"smsTemplates">) => {

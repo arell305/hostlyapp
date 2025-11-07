@@ -13,14 +13,14 @@ interface ContactsContentProps {
 }
 
 const ContactsContent = ({ contacts }: ContactsContentProps) => {
-  const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
-  const [contactIdToDelete, setContactIdToDelete] =
-    useState<Id<"contacts"> | null>(null);
-
   const [showEdit, setShowEdit] = useState<boolean>(false);
   const [contactToEdit, setContactToEdit] = useState<Doc<"contacts"> | null>(
     null
   );
+
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [contactIdToDelete, setContactIdToDelete] =
+    useState<Id<"contacts"> | null>(null);
 
   const {
     updateContact,
@@ -41,7 +41,7 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
     setUpdateContactError(null);
   };
 
-  const showConfirmDeleteModal = (contactId: Doc<"contacts">["_id"]) => {
+  const showConfirmDeleteModal = (contactId: Id<"contacts">) => {
     setContactIdToDelete(contactId);
     setShowConfirmDelete(true);
     setUpdateContactError(null);
@@ -53,14 +53,16 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
     setUpdateContactError(null);
   };
 
-  const handleDelete = async (): Promise<void> => {
+  const handleDelete = async () => {
     if (!contactIdToDelete) {
       return;
     }
+
     const result = await updateContact({
       contactId: contactIdToDelete,
       updates: { isActive: false },
     });
+
     if (result) {
       handleCloseConfirmDeleteModal();
     }
@@ -72,18 +74,14 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
         <ContactCard
           key={contact._id}
           contact={contact}
-          onEdit={() => openEdit(contact)}
-          onShowDelete={() => showConfirmDeleteModal(contact._id)}
+          onEdit={openEdit}
+          onDelete={showConfirmDeleteModal}
         />
       ))}
 
       <ResponsiveEditContact
         isOpen={showEdit}
-        onOpenChange={(open) => {
-          if (!open) {
-            closeEdit();
-          }
-        }}
+        onOpenChange={(open) => !open && closeEdit()}
         contact={contactToEdit}
       />
 
@@ -93,9 +91,7 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
         confirmText="Yes, Delete"
         cancelText="No, Cancel"
         confirmVariant="destructive"
-        content={
-          "Are you sure you want to delete this contact? This action cannot be undone."
-        }
+        content="Are you sure you want to delete this contact? This action cannot be undone."
         error={updateContactError}
         isLoading={updateContactLoading}
         modalProps={{
@@ -103,9 +99,7 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
           onConfirm: handleDelete,
         }}
         drawerProps={{
-          onOpenChange: (open: boolean) => {
-            if (!open) handleCloseConfirmDeleteModal();
-          },
+          onOpenChange: (open) => !open && handleCloseConfirmDeleteModal(),
           onSubmit: handleDelete,
         }}
       />

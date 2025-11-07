@@ -1,8 +1,8 @@
 "use client";
 
 import { useSmsTemplates } from "@/domain/smsTemplates";
-import TemplateContent from "./TemplateContent";
 import { useUserScope } from "@/shared/hooks/contexts";
+import TemplatesSection from "./TemplatesSection";
 
 const TemplatesLoader = () => {
   const { userId } = useUserScope();
@@ -12,7 +12,7 @@ const TemplatesLoader = () => {
     return;
   }
 
-  return <TemplateContent smsTemplates={smsTemplates} />;
+  return <TemplatesSection templates={smsTemplates} />;
 };
 
 export default TemplatesLoader;

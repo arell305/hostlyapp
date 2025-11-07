@@ -20,7 +20,7 @@ interface ResponsiveModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  description: string;
+  description: React.ReactNode;
   children: React.ReactNode;
   lockBodyScroll?: boolean;
 }
@@ -36,12 +36,7 @@ const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   useEffect(() => {
-    if (!lockBodyScroll) {
-      return;
-    }
-    if (!isOpen) {
-      return;
-    }
+    if (!lockBodyScroll || !isOpen) return;
 
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";

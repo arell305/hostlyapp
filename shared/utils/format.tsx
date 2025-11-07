@@ -6,6 +6,9 @@ import { GuestEntry, GuestListNameSchema } from "@/shared/types/types";
 import _ from "lodash";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { isValidPhoneNumber } from "./frontend-validation";
+import parsePhoneNumberFromString, {
+  parsePhoneNumber,
+} from "libphonenumber-js";
 
 export function formatName(name: string): string {
   return name
@@ -52,6 +55,22 @@ export function filterContactsByName(
   if (!normalizedTerm) return contacts;
   return contacts.filter((contact) =>
     contact.name.toLowerCase().includes(normalizedTerm)
+  );
+}
+
+export function filterTemplatesByNameOrBody(
+  templates: Doc<"smsTemplates">[],
+  searchTerm: string
+): Doc<"smsTemplates">[] {
+  const normalizedTerm = searchTerm.trim().toLowerCase();
+  if (!normalizedTerm) {
+    return templates;
+  }
+
+  return templates.filter(
+    (template) =>
+      template.name.toLowerCase().includes(normalizedTerm) ||
+      template.body.toLowerCase().includes(normalizedTerm)
   );
 }
 
@@ -134,16 +153,14 @@ export function parseGuestListInput(input: string): ParsedGuestListResult {
   return { guests, invalidPhones };
 }
 
-export function formatPhoneNumber(phone: string): string {
-  const cleaned = phone.replace(/\D/g, "");
-  if (cleaned.length !== 10) return phone;
-
-  const area = cleaned.slice(0, 3);
-  const prefix = cleaned.slice(3, 6);
-  const line = cleaned.slice(6);
-  return `(${area}) ${prefix}-${line}`;
-}
-
+export const formatPhoneNumber = (phone: string): string => {
+  try {
+    const num = parsePhoneNumberFromString(phone, "US");
+    return num?.isValid() ? num.formatNational() : phone;
+  } catch {
+    return phone;
+  }
+};
 export function formatCurrency(amountInCents: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

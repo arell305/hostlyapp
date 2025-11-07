@@ -1,3 +1,5 @@
+import { parsePhoneNumberFromString } from "libphonenumber-js";
+
 interface PromoDiscountResult {
   promoDiscountValue: number | null;
   promoDiscountValueError: string | null;
@@ -45,7 +47,12 @@ export const validatePromoDiscount = (
 };
 
 export function isValidPhoneNumber(phone: string): boolean {
-  return /^\d{10}$/.test(phone.trim());
+  try {
+    const phoneNumber = parsePhoneNumberFromString(phone.trim(), "US");
+    return phoneNumber?.isValid() ?? false;
+  } catch {
+    return false;
+  }
 }
 
 export function isValidFullName(name: string): boolean {

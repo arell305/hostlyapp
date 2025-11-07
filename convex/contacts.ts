@@ -181,10 +181,12 @@ export const bulkUpsertContacts = mutation({
         await context.db.patch(existingContact._id, {
           name: trimmedName,
           updatedAt: currentTimestamp,
+          isActive: true,
         });
       } else {
         await context.db.patch(existingContact._id, {
           updatedAt: currentTimestamp,
+          isActive: true,
         });
       }
     }
