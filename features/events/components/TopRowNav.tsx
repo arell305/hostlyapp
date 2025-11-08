@@ -6,6 +6,8 @@ import TopBarContainer from "@shared/ui/containers/TopBarContainer";
 import CenteredTitle from "@shared/ui/headings/CenteredTitle";
 import EditDeleteButton from "@shared/ui/buttonContainers/EditDeleteButton";
 import { Doc } from "convex/_generated/dataModel";
+import EventActionMenuContent from "./EventActionMenuContent";
+import GenericEditDeleteButton from "@/shared/ui/buttonContainers/GenericEditDelete";
 
 interface TopRowNavProps {
   eventData: Doc<"events">;
@@ -49,12 +51,21 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
       <CenteredTitle title={eventData.name} />
       <div className=" flex justify-end">
         {canEditEvent && (
-          <EditDeleteButton
+          <GenericEditDeleteButton
+            doc={eventData}
             isEditing={isEditing}
-            onToggle={() => setIsEditing((prev) => !prev)}
+            onToggleEdit={() => setIsEditing((prev) => !prev)}
             onCancelEdit={onCancelEdit}
             onDelete={onDelete}
-            event={eventData}
+            entityName="Event"
+            renderMobileMenu={({ onEdit, onDelete, onClose }) => (
+              <EventActionMenuContent
+                event={eventData}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onClose={onClose}
+              />
+            )}
           />
         )}
         {canUploadGuest &&

@@ -8,6 +8,7 @@ import { SmsMessageType } from "@shared/types/enums";
 import { useState } from "react";
 import TemplateFields from "./TemplateFields";
 import { useUserScope } from "@/shared/hooks/contexts";
+import ResponsiveHeightModal from "@/shared/ui/responsive/ResponsiveHeightModal";
 
 interface ResponsiveAddTemplateProps {
   isOpen: boolean;
@@ -73,7 +74,7 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
     insertSmsTemplateLoading;
 
   return (
-    <ResponsiveModal
+    <ResponsiveHeightModal
       isOpen={isOpen}
       onOpenChange={handleClose}
       title="Add Template"
@@ -92,7 +93,7 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
           isSubmitDisabled={isDisabled}
         />
       </TemplateFields>
-    </ResponsiveModal>
+    </ResponsiveHeightModal>
   );
 };
 

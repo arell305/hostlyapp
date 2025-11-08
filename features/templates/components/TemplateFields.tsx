@@ -63,27 +63,27 @@ const TemplateFields = ({
         placeholder="Enter name of template"
       />
 
-      {values.messageType && (
-        <>
-          {availableVariables.length > 0 && (
-            <VariablesInserter
-              label="Insert Variables"
-              variables={availableVariables}
-              textareaValue={values.body}
-              onInsert={handleVariableInsert}
-              textareaRef={textareaRef}
-            />
-          )}
+      <VariablesInserter
+        label="Insert Variables"
+        variables={availableVariables}
+        textareaValue={values.body}
+        onInsert={handleVariableInsert}
+        textareaRef={textareaRef}
+      />
 
-          <AiMessageGenerator onGenerate={handleAiGenerate} />
-        </>
-      )}
+      <AiMessageGenerator onGenerate={handleAiGenerate} />
 
       <LabeledTextAreaField
         ref={textareaRef}
         label="Body*"
         name="body"
         value={values.body}
+        onFocus={() => {
+          textareaRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }}
         onChange={(e) => onChange({ body: e.target.value })}
         placeholder={
           values.messageType

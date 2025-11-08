@@ -37,14 +37,13 @@ const AiMessageGenerator: React.FC<AiMessageGeneratorProps> = ({
 
   if (!showAiInput) {
     return (
-      <div className="space-y-2 mb-6">
-        {/* <Label>Generate with AI</Label> */}
+      <div className="space-y-2 my-6">
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="xs"
           onClick={() => setShowAiInput(true)}
-          className="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white w-full md:w-auto hover:opacity-80 mb-2"
+          className="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white  hover:opacity-80 mb-4 rounded-[20px]"
         >
           <Sparkles className="w-4 h-4 mr-2" />
           Generate with AI
@@ -56,9 +55,9 @@ const AiMessageGenerator: React.FC<AiMessageGeneratorProps> = ({
   return (
     <div className="space-y-2 mb-6">
       <Label>Generate with AI</Label>
-      <div className="space-y-2 p-3 border rounded-lg bg-secondary/10">
+      <div className="space-y-2 rounded-lg ">
         <Input
-          placeholder="Describe the message... (e.g., 'Friendly reminder about upcoming event')"
+          placeholder="Describe the message... "
           value={aiPrompt}
           onChange={(e) => setAiPrompt(e.target.value)}
           onKeyDown={(e) => {

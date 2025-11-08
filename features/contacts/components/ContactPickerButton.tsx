@@ -1,11 +1,11 @@
 "use client";
 
-import { useBulkUpsertContacts } from "@/domain/contacts";
-import { isValidPhoneNumber } from "@/shared/utils/frontend-validation";
-import { useUserScope } from "@/shared/hooks/contexts";
-import { setErrorFromConvexError } from "@/shared/lib/errorHelper";
 import { Contact } from "lucide-react";
-import { Button } from "@/shared/ui/primitive/button";
+import { useBulkUpsertContacts } from "../../../domain/contacts";
+import { useUserScope } from "../../../shared/hooks/contexts";
+import { setErrorFromConvexError } from "../../../shared/lib/errorHelper";
+import { isValidPhoneNumber } from "../../../shared/utils/frontend-validation";
+import { Button } from "../../../shared/ui/primitive/button";
 
 interface ContactInfo {
   name: string[];

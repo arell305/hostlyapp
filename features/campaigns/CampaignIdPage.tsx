@@ -2,16 +2,20 @@
 import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
 import { CampaignTab } from "@/shared/types/types";
 import PageContainer from "@/shared/ui/containers/PageContainer";
-import SectionHeaderWithAction from "@/shared/ui/headings/SectionHeaderWithAction";
 import { useState } from "react";
 import { useCampaignScope } from "@/shared/hooks/contexts/useCampaignScope";
 import CampaignDetails from "./components/CampaignIdContent";
-import IconButton from "@/shared/ui/buttonContainers/IconButton";
-import { Archive, Pencil } from "lucide-react";
 import { useUpdateCampaign } from "@/domain/campaigns";
 import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
+import { useRouter } from "next/navigation";
+import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
+import { useUserScope } from "@/shared/hooks/contexts";
+import CampaignNav from "./components/campaign/CampaignNav";
 
 const CampaignIdPage = () => {
+  const router = useRouter();
+  const { cleanSlug } = useContextOrganization();
+  const { userId } = useUserScope();
   const { campaign } = useCampaignScope();
   const [selectedTab, setSelectedTab] = useState<CampaignTab>("messages");
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -42,22 +46,19 @@ const CampaignIdPage = () => {
 
     if (success) {
       handleCloseConfirmDeleteModal();
+      router.push(`/${cleanSlug}/app/campaigns/${userId}`);
     }
   };
 
   return (
     <PageContainer>
-      <SectionHeaderWithAction
-        title={`Campaign: ${campaign.name}`}
-        actions={
-          <div className="flex gap-2">
-            <IconButton icon={<Pencil className="w-4 h-4" />} />
-            <IconButton
-              onClick={showConfirmDeleteModal}
-              icon={<Archive className="w-4 h-4" />}
-            />
-          </div>
-        }
+      <CampaignNav
+        campaign={campaign}
+        isEditing={isEditMode}
+        setIsEditing={setIsEditMode}
+        onCancelEdit={() => setIsEditMode(false)}
+        canEditCampaign={true}
+        onDelete={showConfirmDeleteModal}
       />
       <ToggleTabs
         options={[
