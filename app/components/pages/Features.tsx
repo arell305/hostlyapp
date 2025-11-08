@@ -7,8 +7,11 @@ import {
   Ticket,
   Percent,
   CheckCircle,
+  MessageCircle,
+  Bot,
 } from "lucide-react";
 import CustomCard from "../shared/cards/CustomCard";
+import { Badge } from "../ui/badge";
 
 interface CardProps {
   icon: React.ReactNode;
@@ -47,6 +50,17 @@ const cards: CardProps[] = [
     description:
       "Fast event check-in with search functionality, allowing moderators to check in guests and credit promoters.",
   },
+  {
+    icon: <MessageCircle size={60} />,
+    title: "SMS Integration",
+    description: "Create campaigns to send SMS messages to your guests.",
+  },
+  {
+    icon: <Bot size={60} />,
+    title: "AI Messaging",
+    description:
+      "Use AI to generate messages and auto respond to guest messages.",
+  },
 ];
 
 const Features: React.FC = () => {
@@ -67,7 +81,16 @@ const Features: React.FC = () => {
             <div className="mb-4 flex justify-center w-full text-gray-400">
               {card.icon}
             </div>
-            <h3 className="font-bold text-xl mb-2">{card.title}</h3>
+
+            <h3 className="font-bold text-xl mb-2 flex items-center">
+              {card.title}
+              {(card.title === "SMS Integration" ||
+                card.title === "AI Messaging") && (
+                <Badge variant="comingSoon" className="ml-2">
+                  Coming Soon
+                </Badge>
+              )}
+            </h3>
             <p className="text-base text-gray-400">{card.description}</p>
           </CustomCard>
         ))}
@@ -80,7 +103,15 @@ const Features: React.FC = () => {
             <div className="mb-4 flex justify-center w-full text-gray-400">
               {lastCard.icon}
             </div>
-            <h3 className="font-bold text-xl mb-2">{lastCard.title}</h3>
+            <h3 className="font-bold text-xl mb-2 flex items-center">
+              {lastCard.title}
+              {(lastCard.title === "SMS Integration" ||
+                lastCard.title === "AI Messaging") && (
+                <Badge variant="comingSoon" className="ml-2">
+                  Coming Soon
+                </Badge>
+              )}
+            </h3>
             <p className="text-base text-gray-400">{lastCard.description}</p>
           </CustomCard>
         </div>
