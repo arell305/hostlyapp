@@ -2,33 +2,29 @@
 
 import { useState } from "react";
 import { EllipsisVertical } from "lucide-react";
-import ContactActionMenuContent from "./ContactActionMenuContent";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import useMediaQuery from "@/shared/hooks/ui/useMediaQuery";
 import { DESKTOP_WIDTH } from "@shared/types/constants";
 import IconButton from "@/shared/ui/buttonContainers/IconButton";
 import DesktopActionMenu from "@/shared/ui/dropdown/DesktopActionMenu";
 import MobileActionDrawer from "@/shared/ui/drawer/MobileActionDrawer";
+import FaqActionMenuContent from "./FaqActionMenuContent";
 
 type Props = {
-  contact: Doc<"contacts">;
-  onEdit: (contact: Doc<"contacts">) => void;
-  onDelete: (id: Id<"contacts">) => void;
+  faq: Doc<"faq">;
+  onEdit: (faq: Doc<"faq">) => void;
+  onDelete: (id: Id<"faq">) => void;
 };
 
-export default function ResponsiveContactActions({
-  contact,
-  onEdit,
-  onDelete,
-}: Props) {
+export default function ResponsiveFaqActions({ faq, onEdit, onDelete }: Props) {
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   const [open, setOpen] = useState<boolean>(false);
 
   const handleClose = () => setOpen(false);
 
   const menu = (
-    <ContactActionMenuContent
-      contact={contact}
+    <FaqActionMenuContent
+      faq={faq}
       onEdit={onEdit}
       onDelete={onDelete}
       onClose={handleClose}
@@ -43,8 +39,8 @@ export default function ResponsiveContactActions({
     />
   );
 
-  const title = "Contact actions";
-  const description = "Edit or delete this contact";
+  const title = "FAQ actions";
+  const description = "Edit or delete this FAQ";
 
   if (isDesktop) {
     return (

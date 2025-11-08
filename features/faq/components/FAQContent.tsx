@@ -8,6 +8,7 @@ import { canCreateEvent } from "@/shared/utils/permissions";
 import { FaqValues } from "@shared/types/types";
 import { useUpdateCompanyFaq } from "@/domain/faqs";
 import ResponsiveConfirm from "@shared/ui/responsive/ResponsiveConfirm";
+import ResponsiveEditFaq from "./ResponsiveEditFaq";
 
 interface FAQContentProps {
   faqs: Doc<"faq">[];
@@ -20,6 +21,9 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
   const [faqIdToDelete, setFaqIdToDelete] = useState<Doc<"faq">["_id"] | null>(
     null
   );
+
+  const [faqToEdit, setFaqToEdit] = useState<Doc<"faq"> | null>(null);
+  const [showEdit, setShowEdit] = useState<boolean>(false);
 
   const {
     updateCompanyFaq,
@@ -61,6 +65,12 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
     return result;
   };
 
+  const handleEdit = (faq: Doc<"faq">) => {
+    setFaqToEdit(faq);
+    setUpdateCompanyFaqError(null);
+    setShowEdit(true);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {faqs.map((faq) => (
@@ -68,10 +78,8 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
           key={faq._id}
           faq={faq}
           showEditButton={canEditFAQ}
-          onSave={handleSave}
+          onEdit={handleEdit}
           onDelete={showConfirmDeleteModal}
-          isLoading={updateCompanyFaqLoading}
-          error={updateCompanyFaqError}
         />
       ))}
       <ResponsiveConfirm
@@ -89,6 +97,12 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
           onClose: handleCloseConfirmDeleteModal,
           onConfirm: handleDelete,
         }}
+      />
+
+      <ResponsiveEditFaq
+        isOpen={showEdit}
+        onOpenChange={(open: boolean) => !open && setShowEdit(false)}
+        faq={faqToEdit}
       />
     </div>
   );

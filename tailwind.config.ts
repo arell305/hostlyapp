@@ -29,7 +29,7 @@ const config: Config = {
         focusRing: "#1B1C20",
         whiteText: "#F9FAFA",
         grayText: "#A2A5AD",
-        primaryBlue: "#315DDF",
+        primaryBlue: "#0D69B4",
         altBlack: "#343434",
         altGray: "#EFEFEF",
         altRed: "#C62828",

@@ -2,22 +2,22 @@
 
 import { useState } from "react";
 import { EllipsisVertical } from "lucide-react";
-import ContactActionMenuContent from "./ContactActionMenuContent";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import useMediaQuery from "@/shared/hooks/ui/useMediaQuery";
 import { DESKTOP_WIDTH } from "@shared/types/constants";
 import IconButton from "@/shared/ui/buttonContainers/IconButton";
 import DesktopActionMenu from "@/shared/ui/dropdown/DesktopActionMenu";
 import MobileActionDrawer from "@/shared/ui/drawer/MobileActionDrawer";
+import TemplateActionMenuContent from "./TemplateActionMenuContent";
 
 type Props = {
-  contact: Doc<"contacts">;
-  onEdit: (contact: Doc<"contacts">) => void;
-  onDelete: (id: Id<"contacts">) => void;
+  template: Doc<"smsTemplates">;
+  onEdit: (template: Doc<"smsTemplates">) => void;
+  onDelete: (id: Id<"smsTemplates">) => void;
 };
 
-export default function ResponsiveContactActions({
-  contact,
+export default function ResponsiveTemplateActions({
+  template,
   onEdit,
   onDelete,
 }: Props) {
@@ -27,8 +27,8 @@ export default function ResponsiveContactActions({
   const handleClose = () => setOpen(false);
 
   const menu = (
-    <ContactActionMenuContent
-      contact={contact}
+    <TemplateActionMenuContent
+      template={template}
       onEdit={onEdit}
       onDelete={onDelete}
       onClose={handleClose}
@@ -43,8 +43,8 @@ export default function ResponsiveContactActions({
     />
   );
 
-  const title = "Contact actions";
-  const description = "Edit or delete this contact";
+  const title = "Template actions";
+  const description = "Edit or delete this template";
 
   if (isDesktop) {
     return (

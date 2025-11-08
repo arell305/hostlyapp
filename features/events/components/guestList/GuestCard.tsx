@@ -3,12 +3,11 @@
 import { FaCheckCircle } from "react-icons/fa";
 import { Badge } from "@/shared/ui/primitive/badge";
 import { formatArrivalTime } from "@/shared/utils/luxon";
-import IconButton from "@/shared/ui/buttonContainers/IconButton";
-import { Pencil, Trash } from "lucide-react";
 import { GuestListEntryWithPromoter } from "@shared/types/schemas-types";
-
 import { Doc, Id } from "convex/_generated/dataModel";
 import { formatPhoneNumber } from "@/shared/utils/format";
+import ResponsiveGuestActions from "./ResponsiveGuestActions";
+
 interface GuestCardProps {
   guest: GuestListEntryWithPromoter;
   editingId?: Id<"guestListEntries"> | null;
@@ -90,27 +89,12 @@ const GuestCard: React.FC<GuestCardProps> = ({
           </p>
         </div>
       )}
-      {canUpdateGuestName && (
-        <div className="flex gap-2">
-          {onEdit && (
-            <IconButton
-              icon={<Pencil size={20} />}
-              title="Edit"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(guest);
-              }}
-            />
-          )}
-          <IconButton
-            icon={<Trash size={20} />}
-            title="Delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleShowDeleteModal();
-            }}
-          />
-        </div>
+      {canUpdateGuestName && onEdit && onShowDelete && (
+        <ResponsiveGuestActions
+          guest={guest}
+          onEdit={onEdit}
+          onDelete={handleShowDeleteModal}
+        />
       )}
     </div>
   );

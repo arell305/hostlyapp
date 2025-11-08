@@ -4,7 +4,7 @@ import { ButtonHTMLAttributes } from "react";
 type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   icon: React.ReactNode;
   iconClassName?: string;
-  variant?: "default" | "outline" | "green" | "ghost";
+  variant?: "default" | "outline" | "green" | "ghost" | "primary";
 };
 
 const IconButton = ({
@@ -26,7 +26,8 @@ const IconButton = ({
         variant === "outline" &&
           "bg-transparent border border-gray-600 hover:bg-gray-700",
         variant === "green" && "bg-greenCustom",
-        variant === "ghost" && "bg-transparent hover:bg-cardBackgroundHover",
+        variant === "ghost" && " bg-transparent hover:bg-cardBackgroundHover",
+        variant === "primary" && "rounded-md bg-primaryBlue text-white",
         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
         className
       )}

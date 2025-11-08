@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@shared/ui/primitive/card";
-import EditDeleteIcons from "@/shared/ui/buttonContainers/EditDeleteIcons";
+import ResponsiveTemplateActions from "./ResponsiveTemplateActions";
 
 interface TemplateCardProps {
   template: Doc<"smsTemplates">;
@@ -21,9 +21,10 @@ const TemplateCard = ({ template, onDelete, onEdit }: TemplateCardProps) => {
       <CardHeader>
         <div className="flex items-start justify-between gap-1 mb-2">
           <CardTitle>{template.name}</CardTitle>
-          <EditDeleteIcons
-            onEdit={() => onEdit(template)}
-            onDelete={() => onDelete(template._id)}
+          <ResponsiveTemplateActions
+            template={template}
+            onEdit={onEdit}
+            onDelete={onDelete}
           />
         </div>
         <CardDescription className="line-clamp-2">

@@ -8,7 +8,7 @@ import { useContextOrganization } from "@/shared/hooks/contexts";
 import { canCreateEvent } from "@/shared/utils/permissions";
 import { Plus } from "lucide-react";
 import ResponsiveAddFaq from "@/features/faq/components/ResponsiveAddFaq";
-import { Button } from "@/shared/ui/primitive/button";
+import SectionHeadingButton from "@/shared/ui/buttonContainers/SectionHeadingButton";
 
 const FAQPage = () => {
   const { orgRole, organization } = useContextOrganization();
@@ -25,14 +25,13 @@ const FAQPage = () => {
         title="FAQ"
         actions={
           canAddFAQ && (
-            <Button
-              size="heading"
-              className="gap-1 w-[80px]"
+            <SectionHeadingButton
               onClick={handleOpenAddFAQ}
-            >
-              <Plus size={20} />
-              <span>FAQ</span>
-            </Button>
+              label="FAQ"
+              icon={Plus}
+              className="w-[80px]"
+              showMobileIcon={false}
+            />
           )
         }
       />

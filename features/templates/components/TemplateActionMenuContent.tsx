@@ -6,23 +6,23 @@ import MenuEdit from "@/shared/ui/buttonContainers/MenuEdit";
 import MenuDelete from "@/shared/ui/buttonContainers/MenuDelete";
 
 type Props = {
-  contact: Doc<"contacts">;
-  onEdit: (contact: Doc<"contacts">) => void;
-  onDelete: (id: Id<"contacts">) => void;
+  template: Doc<"smsTemplates">;
+  onEdit: (template: Doc<"smsTemplates">) => void;
+  onDelete: (id: Id<"smsTemplates">) => void;
   onClose: () => void;
 };
 
 export default function ContactActionMenuContent({
-  contact,
+  template,
   onEdit,
   onDelete,
   onClose,
 }: Props) {
   return (
     <MenuContainer>
-      <MenuEdit doc={contact} onEdit={onEdit} onClose={onClose} />
+      <MenuEdit doc={template} onEdit={onEdit} onClose={onClose} />
 
-      <MenuDelete doc={contact} onDelete={onDelete} onClose={onClose} />
+      <MenuDelete doc={template} onDelete={onDelete} onClose={onClose} />
     </MenuContainer>
   );
 }

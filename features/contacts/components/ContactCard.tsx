@@ -11,7 +11,7 @@ import ResponsiveContactActions from "./ResponsiveContactActions";
 
 type ContactCardProps = {
   contact: Doc<"contacts">;
-  onEdit: (c: Doc<"contacts">) => void;
+  onEdit: (contact: Doc<"contacts">) => void;
   onDelete: (id: Id<"contacts">) => void;
 };
 

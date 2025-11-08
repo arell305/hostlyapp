@@ -6,23 +6,23 @@ import MenuEdit from "@/shared/ui/buttonContainers/MenuEdit";
 import MenuDelete from "@/shared/ui/buttonContainers/MenuDelete";
 
 type Props = {
-  contact: Doc<"contacts">;
-  onEdit: (contact: Doc<"contacts">) => void;
-  onDelete: (id: Id<"contacts">) => void;
+  faq: Doc<"faq">;
+  onEdit: (faq: Doc<"faq">) => void;
+  onDelete: (id: Id<"faq">) => void;
   onClose: () => void;
 };
 
 export default function ContactActionMenuContent({
-  contact,
+  faq,
   onEdit,
   onDelete,
   onClose,
 }: Props) {
   return (
     <MenuContainer>
-      <MenuEdit doc={contact} onEdit={onEdit} onClose={onClose} />
+      <MenuEdit doc={faq} onEdit={onEdit} onClose={onClose} />
 
-      <MenuDelete doc={contact} onDelete={onDelete} onClose={onClose} />
+      <MenuDelete doc={faq} onDelete={onDelete} onClose={onClose} />
     </MenuContainer>
   );
 }

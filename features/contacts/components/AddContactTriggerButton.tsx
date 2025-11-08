@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import IconButton from "@/shared/ui/buttonContainers/IconButton";
 import { Plus } from "lucide-react";
 
@@ -14,6 +15,7 @@ export default function AddContactTriggerButton({
       icon={<Plus />}
       onClick={() => onOpenChange(true)}
       aria-label="Add Contact"
+      variant="primary"
     />
   );
 }

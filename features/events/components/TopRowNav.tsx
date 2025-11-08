@@ -54,6 +54,7 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
             onToggle={() => setIsEditing((prev) => !prev)}
             onCancelEdit={onCancelEdit}
             onDelete={onDelete}
+            event={eventData}
           />
         )}
         {canUploadGuest &&
