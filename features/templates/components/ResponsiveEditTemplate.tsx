@@ -94,6 +94,7 @@ const ResponsiveEditTemplate: React.FC<ResponsiveEditTemplateProps> = ({
       <TemplateFields
         values={values}
         onChange={(patch) => setValues((v) => ({ ...v, ...patch }))}
+        className=""
       >
         <FormActions
           onCancel={handleClose}

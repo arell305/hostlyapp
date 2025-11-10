@@ -49,7 +49,7 @@ const VariablesInserter: React.FC<VariablesInserterProps> = ({
         label={label}
         isExpanded={isExpanded}
         onToggle={() => setIsExpanded(!isExpanded)}
-        className={cn(isExpanded ? "" : "mb-4")}
+        className={cn(isExpanded ? "" : "mb-6")}
       />
 
       {isExpanded && (

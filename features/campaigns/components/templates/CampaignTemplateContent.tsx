@@ -1,3 +1,5 @@
+"use client";
+
 import { Doc } from "@/convex/_generated/dataModel";
 import SearchInput from "@/features/events/components/SearchInput";
 import { useRef, useState } from "react";

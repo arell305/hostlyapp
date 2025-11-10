@@ -2,10 +2,14 @@
 import { CampaignFormProvider } from "../contexts/CampaignFormContext";
 import CampaignFormContent from "./CampaignFormContent";
 
-const CampaignForm = () => {
+interface CampaignFormProps {
+  triggerCancelModal: () => void;
+}
+
+const CampaignForm: React.FC<CampaignFormProps> = ({ triggerCancelModal }) => {
   return (
     <CampaignFormProvider>
-      <CampaignFormContent />
+      <CampaignFormContent triggerCancelModal={triggerCancelModal} />
     </CampaignFormProvider>
   );
 };

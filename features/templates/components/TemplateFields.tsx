@@ -6,9 +6,11 @@ import { TemplateValues } from "@shared/types/types";
 import PresetButtonSelector from "@/shared/ui/fields/PresetButtonSelector";
 import { SmsMessageType } from "@/shared/types/enums";
 import { MESSAGE_TYPE_OPTIONS, TAGS_BY_TYPE } from "@/shared/types/constants";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import AiMessageGenerator from "@/features/templates/components/AiMessageGenerator";
 import VariablesInserter from "@/shared/ui/fields/VariablesInserter";
+import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
+import { cn } from "@/shared/lib/utils";
 
 interface TemplateFieldsProps {
   values: TemplateValues;
@@ -24,6 +26,7 @@ const TemplateFields = ({
   children,
 }: TemplateFieldsProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [messageType, setMessageType] = useState<"manual" | "ai">("manual");
 
   const handleAiGenerate = (generatedText: string) => {
     onChange({ body: generatedText });
@@ -45,7 +48,7 @@ const TemplateFields = ({
     : [];
 
   return (
-    <FormContainer className={className}>
+    <FormContainer className={cn("space-y-4", className)}>
       <PresetButtonSelector
         label="Message Type"
         name="messageType"
@@ -70,9 +73,18 @@ const TemplateFields = ({
         onInsert={handleVariableInsert}
         textareaRef={textareaRef}
       />
-
-      <AiMessageGenerator onGenerate={handleAiGenerate} />
-
+      <ToggleTabs
+        options={[
+          { label: "Manual", value: "manual" },
+          { label: "Generate with AI", value: "ai" },
+        ]}
+        value={messageType}
+        onChange={setMessageType}
+        className="mb-4"
+      />
+      {messageType === "ai" && (
+        <AiMessageGenerator onGenerate={handleAiGenerate} />
+      )}
       <LabeledTextAreaField
         ref={textareaRef}
         label="Body*"

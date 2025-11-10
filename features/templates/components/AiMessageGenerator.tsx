@@ -6,7 +6,6 @@ import { Label } from "@shared/ui/primitive/label";
 import { Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useGenerateMessage } from "@/domain/openAi";
-import FormActions from "@/shared/ui/buttonContainers/FormActions";
 
 interface AiMessageGeneratorProps {
   onGenerate: (generatedText: string) => void;
@@ -16,7 +15,6 @@ const AiMessageGenerator: React.FC<AiMessageGeneratorProps> = ({
   onGenerate,
 }) => {
   const [aiPrompt, setAiPrompt] = useState<string>("");
-  const [showAiInput, setShowAiInput] = useState<boolean>(false);
 
   const { generateMessage, isLoading, error, setError } = useGenerateMessage();
 
@@ -29,33 +27,10 @@ const AiMessageGenerator: React.FC<AiMessageGeneratorProps> = ({
     onGenerate(generatedText);
   };
 
-  const handleCancel = () => {
-    setShowAiInput(false);
-    setAiPrompt("");
-    setError(null);
-  };
-
-  if (!showAiInput) {
-    return (
-      <div className="space-y-2 my-6">
-        <Button
-          type="button"
-          variant="outline"
-          size="xs"
-          onClick={() => setShowAiInput(true)}
-          className="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white  hover:opacity-80 mb-4 rounded-[20px]"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          Generate with AI
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-2 mb-6">
+    <div className="">
       <Label>Generate with AI</Label>
-      <div className="space-y-2 rounded-lg ">
+      <div className="space-y-2 rounded-lg mb-6">
         <Input
           placeholder="Describe the message... "
           value={aiPrompt}
@@ -68,16 +43,16 @@ const AiMessageGenerator: React.FC<AiMessageGeneratorProps> = ({
           }}
           autoFocus
         />
-
-        <FormActions
-          onCancel={handleCancel}
-          onSubmit={handleAiGenerate}
-          isLoading={isLoading}
-          error={error}
-          cancelText="Cancel"
-          submitText="Generate"
-          submitVariant="default"
-        />
+        <Button
+          type="button"
+          variant="outline"
+          size="xs"
+          onClick={handleAiGenerate}
+          className="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white  hover:opacity-80 mb-4 rounded-[20px]"
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Generate
+        </Button>
       </div>
     </div>
   );

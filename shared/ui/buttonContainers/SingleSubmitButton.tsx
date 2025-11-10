@@ -10,6 +10,7 @@ interface SingleSubmitButtonProps {
   disabled?: boolean;
   label?: string;
   className?: string;
+  btnClassName?: string;
 }
 
 const SingleSubmitButton: React.FC<SingleSubmitButtonProps> = ({
@@ -19,6 +20,7 @@ const SingleSubmitButton: React.FC<SingleSubmitButtonProps> = ({
   disabled,
   label = "Submit",
   className,
+  btnClassName,
 }) => {
   return (
     <div className={cn("pt-4 my-8", className)}>
@@ -27,6 +29,7 @@ const SingleSubmitButton: React.FC<SingleSubmitButtonProps> = ({
         isLoading={isLoading}
         disabled={disabled}
         type="button"
+        className={cn(btnClassName)}
       >
         {isLoading ? (
           <div className="flex items-center justify-center space-x-2">

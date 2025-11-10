@@ -13,6 +13,7 @@ interface InsertCampaignInput {
   scheduleTime?: number;
   relativeOffsetMinutes?: number;
   promptResponse?: string;
+  smsBody: string;
 }
 
 interface InsertCampaignResult {

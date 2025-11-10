@@ -18,6 +18,7 @@ const config: Config = {
       },
       boxShadow: {
         "white-glow": "0 0 20px rgba(255, 255, 255, 0.1)",
+        "glow-primary": "0 0 8px 2px rgba(46,144,255,0.7)",
       },
       colors: {
         dropdownBackground: "#18181b",

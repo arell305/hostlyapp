@@ -21,13 +21,17 @@ const AddCampaignPage = () => {
     setConfirmCancelModal(false);
     router.push(stripAddSegment(pathname));
   };
+
+  const handleTriggerCancelModal = () => {
+    setConfirmCancelModal(true);
+  };
   return (
     <PageContainer>
       <SectionHeaderWithAction
         title="Add Campaign"
         actions={
           <Button
-            onClick={() => setConfirmCancelModal(true)}
+            onClick={handleTriggerCancelModal}
             variant="navGhost"
             size="nav"
           >
@@ -35,7 +39,7 @@ const AddCampaignPage = () => {
           </Button>
         }
       />
-      <CampaignForm />
+      <CampaignForm triggerCancelModal={handleTriggerCancelModal} />
       <ResponsiveConfirm
         isOpen={confirmCancelModal}
         title="Confirm Cancel"

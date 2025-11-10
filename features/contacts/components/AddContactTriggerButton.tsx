@@ -1,7 +1,6 @@
 "use client";
 
-import IconButton from "@/shared/ui/buttonContainers/IconButton";
-import { Plus } from "lucide-react";
+import { AddButton } from "@/shared/ui/buttonContainers/NewItemButton";
 
 type TriggerButtonProps = {
   onOpenChange: (open: boolean) => void;
@@ -10,12 +9,5 @@ type TriggerButtonProps = {
 export default function AddContactTriggerButton({
   onOpenChange,
 }: TriggerButtonProps) {
-  return (
-    <IconButton
-      icon={<Plus />}
-      onClick={() => onOpenChange(true)}
-      aria-label="Add Contact"
-      variant="primary"
-    />
-  );
+  return <AddButton onClick={() => onOpenChange(true)} label="Contact" />;
 }

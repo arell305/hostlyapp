@@ -11,6 +11,7 @@ interface StepperProps {
   currentStep: number;
   onStepClick?: (stepNumber: number) => void;
   className?: string;
+  disabledSteps?: number[];
 }
 
 const Stepper: React.FC<StepperProps> = ({
@@ -18,6 +19,7 @@ const Stepper: React.FC<StepperProps> = ({
   currentStep,
   onStepClick,
   className,
+  disabledSteps = [],
 }) => {
   return (
     <div
@@ -30,9 +32,10 @@ const Stepper: React.FC<StepperProps> = ({
         const stepNumber = index + 1;
         const isCompleted = stepNumber < currentStep;
         const isCurrent = stepNumber === currentStep;
+        const isDisabled = disabledSteps.includes(stepNumber);
 
         const handleClick = () => {
-          if (onStepClick) {
+          if (onStepClick && !isDisabled) {
             onStepClick(stepNumber);
           }
         };
@@ -41,20 +44,22 @@ const Stepper: React.FC<StepperProps> = ({
           <div
             key={step.label}
             className={cn(
-              "flex flex-col items-center relative min-w-[72px] group"
+              "flex flex-col items-center relative min-w-[72px] group",
+              isDisabled && "cursor-not-allowed opacity-50"
             )}
             onClick={handleClick}
           >
             <div
               className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold border-2 z-10 transition-colors cursor-pointer",
-                isCompleted &&
-                  "bg-primaryBlue text-white border-greenCustom group-hover:brightness-110",
-                isCurrent &&
-                  "border-primaryBlue text-primaryBlue group-hover:brightness-110",
-                !isCompleted &&
-                  !isCurrent &&
-                  "border-grayText text-white group-hover:border-white"
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold border-2 z-10 transition-colors",
+                isDisabled
+                  ? "border-gray-500 text-gray-400 cursor-not-allowed"
+                  : isCompleted
+                    ? "bg-primaryBlue text-white border-greenCustom group-hover:brightness-110"
+                    : isCurrent
+                      ? "border-primaryBlue text-primaryBlue group-hover:brightness-110"
+                      : "border-grayText text-white group-hover:border-white",
+                !isDisabled && "cursor-pointer"
               )}
             >
               {stepNumber}
@@ -63,7 +68,8 @@ const Stepper: React.FC<StepperProps> = ({
             <div
               className={cn(
                 "mt-1 text-xs text-center leading-tight min-h-[32px]",
-                "text-white group-hover:text-white/90"
+                "text-white group-hover:text-white/90",
+                isDisabled && "text-gray-400 group-hover:text-gray-400"
               )}
             >
               {step.label.split(" ").map((word, i) => (

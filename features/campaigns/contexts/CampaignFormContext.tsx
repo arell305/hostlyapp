@@ -5,8 +5,9 @@ import { Id } from "@/convex/_generated/dataModel";
 type CampaignFormStep = "event" | "template" | "details";
 
 interface CampaignFormData {
-  eventId: Id<"events"> | null;
-  templateId: Id<"smsTemplates"> | null;
+  eventId?: Id<"events"> | null;
+  templateId?: Id<"smsTemplates"> | null;
+  body?: string;
   subject?: string;
   content?: string;
   sendAt?: number;
@@ -64,7 +65,11 @@ export const CampaignFormProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const isSubmitDisabled: boolean = formData.name.trim() === "";
+  const isSubmitDisabled: boolean =
+    formData.name.trim() === "" ||
+    formData.eventId === undefined ||
+    formData.body === undefined ||
+    formData.sendAt === undefined;
 
   return (
     <CampaignFormContext.Provider

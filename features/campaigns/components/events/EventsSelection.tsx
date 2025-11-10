@@ -7,13 +7,25 @@ import { useRef, useState } from "react";
 import NoEventSelected from "./NoEventSelected";
 import EventListForCampaignLoader from "./EventListForCampaignLoader";
 import { EventFilter } from "@/shared/types/types";
+import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import FormActions from "@/shared/ui/buttonContainers/FormActions";
 
-const EventsSelection: React.FC = () => {
+interface EventsSelectionProps {
+  triggerCancelModal: () => void;
+}
+
+const EventsSelection: React.FC<EventsSelectionProps> = ({
+  triggerCancelModal,
+}) => {
+  const { nextStep, formData } = useCampaignForm();
+
   const [searchTerm, setSearchTerm] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedTab, setSelectedTab] = useState<EventFilter>("upcoming");
 
   const showSearchInput = selectedTab === "upcoming" || selectedTab === "past";
+
+  const isNextDisabled = formData.eventId === null;
 
   return (
     <SectionContainer>
@@ -46,6 +58,16 @@ const EventsSelection: React.FC = () => {
       ) : (
         <NoEventSelected />
       )}
+      <FormActions
+        onCancel={triggerCancelModal}
+        onSubmit={nextStep}
+        isSubmitDisabled={isNextDisabled}
+        isLoading={false}
+        error={null}
+        cancelText="Cancel"
+        submitText="Next"
+        className="mt-16"
+      />
     </SectionContainer>
   );
 };

@@ -1,8 +1,10 @@
+"use client";
+
 import { Doc, Id } from "@/convex/_generated/dataModel";
-import CardContainer from "@/shared/ui/containers/CardContainer";
 import CampaignTemplateCard from "./CampaignTemplateCard";
 import EmptyList from "@/shared/ui/list/EmptyList";
 import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import CappedCardList from "@/shared/ui/containers/CappedCardList";
 
 interface CampaignTemplateContainerProps {
   smsTemplates: Doc<"smsTemplates">[];
@@ -10,7 +12,7 @@ interface CampaignTemplateContainerProps {
 const CampaignTemplateContainer: React.FC<CampaignTemplateContainerProps> = ({
   smsTemplates,
 }) => {
-  const { updateFormData, nextStep } = useCampaignForm();
+  const { updateFormData, nextStep, formData } = useCampaignForm();
 
   const handleTemplateSelect = (templateId: Id<"smsTemplates">) => {
     updateFormData({ templateId });
@@ -27,15 +29,16 @@ const CampaignTemplateContainer: React.FC<CampaignTemplateContainerProps> = ({
     );
   }
   return (
-    <CardContainer className="mt-4">
+    <CappedCardList className="mt-4">
       {smsTemplates.map((template) => (
         <CampaignTemplateCard
           key={template._id}
           template={template}
           onSelect={handleTemplateSelect}
+          isSelected={formData.templateId === template._id}
         />
       ))}
-    </CardContainer>
+    </CappedCardList>
   );
 };
 

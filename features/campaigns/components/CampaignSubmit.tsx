@@ -2,14 +2,14 @@
 
 import { useInsertCampaign } from "@/domain/campaigns";
 import { useCampaignForm } from "../contexts/CampaignFormContext";
-import SingleSubmitButton from "@/shared/ui/buttonContainers/SingleSubmitButton";
 import { useRouter } from "next/navigation";
 import { useContextOrganization, useUserScope } from "@/shared/hooks/contexts";
+import FormActions from "@/shared/ui/buttonContainers/FormActions";
 
 const CampaignSubmit = () => {
   const router = useRouter();
 
-  const { formData, isSubmitDisabled } = useCampaignForm();
+  const { formData, isSubmitDisabled, prevStep } = useCampaignForm();
   const { organization } = useContextOrganization();
   const { userId } = useUserScope();
 
@@ -21,11 +21,16 @@ const CampaignSubmit = () => {
       return;
     }
 
+    if (formData.eventId === undefined || formData.body === undefined) {
+      return;
+    }
+
     const { success, campaignId } = await insertCampaign({
       name: formData.name,
       userId: userId,
       eventId: formData.eventId,
       scheduleTime: formData.sendAt,
+      smsBody: formData.body,
     });
 
     if (success) {
@@ -36,12 +41,17 @@ const CampaignSubmit = () => {
   };
 
   return (
-    <SingleSubmitButton
+    <FormActions
+      onCancel={prevStep}
+      onSubmit={handleSubmit}
+      isSubmitDisabled={isSubmitDisabled}
       isLoading={insertCampaignLoading}
       error={insertCampaignError}
-      onClick={handleSubmit}
-      disabled={insertCampaignLoading || isSubmitDisabled}
-      label="Submit"
+      cancelText="Back"
+      submitText="Submit"
+      cancelVariant="secondary"
+      submitVariant="default"
+      className="mt-16"
     />
   );
 };

@@ -40,6 +40,7 @@ const ContactsIdPage = () => {
                 label="Upload"
                 icon={<UploadIcon size={20} />}
                 variant="secondaryAction"
+                className="border "
               />
               <AddButton
                 onClick={() => setIsAddingContact(true)}

@@ -1,5 +1,6 @@
 import { Button } from "../primitive/button";
 import FieldErrorMessage from "../error/FieldErrorMessage";
+import { cn } from "@/shared/lib/utils";
 
 interface FormActionsProps {
   onCancel: () => void;
@@ -11,6 +12,8 @@ interface FormActionsProps {
   cancelVariant?: "default" | "secondary" | "destructive" | "outline";
   submitVariant?: "default" | "secondary" | "destructive" | "outline";
   error?: string | null;
+  fullWidth?: boolean;
+  className?: string;
 }
 
 const FormActions: React.FC<FormActionsProps> = ({
@@ -23,10 +26,12 @@ const FormActions: React.FC<FormActionsProps> = ({
   cancelVariant = "secondary",
   submitVariant = "default",
   error,
+  fullWidth = true,
+  className,
 }) => {
   return (
-    <div className="">
-      <div className="flex justify-center gap-4">
+    <div className={cn(className)}>
+      <div className="flex gap-4 justify-between">
         <Button
           type="button"
           variant={cancelVariant}

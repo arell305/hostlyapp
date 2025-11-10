@@ -103,6 +103,8 @@ export default defineSchema({
     eventId: v.union(v.id("events"), v.null()),
     isActive: v.boolean(),
     name: v.string(),
+    templateId: v.optional(v.id("smsTemplates")), // reference to selected template
+    smsBody: v.string(), // editable body of the template for this campaign
     promptResponse: v.optional(v.string()),
     relativeOffsetMinutes: v.optional(v.number()),
     scheduleTime: v.optional(v.number()),

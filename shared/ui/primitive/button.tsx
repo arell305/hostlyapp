@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default: "bg-primaryBlue text-whiteText hover:bg-primaryBlue/80",
         destructive:
           "bg-altRed text-destructive-foreground hover:bg-destructive/90",
-        outline: "border bg-cardBackground hover:bg-cardBackgroundHover",
+        outline: "border  hover:bg-cardBackgroundHover",
         secondary: "text-whiteText hover:underline",
         ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
         link: "text-primary underline-offset-4 underline hover:opacity-80",
@@ -24,7 +24,7 @@ const buttonVariants = cva(
           "bg-transparent justify-start gap-3 hover:bg-cardBackgroundHover",
         nav: "bg-cardBackgroundHover rounded-[20px] hover:bg-primaryBlue",
         secondaryAction:
-          "bg-transparent border border-grayText hover:bg-grayText/10",
+          "bg-transparent border border-gray-600 hover:bg-primaryBlue/10",
         selection: "rounded-[20px] border font-normal",
         menu: "font-normal text-base gap-6 text-left justify-start w-full rounded-md hover:bg-cardBackgroundHover ",
         menuDestructive:

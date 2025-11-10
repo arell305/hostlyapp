@@ -8,9 +8,11 @@ interface EventItemProps {
   event: Doc<"events">;
   className?: string;
   onSelect: (eventId: Id<"events">) => void;
+  isSelected: boolean;
 }
 
 const EventItem: React.FC<EventItemProps> = ({
+  isSelected,
   className,
   event,
   onSelect,
@@ -21,6 +23,7 @@ const EventItem: React.FC<EventItemProps> = ({
     <button
       className={cn(
         "relative flex border cursor-pointer rounded-md transition-shadow duration-200 hover:shadow-glow-white",
+        isSelected ? "shadow-glow-primary" : "",
         className
       )}
       onClick={() => onSelect(event._id)}
