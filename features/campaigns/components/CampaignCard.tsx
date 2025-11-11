@@ -12,8 +12,8 @@ interface CampaignCardProps {
 
 const CampaignCard = ({ campaign, href }: CampaignCardProps) => {
   return (
-    <Link href={href}>
-      <CustomCard className="cursor-pointer hover:bg-cardBackgroundHover">
+    <Link href={href} className="">
+      <CustomCard className="hover:shadow-glow-white ">
         <CardHeader>
           <CardTitle>{campaign.name}</CardTitle>
         </CardHeader>

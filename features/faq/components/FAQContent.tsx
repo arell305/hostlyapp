@@ -5,10 +5,10 @@ import { Doc } from "@/convex/_generated/dataModel";
 import FaqCard from "./FaqCard";
 import { useContextOrganization } from "@/shared/hooks/contexts";
 import { canCreateEvent } from "@/shared/utils/permissions";
-import { FaqValues } from "@shared/types/types";
 import { useUpdateCompanyFaq } from "@/domain/faqs";
 import ResponsiveConfirm from "@shared/ui/responsive/ResponsiveConfirm";
 import ResponsiveEditFaq from "./ResponsiveEditFaq";
+import CardContainer from "@/shared/ui/containers/CardContainer";
 
 interface FAQContentProps {
   faqs: Doc<"faq">[];
@@ -57,14 +57,6 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
     }
   };
 
-  const handleSave = async (faqId: Doc<"faq">["_id"], update: FaqValues) => {
-    const result = await updateCompanyFaq({
-      faqId,
-      updates: { ...update },
-    });
-    return result;
-  };
-
   const handleEdit = (faq: Doc<"faq">) => {
     setFaqToEdit(faq);
     setUpdateCompanyFaqError(null);
@@ -72,7 +64,7 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <CardContainer>
       {faqs.map((faq) => (
         <FaqCard
           key={faq._id}
@@ -104,7 +96,7 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
         onOpenChange={(open: boolean) => !open && setShowEdit(false)}
         faq={faqToEdit}
       />
-    </div>
+    </CardContainer>
   );
 };
 

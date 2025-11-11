@@ -1,34 +1,16 @@
 "use client";
 
-import ResponsiveConfirm from "@shared/ui/responsive/ResponsiveConfirm";
-import { useUpdateCampaign } from "@/domain/campaigns";
-import { CampaignValues } from "@shared/types/types";
-import { Doc } from "convex/_generated/dataModel";
-import { useState } from "react";
-import { useCampaignScope } from "@/shared/hooks/contexts/useCampaignScope";
+import SubPageContainer from "@/shared/ui/containers/SubPageContainer";
+import EventCampaignDetails from "./events/EventCampaignDetails";
+import CampaignDetails from "./campaign/CampaignDetails";
 
-interface CampaignDetailsProps {
-  isEditMode: boolean;
-}
-const CampaignDetails = ({ isEditMode }: CampaignDetailsProps) => {
-  const { campaign } = useCampaignScope();
-
-  const {
-    updateCampaign,
-    updateCampaignLoading,
-    updateCampaignError,
-    setUpdateCampaignError,
-  } = useUpdateCampaign();
-
-  const handleSave = async (update: CampaignValues): Promise<boolean> => {
-    const result = await updateCampaign({
-      campaignId: campaign._id,
-      updates: { ...update },
-    });
-    return result.success;
-  };
-
-  return <div>CampaignIdContent</div>;
+const CampaignIdContent = () => {
+  return (
+    <SubPageContainer className="flex flex-col gap-8">
+      <CampaignDetails />
+      <EventCampaignDetails />
+    </SubPageContainer>
+  );
 };
 
-export default CampaignDetails;
+export default CampaignIdContent;

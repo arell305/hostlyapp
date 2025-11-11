@@ -17,7 +17,7 @@ interface EventsSelectionProps {
 const EventsSelection: React.FC<EventsSelectionProps> = ({
   triggerCancelModal,
 }) => {
-  const { nextStep, formData } = useCampaignForm();
+  const { nextStep, formData, updateFormData } = useCampaignForm();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -25,7 +25,16 @@ const EventsSelection: React.FC<EventsSelectionProps> = ({
 
   const showSearchInput = selectedTab === "upcoming" || selectedTab === "past";
 
-  const isNextDisabled = formData.eventId === null;
+  const isNextDisabled = formData.eventId === undefined;
+
+  const handleTabChange = (value: EventFilter) => {
+    setSelectedTab(value);
+    if (value === "none") {
+      updateFormData({ eventId: null });
+    } else {
+      updateFormData({ eventId: undefined });
+    }
+  };
 
   return (
     <SectionContainer>
@@ -38,7 +47,7 @@ const EventsSelection: React.FC<EventsSelectionProps> = ({
           { label: "None", value: "none" },
         ]}
         value={selectedTab}
-        onChange={setSelectedTab}
+        onChange={handleTabChange}
       />
 
       {showSearchInput ? (

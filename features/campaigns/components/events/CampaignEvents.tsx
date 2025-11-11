@@ -2,17 +2,21 @@ import { Doc, Id } from "@/convex/_generated/dataModel";
 import CampaignEventCard from "./CampaignEventCard";
 import { useCampaignForm } from "../../contexts/CampaignFormContext";
 import CappedCardList from "@/shared/ui/containers/CappedCardList";
+import EventDetailsLoader from "./EventDetailsLoader";
 
 interface CampaignEventsProps {
   events: Doc<"events">[];
 }
 
 const CampaignEvents: React.FC<CampaignEventsProps> = ({ events }) => {
-  const { updateFormData, nextStep, formData } = useCampaignForm();
+  const { updateFormData, formData } = useCampaignForm();
 
   const handleEventSelect = (eventId: Id<"events">) => {
-    updateFormData({ eventId });
-    nextStep();
+    if (formData.eventId === eventId) {
+      updateFormData({ eventId: undefined });
+    } else {
+      updateFormData({ eventId });
+    }
   };
 
   const hasEvents = events.length > 0;
@@ -24,12 +28,17 @@ const CampaignEvents: React.FC<CampaignEventsProps> = ({ events }) => {
   return (
     <CappedCardList>
       {events.map((event) => (
-        <CampaignEventCard
-          isSelected={formData.eventId === event._id}
-          key={event._id}
-          event={event}
-          onSelect={handleEventSelect}
-        />
+        <div key={event._id} className="w-full flex flex-col">
+          <CampaignEventCard
+            isSelected={formData.eventId === event._id}
+            key={event._id}
+            event={event}
+            onSelect={handleEventSelect}
+          />
+          {formData.eventId === event._id && (
+            <EventDetailsLoader eventId={event._id} />
+          )}
+        </div>
       ))}
     </CappedCardList>
   );

@@ -9,27 +9,31 @@ import {
 import React from "react";
 
 interface CampaignTemplateCardProps {
-  template: Doc<"smsTemplates">;
-  onSelect: (templateId: Id<"smsTemplates">) => void;
+  name: string;
+  body: string;
+  onSelect: (templateId: Id<"smsTemplates"> | null) => void;
   isSelected: boolean;
+  templateId: Id<"smsTemplates"> | null;
 }
 
 const CampaignTemplateCard: React.FC<CampaignTemplateCardProps> = ({
-  template,
+  name,
+  body,
   onSelect,
   isSelected,
+  templateId,
 }) => {
   return (
     <CustomCard
-      onClick={() => onSelect(template._id)}
+      onClick={() => onSelect(templateId)}
       className={cn(
         "cursor-pointer hover:shadow-glow-white",
         isSelected ? "shadow-glow-primary" : ""
       )}
     >
       <CardHeader>
-        <CardTitle>{template.name}</CardTitle>
-        <CardDescription>{template.body}</CardDescription>
+        <CardTitle>{name}</CardTitle>
+        <CardDescription>{body}</CardDescription>
       </CardHeader>
     </CustomCard>
   );

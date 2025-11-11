@@ -3,7 +3,6 @@
 import { Doc } from "@/convex/_generated/dataModel";
 import PageContainer from "@/shared/ui/containers/PageContainer";
 import SectionHeaderWithAction from "@/shared/ui/headings/SectionHeaderWithAction";
-import CampaignIdContent from "./CampaignIdContent";
 import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
 import { useState } from "react";
 import { CampaignTab } from "@/shared/types/types";

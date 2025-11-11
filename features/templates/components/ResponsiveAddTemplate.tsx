@@ -1,6 +1,5 @@
 "use client";
 
-import ResponsiveModal from "@shared/ui/responsive/ResponsiveModal";
 import FormActions from "@shared/ui/buttonContainers/FormActions";
 import { TemplateValues } from "@shared/types/types";
 import { useInsertSmsTemplate } from "@/domain/smsTemplates";

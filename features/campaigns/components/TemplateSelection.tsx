@@ -7,6 +7,7 @@ import ResponsiveAddTemplate from "@/features/templates/components/ResponsiveAdd
 import { useState } from "react";
 import FormActions from "@/shared/ui/buttonContainers/FormActions";
 import { useCampaignForm } from "../contexts/CampaignFormContext";
+import SelectTemplate from "./templates/SelectTemplate";
 
 const TemplateSelection = () => {
   const [isAddingTemplate, setIsAddingTemplate] = useState<boolean>(false);
@@ -24,14 +25,15 @@ const TemplateSelection = () => {
         <h2>Select Template</h2>
         <Button
           variant="secondaryAction"
-          className="rounded-md"
+          className="rounded-md w-auto"
           onClick={handleAddNewTemplate}
+          size="xs"
         >
           Add New Template
         </Button>
       </div>
       <CampaignTemplateLoader />
-      <ResponsiveAddTemplate
+      <SelectTemplate
         isOpen={isAddingTemplate}
         onOpenChange={setIsAddingTemplate}
       />

@@ -24,7 +24,6 @@ import {
 } from "./backendUtils/validation";
 import {
   getTicketSoldCounts,
-  handleError,
   handleGuestListData,
   handleGuestListUpdateData,
   handleTicketData,
