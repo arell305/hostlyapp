@@ -380,7 +380,7 @@ export const updateClerkOrganizationPhoto = action({
     const { organizationId, photo } = args;
 
     try {
-      const idenitity = await requireAuthenticatedUser(ctx, [
+      const identity = await requireAuthenticatedUser(ctx, [
         UserRole.Admin,
         UserRole.Manager,
         UserRole.Hostly_Moderator,
@@ -393,9 +393,13 @@ export const updateClerkOrganizationPhoto = action({
         })
       );
 
-      isUserInOrganization(idenitity, organization.clerkOrganizationId);
+      isUserInOrganization(identity, organization.clerkOrganizationId);
 
-      const clerkUserId = idenitity.id as string;
+      let clerkUserId = await getActingClerkUserId(
+        ctx,
+        identity,
+        organizationId
+      );
 
       let blob: Blob | null = null;
       if (photo) {

@@ -626,25 +626,16 @@ export const getAdminByOrganizationInternal = internalQuery({
     organizationId: v.id("organizations"),
   },
   handler: async (ctx, args): Promise<UserSchema | null> => {
-    try {
-      // finding specific Convex ID for Hostly Admin Organization
-      const roleToFind =
-        args.organizationId === "jn75fk6mk1ttj02sjj3831c7an7n71sh"
-          ? UserRole.Hostly_Admin
-          : UserRole.Admin;
+    const { organizationId } = args;
 
-      const adminUser = await ctx.db
-        .query("users")
-        .withIndex("by_organizationId", (q) =>
-          q.eq("organizationId", args.organizationId)
-        )
-        .filter((q) => q.eq(q.field("role"), roleToFind))
-        .first();
+    const adminUser = await ctx.db
+      .query("users")
+      .withIndex("by_organizationId", (q) =>
+        q.eq("organizationId", organizationId)
+      )
+      .filter((q) => q.or(q.eq(q.field("role"), UserRole.Admin)))
+      .first();
 
-      return adminUser;
-    } catch (error) {
-      console.error(ErrorMessages.COMPANY_DB_QUERY_FOR_ADMIN_ERROR, error);
-      throw new Error(ErrorMessages.COMPANY_DB_QUERY_FOR_ADMIN_ERROR);
-    }
+    return adminUser;
   },
 });

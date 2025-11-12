@@ -9,6 +9,8 @@ import FullLoading from "../components/loading/FullLoading";
 const CompaniesPage = () => {
   const { orgRole } = useContextOrganization();
 
+  console.log("orgRole", orgRole);
+
   if (!orgRole) {
     return <FullLoading />;
   }
