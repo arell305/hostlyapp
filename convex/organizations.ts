@@ -633,7 +633,12 @@ export const getAdminByOrganizationInternal = internalQuery({
       .withIndex("by_organizationId", (q) =>
         q.eq("organizationId", organizationId)
       )
-      .filter((q) => q.or(q.eq(q.field("role"), UserRole.Admin)))
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("role"), UserRole.Admin),
+          q.eq(q.field("role"), UserRole.Hostly_Admin)
+        )
+      )
       .first();
 
     return adminUser;
