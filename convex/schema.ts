@@ -187,6 +187,7 @@ export default defineSchema({
 
   eventTicketTypes: defineTable({
     eventId: v.id("events"),
+    description: v.optional(v.string()),
     name: v.string(),
     price: v.number(),
     capacity: v.number(),
