@@ -91,8 +91,8 @@ const TicketTimeCard = ({
                   label="Tickets Sold:"
                   value={
                     canEditEvent
-                      ? `${totalSold} / ${ticket.capacity}`
-                      : `${totalSold}`
+                      ? `${new Intl.NumberFormat("en-US").format(totalSold)} / ${new Intl.NumberFormat("en-US").format(ticket.capacity)}`
+                      : `${new Intl.NumberFormat("en-US").format(totalSold)}`
                   }
                   icon={<Ticket className="text-xl text-grayText" />}
                 />

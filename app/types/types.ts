@@ -408,13 +408,16 @@ export interface TicketSoldCountByType {
 }
 
 export interface TicketType {
+  _id?: Id<"eventTicketTypes">;
   name: string;
   price: number;
   capacity: number;
   ticketSalesEndTime: number;
+  isActive?: boolean;
 }
 
 export type TicketTypeForm = {
+  eventTicketTypeId?: Id<"eventTicketTypes">;
   name: string;
   price: string;
   capacity: string;

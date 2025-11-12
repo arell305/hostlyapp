@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import ToggleSectionCard from "@/components/shared/toggle/ToggleSectionCard";
 import TicketSection from "./TicketSection";

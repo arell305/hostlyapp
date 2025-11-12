@@ -147,6 +147,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
       onDeleteSuccess(); // delegate navigation to parent
     }
   };
+
   return (
     <PageContainer className="pt-0">
       <TopRowNav

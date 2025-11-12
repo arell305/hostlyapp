@@ -52,6 +52,7 @@ interface EventFormContextType {
   // errors
   errors: EventFormErrors;
   setErrors: React.Dispatch<React.SetStateAction<EventFormErrors>>;
+
   isIOSDevice: boolean;
 }
 
@@ -102,15 +103,26 @@ export const EventFormProvider = ({
   // Tickets
   const [isTicketsSelected, setIsTicketsSelected] =
     useState(!!initialTicketData);
-  const [ticketTypes, setTicketTypes] = useState<TicketTypeForm[]>(
-    initialTicketData?.map((type) => ({
-      name: type.name,
-      price: type.price.toString(),
-      capacity: type.capacity.toString(),
-      ticketSalesEndTime: type.ticketSalesEndTime,
-      showCustomInput: !ticketNameOptions.includes(type.name),
-    })) || []
-  );
+  const [ticketTypes, setTicketTypes] = useState<TicketTypeForm[]>([]);
+
+  useEffect(() => {
+    if (initialTicketData) {
+      const activeTickets = initialTicketData.filter((type) => type.isActive);
+
+      setTicketTypes(
+        activeTickets.map((type) => ({
+          name: type.name,
+          price: type.price.toString(),
+          capacity: type.capacity.toString(),
+          ticketSalesEndTime: type.ticketSalesEndTime,
+          showCustomInput: !ticketNameOptions.includes(type.name),
+          eventTicketTypeId: type._id,
+        }))
+      );
+    } else {
+      setTicketTypes([]);
+    }
+  }, [initialTicketData]);
 
   // Autocomplete
   const [value, setValue] = useState<AddressValue | null>(null);

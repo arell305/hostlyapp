@@ -97,7 +97,8 @@ const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
         name: t.name.trim(),
         price: parseFloat(t.price),
         capacity: parseInt(t.capacity, 10),
-        ticketSalesEndTime: t.ticketSalesEndTime, // already a number
+        eventTicketTypeId: t.eventTicketTypeId,
+        ticketSalesEndTime: t.ticketSalesEndTime,
       };
     });
 

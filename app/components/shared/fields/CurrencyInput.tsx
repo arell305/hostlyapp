@@ -12,9 +12,12 @@ interface CurrencyInputProps {
   error?: string | null;
   name: string;
   placeholder?: string;
+  disabled?: boolean;
+  showImmutableMessage?: boolean;
 }
 
 const CurrencyInput: React.FC<CurrencyInputProps> = ({
+  disabled = false,
   label,
   value,
   onChange,
@@ -22,6 +25,7 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
   error,
   name,
   placeholder = "$0.00",
+  showImmutableMessage = false,
 }) => {
   return (
     <div>
@@ -47,10 +51,14 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
           prefix="$"
           allowNegative={false}
           placeholder={placeholder}
-          disabled={!isEditing}
+          disabled={!isEditing || disabled}
         />
       </LabelWrapper>
-
+      {showImmutableMessage && (
+        <p className="text-sm text-gray-500">
+          To edit price, you must remove and add the ticket again.
+        </p>
+      )}
       <FieldErrorMessage error={error} />
     </div>
   );
