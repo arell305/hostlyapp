@@ -1,6 +1,5 @@
 import {
   DollarSign,
-  CalendarDays,
   Ticket,
   Percent,
   BadgeCheck,
@@ -27,6 +26,8 @@ export const EFFECTIVE_DATE = "March 13, 2025";
 export const CONTACT_EMAIL = "support@hostlyapp.com";
 export const CONTACT_PHONE = "702-613-8800";
 export const COMPANY_NAME = "Hostly";
+
+export const TICKET_SALES_COPY = "(price inclusive of all taxes & fees)";
 
 // datePresets.ts
 export const PRESET_OPTIONS = [

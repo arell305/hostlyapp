@@ -3,6 +3,7 @@
 import React from "react";
 import { useEventCheckout } from "@/contexts/EventCheckoutContext";
 import { formatCurrency } from "@/utils/helpers";
+import { TICKET_SALES_COPY } from "@/types/constants";
 
 const OrderSummary: React.FC = () => {
   const { pricing, validationResult } = useEventCheckout();
@@ -33,7 +34,10 @@ const OrderSummary: React.FC = () => {
       )}
 
       <div className="flex justify-between font-semibold pt-2   mt-2">
-        <span>Total</span>
+        <div className="flex flex-col">
+          <span>Total</span>
+          <p className="text-grayText font-normal">{TICKET_SALES_COPY}</p>
+        </div>
         <span>{formatCurrency(pricing.totalPrice)}</span>
       </div>
     </div>
