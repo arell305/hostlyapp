@@ -61,6 +61,7 @@ const TicketToggleSection: React.FC<TicketToggleSectionProps> = ({
                 capacity: "",
                 ticketSalesEndTime: null,
                 showCustomInput: false,
+                description: null,
               },
             ]);
           }
