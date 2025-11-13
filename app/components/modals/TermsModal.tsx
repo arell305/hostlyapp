@@ -7,6 +7,7 @@ import {
   CONTACT_EMAIL,
   CONTACT_PHONE,
   COMPANY_NAME,
+  APPLICATION_FEE,
 } from "../../types/constants";
 import {
   Dialog,
@@ -17,6 +18,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
+import { formatCentsToDollars } from "@/utils/helpers";
 
 interface TermsModalProps {
   open: boolean;
@@ -107,6 +109,10 @@ const TermsModal: React.FC<TermsModalProps> = ({ open, onClose }) => {
                   "Organizers are responsible for taxes on ticket sales.",
                   "If a chargeback is issued, the organizer assumes financial responsibility.",
                   `All payments are processed securely through third-party providers. ${COMPANY_NAME} does not store credit card details.`,
+                  `Hostly Transaction Fee: Hostly charges a flat fee of ${formatCentsToDollars(APPLICATION_FEE)} per transaction, deducted from the seller (event organizer) at the time of sale.`,
+                  "Stripe Processing Fees: In addition to the Hostly fee, all ticket sales are subject to Stripe's standard processing fees. These fees are also deducted from the seller.",
+                  `The total amount deducted from the seller includes: (1) Hostly\u2019s ${formatCentsToDollars(APPLICATION_FEE)} fee, (2) Stripe\u2019s processing fees, and (3) any applicable taxes.`,
+                  "Buyers see the full ticket price inclusive of any buyer-facing fees (if applicable). Sellers receive the net amount after all fees are deducted.",
                 ],
               },
               {

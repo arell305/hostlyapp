@@ -26,7 +26,7 @@ import {
   WebhookResponse,
   CreateStripeOnboardingLinkResponse,
 } from "@/types/convex-types";
-import { USD_CURRENCY } from "@/types/constants";
+import { APPLICATION_FEE, USD_CURRENCY } from "@/types/constants";
 import { sendClerkInvitation } from "../utils/clerk";
 import {
   attachPaymentMethod,
@@ -67,6 +67,7 @@ import {
 } from "./backendUtils/stripeWebhooks";
 import { Id } from "./_generated/dataModel";
 import Stripe from "stripe";
+import { getRequiredFee } from "./backendUtils/stripeLookup";
 
 export const validatePromoCode = action({
   args: { promoCode: v.string() },
@@ -736,6 +737,7 @@ export const createPaymentIntent = action({
           metadata: flatMetadata,
           description,
           receipt_email: metadata?.email,
+          application_fee_amount: APPLICATION_FEE,
         },
         { stripeAccount: stripeAccountId }
       );
