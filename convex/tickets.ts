@@ -137,6 +137,7 @@ export const insertTicketsSold = action({
               connectedPaymentId,
               organizationId,
               eventTicketTypeName: ticketType.name,
+              description: ticketType.description || null,
             };
             tickets.push(customerTicket);
           }

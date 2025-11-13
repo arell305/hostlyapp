@@ -414,6 +414,7 @@ export interface TicketType {
   capacity: number;
   ticketSalesEndTime: number;
   isActive?: boolean;
+  description?: string | null;
 }
 
 export type TicketTypeForm = {
@@ -423,6 +424,7 @@ export type TicketTypeForm = {
   capacity: string;
   ticketSalesEndTime: number | null;
   showCustomInput?: boolean; // Optional for backward compatibility
+  description: string | null;
 };
 
 export type TicketUpdateInput = {
@@ -433,6 +435,18 @@ export type TicketUpdateInput = {
   stripeProductId?: string;
   stripePriceId?: string;
   ticketSalesEndTime: number;
+  description?: string | null;
+};
+
+export type NormalizedTicketInput = {
+  eventTicketTypeId?: Id<"eventTicketTypes">;
+  name: string;
+  price: number;
+  capacity: number;
+  stripeProductId?: string;
+  stripePriceId?: string;
+  ticketSalesEndTime: number;
+  description: string | null;
 };
 
 // loadable.ts

@@ -54,6 +54,7 @@ export const customerTicketValidator = v.object({
   _id: v.id("tickets"),
   eventId: v.id("events"),
   promoterUserId: v.union(v.id("users"), v.null()),
+  description: v.union(v.string(), v.null()),
   email: v.string(),
   eventTicketTypeName: v.string(),
   checkInTime: v.optional(v.number()),

@@ -3,7 +3,12 @@ import { useAction } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { ResponseStatus, FrontendErrorMessages } from "@/types/enums";
 import { Id } from "../../../../../convex/_generated/dataModel";
-import { EventFormInput, GuestListFormInput, TicketType } from "@/types/types";
+import {
+  EventFormInput,
+  GuestListFormInput,
+  TicketType,
+  NormalizedTicketInput,
+} from "@/types/types";
 
 export const useAddEvent = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -21,6 +26,15 @@ export const useAddEvent = () => {
     setError(null);
 
     try {
+      const normalizedTicketData: NormalizedTicketInput[] = ticketData.map(
+        (ticket) => ({
+          ...ticket,
+          description:
+            ticket.description?.trim() === ""
+              ? null
+              : (ticket.description?.trim() ?? null),
+        })
+      );
       const response = await addEventAction({
         organizationId,
         name: eventData.name,
@@ -29,7 +43,7 @@ export const useAddEvent = () => {
         endTime: eventData.endTime,
         photo: eventData.photo,
         address: eventData.address,
-        ticketData,
+        ticketData: normalizedTicketData,
         guestListData,
       });
 

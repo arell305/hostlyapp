@@ -16,7 +16,7 @@ const TicketSelector: React.FC<TicketSelectorProps> = ({
   soldCount,
   setCount,
 }) => {
-  const { name, price, capacity, ticketSalesEndTime } = ticketType;
+  const { name, price, capacity, ticketSalesEndTime, description } = ticketType;
   const remaining = capacity - soldCount;
   const isSoldOut = remaining <= 0;
   const isTicketSalesEnded = !isAfterNowInPacificTime(ticketSalesEndTime);
@@ -25,6 +25,7 @@ const TicketSelector: React.FC<TicketSelectorProps> = ({
     <div className="flex justify-between items-center py-3 px-4 border-b">
       <div>
         <h3 className="font-semibold text-base">{name} Ticket</h3>
+        {description && <p className="text-sm mt-2">VIP Entrance for 1 girl</p>}
         <p className="text-sm text-grayText">
           {isTicketSalesEnded ? (
             <span className="text-red-500 font-medium">Ticket sales ended</span>

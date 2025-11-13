@@ -117,6 +117,7 @@ export const EventFormProvider = ({
           ticketSalesEndTime: type.ticketSalesEndTime,
           showCustomInput: !ticketNameOptions.includes(type.name),
           eventTicketTypeId: type._id,
+          description: type.description || "",
         }))
       );
     } else {

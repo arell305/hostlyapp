@@ -99,6 +99,7 @@ const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
         capacity: parseInt(t.capacity, 10),
         eventTicketTypeId: t.eventTicketTypeId,
         ticketSalesEndTime: t.ticketSalesEndTime,
+        description: t.description,
       };
     });
 

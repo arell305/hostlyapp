@@ -221,6 +221,7 @@ export async function handleTicketData(
         stripeProductId: stripeProductId.id,
         stripePriceId: stripePriceId.id,
         ticketSalesEndTime: ticket.ticketSalesEndTime,
+        description: ticket.description || null,
       }
     );
     eventTicketTypesIds.push(eventTicketTypesId);
@@ -399,6 +400,7 @@ export async function handleTicketUpdateData(
     stripeProductId?: string;
     stripePriceId?: string;
     ticketSalesEndTime: number;
+    description: string | null;
   }[],
   organization: OrganizationSchema,
   existingTicketTypes: EventTicketTypesSchema[]
@@ -417,8 +419,6 @@ export async function handleTicketUpdateData(
 
   const now = Date.now();
   const newTicketIds: Id<"eventTicketTypes">[] = [];
-
-  console.log("ticketData incoming backend", ticketData);
 
   // Track which ticket IDs are still active in the incoming data
   const incomingIds = new Set(
@@ -450,14 +450,13 @@ export async function handleTicketUpdateData(
           capacity: ticket.capacity,
           ticketSalesEndTime: ticket.ticketSalesEndTime,
           isActive: true,
+          description: ticket.description,
         }
       );
 
       newTicketIds.push(existing._id);
     } else {
       // ----- Create new ticket type -----
-      console.log("Creating new ticket type:", ticket.name);
-
       const product = await createStripeProduct(
         eventId,
         connectedAccount.stripeAccountId,
@@ -482,6 +481,7 @@ export async function handleTicketUpdateData(
           stripeProductId: product.id,
           stripePriceId: price.id,
           ticketSalesEndTime: ticket.ticketSalesEndTime,
+          description: ticket.description,
         }
       );
 
@@ -645,6 +645,7 @@ export function hasTicketDataChanged(
     price: number;
     capacity: number;
     ticketSalesEndTime: number;
+    description: string | null;
   }[]
 ): boolean {
   if (existingTickets.length !== newTickets.length) return true;
@@ -662,7 +663,8 @@ export function hasTicketDataChanged(
       existing.name !== incoming.name ||
       !pricesAreEqual(existing.price, incoming.price) || // Use tolerant comparison here
       existing.capacity !== incoming.capacity ||
-      existing.ticketSalesEndTime !== incoming.ticketSalesEndTime
+      existing.ticketSalesEndTime !== incoming.ticketSalesEndTime ||
+      existing.description !== incoming.description
     );
   });
 }

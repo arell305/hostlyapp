@@ -10,6 +10,7 @@ export const createEventTicketTypes = internalMutation({
     name: v.string(),
     price: v.number(),
     capacity: v.number(),
+    description: v.union(v.string(), v.null()),
     stripeProductId: v.string(),
     stripePriceId: v.string(),
     ticketSalesEndTime: v.number(),
@@ -24,6 +25,7 @@ export const createEventTicketTypes = internalMutation({
         stripeProductId,
         stripePriceId,
         ticketSalesEndTime,
+        description,
       } = args;
 
       const eventTicketTypesId: Id<"eventTicketTypes"> = await ctx.db.insert(
@@ -33,6 +35,7 @@ export const createEventTicketTypes = internalMutation({
           name,
           price,
           capacity,
+          description,
           stripeProductId,
           stripePriceId,
           ticketSalesEndTime,
@@ -92,6 +95,7 @@ export const internalUpdateEventTicketType = internalMutation({
   args: {
     eventTicketTypeId: v.id("eventTicketTypes"),
     name: v.optional(v.string()),
+    description: v.optional(v.union(v.string(), v.null())),
     price: v.optional(v.number()),
     capacity: v.optional(v.number()),
     ticketSalesEndTime: v.optional(v.number()),
@@ -109,8 +113,10 @@ export const internalUpdateEventTicketType = internalMutation({
       isActive,
       stripePriceId,
       activeUntil,
+      description,
     } = args;
 
+    console.log("description", description);
     try {
       const updates: Partial<{
         name: string;
@@ -120,6 +126,7 @@ export const internalUpdateEventTicketType = internalMutation({
         isActive: boolean;
         stripePriceId: string;
         activeUntil: number;
+        description: string | null;
       }> = {};
 
       if (name !== undefined) updates.name = name;
@@ -130,6 +137,7 @@ export const internalUpdateEventTicketType = internalMutation({
       if (isActive !== undefined) updates.isActive = isActive;
       if (stripePriceId !== undefined) updates.stripePriceId = stripePriceId;
       if (activeUntil !== undefined) updates.activeUntil = activeUntil;
+      if (description !== undefined) updates.description = description;
 
       await ctx.db.patch(eventTicketTypeId, updates);
     } catch (error) {

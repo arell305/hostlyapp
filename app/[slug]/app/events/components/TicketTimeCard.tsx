@@ -4,7 +4,7 @@ import StaticField from "@/components/shared/fields/StaticField";
 import { FiClock } from "react-icons/fi";
 import { formatToTimeAndShortDate, isPast } from "../../../../../utils/luxon";
 import { Badge } from "@/components/ui/badge";
-import { Ticket } from "lucide-react";
+import { Info, Ticket } from "lucide-react";
 import { EventTicketTypesSchema } from "@/types/schemas-types";
 import { TicketTypeTotal } from "@/types/convex-types";
 import { formatCurrency } from "@/utils/helpers";
@@ -62,6 +62,13 @@ const TicketTimeCard = ({
             </h2>
 
             <CustomCard className={isDeactivated ? "opacity-80" : ""}>
+              {ticket.description && (
+                <StaticField
+                  label="Description:"
+                  value={ticket.description}
+                  icon={<Info className="text-xl text-grayText" />}
+                />
+              )}
               <StaticField
                 label="Price:"
                 value={formatCurrency(ticket.price)}

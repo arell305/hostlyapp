@@ -64,6 +64,7 @@ export const addEvent = action({
         price: v.number(),
         capacity: v.number(),
         ticketSalesEndTime: v.number(),
+        description: v.union(v.string(), v.null()),
       })
     ),
     guestListData: v.union(
@@ -202,6 +203,7 @@ export const updateEvent = action({
         stripeProductId: v.optional(v.string()), // optional for existing
         stripePriceId: v.optional(v.string()),
         ticketSalesEndTime: v.number(),
+        description: v.union(v.string(), v.null()),
       })
     ),
     guestListData: v.union(
@@ -226,6 +228,8 @@ export const updateEvent = action({
       ticketData,
       guestListData,
     } = args;
+
+    console.log("ticketData", ticketData);
 
     try {
       const identity = await requireAuthenticatedUser(ctx, [

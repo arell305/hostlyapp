@@ -68,6 +68,7 @@ export interface CustomerTicket {
   ticketUniqueId: string;
   checkInTime?: number;
   eventTicketTypeName: string;
+  description: string | null;
 
   // Extended fields for display/PDF
   name: string; // Event name
@@ -210,4 +211,5 @@ export interface EventTicketTypesSchema {
   ticketSalesEndTime: number;
   isActive: boolean;
   activeUntil?: number;
+  description?: string | null;
 }

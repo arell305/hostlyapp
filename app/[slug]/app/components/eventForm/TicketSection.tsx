@@ -11,6 +11,7 @@ import ResponsiveConfirm from "../responsive/ResponsiveConfirm";
 import { Label } from "@/components/ui/label";
 import CurrencyInput from "@/components/shared/fields/CurrencyInput";
 import IntegerInput from "@/components/shared/fields/IntegerInput";
+import LabeledTextAreaField from "@/components/shared/fields/LabeledTextAreaField";
 
 interface TicketSectionProps {
   isEdit: boolean;
@@ -125,6 +126,19 @@ const TicketSection: React.FC<TicketSectionProps> = ({
               </Button>
             </div>
           </div>
+          <LabeledTextAreaField
+            label="Description"
+            name="ticketDescription"
+            placeholder="Enter ticket description"
+            value={type.description || ""}
+            onChange={(e) => {
+              const newTypes = [...ticketTypes];
+              newTypes[index].description = e.target.value;
+              setTicketTypes(newTypes);
+            }}
+            rows={2}
+            error={errors.ticketFieldErrors?.[index]?.description}
+          />
 
           {type.showCustomInput && (
             <LabeledInputField
@@ -195,6 +209,7 @@ const TicketSection: React.FC<TicketSectionProps> = ({
                 capacity: "",
                 ticketSalesEndTime: null,
                 showCustomInput: false,
+                description: "",
               },
             ])
           }
