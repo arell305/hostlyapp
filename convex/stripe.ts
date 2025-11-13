@@ -67,7 +67,6 @@ import {
 } from "./backendUtils/stripeWebhooks";
 import { Id } from "./_generated/dataModel";
 import Stripe from "stripe";
-import { getRequiredFee } from "./backendUtils/stripeLookup";
 
 export const validatePromoCode = action({
   args: { promoCode: v.string() },
