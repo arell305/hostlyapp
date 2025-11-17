@@ -21,8 +21,8 @@ export const STRIPE_API_VERSION = "2024-06-20";
 export const USD_CURRENCY = "usd";
 export const DESKTOP_WIDTH = "(min-width: 768px)";
 
-export const UPDATED_DATE = "March 13, 2025";
-export const EFFECTIVE_DATE = "March 13, 2025";
+export const UPDATED_DATE = "November 17, 2025";
+export const EFFECTIVE_DATE = "November 17, 2025";
 export const CONTACT_EMAIL = "support@hostlyapp.com";
 export const CONTACT_PHONE = "702-613-8800";
 export const COMPANY_NAME = "Hostly";

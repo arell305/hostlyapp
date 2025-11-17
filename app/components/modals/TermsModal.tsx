@@ -165,6 +165,16 @@ const TermsModal: React.FC<TermsModalProps> = ({ open, onClose }) => {
                   "Continued use of the platform constitutes acceptance of the updated Terms.",
                 ],
               },
+              {
+                title: "14. Live Entertainment Tax (LET) Compliance",
+                items: [
+                  "Venue Responsibility. Venue is solely responsible for determining whether any event, ticket, admission, service charge, or activity offered through the Hostly platform is subject to Nevada's Live Entertainment Tax (\"LET\") or any similar state or local tax. Hostly does not provide tax advice and does not determine a venue's LET obligations.",
+                  "Tax Calculation & Remittance. If LET applies, Venue is solely responsible for (a) entering the correct tax rate into the Hostly platform, (b) ensuring the tax is properly displayed to consumers, and (c) collecting, reporting, and remitting all LET proceeds to the Nevada Department of Taxation or any applicable authority. Hostly acts only as a payment facilitator and does not remit LET on behalf of any Venue.",
+                  "Pass-Through Collection. Any LET amounts collected through Hostly are collected exclusively on behalf of Venue and are deemed Venue funds, not Hostly funds. Hostly has no ownership, liability, obligation, or responsibility for any LET amounts collected, under-collected, over-collected, or uncollected by Venue.",
+                  "Compliance Warranty. Venue represents and warrants that all applicable LET determinations, calculations, disclosures, and remittances will be made in full compliance with Nevada law (NRS 368A) and any other applicable regulations. Venue agrees to indemnify and hold harmless Hostly, its officers, employees, and contractors from any claims, penalties, liabilities, audits, or costs related to LET.",
+                  "No Tax Advice. Hostly provides tools solely for the convenience of Venue. Hostly does not offer tax guidance or legal interpretations related to LET, and Venue is encouraged to consult with its own tax advisor regarding obligations under Nevada law.",
+                ],
+              },
             ].map((section) => (
               <div key={section.title}>
                 <h4 className="font-semibold mt-4">{section.title}</h4>
