@@ -1,8 +1,8 @@
 import { useAction } from "convex/react";
 import { useState } from "react";
-import { ResponseStatus } from "@shared/types/enums";
 import { api } from "@/convex/_generated/api";
 import { SubscriptionTierType } from "@/shared/types/types";
+import { setErrorFromConvexError } from "@/shared/lib/errorHelper";
 
 type CreateSubscriptionArgs = {
   email: string;
@@ -30,23 +30,15 @@ export const useCreateStripeSubscription = () => {
     setError(null);
 
     try {
-      const response = await createSubscriptionAction({
+      return await createSubscriptionAction({
         email,
         paymentMethodId,
         subscriptionTier,
         idempotencyKey,
         promoCode,
       });
-
-      if (response.status === ResponseStatus.SUCCESS) {
-        return true;
-      }
-
-      setError(response.error);
-      return false;
     } catch (err: any) {
-      console.error("Stripe subscription error:", err);
-      setError(err.message || "Unexpected subscription error");
+      setErrorFromConvexError(err, setError);
       return false;
     } finally {
       setIsLoading(false);

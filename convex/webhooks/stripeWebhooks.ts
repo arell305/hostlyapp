@@ -158,30 +158,30 @@ export const getStripeAccountStatus = (
     account;
 
   if (!details_submitted) {
-    return StripeAccountStatus.INCOMPLETE;
+    return "Incomplete";
   }
 
   if (charges_enabled && payouts_enabled) {
-    return StripeAccountStatus.VERIFIED;
+    return "Verified";
   }
 
   if (requirements?.currently_due && requirements.currently_due.length > 0) {
-    return StripeAccountStatus.PENDING;
+    return "Pending";
   }
 
   if (requirements?.disabled_reason === "rejected.other") {
-    return StripeAccountStatus.REJECTED;
+    return "Rejected";
   }
 
   if (requirements?.disabled_reason) {
-    return StripeAccountStatus.RESTRICTED;
+    return "Restricted";
   }
 
   if (!charges_enabled && !payouts_enabled) {
-    return StripeAccountStatus.DISABLED;
+    return "Disabled";
   }
 
-  return StripeAccountStatus.PENDING;
+  return "Pending";
 };
 
 export const handleCustomerUpdated = async (

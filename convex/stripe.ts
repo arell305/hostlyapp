@@ -3,18 +3,15 @@
 import { action, internalAction } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
-import { StripeAccountStatus } from "@/shared/types/enums";
 import { SubscriptionTierTypeConvex } from "./schema";
 import {
   ErrorMessages,
   ShowErrorMessages,
   ResponseStatus,
   SubscriptionStatus,
-  SubscriptionTier,
   UserRole,
 } from "@/shared/types/enums";
 import {
-  CreateStripeSubscriptionResponse,
   GetOnboardingLinkResponse,
   GetProratedPricesResponse,
   ValidatePromoCodeResponse,
@@ -114,7 +111,7 @@ export const createStripeSubscription = action({
     subscriptionTier: SubscriptionTierTypeConvex,
     idempotencyKey: v.string(),
   },
-  handler: async (ctx, args): Promise<CreateStripeSubscriptionResponse> => {
+  handler: async (ctx, args): Promise<boolean> => {
     const {
       email,
       paymentMethodId,
@@ -160,7 +157,7 @@ export const createStripeSubscription = action({
         await getPaymentMethodDetails(paymentMethodId);
 
       let trialPeriodDays: number | undefined = undefined;
-      if (!existingCustomer && subscriptionTier !== "ELITE") {
+      if (!existingCustomer && subscriptionTier !== "Elite") {
         trialPeriodDays = 30;
       }
 
@@ -226,67 +223,25 @@ export const createStripeSubscription = action({
             : undefined,
         }
       );
-      return {
-        status: ResponseStatus.SUCCESS,
-        data: {
-          customerId,
-          subscriptionId,
-        },
-      };
+      return true;
     } catch (error) {
-      return handleError(error);
+      console.error("Error creating stripe subscription:", error);
+      throw new ConvexError({
+        message: ErrorMessages.INTERNAL_ERROR,
+        code: "INTERNAL_SERVER_ERROR",
+      });
     }
-  },
-});
-
-export const updateSubscriptionTier = action({
-  args: {
-    newTier: v.union(
-      v.literal("STANDARD"),
-      v.literal("PLUS"),
-      v.literal("ELITE")
-    ),
-  },
-  handler: async (ctx, args): Promise<boolean> => {
-    const { newTier } = args;
-
-    const identity = await requireAuthenticatedUser(ctx, [UserRole.Admin]);
-
-    const customer = await ctx.runQuery(
-      internal.customers.findCustomerByEmail,
-      { email: identity.email as string }
-    );
-
-    const validatedCustomer = validateCustomer(customer);
-
-    const newPriceId = getPriceIdForTier(newTier);
-
-    const subscription = validateSubscription(
-      await ctx.runQuery(
-        internal.subscription.getUsableSubscriptionByCustomerId,
-        {
-          customerId: validatedCustomer._id,
-        }
-      )
-    );
-
-    await updateSubscriptionTierInStripe(
-      subscription.stripeSubscriptionId,
-      newPriceId
-    );
-
-    return true;
   },
 });
 
 function getPriceIdForTier(tier: SubscriptionTierType): string {
   const priceId = (() => {
     switch (tier) {
-      case "STANDARD":
+      case "Standard":
         return process.env.PRICE_ID_STANDARD;
-      case "PLUS":
+      case "Plus":
         return process.env.PRICE_ID_PLUS;
-      case "ELITE":
+      case "Elite":
         return process.env.PRICE_ID_ELITE;
       default:
         throw new Error(`Invalid subscription tier: ${tier}`);
@@ -305,11 +260,11 @@ export function getSubscriptionTierFromPrice(
 ): SubscriptionTierType {
   switch (priceId) {
     case process.env.PRICE_ID_STANDARD:
-      return "STANDARD";
+      return "Standard";
     case process.env.PRICE_ID_PLUS:
-      return "PLUS";
+      return "Plus";
     case process.env.PRICE_ID_ELITE:
-      return "ELITE";
+      return "Elite";
     default:
       throw new Error(`Unknown priceId: ${priceId}`);
   }
@@ -340,7 +295,7 @@ export const createConnectedAccount = action({
       {
         customerId: customer._id,
         stripeAccountId: account.id,
-        status: StripeAccountStatus.NOT_ONBOARDED,
+        status: "Not Onboarded Yet",
       }
     );
 
@@ -707,7 +662,7 @@ export const createStripeOnboardingLink = action({
       ctx.runMutation(internal.connectedAccounts.saveConnectedAccount, {
         customerId: user.customerId!,
         stripeAccountId: account.id,
-        status: StripeAccountStatus.NOT_ONBOARDED,
+        status: "Not Onboarded Yet",
       });
     }
 

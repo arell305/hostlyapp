@@ -1,4 +1,3 @@
-import { ConsentStatus } from "@/shared/types/enums";
 import { Id } from "../_generated/dataModel";
 import { MutationCtx } from "../_generated/server";
 
@@ -23,7 +22,7 @@ export async function upsertContactForUser(
       userId,
       name,
       phoneNumber,
-      consentStatus: ConsentStatus.ACTIVE,
+      consentStatus: "active",
       isActive: true,
       updatedAt: now,
     });

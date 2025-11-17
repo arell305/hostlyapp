@@ -14,9 +14,9 @@ import {
 import { Doc, Id } from "@/convex/_generated/dataModel";
 
 export interface ErrorResponse {
-  status: ResponseStatus.ERROR;
+  status: typeof ResponseStatus.ERROR;
   data: null;
-  error: ErrorMessages | string;
+  error: typeof ErrorMessages.INTERNAL_ERROR | string;
 }
 
 export interface CreateOrganizationData {
@@ -37,7 +37,7 @@ export type GetOnboardingLinkResponse =
   | ErrorResponse;
 
 export interface GetOnboardingLinkSuccess {
-  status: ResponseStatus.SUCCESS;
+  status: typeof ResponseStatus.SUCCESS;
   data: GetOnboardingLinkData;
 }
 
@@ -55,7 +55,7 @@ export type CreateStripeSubscriptionResponse =
   | ErrorResponse;
 
 export interface CreateStripeSubscriptionSuccess {
-  status: ResponseStatus.SUCCESS;
+  status: typeof ResponseStatus.SUCCESS;
   data: CreateStripeSubscriptionData | null;
 }
 
@@ -78,7 +78,7 @@ export type GetProratedPricesResponse =
   | ErrorResponse;
 
 export interface GetProratedPricesSuccess {
-  status: ResponseStatus.SUCCESS;
+  status: typeof ResponseStatus.SUCCESS;
   data: GetProratedPricesData;
 }
 
@@ -97,7 +97,7 @@ export type DisconnectStripeActionResponse =
   | ErrorResponse;
 
 export interface DisconnectStripeActionSuccess {
-  status: ResponseStatus.SUCCESS;
+  status: typeof ResponseStatus.SUCCESS;
   data: DisconnectStripeActionData;
 }
 
@@ -189,7 +189,7 @@ export type CreateGuestListCreditPaymentIntentResponse =
   | ErrorResponse;
 
 export interface CreateGuestListCreditPaymentIntentSuccess {
-  status: ResponseStatus.SUCCESS;
+  status: typeof ResponseStatus.SUCCESS;
   data: CreateGuestListCreditPaymentIntentData;
 }
 
@@ -202,7 +202,7 @@ export type SendContactFormEmailResponse =
   | ErrorResponse;
 
 export interface SendContactFormEmailSuccess {
-  status: ResponseStatus.SUCCESS;
+  status: typeof ResponseStatus.SUCCESS;
   data: SendContactFormEmailData;
 }
 

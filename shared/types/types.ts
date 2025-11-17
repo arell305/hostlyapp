@@ -2,15 +2,15 @@ import { Doc, Id } from "../../convex/_generated/dataModel";
 import {
   ActiveStripeTab,
   ErrorMessages,
-  ResponseStatus,
   ActiveTab,
   SubscriptionStatus,
   UserRole,
   SmsMessageType,
+  ResponseStatus,
 } from "./enums";
 import { EventWithTicketTypes } from "./schemas-types";
 
-export type SubscriptionTierType = "STANDARD" | "PLUS" | "ELITE";
+export type SubscriptionTierType = "Standard" | "Plus" | "Elite";
 
 export interface PricingOption {
   id: string;
@@ -263,13 +263,13 @@ export interface UserWithPromoCode extends UserSchema {
 }
 
 export interface ErrorResponse {
-  status: ResponseStatus.ERROR;
+  status: typeof ResponseStatus.ERROR;
   data: null;
-  error: ErrorMessages | string;
+  error: typeof ErrorMessages | string;
 }
 
 export interface FindUserByClerkIdSuccess {
-  status: ResponseStatus.SUCCESS;
+  status: typeof ResponseStatus.SUCCESS;
   data: FindUserByClerkIdData;
 }
 
@@ -346,7 +346,7 @@ export type CompanyDataWithImage = {
   organizationId: string;
   imageUrl: string | null;
   subscriptionStatus: SubscriptionStatus | null;
-  subscriptionTier: SubscriptionTierType | null;
+  subscriptionTier: SubscriptionTierType;
 };
 
 export interface ProratedPrice {

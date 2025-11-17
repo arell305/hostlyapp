@@ -13,7 +13,6 @@ import {
 } from "@/shared/types/schemas-types";
 import { DateTime } from "luxon";
 import { formatToTimeAndShortDate } from "../../shared/utils/luxon";
-import { StripeAccountStatus } from "@/shared/types/enums";
 import { Doc } from "convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 
@@ -163,7 +162,7 @@ export function validateConnectedAccount(
     });
   }
 
-  if (checkActive && connectedAccount.status !== StripeAccountStatus.VERIFIED) {
+  if (checkActive && connectedAccount.status !== "Verified") {
     throw new ConvexError({
       code: "BAD_REQUEST",
       message: ErrorMessages.CONNECTED_ACCOUNT_INACTIVE,

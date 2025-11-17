@@ -10,7 +10,6 @@ import {
 
 import { GuestPatch } from "@/shared/types/patch-types";
 import { Doc } from "./_generated/dataModel";
-import { ConsentStatus } from "@/shared/types/enums";
 import { isValidPhoneNumber } from "@/shared/utils/frontend-validation";
 
 export const getContacts = query({
@@ -76,7 +75,7 @@ export const insertContact = mutation({
       phoneNumber,
       isActive: true,
       updatedAt: Date.now(),
-      consentStatus: ConsentStatus.ACTIVE,
+      consentStatus: "active",
     });
 
     return true;
@@ -170,7 +169,7 @@ export const bulkUpsertContacts = mutation({
           userId,
           name: trimmedName,
           phoneNumber: trimmedPhone,
-          consentStatus: ConsentStatus.ACTIVE,
+          consentStatus: "active",
           isActive: true,
           updatedAt: currentTimestamp,
         });

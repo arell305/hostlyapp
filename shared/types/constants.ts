@@ -6,7 +6,6 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import { SmsMessageType, SubscriptionTier } from "./enums";
 import { PricingOption } from "./types";
 
 export const TITLE = "Hostly";
@@ -29,10 +28,17 @@ export const CONTACT_EMAIL = "support@hostlyapp.com";
 export const CONTACT_PHONE = "702-613-8800";
 export const COMPANY_NAME = "Hostly";
 
+const SmsMessageType = {
+  ALL_DB_GUESTS: "all_guests",
+  ATTENDED_EVENT: "attended_event",
+  BEFORE_EVENT: "before_event",
+  NOT_ATTENDED_EVENT: "not_attended_event",
+} as const;
+
 export const pricingOptions: PricingOption[] = [
   {
     id: "prod_QpJqLkwhLCLZfN",
-    tier: "STANDARD" as const,
+    tier: "Standard" as const,
     price: "39.99",
     description: "Unlimited Tickets",
     isFree: true,
@@ -40,7 +46,7 @@ export const pricingOptions: PricingOption[] = [
   },
   {
     id: "prod_QpJo0GlbKBCugX",
-    tier: "PLUS" as const,
+    tier: "Plus" as const,
     price: "99.99",
     description: `Unlimited Tickets & ${PLUS_GUEST_LIST_LIMIT} Guest List Events`,
     isFree: true,
@@ -48,7 +54,7 @@ export const pricingOptions: PricingOption[] = [
   },
   {
     id: "prod_SqWluQ6a2eiIhq",
-    tier: "ELITE" as const,
+    tier: "Elite" as const,
     price: "299.99",
     description: "Unlimited Tickets & Guest List",
     isFree: false,
@@ -141,7 +147,7 @@ export const MESSAGE_TYPE_OPTIONS = [
 ];
 
 export const TAGS_BY_TYPE: Record<
-  SmsMessageType,
+  (typeof SmsMessageType)[keyof typeof SmsMessageType],
   { key: string; label: string }[]
 > = {
   [SmsMessageType.BEFORE_EVENT]: [

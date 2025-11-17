@@ -3,7 +3,6 @@
 import SectionContainer from "@/shared/ui/containers/SectionContainer";
 import CampaignTemplateLoader from "./templates/CampaignTemplateLoader";
 import { Button } from "@/shared/ui/primitive/button";
-import ResponsiveAddTemplate from "@/features/templates/components/ResponsiveAddTemplate";
 import { useState } from "react";
 import FormActions from "@/shared/ui/buttonContainers/FormActions";
 import { useCampaignForm } from "../contexts/CampaignFormContext";

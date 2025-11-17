@@ -1,6 +1,5 @@
 "use client";
 import { Button } from "@shared/ui/primitive/button";
-import { StripeAccountStatus } from "@shared/types/enums";
 import { useShowOnboardingLink } from "@/domain/stripe";
 import { useStripeDashboardLink } from "@/domain/stripe";
 import SectionHeaderWithAction from "@shared/ui/headings/SectionHeaderWithAction";
@@ -40,12 +39,10 @@ const StripeContent = ({
     }
   };
 
-  const statusToDisplay =
-    connectedAccount?.status || StripeAccountStatus.NOT_ONBOARDED;
+  const statusToDisplay = connectedAccount?.status || "Not Onboarded Yet";
 
   const showOnboardingLink =
-    !connectedAccount ||
-    connectedAccount.status === StripeAccountStatus.NOT_ONBOARDED;
+    !connectedAccount || connectedAccount.status === "Not Onboarded Yet";
 
   return (
     <PageContainer>

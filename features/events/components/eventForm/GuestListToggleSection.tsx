@@ -31,17 +31,17 @@ const GuestListToggleSection: React.FC<GuestListToggleSectionProps> = ({
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
   const guestListLimitReached =
-    (subscription.subscriptionTier === "PLUS" &&
+    (subscription.subscriptionTier === "Plus" &&
       subscription.guestListEventsCount === PLUS_GUEST_LIST_LIMIT &&
       availableCredits <= 0) ||
-    (subscription.subscriptionTier === "STANDARD" && availableCredits <= 0);
+    (subscription.subscriptionTier === "Standard" && availableCredits <= 0);
 
   const creditLabel = availableCredits === 1 ? "credit" : "credits";
 
   const guestListSubtitle =
-    subscription.subscriptionTier === "PLUS"
+    subscription.subscriptionTier === "Plus"
       ? `(${subscription.guestListEventsCount}/${PLUS_GUEST_LIST_LIMIT} events this cycle | ${availableCredits} ${creditLabel} available)`
-      : subscription.subscriptionTier === "STANDARD"
+      : subscription.subscriptionTier === "Standard"
         ? `${availableCredits} ${creditLabel} available`
         : undefined;
 

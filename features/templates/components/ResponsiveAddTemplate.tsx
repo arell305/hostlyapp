@@ -37,7 +37,7 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
     setValues({
       body: "",
       name: "",
-      messageType: SmsMessageType.ALL_DB_GUESTS,
+      messageType: "all_guests",
     });
   };
 

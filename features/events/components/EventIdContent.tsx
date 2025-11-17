@@ -62,7 +62,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   const [showConfirmCancelEdit, setShowConfirmCancelEdit] =
     useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab | ActiveStripeTab>(
-    ActiveTab.SUMMARY
+    "summary"
   );
   const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
   const {
@@ -79,12 +79,12 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   } = useCancelEvent();
 
   const tabs: Tab[] = useMemo(() => {
-    const base: Tab[] = [{ label: "Summary", value: ActiveTab.SUMMARY }];
+    const base: Tab[] = [{ label: "Summary", value: "summary" }];
     if (data.guestListInfo) {
-      base.push({ label: "Guest List", value: ActiveTab.GUEST_LIST });
+      base.push({ label: "Guest List", value: "guestList" });
     }
     if (data.ticketTypes && data.ticketTypes.length > 0) {
-      base.push({ label: "Tickets", value: ActiveTab.TICKET_INFO });
+      base.push({ label: "Tickets", value: "ticketInfo" });
     }
     return base;
   }, [data.guestListInfo, data.ticketTypes]);
@@ -92,7 +92,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
   useEffect(() => {
     const availableValues = new Set(tabs.map((t) => t.value));
     if (!availableValues.has(activeTab)) {
-      setActiveTab(ActiveTab.SUMMARY);
+      setActiveTab("summary");
     }
   }, [tabs, activeTab]);
 
@@ -184,7 +184,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
             value={activeTab}
             onChange={setActiveTab}
           />
-          {activeTab === ActiveTab.SUMMARY && (
+          {activeTab === "summary" && (
             // Check if this is correct
             <GetEventSummary
               guestListInfo={data.guestListInfo}
@@ -197,13 +197,13 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
             />
           )}
 
-          {activeTab === ActiveTab.TICKET_INFO && (
+          {activeTab === "ticketInfo" && (
             <TicketPage
               canCheckInGuests={canCheckInGuests}
               eventId={data.event._id}
             />
           )}
-          {activeTab === ActiveTab.GUEST_LIST && data.guestListInfo && (
+          {activeTab === "guestList" && data.guestListInfo && (
             <GuestListPage
               eventId={data.event._id}
               canUploadGuest={canUploadGuest}

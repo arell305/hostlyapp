@@ -44,8 +44,8 @@ const SubscriptionPageContent = ({ customer }: SubscriptionContentProps) => {
   const subscriptionTier = subscription.subscriptionTier;
   const canEditSettings = isAdmin(orgRole);
   const showGuestEventsCredit =
-    subscriptionTier === "PLUS" || subscriptionTier === "STANDARD";
-  const showGuestEventsThisCycle = subscriptionTier === "PLUS";
+    subscriptionTier === "Plus" || subscriptionTier === "Standard";
+  const showGuestEventsThisCycle = subscriptionTier === "Plus";
 
   const amount = formatSubscriptionAmount(subscription);
   return (
@@ -70,7 +70,7 @@ const SubscriptionPageContent = ({ customer }: SubscriptionContentProps) => {
 
         <StaticField
           label="Tier"
-          value={`${subscriptionTier} (${subscriptionBenefits[subscriptionTier]})`}
+          value={`${subscriptionTier} (${subscriptionBenefits[subscriptionTier as keyof typeof subscriptionBenefits]})`}
         />
 
         <StaticField

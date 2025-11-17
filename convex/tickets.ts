@@ -512,12 +512,12 @@ export const getEventSummary = query({
     isUserInCompanyOfEvent(user, event);
 
     const isManager = [
-      UserRole.Admin,
-      UserRole.Hostly_Admin,
-      UserRole.Hostly_Moderator,
-      UserRole.Manager,
-      UserRole.Moderator,
-    ].includes(user.role as UserRole);
+      "org:admin",
+      "org:hostly_admin",
+      "org:hostly_moderator",
+      "org:manager",
+      "org:moderator",
+    ].includes(user.role ?? "");
 
     const guestListInfo = await ctx.db.query("guestListInfo").first();
 

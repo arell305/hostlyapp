@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useUser, useOrganization, useOrganizationList } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import { StripeAccountStatus, UserRole } from "@shared/types/enums";
+import { UserRole } from "@shared/types/enums";
 import type { UserWithPromoCode } from "@shared/types/types";
 import FullLoading from "@shared/ui/loading/FullLoading";
 import MessagePage from "@shared/ui/shared-page/MessagePage";
@@ -110,7 +110,7 @@ export const OrganizationProvider: React.FC<React.PropsWithChildren> = ({
   const ctxUser = orgContext?.user;
   const connectedAccountId = orgContext?.connectedAccountId ?? "";
   const connectedAccountEnabled =
-    orgContext?.connectedAccountStatus === StripeAccountStatus.VERIFIED;
+    orgContext?.connectedAccountStatus === "Verified";
   const subscription = orgContext?.subscription as
     | Doc<"subscriptions">
     | undefined;

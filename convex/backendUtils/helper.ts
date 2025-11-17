@@ -25,7 +25,13 @@ export function isUserInOrganization(
 ): boolean {
   const allowedRoles = [UserRole.Hostly_Moderator, UserRole.Hostly_Admin];
 
-  if (allowedRoles.includes(identity.role as UserRole)) {
+  if (
+    allowedRoles.includes(
+      identity.role as
+        | typeof UserRole.Hostly_Moderator
+        | typeof UserRole.Hostly_Admin
+    )
+  ) {
     return true;
   }
 
@@ -42,7 +48,13 @@ export function isUserTheSameAsIdentity(
 ): boolean {
   const allowedRoles = [UserRole.Hostly_Moderator, UserRole.Hostly_Admin];
 
-  if (allowedRoles.includes(identity.role as UserRole)) {
+  if (
+    allowedRoles.includes(
+      identity.role as
+        | typeof UserRole.Hostly_Moderator
+        | typeof UserRole.Hostly_Admin
+    )
+  ) {
     return true;
   }
 
@@ -88,7 +100,7 @@ export function isUserInCompanyOfEvent(
 
 export function shouldExposeError(errorMessage: string): boolean {
   return Object.values(ShowErrorMessages).includes(
-    errorMessage as ShowErrorMessages
+    errorMessage as (typeof ShowErrorMessages)[keyof typeof ShowErrorMessages]
   );
 }
 
@@ -115,7 +127,7 @@ export async function handleGuestListData(
     { organizationId: organization._id }
   );
 
-  if (subscription.subscriptionTier === "STANDARD") {
+  if (subscription.subscriptionTier === "Standard") {
     if (Number(availableGuestListCredits) >= 0) {
       const [guestListInfoId, _] = await Promise.all([
         ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
@@ -196,7 +208,7 @@ export async function handleTicketData(
     throw new Error(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND);
   }
 
-  if (connectedAccount.status !== StripeAccountStatus.VERIFIED) {
+  if (connectedAccount.status !== "Verified") {
     throw new Error(ErrorMessages.CONNECTED_ACCOUNT_VERIFIED);
   }
 
@@ -255,7 +267,7 @@ export async function performAddEventCleanup(
 }
 
 export function handleError(error: unknown): {
-  status: ResponseStatus.ERROR;
+  status: typeof ResponseStatus.ERROR;
   data: null;
   error: string;
 } {
@@ -317,7 +329,7 @@ export async function handleGuestListUpdateData(
       { organizationId: organization._id }
     );
 
-    if (subscription.subscriptionTier === "STANDARD") {
+    if (subscription.subscriptionTier === "Standard") {
       if (Number(availableGuestListCredits) >= 0) {
         const [newGuestListInfoId] = await Promise.all([
           ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
@@ -414,10 +426,7 @@ export async function handleTicketUpdateData(
     { customerId: organization.customerId }
   );
 
-  if (
-    !connectedAccount ||
-    connectedAccount.status !== StripeAccountStatus.VERIFIED
-  ) {
+  if (!connectedAccount || connectedAccount.status !== "Verified") {
     throw new Error(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND);
   }
 

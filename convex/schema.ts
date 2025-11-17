@@ -1,31 +1,19 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import {
-  UserRoleEnum,
-  StripeAccountStatus,
-  SubscriptionStatus,
-  UserRole,
-  SubscriptionTier,
-  SmsMessageType,
-  SmsMessageDirection,
-  AuthorType,
-  MessageStatus,
-  ConsentStatus,
-} from "@/shared/types/enums";
+import { SubscriptionStatus, UserRole } from "@/shared/types/enums";
 
 export const UserRoleEnumConvex = v.union(
-  v.literal(UserRoleEnum.APP_ADMIN),
-  v.literal(UserRoleEnum.MODERATOR),
-  v.literal(UserRoleEnum.PROMOTER),
-  v.literal(UserRoleEnum.PROMOTER_ADMIN),
-  v.literal(UserRoleEnum.PROMOTER_MANAGER),
-  v.null()
+  v.literal(UserRole.Admin),
+  v.literal(UserRole.Moderator),
+  v.literal(UserRole.Promoter),
+  v.literal(UserRole.Hostly_Admin),
+  v.literal(UserRole.Hostly_Moderator)
 );
 
 export const SubscriptionTierTypeConvex = v.union(
-  v.literal("STANDARD"),
-  v.literal("PLUS"),
-  v.literal("ELITE")
+  v.literal("Standard"),
+  v.literal("Plus"),
+  v.literal("Elite")
 );
 
 export const RoleConvex = v.union(
@@ -50,42 +38,42 @@ export const SubscriptionStatusConvex = v.union(
 );
 
 export const StripeAccountStatusConvex = v.union(
-  v.literal(StripeAccountStatus.NOT_ONBOARDED),
-  v.literal(StripeAccountStatus.PENDING),
-  v.literal(StripeAccountStatus.VERIFIED),
-  v.literal(StripeAccountStatus.RESTRICTED),
-  v.literal(StripeAccountStatus.REJECTED),
-  v.literal(StripeAccountStatus.DISABLED),
-  v.literal(StripeAccountStatus.INCOMPLETE)
+  v.literal("Not Onboarded Yet"),
+  v.literal("Pending"),
+  v.literal("Verified"),
+  v.literal("Restricted"),
+  v.literal("Rejected"),
+  v.literal("Disabled"),
+  v.literal("Incomplete")
 );
 
 export const SmsMessageTypeConvex = v.union(
-  v.literal(SmsMessageType.ALL_DB_GUESTS),
-  v.literal(SmsMessageType.ATTENDED_EVENT),
-  v.literal(SmsMessageType.NOT_ATTENDED_EVENT),
-  v.literal(SmsMessageType.BEFORE_EVENT)
+  v.literal("all_guests"),
+  v.literal("attended_event"),
+  v.literal("not_attended_event"),
+  v.literal("before_event")
 );
 
 export const SmsMessageDirectionConvex = v.union(
-  v.literal(SmsMessageDirection.INBOUND),
-  v.literal(SmsMessageDirection.OUTBOUND)
+  v.literal("inbound"),
+  v.literal("outbound")
 );
 
 export const AuthorTypeConvex = v.union(
-  v.literal(AuthorType.GUEST),
-  v.literal(AuthorType.HOST),
-  v.literal(AuthorType.AI)
+  v.literal("guest"),
+  v.literal("host"),
+  v.literal("ai")
 );
 
 export const MessageStatusConvex = v.union(
-  v.literal(MessageStatus.PENDING),
-  v.literal(MessageStatus.SENT),
-  v.literal(MessageStatus.FAILED)
+  v.literal("pending"),
+  v.literal("sent"),
+  v.literal("failed")
 );
 
 export const ConsentStatusConvex = v.union(
-  v.literal(ConsentStatus.ACTIVE),
-  v.literal(ConsentStatus.STOPPED)
+  v.literal("active"),
+  v.literal("stopped")
 );
 
 export const GuestListNames = v.object({

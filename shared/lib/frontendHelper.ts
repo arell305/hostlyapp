@@ -88,12 +88,12 @@ export const getBarColor = (key: string) => {
 };
 
 export function consentBadgeClass(status: ConsentStatus): string {
-  if (status === ConsentStatus.STOPPED) {
+  if (status === "stopped") {
     return "bg-red-500/15 text-red-500";
   }
   return "bg-green-500/15 text-green-500";
 }
 export const CONSENT_STATUS_LABEL: Record<ConsentStatus, string> = {
-  [ConsentStatus.ACTIVE]: "Active",
-  [ConsentStatus.STOPPED]: "Stopped",
+  active: "Active",
+  stopped: "Stopped",
 };

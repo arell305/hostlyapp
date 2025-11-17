@@ -399,8 +399,7 @@ export const getPublicOrganizationContext = query({
       name: organization.name,
       photoUrl,
       connectedAccountStripeId: connectedAccount?.stripeAccountId,
-      isStripeEnabled:
-        connectedAccount?.status === StripeAccountStatus.VERIFIED,
+      isStripeEnabled: connectedAccount?.status === "Verified",
       events: enrichedEvents,
       slug: organization.slug,
     };

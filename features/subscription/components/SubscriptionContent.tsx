@@ -46,8 +46,8 @@ const SubscriptionContent = ({
 
   const subscriptionTier = subscription.subscriptionTier;
   const showGuestEventsCredit =
-    subscriptionTier === "PLUS" || subscriptionTier === "STANDARD";
-  const showGuestEventsThisCycle = subscriptionTier === "PLUS";
+    subscriptionTier === "Plus" || subscriptionTier === "Standard";
+  const showGuestEventsThisCycle = subscriptionTier === "Plus";
   return (
     <section>
       <SectionHeaderWithAction title="Subscription" />
@@ -75,7 +75,7 @@ const SubscriptionContent = ({
 
         <StaticField
           label="Tier"
-          value={`${subscriptionTier} (${subscriptionBenefits[subscriptionTier]})`}
+          value={`${subscriptionTier} (${subscriptionBenefits[subscriptionTier as keyof typeof subscriptionBenefits]})`}
         />
 
         <StaticField

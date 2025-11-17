@@ -5,11 +5,7 @@ import {
   internalQuery,
   query,
 } from "./_generated/server";
-import {
-  ErrorMessages,
-  UserRole,
-  StripeAccountStatus,
-} from "@/shared/types/enums";
+import { ErrorMessages, UserRole } from "@/shared/types/enums";
 import { WebhookResponse } from "@/shared/types/convex-types";
 import { StripeAccountStatusConvex } from "./schema";
 import { Doc, Id } from "./_generated/dataModel";
@@ -78,7 +74,7 @@ export const deleteConnectedAccount = internalMutation({
     const { connectedAccountId } = args;
 
     await ctx.db.patch(connectedAccountId, {
-      status: StripeAccountStatus.DISABLED,
+      status: "Disabled",
     });
 
     return connectedAccountId;
@@ -111,8 +107,8 @@ export const getConnectedAccountByClerkUserId = query({
     }
 
     if (
-      connectedAccount.status !== StripeAccountStatus.NOT_ONBOARDED &&
-      connectedAccount.status !== StripeAccountStatus.VERIFIED
+      connectedAccount.status !== "Not Onboarded Yet" &&
+      connectedAccount.status !== "Verified"
     ) {
       return null;
     }
