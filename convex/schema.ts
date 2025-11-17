@@ -176,6 +176,7 @@ export default defineSchema({
     .index("by_startTime", ["startTime"]),
   eventTicketTypes: defineTable({
     activeUntil: v.optional(v.number()),
+    description: v.optional(v.union(v.string(), v.null())),
     capacity: v.number(),
     eventId: v.id("events"),
     isActive: v.boolean(),

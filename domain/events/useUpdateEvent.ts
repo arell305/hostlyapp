@@ -5,6 +5,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import {
   EventFormInput,
   GuestListFormInput,
+  NormalizedTicketInput,
   TicketUpdateInput,
 } from "@shared/types/types";
 import { setErrorFromConvexError } from "@shared/lib/errorHelper";
@@ -25,10 +26,19 @@ export const useUpdateEvent = () => {
     setError(null);
 
     try {
+      const normalizedTicketData: NormalizedTicketInput[] =
+        updatedTicketData.map((ticket) => ({
+          ...ticket,
+          description:
+            ticket.description?.trim() === ""
+              ? null
+              : ticket.description?.trim() ?? null,
+        }));
+
       return await updateEventMutation({
         organizationId,
         ...updatedEventData,
-        ticketData: updatedTicketData,
+        ticketData: normalizedTicketData,
         guestListData: updatedGuestListData,
         eventId,
       });

@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import CustomCard from "@shared/ui/cards/CustomCard";
 import StaticField from "@shared/ui/fields/StaticField";
 import { FiClock } from "react-icons/fi";
 import { formatToTimeAndShortDate, isPast } from "../../../shared/utils/luxon";
 import { Badge } from "@shared/ui/primitive/badge";
-import { Ticket } from "lucide-react";
+import { Info, Ticket } from "lucide-react";
 import { TicketTypeTotal } from "@/shared/types/convex-types";
 import { formatCurrency } from "@/shared/utils/helpers";
 import { Doc } from "convex/_generated/dataModel";
@@ -63,6 +63,13 @@ const TicketTimeCard = ({
             </h2>
 
             <CustomCard className={isDeactivated ? "opacity-80" : ""}>
+              {ticket.description && (
+                <StaticField
+                  label="Description:"
+                  value={ticket.description}
+                  icon={<Info className="text-xl text-grayText" />}
+                />
+              )}
               <StaticField
                 label="Price:"
                 value={formatCurrency(ticket.price)}
@@ -92,8 +99,8 @@ const TicketTimeCard = ({
                   label="Tickets Sold:"
                   value={
                     canEditEvent
-                      ? `${totalSold} / ${ticket.capacity}`
-                      : `${totalSold}`
+                      ? `${new Intl.NumberFormat("en-US").format(totalSold)} / ${new Intl.NumberFormat("en-US").format(ticket.capacity)}`
+                      : `${new Intl.NumberFormat("en-US").format(totalSold)}`
                   }
                   icon={<Ticket className="text-xl text-grayText" />}
                 />

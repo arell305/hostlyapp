@@ -11,6 +11,7 @@ import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
 import { Label } from "@/shared/ui/primitive/label";
 import CurrencyInput from "@/shared/ui/fields/CurrencyInput";
 import IntegerInput from "@/shared/ui/fields/IntegerInput";
+import LabeledTextAreaField from "@/shared/ui/fields/LabeledTextAreaField";
 
 interface TicketSectionProps {
   isEdit: boolean;
@@ -41,7 +42,7 @@ const TicketSection: React.FC<TicketSectionProps> = ({
         <ResponsiveConfirm
           isOpen={showConfirm}
           title="Remove Ticket"
-          content="Are you sure you want to remove this ticket option? This cannot be undone."
+          content="Are you sure you want to remove this ticket option? This cannot be undone (Removal is required to keep track of price changes)."
           confirmText="Remove"
           cancelText="Cancel"
           confirmVariant="destructive"
@@ -92,17 +93,12 @@ const TicketSection: React.FC<TicketSectionProps> = ({
             <Label className="mb-1">Ticket Name*</Label>
             <div className="flex flex-wrap gap-2 mb-4">
               {ticketNameOptions.map((preset) => {
-                const isUsed = ticketTypes.some(
-                  (t, i) => t.name === preset && i !== index
-                );
-
                 return (
                   <Button
                     key={preset}
                     type="button"
                     variant={type.name === preset ? "default" : "outline"}
                     size="sm"
-                    disabled={isUsed}
                     onClick={() => {
                       const newTypes = [...ticketTypes];
                       newTypes[index].name = preset;
@@ -130,6 +126,19 @@ const TicketSection: React.FC<TicketSectionProps> = ({
               </Button>
             </div>
           </div>
+          <LabeledTextAreaField
+            label="Description"
+            name="ticketDescription"
+            placeholder="Enter ticket description"
+            value={type.description || ""}
+            onChange={(e) => {
+              const newTypes = [...ticketTypes];
+              newTypes[index].description = e.target.value;
+              setTicketTypes(newTypes);
+            }}
+            rows={2}
+            error={errors.ticketFieldErrors?.[index]?.description}
+          />
 
           {type.showCustomInput && (
             <LabeledInputField
@@ -146,6 +155,7 @@ const TicketSection: React.FC<TicketSectionProps> = ({
             />
           )}
           <CurrencyInput
+            disabled={isEdit && !!type.eventTicketTypeId} // disable only if editing existing ticket
             name="ticketPrice"
             label="Ticket Price*"
             value={type.price ? parseFloat(type.price) : null}
@@ -154,6 +164,7 @@ const TicketSection: React.FC<TicketSectionProps> = ({
               newTypes[index].price = val ? val.toString() : "";
               setTicketTypes(newTypes);
             }}
+            showImmutableMessage={isEdit && !!type.eventTicketTypeId}
             error={errors.ticketFieldErrors?.[index]?.price}
           />
 
@@ -198,6 +209,7 @@ const TicketSection: React.FC<TicketSectionProps> = ({
                 capacity: "",
                 ticketSalesEndTime: null,
                 showCustomInput: false,
+                description: "",
               },
             ])
           }

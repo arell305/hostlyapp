@@ -8,6 +8,7 @@ export type TicketFieldError = {
   price?: string;
   capacity?: string;
   ticketSalesEndTime?: string;
+  description?: string;
 };
 
 export type EventFormErrors = {

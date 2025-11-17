@@ -143,6 +143,7 @@ const EventIdContent: React.FC<EventIdContentProps> = ({
       onDeleteSuccess();
     }
   };
+
   return (
     <PageContainer className="pt-0">
       <TopRowNav

@@ -59,6 +59,7 @@ import {
 } from "./webhooks/stripeWebhooks";
 import { Id } from "./_generated/dataModel";
 import Stripe from "stripe";
+import { APPLICATION_FEE } from "@/app/types/constants";
 
 export const validatePromoCode = action({
   args: { promoCode: v.string() },
@@ -586,6 +587,7 @@ export const createPaymentIntent = action({
           metadata: flatMetadata,
           description,
           receipt_email: metadata?.email,
+          application_fee_amount: APPLICATION_FEE,
         },
         { stripeAccount: stripeAccountId }
       );

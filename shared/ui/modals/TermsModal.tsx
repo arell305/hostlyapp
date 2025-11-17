@@ -17,6 +17,8 @@ import {
   DialogDescription,
 } from "@/shared/ui/primitive/dialog";
 import { Button } from "@/shared/ui/primitive/button";
+import { formatCentsToDollars } from "@/shared/utils/helpers";
+import { APPLICATION_FEE } from "@/app/types/constants";
 
 interface TermsModalProps {
   open: boolean;
@@ -107,6 +109,10 @@ const TermsModal: React.FC<TermsModalProps> = ({ open, onClose }) => {
                   "Organizers are responsible for taxes on ticket sales.",
                   "If a chargeback is issued, the organizer assumes financial responsibility.",
                   `All payments are processed securely through third-party providers. ${COMPANY_NAME} does not store credit card details.`,
+                  `Hostly Transaction Fee: Hostly charges a flat fee of ${formatCentsToDollars(APPLICATION_FEE)} per transaction, deducted from the seller (event organizer) at the time of sale.`,
+                  "Stripe Processing Fees: In addition to the Hostly fee, all ticket sales are subject to Stripe's standard processing fees. These fees are also deducted from the seller.",
+                  `The total amount deducted from the seller includes: (1) Hostly\u2019s ${formatCentsToDollars(APPLICATION_FEE)} fee, (2) Stripe\u2019s processing fees, and (3) any applicable taxes.`,
+                  "Buyers see the full ticket price inclusive of any buyer-facing fees (if applicable). Sellers receive the net amount after all fees are deducted.",
                 ],
               },
               {
@@ -157,6 +163,16 @@ const TermsModal: React.FC<TermsModalProps> = ({ open, onClose }) => {
                 items: [
                   "We may modify these Terms at any time.",
                   "Continued use of the platform constitutes acceptance of the updated Terms.",
+                ],
+              },
+              {
+                title: "14. Live Entertainment Tax (LET) Compliance",
+                items: [
+                  "Venue Responsibility. Venue is solely responsible for determining whether any event, ticket, admission, service charge, or activity offered through the Hostly platform is subject to Nevada's Live Entertainment Tax (\"LET\") or any similar state or local tax. Hostly does not provide tax advice and does not determine a venue's LET obligations.",
+                  "Tax Calculation & Remittance. If LET applies, Venue is solely responsible for (a) entering the correct tax rate into the Hostly platform, (b) ensuring the tax is properly displayed to consumers, and (c) collecting, reporting, and remitting all LET proceeds to the Nevada Department of Taxation or any applicable authority. Hostly acts only as a payment facilitator and does not remit LET on behalf of any Venue.",
+                  "Pass-Through Collection. Any LET amounts collected through Hostly are collected exclusively on behalf of Venue and are deemed Venue funds, not Hostly funds. Hostly has no ownership, liability, obligation, or responsibility for any LET amounts collected, under-collected, over-collected, or uncollected by Venue.",
+                  "Compliance Warranty. Venue represents and warrants that all applicable LET determinations, calculations, disclosures, and remittances will be made in full compliance with Nevada law (NRS 368A) and any other applicable regulations. Venue agrees to indemnify and hold harmless Hostly, its officers, employees, and contractors from any claims, penalties, liabilities, audits, or costs related to LET.",
+                  "No Tax Advice. Hostly provides tools solely for the convenience of Venue. Hostly does not offer tax guidance or legal interpretations related to LET, and Venue is encouraged to consult with its own tax advisor regarding obligations under Nevada law.",
                 ],
               },
             ].map((section) => (

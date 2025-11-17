@@ -5,6 +5,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import {
   EventFormInput,
   GuestListFormInput,
+  NormalizedTicketInput,
   TicketType,
 } from "@shared/types/types";
 import { setErrorFromConvexError } from "@shared/lib/errorHelper";
@@ -25,6 +26,15 @@ export const useAddEvent = () => {
     setError(null);
 
     try {
+      const normalizedTicketData: NormalizedTicketInput[] = ticketData.map(
+        (ticket) => ({
+          ...ticket,
+          description:
+            ticket.description?.trim() === ""
+              ? null
+              : ticket.description?.trim() ?? null,
+        })
+      );
       const response = await addEventAction({
         organizationId,
         name: eventData.name,
@@ -33,7 +43,7 @@ export const useAddEvent = () => {
         endTime: eventData.endTime,
         photo: eventData.photo,
         address: eventData.address,
-        ticketData,
+        ticketData: normalizedTicketData,
         guestListData,
       });
 

@@ -1,3 +1,5 @@
+import { PLUS_GUEST_LIST_LIMIT } from "./constants";
+
 export enum StripeAccountStatus {
   NOT_ONBOARDED = "Not Onboarded Yet", // User hasn't completed Stripe onboarding
   PENDING = "Pending", // Account created but not yet verified
@@ -40,7 +42,7 @@ export enum SubscriptionTier {
 
 export const subscriptionBenefits = {
   [SubscriptionTier.STANDARD]: "Unlimited tickets",
-  [SubscriptionTier.PLUS]: "Unlimited tickets & 3 guest lists",
+  [SubscriptionTier.PLUS]: `Unlimited tickets & ${PLUS_GUEST_LIST_LIMIT} guest lists`,
   [SubscriptionTier.ELITE]: "Unlimited tickets & guest lists",
 };
 

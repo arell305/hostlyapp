@@ -342,7 +342,7 @@ export async function createStripePrices(
   try {
     const stripePrice = await stripe.prices.create(
       {
-        unit_amount: price * 100,
+        unit_amount: Math.round(price * 100),
         currency: USD_CURRENCY,
         product: productId,
         metadata: {

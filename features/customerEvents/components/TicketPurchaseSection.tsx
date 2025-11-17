@@ -93,6 +93,7 @@ const TicketPurchaseSection: React.FC<TicketPurchaseSectionProps> = ({
     email,
     promoCode,
     pricing.totalPrice,
+    pricing.perTicketPrices,
     stripeAccountId,
     eventId,
     organizationId,
