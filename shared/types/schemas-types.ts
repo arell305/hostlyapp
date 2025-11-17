@@ -43,6 +43,7 @@ export interface CustomerTicket {
   endTime: number;
   address: string;
   connectedPaymentId?: Id<"connectedPayments">;
+  description: string | null;
 }
 
 export interface TicketSchemaWithPromoter extends Doc<"tickets"> {
