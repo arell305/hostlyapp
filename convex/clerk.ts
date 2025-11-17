@@ -6,7 +6,7 @@ import { PendingInvitationUser } from "@/shared/types/types";
 import {
   RoleConvex,
   SubscriptionStatusConvex,
-  SubscriptionTierConvex,
+  SubscriptionTierTypeConvex,
 } from "./schema";
 import { internal } from "./_generated/api";
 import {
@@ -387,7 +387,7 @@ export const updateOrganizationMetadata = action({
     organizationId: v.id("organizations"),
     params: v.object({
       status: v.optional(SubscriptionStatusConvex),
-      tier: v.optional(SubscriptionTierConvex),
+      tier: v.optional(SubscriptionTierTypeConvex),
       promoDiscount: v.optional(v.number()),
     }),
   },

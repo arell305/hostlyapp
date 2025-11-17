@@ -1,12 +1,13 @@
 import { useAction } from "convex/react";
 import { useState } from "react";
-import { ResponseStatus, SubscriptionTier } from "@shared/types/enums";
+import { ResponseStatus } from "@shared/types/enums";
 import { api } from "@/convex/_generated/api";
+import { SubscriptionTierType } from "@/shared/types/types";
 
 type CreateSubscriptionArgs = {
   email: string;
   paymentMethodId: string;
-  subscriptionTier: SubscriptionTier;
+  subscriptionTier: SubscriptionTierType;
   idempotencyKey: string;
   promoCode?: string | null;
 };

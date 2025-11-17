@@ -6,7 +6,7 @@ import {
   validateOrganization,
   validateSubscription,
 } from "./backendUtils/validation";
-import { SubscriptionStatusConvex, SubscriptionTierConvex } from "./schema";
+import { SubscriptionStatusConvex, SubscriptionTierTypeConvex } from "./schema";
 import { Doc, Id } from "./_generated/dataModel";
 
 export const getSubscriptionByCustomerId = internalQuery({
@@ -48,7 +48,7 @@ export const insertSubscription = internalMutation({
     currentPeriodEnd: v.number(),
     stripeBillingCycleAnchor: v.number(),
     subscriptionStatus: SubscriptionStatusConvex,
-    subscriptionTier: SubscriptionTierConvex,
+    subscriptionTier: SubscriptionTierTypeConvex,
     customerId: v.id("customers"),
     currentPeriodStart: v.number(),
     amount: v.number(),
@@ -116,7 +116,7 @@ export const updateSubscriptionBySubscriptionId = internalMutation({
       currentPeriodEnd: v.optional(v.number()),
       guestListEventsCount: v.optional(v.number()),
       trialEnd: v.optional(v.number()),
-      subscriptionTier: v.optional(SubscriptionTierConvex),
+      subscriptionTier: v.optional(SubscriptionTierTypeConvex),
       priceId: v.optional(v.string()),
       discount: v.optional(
         v.object({
@@ -191,7 +191,7 @@ export const updateSubscriptionById = internalMutation({
       currentPeriodEnd: v.optional(v.number()),
       guestListEventsCount: v.optional(v.number()),
       trialEnd: v.optional(v.number()),
-      subscriptionTier: v.optional(SubscriptionTierConvex),
+      subscriptionTier: v.optional(SubscriptionTierTypeConvex),
       priceId: v.optional(v.string()),
       discount: v.optional(
         v.object({

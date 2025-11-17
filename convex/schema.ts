@@ -22,10 +22,10 @@ export const UserRoleEnumConvex = v.union(
   v.null()
 );
 
-export const SubscriptionTierConvex = v.union(
-  v.literal(SubscriptionTier.ELITE),
-  v.literal(SubscriptionTier.PLUS),
-  v.literal(SubscriptionTier.STANDARD)
+export const SubscriptionTierTypeConvex = v.union(
+  v.literal("STANDARD"),
+  v.literal("PLUS"),
+  v.literal("ELITE")
 );
 
 export const RoleConvex = v.union(
@@ -327,7 +327,7 @@ export default defineSchema({
     stripeBillingCycleAnchor: v.number(),
     stripeSubscriptionId: v.string(),
     subscriptionStatus: SubscriptionStatusConvex,
-    subscriptionTier: SubscriptionTierConvex,
+    subscriptionTier: SubscriptionTierTypeConvex,
     trialEnd: v.union(v.number(), v.null()),
   })
     .index("by_customerId", ["customerId"])

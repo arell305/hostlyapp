@@ -5,15 +5,16 @@ import {
   ResponseStatus,
   ActiveTab,
   SubscriptionStatus,
-  SubscriptionTier,
   UserRole,
   SmsMessageType,
 } from "./enums";
 import { EventWithTicketTypes } from "./schemas-types";
 
+export type SubscriptionTierType = "STANDARD" | "PLUS" | "ELITE";
+
 export interface PricingOption {
   id: string;
-  tier: "STANDARD" | "PLUS" | "ELITE";
+  tier: SubscriptionTierType;
   price: string;
   description: string;
   isFree: boolean;
@@ -28,7 +29,7 @@ export interface Customer {
   stripeSubscriptionId: string;
   email: string;
   paymentMethodId: string;
-  subscriptionTier: SubscriptionTier;
+  subscriptionTier: SubscriptionTierType;
   nextPayment: string | null;
 }
 
@@ -275,7 +276,7 @@ export interface FindUserByClerkIdSuccess {
 export interface OrganizationPublicMetadata {
   status?: SubscriptionStatus | undefined;
   promoDiscount?: number | undefined;
-  tier?: SubscriptionTier | undefined;
+  tier?: SubscriptionTierType | undefined;
 }
 
 export interface TransformedOrganization {
@@ -301,7 +302,7 @@ export interface SubscriptionBillingCycle {
 }
 
 export type CustomerSubscriptionInfo = {
-  subscriptionTier: SubscriptionTier;
+  subscriptionTier: SubscriptionTierType;
   customerId: Id<"customers">;
   nextCycle: string | null;
   status: SubscriptionStatus;
@@ -336,7 +337,7 @@ export type OrganizationDetails = {
   organizationId: string;
   photoStorageId: Id<"_storage"> | null;
   subscriptionStatus: SubscriptionStatus | null;
-  subscriptionTier: SubscriptionTier | null;
+  subscriptionTier: SubscriptionTierType | null;
 };
 
 export type CompanyDataWithImage = {
@@ -345,11 +346,11 @@ export type CompanyDataWithImage = {
   organizationId: string;
   imageUrl: string | null;
   subscriptionStatus: SubscriptionStatus | null;
-  subscriptionTier: SubscriptionTier | null;
+  subscriptionTier: SubscriptionTierType | null;
 };
 
 export interface ProratedPrice {
-  tier: SubscriptionTier;
+  tier: SubscriptionTierType;
   proratedAmount: string;
   monthlyAmount: string;
   discountApplied: boolean;

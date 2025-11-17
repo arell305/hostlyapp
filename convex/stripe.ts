@@ -4,7 +4,7 @@ import { action, internalAction } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
 import { StripeAccountStatus } from "@/shared/types/enums";
-import { SubscriptionTierConvex } from "./schema";
+import { SubscriptionTierTypeConvex } from "./schema";
 import {
   ErrorMessages,
   ShowErrorMessages,
@@ -60,6 +60,7 @@ import {
 import { Id } from "./_generated/dataModel";
 import Stripe from "stripe";
 import { APPLICATION_FEE } from "@/app/types/constants";
+import { SubscriptionTierType } from "@/shared/types/types";
 
 export const validatePromoCode = action({
   args: { promoCode: v.string() },
@@ -110,7 +111,7 @@ export const createStripeSubscription = action({
     email: v.string(),
     paymentMethodId: v.string(),
     promoCode: v.optional(v.union(v.string(), v.null())),
-    subscriptionTier: SubscriptionTierConvex,
+    subscriptionTier: SubscriptionTierTypeConvex,
     idempotencyKey: v.string(),
   },
   handler: async (ctx, args): Promise<CreateStripeSubscriptionResponse> => {
@@ -159,7 +160,7 @@ export const createStripeSubscription = action({
         await getPaymentMethodDetails(paymentMethodId);
 
       let trialPeriodDays: number | undefined = undefined;
-      if (!existingCustomer && subscriptionTier !== SubscriptionTier.ELITE) {
+      if (!existingCustomer && subscriptionTier !== "ELITE") {
         trialPeriodDays = 30;
       }
 
@@ -241,9 +242,9 @@ export const createStripeSubscription = action({
 export const updateSubscriptionTier = action({
   args: {
     newTier: v.union(
-      v.literal(SubscriptionTier.STANDARD),
-      v.literal(SubscriptionTier.PLUS),
-      v.literal(SubscriptionTier.ELITE)
+      v.literal("STANDARD"),
+      v.literal("PLUS"),
+      v.literal("ELITE")
     ),
   },
   handler: async (ctx, args): Promise<boolean> => {
@@ -326,14 +327,14 @@ export const calculateAllSubscriptionUpdates = action({
     }
   },
 });
-function getPriceIdForTier(tier: SubscriptionTier): string {
+function getPriceIdForTier(tier: SubscriptionTierType): string {
   const priceId = (() => {
     switch (tier) {
-      case SubscriptionTier.STANDARD:
+      case "STANDARD":
         return process.env.PRICE_ID_STANDARD;
-      case SubscriptionTier.PLUS:
+      case "PLUS":
         return process.env.PRICE_ID_PLUS;
-      case SubscriptionTier.ELITE:
+      case "ELITE":
         return process.env.PRICE_ID_ELITE;
       default:
         throw new Error(`Invalid subscription tier: ${tier}`);
@@ -349,14 +350,14 @@ function getPriceIdForTier(tier: SubscriptionTier): string {
 
 export function getSubscriptionTierFromPrice(
   priceId: string
-): SubscriptionTier {
+): SubscriptionTierType {
   switch (priceId) {
     case process.env.PRICE_ID_STANDARD:
-      return SubscriptionTier.STANDARD;
+      return "STANDARD";
     case process.env.PRICE_ID_PLUS:
-      return SubscriptionTier.PLUS;
+      return "PLUS";
     case process.env.PRICE_ID_ELITE:
-      return SubscriptionTier.ELITE;
+      return "ELITE";
     default:
       throw new Error(`Unknown priceId: ${priceId}`);
   }
