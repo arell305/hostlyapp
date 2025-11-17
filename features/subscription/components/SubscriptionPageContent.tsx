@@ -44,9 +44,8 @@ const SubscriptionPageContent = ({ customer }: SubscriptionContentProps) => {
   const subscriptionTier = subscription.subscriptionTier;
   const canEditSettings = isAdmin(orgRole);
   const showGuestEventsCredit =
-    subscriptionTier === SubscriptionTier.PLUS ||
-    subscriptionTier === SubscriptionTier.STANDARD;
-  const showGuestEventsThisCycle = subscriptionTier === SubscriptionTier.PLUS;
+    subscriptionTier === "PLUS" || subscriptionTier === "STANDARD";
+  const showGuestEventsThisCycle = subscriptionTier === "PLUS";
 
   const amount = formatSubscriptionAmount(subscription);
   return (

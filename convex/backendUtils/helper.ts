@@ -115,7 +115,7 @@ export async function handleGuestListData(
     { organizationId: organization._id }
   );
 
-  if (subscription.subscriptionTier === SubscriptionTier.STANDARD) {
+  if (subscription.subscriptionTier === "STANDARD") {
     if (Number(availableGuestListCredits) >= 0) {
       const [guestListInfoId, _] = await Promise.all([
         ctx.runMutation(internal.guestListInfo.createGuestListInfo, {
@@ -317,7 +317,7 @@ export async function handleGuestListUpdateData(
       { organizationId: organization._id }
     );
 
-    if (subscription.subscriptionTier === SubscriptionTier.STANDARD) {
+    if (subscription.subscriptionTier === "STANDARD") {
       if (Number(availableGuestListCredits) >= 0) {
         const [newGuestListInfoId] = await Promise.all([
           ctx.runMutation(internal.guestListInfo.createGuestListInfo, {

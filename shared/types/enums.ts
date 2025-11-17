@@ -41,9 +41,9 @@ export enum SubscriptionTier {
 }
 
 export const subscriptionBenefits = {
-  [SubscriptionTier.STANDARD]: "Unlimited tickets",
-  [SubscriptionTier.PLUS]: `Unlimited tickets & ${PLUS_GUEST_LIST_LIMIT} guest lists`,
-  [SubscriptionTier.ELITE]: "Unlimited tickets & guest lists",
+  ["STANDARD"]: "Unlimited tickets",
+  ["PLUS"]: `Unlimited tickets & ${PLUS_GUEST_LIST_LIMIT} guest lists`,
+  ["ELITE"]: "Unlimited tickets & guest lists",
 };
 
 export enum ResponseStatus {

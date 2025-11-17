@@ -279,54 +279,6 @@ export const updateSubscriptionTier = action({
   },
 });
 
-type CalculateSubscriptionUpdateResult = {
-  success: boolean;
-  proratedAmount?: number;
-  newMonthlyRate?: number;
-  message?: string;
-};
-
-export const calculateAllSubscriptionUpdates = action({
-  args: {
-    email: v.string(),
-    currentTier: v.union(
-      v.literal(SubscriptionTier.STANDARD),
-      v.literal(SubscriptionTier.PLUS),
-      v.literal(SubscriptionTier.ELITE)
-    ),
-    percentageDiscount: v.optional(v.number()),
-  },
-  handler: async (
-    ctx,
-    args
-  ): Promise<Record<SubscriptionTier, CalculateSubscriptionUpdateResult>> => {
-    const { email, currentTier, percentageDiscount } = args;
-    const results: Record<SubscriptionTier, CalculateSubscriptionUpdateResult> =
-      {
-        [SubscriptionTier.STANDARD]: {
-          success: false,
-          message: "Not calculated",
-        },
-        [SubscriptionTier.PLUS]: { success: false, message: "Not calculated" },
-        [SubscriptionTier.ELITE]: { success: false, message: "Not calculated" },
-      };
-
-    try {
-      return results;
-    } catch (error) {
-      console.error("Error calculating subscription updates:", error);
-      return Object.fromEntries(
-        Object.values(SubscriptionTier).map((tier) => [
-          tier,
-          {
-            success: false,
-            message: "Failed to calculate subscription update",
-          },
-        ])
-      ) as Record<SubscriptionTier, CalculateSubscriptionUpdateResult>;
-    }
-  },
-});
 function getPriceIdForTier(tier: SubscriptionTierType): string {
   const priceId = (() => {
     switch (tier) {

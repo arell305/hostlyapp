@@ -46,9 +46,8 @@ const SubscriptionContent = ({
 
   const subscriptionTier = subscription.subscriptionTier;
   const showGuestEventsCredit =
-    subscriptionTier === SubscriptionTier.PLUS ||
-    subscriptionTier === SubscriptionTier.STANDARD;
-  const showGuestEventsThisCycle = subscriptionTier === SubscriptionTier.PLUS;
+    subscriptionTier === "PLUS" || subscriptionTier === "STANDARD";
+  const showGuestEventsThisCycle = subscriptionTier === "PLUS";
   return (
     <section>
       <SectionHeaderWithAction title="Subscription" />

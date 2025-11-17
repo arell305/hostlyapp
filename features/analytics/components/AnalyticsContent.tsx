@@ -17,8 +17,7 @@ const AnalyticsContent = () => {
   const { subscription } = useContextOrganization();
   const { subscriptionTier } = subscription;
   const hasGuestListAccess =
-    subscriptionTier === SubscriptionTier.PLUS ||
-    subscriptionTier === SubscriptionTier.ELITE;
+    subscriptionTier === "PLUS" || subscriptionTier === "ELITE";
 
   const [selectedTab, setSelectedTab] = useState<"tickets" | "guestlist">(
     "tickets"
