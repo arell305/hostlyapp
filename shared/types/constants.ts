@@ -32,7 +32,7 @@ export const COMPANY_NAME = "Hostly";
 export const pricingOptions: PricingOption[] = [
   {
     id: "prod_QpJqLkwhLCLZfN",
-    tier: SubscriptionTier.STANDARD,
+    tier: "STANDARD" as const,
     price: "39.99",
     description: "Unlimited Tickets",
     isFree: true,
@@ -40,7 +40,7 @@ export const pricingOptions: PricingOption[] = [
   },
   {
     id: "prod_QpJo0GlbKBCugX",
-    tier: SubscriptionTier.PLUS,
+    tier: "PLUS" as const,
     price: "99.99",
     description: `Unlimited Tickets & ${PLUS_GUEST_LIST_LIMIT} Guest List Events`,
     isFree: true,
@@ -48,7 +48,7 @@ export const pricingOptions: PricingOption[] = [
   },
   {
     id: "prod_SqWluQ6a2eiIhq",
-    tier: SubscriptionTier.ELITE,
+    tier: "ELITE" as const,
     price: "299.99",
     description: "Unlimited Tickets & Guest List",
     isFree: false,

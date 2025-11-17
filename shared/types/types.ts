@@ -13,7 +13,7 @@ import { EventWithTicketTypes } from "./schemas-types";
 
 export interface PricingOption {
   id: string;
-  tier: SubscriptionTier;
+  tier: "STANDARD" | "PLUS" | "ELITE";
   price: string;
   description: string;
   isFree: boolean;
