@@ -43,7 +43,7 @@ export const OrganizationProvider: React.FC<React.PropsWithChildren> = ({
   const { slug } = useParams();
   const cleanSlug = getCleanSlug(slug);
 
-  const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn } = useUser();
+  const { user: clerkUser, isLoaded: isClerkLoaded } = useUser();
   const orgRole = (clerkUser?.publicMetadata.role as UserRole) ?? undefined;
 
   const [data, setData] = useState<GetOrganizationContextData | null>(null);
@@ -53,7 +53,7 @@ export const OrganizationProvider: React.FC<React.PropsWithChildren> = ({
 
   useEffect(() => {
     const load = async () => {
-      if (!isClerkLoaded || !isSignedIn) {
+      if (!isClerkLoaded) {
         setData(null);
         setIsLoading(false);
         return;
@@ -77,7 +77,7 @@ export const OrganizationProvider: React.FC<React.PropsWithChildren> = ({
     };
 
     load();
-  }, [cleanSlug, isClerkLoaded, isSignedIn, getContext]);
+  }, [cleanSlug, isClerkLoaded, getContext]);
 
   const value = useMemo<OrganizationContextType | null>(() => {
     if (!data) {
@@ -96,7 +96,7 @@ export const OrganizationProvider: React.FC<React.PropsWithChildren> = ({
     };
   }, [data, orgRole, cleanSlug]);
 
-  if (!isClerkLoaded || !isSignedIn) {
+  if (clerkUser === null) {
     return (
       <MessagePage
         title="Please sign in"
@@ -107,17 +107,8 @@ export const OrganizationProvider: React.FC<React.PropsWithChildren> = ({
     );
   }
 
-  if (isLoading) {
+  if (isLoading || !value || !isClerkLoaded) {
     return <FullLoading />;
-  }
-
-  if (!value) {
-    return (
-      <MessagePage
-        title="Access Denied"
-        description="You don't have permission to view this organization."
-      />
-    );
   }
 
   return (

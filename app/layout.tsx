@@ -49,7 +49,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className={`${inter.variable} font-sans`}>
+      <body className={` font-sans`}>
         <Providers>
           <Suspense fallback={null}>
             <RouteChangeProgress />
