@@ -2,10 +2,8 @@ import { GenericActionCtx, GenericQueryCtx, UserIdentity } from "convex/server";
 import {
   ErrorMessages,
   ShowErrorMessages,
-  StripeAccountStatus,
   ResponseStatus,
   UserRole,
-  SubscriptionTier,
 } from "@/shared/types/enums";
 import { TicketSoldCountByType, TicketType } from "@/shared/types/types";
 import { Doc, Id } from "../_generated/dataModel";

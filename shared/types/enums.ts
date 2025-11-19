@@ -1,4 +1,3 @@
-// app/types/status.ts
 import { PLUS_GUEST_LIST_LIMIT } from "./constants";
 
 export type ConsentStatus = "active" | "stopped";

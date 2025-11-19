@@ -7,12 +7,12 @@ import Link from "next/link";
 import NProgress from "nprogress";
 import CampaignsLoader from "./components/CampaignsQuery";
 import { useState } from "react";
-import { CampaignFilter } from "@/shared/types/types";
+import { CampaignStatus } from "@/shared/types/types";
 import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
 
 const CampaignsUserIdPage = () => {
   const pathname = usePathname();
-  const [selectedTab, setSelectedTab] = useState<CampaignFilter>("upcoming");
+  const [selectedTab, setSelectedTab] = useState<CampaignStatus>("Scheduled");
 
   return (
     <PageContainer>
@@ -26,9 +26,10 @@ const CampaignsUserIdPage = () => {
       />
       <ToggleTabs
         options={[
-          { label: "Upcoming", value: "upcoming" },
-          { label: "Completed", value: "completed" },
-          { label: "Archived", value: "archived" },
+          { label: "Scheduled", value: "Scheduled" },
+          { label: "Sent", value: "Sent" },
+          { label: "Failed", value: "Failed" },
+          { label: "Cancelled", value: "Cancelled" },
         ]}
         value={selectedTab}
         onChange={setSelectedTab}

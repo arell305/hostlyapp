@@ -4,7 +4,6 @@ import { Home, Plus } from "lucide-react";
 import IconButton from "@shared/ui/buttonContainers/IconButton";
 import TopBarContainer from "@shared/ui/containers/TopBarContainer";
 import CenteredTitle from "@shared/ui/headings/CenteredTitle";
-import EditDeleteButton from "@shared/ui/buttonContainers/EditDeleteButton";
 import { Doc } from "convex/_generated/dataModel";
 import EventActionMenuContent from "./EventActionMenuContent";
 import GenericEditDeleteButton from "@/shared/ui/buttonContainers/GenericEditDelete";

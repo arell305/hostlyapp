@@ -1,7 +1,6 @@
 import { ErrorMessages, UserRole } from "@/shared/types/enums";
 import {
   OrganizationInvitationJSON,
-  OrganizationMembershipJSON,
   UserJSON,
   WebhookEvent,
 } from "@clerk/backend";
@@ -9,7 +8,6 @@ import { GenericActionCtx } from "convex/server";
 import { Webhook } from "svix";
 import { internal } from "../_generated/api";
 import { updateClerkUserPublicMetadata } from "@/shared/utils/clerk";
-import { Id } from "../_generated/dataModel";
 import { validateUser } from "../backendUtils/validation";
 
 export async function verifyClerkWebhook(
@@ -35,42 +33,65 @@ export const handleUserCreated = async (
   ctx: GenericActionCtx<any>,
   data: UserJSON
 ) => {
+  if (!data.primary_email_address_id) {
+    throw new Error(
+      "Clerk user.created webhook: missing primary_email_address_id"
+    );
+  }
+
+  const primaryEmailObj = data.email_addresses.find(
+    (e) => e.id === data.primary_email_address_id
+  );
+
+  if (!primaryEmailObj) {
+    throw new Error(
+      `Primary email ID ${data.primary_email_address_id} not found in email_addresses array`
+    );
+  }
+
+  const primaryEmail = primaryEmailObj.email_address;
+  const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ");
+
   try {
     const existingCustomer = await ctx.runQuery(
       internal.customers.findCustomerByEmail,
-      {
-        email: data.email_addresses[0]?.email_address,
-      }
+      { email: primaryEmail }
     );
 
-    let convexUserId: Id<"users"> | null = null;
-
     if (existingCustomer) {
-      convexUserId = await ctx.runMutation(internal.users.createUser, {
-        email: data.email_addresses[0]?.email_address,
+      // Customer exists → this is likely an admin/invited user
+      const convexUserId = await ctx.runMutation(internal.users.createUser, {
+        email: primaryEmail,
         clerkUserId: data.id,
         customerId: existingCustomer._id,
         role: UserRole.Admin,
-        name: `${data.first_name} ${data.last_name}`.trim(),
+        name: fullName,
         imageUrl: data.image_url,
       });
+
       await updateClerkUserPublicMetadata(data.id, {
         convexUserId,
         role: UserRole.Admin,
       });
+
       return;
     }
 
     await ctx.runMutation(internal.users.createUser, {
-      email: data.email_addresses[0]?.email_address,
+      email: primaryEmail,
       clerkUserId: data.id,
       role: null,
-      name: `${data.first_name} ${data.last_name}`,
+      name: fullName,
       imageUrl: data.image_url,
     });
-  } catch (err) {
-    console.error("Error handling user.created:", err);
-    throw new Error(ErrorMessages.CLERK_WEBHHOOK_CREATE_USER);
+  } catch (err: any) {
+    console.error("Error handling user.created webhook:", {
+      clerkUserId: data.id,
+      primaryEmail,
+      error: err.message,
+      stack: err.stack,
+    });
+    throw new Error("Failed to handle Clerk user creation");
   }
 };
 

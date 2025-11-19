@@ -6,13 +6,14 @@ import TopBarContainer from "@shared/ui/containers/TopBarContainer";
 import CenteredTitle from "@shared/ui/headings/CenteredTitle";
 import { UserWithPromoCode } from "@/shared/types/types";
 import { UserRole } from "@/shared/types/enums";
-import TrashButton from "@shared/ui/buttonContainers/TrashButton";
+import ResponsiveUserActions from "./buttons/ResponsiveUserActions";
 
 interface MemberTopBarProps {
   userData: UserWithPromoCode;
   onBack: () => void;
   handleShowDeleteConfirmation: () => void;
   canEditUsers: boolean;
+  onReactivate: () => void;
 }
 
 const MemberTopBar: React.FC<MemberTopBarProps> = ({
@@ -20,6 +21,7 @@ const MemberTopBar: React.FC<MemberTopBarProps> = ({
   onBack,
   handleShowDeleteConfirmation,
   canEditUsers,
+  onReactivate,
 }) => {
   const canDelete =
     canEditUsers &&
@@ -38,7 +40,11 @@ const MemberTopBar: React.FC<MemberTopBarProps> = ({
       <CenteredTitle title={"Team Member"} />
       {canDelete && (
         <div className=" flex justify-end">
-          <TrashButton onDelete={handleShowDeleteConfirmation} />
+          <ResponsiveUserActions
+            user={userData}
+            onDelete={handleShowDeleteConfirmation}
+            onReactivate={onReactivate}
+          />
         </div>
       )}
     </TopBarContainer>

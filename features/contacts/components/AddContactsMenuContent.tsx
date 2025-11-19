@@ -3,7 +3,7 @@
 import { PlusCircle, UploadIcon } from "lucide-react";
 import { Button } from "@/shared/ui/primitive/button";
 import { ContactPickerButton } from "./ContactPickerButton";
-import MenuContainer from "@/shared/ui/buttonContainers/MenuContainer";
+import MenuContainer from "@/shared/ui/buttonContainers/menu/MenuContainer";
 
 type Props = {
   onUpload: () => void;

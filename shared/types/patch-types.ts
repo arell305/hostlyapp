@@ -1,5 +1,6 @@
 import { Id } from "convex/_generated/dataModel";
 import { SmsMessageType } from "./enums";
+import { CampaignStatus } from "./types";
 
 export type FaqPatch = {
   question: string;
@@ -17,10 +18,10 @@ export type SmsTemplatePatch = {
 export type CampaignPatch = {
   name?: string;
   isActive?: boolean;
-  eventId?: Id<"events"> | undefined;
-  scheduleTime?: number | undefined;
-  relativeOffsetMinutes?: number | undefined;
-  promptResponse?: string | undefined;
+  eventId?: Id<"events">;
+  scheduleTime?: number | null;
+  promptResponse?: string;
+  status?: CampaignStatus;
 };
 
 export type GuestPatch = {

@@ -13,7 +13,6 @@ const GuestListSection = () => {
     guestListRules,
     setGuestListRules,
     errors,
-    isIOSDevice,
   } = useEventForm();
   return (
     <>
@@ -23,7 +22,6 @@ const GuestListSection = () => {
         value={guestListCloseTime}
         onChange={setGuestListCloseTime}
         error={errors.guestListCloseTime}
-        isIOS={isIOSDevice}
       />
       <LabeledDateTimeField
         name="checkInCloseTime"
@@ -31,7 +29,6 @@ const GuestListSection = () => {
         value={checkInCloseTime}
         onChange={setCheckInCloseTime}
         error={errors.checkInCloseTime}
-        isIOS={isIOSDevice}
       />
       <LabeledTextAreaField
         name="guestListRules"

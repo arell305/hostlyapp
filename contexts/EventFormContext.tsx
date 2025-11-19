@@ -5,7 +5,6 @@ import { TicketType, TicketTypeForm, AddressValue } from "@shared/types/types";
 import { ticketNameOptions } from "@shared/types/constants";
 import { Doc, Id } from "convex/_generated/dataModel";
 import { EventFormErrors } from "@/shared/utils/form-validation/validateEventForm";
-import { isIOS } from "@/shared/utils/helpers";
 
 export interface EventFormContextType {
   // Event Details
@@ -45,8 +44,6 @@ export interface EventFormContextType {
   // errors
   errors: EventFormErrors;
   setErrors: React.Dispatch<React.SetStateAction<EventFormErrors>>;
-
-  isIOSDevice: boolean;
 }
 
 export const EventFormContext = createContext<EventFormContextType | undefined>(
@@ -122,7 +119,6 @@ export const EventFormProvider = ({
   const [value, setValue] = useState<AddressValue | null>(null);
 
   const [errors, setErrors] = useState<EventFormErrors>({});
-  const isIOSDevice = isIOS();
 
   useEffect(() => {
     if (!isTicketsSelected) {
@@ -161,7 +157,6 @@ export const EventFormProvider = ({
         setValue,
         errors,
         setErrors,
-        isIOSDevice,
       }}
     >
       {children}

@@ -10,7 +10,7 @@ interface CampaignFormData {
   body?: string;
   subject?: string;
   content?: string;
-  sendAt?: number;
+  sendAt: number | null;
   timezone?: string;
   name: string;
 }
@@ -23,6 +23,8 @@ interface CampaignFormContextType {
   nextStep: () => void;
   prevStep: () => void;
   isSubmitDisabled: boolean;
+  sendType: "now" | "later";
+  handleSendTypeChange: (type: "now" | "later") => void;
 }
 
 const CampaignFormContext = createContext<CampaignFormContextType | undefined>(
@@ -40,8 +42,14 @@ export const CampaignFormProvider = ({ children }: { children: ReactNode }) => {
     eventId: null,
     templateId: null,
     name: "",
+    sendAt: null,
   });
   const [currentStep, setCurrentStep] = useState<CampaignFormStep>("event");
+  const [sendType, setSendType] = useState<"now" | "later">("now");
+
+  const handleSendTypeChange = (type: "now" | "later") => {
+    setSendType(type);
+  };
 
   const updateFormData = (data: Partial<CampaignFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
@@ -65,11 +73,12 @@ export const CampaignFormProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const isSubmitDisabled: boolean =
-    formData.name.trim() === "" ||
+  const isSubmitDisabled =
+    !formData.name.trim() ||
+    !formData.body?.trim() ||
     formData.eventId === undefined ||
-    formData.body === undefined ||
-    formData.sendAt === undefined;
+    (sendType === "later" &&
+      (formData.sendAt === null || formData.sendAt <= Date.now()));
 
   return (
     <CampaignFormContext.Provider
@@ -81,6 +90,8 @@ export const CampaignFormProvider = ({ children }: { children: ReactNode }) => {
         nextStep,
         prevStep,
         isSubmitDisabled,
+        sendType,
+        handleSendTypeChange,
       }}
     >
       {children}

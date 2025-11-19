@@ -10,8 +10,7 @@ interface InsertCampaignInput {
   name: string;
   userId: Id<"users">;
   eventId: Id<"events"> | null;
-  scheduleTime?: number;
-  relativeOffsetMinutes?: number;
+  scheduleTime: number | null;
   promptResponse?: string;
   smsBody: string;
 }

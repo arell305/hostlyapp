@@ -76,6 +76,13 @@ export const ConsentStatusConvex = v.union(
   v.literal("stopped")
 );
 
+export const CampaignStatusConvex = v.union(
+  v.literal("Scheduled"),
+  v.literal("Sent"),
+  v.literal("Failed"),
+  v.literal("Cancelled")
+);
+
 export const GuestListNames = v.object({
   id: v.string(),
   name: v.string(),
@@ -91,11 +98,12 @@ export default defineSchema({
     eventId: v.union(v.id("events"), v.null()),
     isActive: v.boolean(),
     name: v.string(),
-    templateId: v.optional(v.id("smsTemplates")), // reference to selected template
-    smsBody: v.string(), // editable body of the template for this campaign
+    templateId: v.optional(v.id("smsTemplates")),
+    smsBody: v.string(),
     promptResponse: v.optional(v.string()),
-    relativeOffsetMinutes: v.optional(v.number()),
-    scheduleTime: v.optional(v.number()),
+    scheduleTime: v.union(v.number(), v.null()),
+    sentAt: v.optional(v.number()),
+    status: CampaignStatusConvex,
     updatedAt: v.number(),
     userId: v.id("users"),
   }).index("by_userId_updatedAt", ["userId", "updatedAt"]),

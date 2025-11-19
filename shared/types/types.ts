@@ -549,3 +549,5 @@ export type EventFilterWithoutNone = Exclude<EventFilter, "none">;
 export type CampaignTab = "messages" | "details";
 
 export type CampaignFilter = "upcoming" | "completed" | "archived";
+
+export type CampaignStatus = "Scheduled" | "Sent" | "Failed" | "Cancelled";

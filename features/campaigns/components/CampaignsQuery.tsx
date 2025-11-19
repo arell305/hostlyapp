@@ -2,10 +2,10 @@
 import { useCampaigns } from "@/domain/campaigns";
 import { useUserScope } from "@/shared/hooks/contexts";
 import CampaignsSection from "../CampaignsSection";
-import { CampaignFilter } from "@/shared/types/types";
+import { CampaignFilter, CampaignStatus } from "@/shared/types/types";
 
 interface CampaignsLoaderProps {
-  selectedTab: CampaignFilter;
+  selectedTab: CampaignStatus;
 }
 
 const CampaignsLoader = ({ selectedTab }: CampaignsLoaderProps) => {

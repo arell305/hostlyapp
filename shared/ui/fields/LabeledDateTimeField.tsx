@@ -8,6 +8,7 @@ import {
   formatToDateTimeLocalPST,
   parseDateTimeLocalToTimestampPST,
 } from "@/shared/utils/luxon";
+import { isIOS } from "@/shared/utils/helpers";
 
 interface LabeledDateTimeFieldProps {
   label: string;
@@ -17,7 +18,6 @@ interface LabeledDateTimeFieldProps {
   name: string;
   placeholder?: string;
   className?: string;
-  isIOS?: boolean;
   min?: string;
 }
 
@@ -29,11 +29,11 @@ const LabeledDateTimeField: React.FC<LabeledDateTimeFieldProps> = ({
   name,
   placeholder = "Select date and time",
   className = "",
-  isIOS = false,
   min,
 }) => {
   const formattedValue = formatToDateTimeLocalPST(value);
   const isEmpty = !formattedValue;
+  const isIOSDevice = isIOS();
 
   return (
     <div>
@@ -48,12 +48,12 @@ const LabeledDateTimeField: React.FC<LabeledDateTimeFieldProps> = ({
             onChange={(e) =>
               onChange(parseDateTimeLocalToTimestampPST(e.target.value))
             }
-            className={`h-10 ${isEmpty && isIOS ? "text-transparent" : ""} ${
+            className={`h-10 ${isEmpty && isIOSDevice ? "text-transparent" : ""} ${
               error ? "border-red-500" : ""
             } ${className}`}
             min={min}
           />
-          {isEmpty && isIOS && (
+          {isEmpty && isIOSDevice && (
             <span className="pl-2 absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
               {placeholder}
             </span>

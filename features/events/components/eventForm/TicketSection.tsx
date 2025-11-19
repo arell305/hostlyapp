@@ -22,7 +22,7 @@ const TicketSection: React.FC<TicketSectionProps> = ({
   isEdit,
   initialTicketData,
 }) => {
-  const { ticketTypes, setTicketTypes, isIOSDevice, errors } = useEventForm();
+  const { ticketTypes, setTicketTypes, errors } = useEventForm();
 
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
   const [ticketIndexToRemove, setTicketIndexToRemove] = useState<number | null>(
@@ -191,7 +191,6 @@ const TicketSection: React.FC<TicketSectionProps> = ({
               setTicketTypes(newTypes);
             }}
             error={errors.ticketFieldErrors?.[index]?.ticketSalesEndTime}
-            isIOS={isIOSDevice}
           />
         </div>
       ))}

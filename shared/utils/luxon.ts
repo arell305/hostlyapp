@@ -194,3 +194,13 @@ export function parseDateTimeLocalToTimestampPST(val: string): number | null {
   const dt = DateTime.fromFormat(val, INPUT_FMT, { zone: TIME_ZONE });
   return dt.isValid ? dt.toMillis() : null;
 }
+
+export const formatDisplayDateTime = (
+  timestamp: number | null | undefined
+): string => {
+  if (!timestamp) return "—";
+
+  return DateTime.fromMillis(timestamp)
+    .setZone(TIME_ZONE)
+    .toFormat("h:mma · MMM d, yyyy");
+};

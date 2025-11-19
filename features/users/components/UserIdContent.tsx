@@ -51,6 +51,12 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
     }
   };
 
+  const handleReactivateUser = async () => {
+    await updateUserById(user._id, {
+      isActive: true,
+    });
+  };
+
   return (
     <PageContainer className="pt-0">
       <MemberTopBar
@@ -58,6 +64,7 @@ const UserIdContent: React.FC<UserIdContentProps> = ({
         onBack={handleBack}
         handleShowDeleteConfirmation={handleShowDeleteConfirmation}
         canEditUsers={canEditUsers}
+        onReactivate={handleReactivateUser}
       />
 
       <CustomCard>

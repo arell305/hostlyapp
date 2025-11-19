@@ -12,6 +12,7 @@ import { useUserScope } from "@/shared/hooks/contexts";
 import CampaignNav from "./components/campaign/CampaignNav";
 import CampaignIdContent from "./components/CampaignIdContent";
 import MessagingTab from "./components/messages/MessagingTab";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 
 const CampaignIdPage = () => {
   const router = useRouter();
@@ -20,6 +21,7 @@ const CampaignIdPage = () => {
   const { campaign } = useCampaignScope();
   const [selectedTab, setSelectedTab] = useState<CampaignTab>("messages");
   const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
 
   const showConfirmDeleteModal = () => {
     setShowConfirmDelete(true);
@@ -50,9 +52,25 @@ const CampaignIdPage = () => {
     }
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = async () => {
+    await updateCampaign({
+      campaignId: campaign._id,
+      updates: { status: "Cancelled" },
+    });
+  };
+
   return (
     <PageContainer>
-      <CampaignNav campaign={campaign} onDelete={showConfirmDeleteModal} />
+      <CampaignNav
+        campaign={campaign}
+        onDelete={showConfirmDeleteModal}
+        onEdit={handleEdit}
+        onCancel={handleCancel}
+      />
       <ToggleTabs
         options={[
           { label: "Messages", value: "messages" },

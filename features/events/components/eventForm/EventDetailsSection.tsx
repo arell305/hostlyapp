@@ -30,7 +30,6 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
     setEndTime,
     errors,
     setErrors,
-    isIOSDevice,
   } = useEventForm();
 
   const handleSelect = (v: AddressValue | null) => {
@@ -95,7 +94,6 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
           }));
         }}
         error={errors.startTime}
-        isIOS={isIOSDevice}
       />
 
       <LabeledDateTimeField
@@ -110,7 +108,6 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
           }));
         }}
         error={errors.endTime}
-        isIOS={isIOSDevice}
       />
     </>
   );

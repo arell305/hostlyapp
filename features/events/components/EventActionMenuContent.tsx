@@ -1,9 +1,9 @@
 "use client";
 
 import { Doc, Id } from "@/convex/_generated/dataModel";
-import MenuContainer from "@/shared/ui/buttonContainers/MenuContainer";
-import MenuEdit from "@/shared/ui/buttonContainers/MenuEdit";
-import MenuDelete from "@/shared/ui/buttonContainers/MenuDelete";
+import MenuContainer from "@/shared/ui/buttonContainers/menu/MenuContainer";
+import MenuEdit from "@/shared/ui/buttonContainers/menu/MenuEdit";
+import MenuDelete from "@/shared/ui/buttonContainers/menu/MenuDelete";
 
 type Props = {
   event: Doc<"events">;
