@@ -11,6 +11,7 @@
 import type * as backendUtils_contactsHelper from "../backendUtils/contactsHelper.js";
 import type * as backendUtils_helper from "../backendUtils/helper.js";
 import type * as backendUtils_kpiHelper from "../backendUtils/kpiHelper.js";
+import type * as backendUtils_utils from "../backendUtils/utils.js";
 import type * as backendUtils_validation from "../backendUtils/validation.js";
 import type * as campaigns from "../campaigns.js";
 import type * as clerk from "../clerk.js";
@@ -64,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   "backendUtils/contactsHelper": typeof backendUtils_contactsHelper;
   "backendUtils/helper": typeof backendUtils_helper;
   "backendUtils/kpiHelper": typeof backendUtils_kpiHelper;
+  "backendUtils/utils": typeof backendUtils_utils;
   "backendUtils/validation": typeof backendUtils_validation;
   campaigns: typeof campaigns;
   clerk: typeof clerk;

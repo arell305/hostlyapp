@@ -1,16 +1,12 @@
 import { ConvexError, v } from "convex/values";
-import { internalMutation, internalQuery } from "./_generated/server";
+import { action, internalMutation, internalQuery } from "./_generated/server";
 import { query } from "./_generated/server";
 import {
   OrganizationDetails,
   OrganizationPublic,
   UserWithPromoCode,
 } from "@/shared/types/types";
-import {
-  ErrorMessages,
-  StripeAccountStatus,
-  UserRole,
-} from "@/shared/types/enums";
+import { ErrorMessages, UserRole } from "@/shared/types/enums";
 import { GetOrganizationContextData } from "@/shared/types/convex-types";
 import { Doc, Id } from "./_generated/dataModel";
 import { requireAuthenticatedUser } from "../shared/utils/auth";
@@ -21,6 +17,8 @@ import {
   validateUser,
 } from "./backendUtils/validation";
 import { EventWithTicketTypes } from "@/shared/types/schemas-types";
+import { retryUntil } from "./backendUtils/utils";
+import { internal } from "./_generated/api";
 
 export const createConvexOrganization = internalMutation({
   args: {
@@ -206,6 +204,16 @@ export const getOrganizationByName = internalQuery({
   },
 });
 
+export const getOrganizationBySlugInternal = internalQuery({
+  args: { slug: v.string() },
+  handler: async (ctx, args): Promise<Doc<"organizations"> | null> => {
+    return await ctx.db
+      .query("organizations")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+  },
+});
+
 export const getUsersByOrganization = query({
   args: { organizationId: v.id("organizations"), isActive: v.boolean() },
 
@@ -242,42 +250,24 @@ export const getOrganizationById = internalQuery({
   },
 });
 
-export const getOrganizationContext = query({
+export const getOrganizationContext = action({
   args: { slug: v.string() },
   handler: async (ctx, { slug }): Promise<GetOrganizationContextData> => {
     const identity = await requireAuthenticatedUser(ctx);
+    const clerkUserId = identity.id as string;
 
-    const userId = identity.convexUserId as Id<"users">;
-
-    const user = validateUser(await ctx.db.get(userId));
-
-    if (!user) {
-      throw new ConvexError({
-        code: "NOT_FOUND",
-        message: ErrorMessages.USER_NOT_FOUND,
-      });
-    }
-
-    if (!user.organizationId) {
-      throw new ConvexError({
-        code: "NOT_FOUND",
-        message: ErrorMessages.USER_NO_COMPANY,
-      });
-    }
-
-    if (!user.isActive) {
-      throw new ConvexError({
-        code: "NOT_FOUND",
-        message: ErrorMessages.USER_INACTIVE,
-      });
-    }
+    const user = await ctx.runAction(internal.users.waitForUserSync, {
+      clerkUserId,
+    });
 
     let userWithPromoCode: UserWithPromoCode | null = user;
     if (user.role === UserRole.Promoter) {
-      const promoterPromoCode = await ctx.db
-        .query("promoterPromoCode")
-        .filter((q) => q.eq(q.field("promoterUserId"), user._id))
-        .unique();
+      const promoterPromoCode = await ctx.runQuery(
+        internal.promoterPromoCode.getPromoterPromoCodeByUserIdInternal,
+        {
+          userId: user._id,
+        }
+      );
 
       userWithPromoCode = {
         ...user,
@@ -287,40 +277,32 @@ export const getOrganizationContext = query({
     }
 
     const organization = validateOrganization(
-      await ctx.db
-        .query("organizations")
-        .withIndex("by_slug", (q) => q.eq("slug", slug))
-        .first()
+      await ctx.runQuery(internal.organizations.getOrganizationBySlugInternal, {
+        slug,
+      })
     );
 
     isUserInOrganization(identity, organization.clerkOrganizationId);
 
     const subscription = validateSubscription(
-      await ctx.db
-        .query("subscriptions")
-        .withIndex("by_customerId", (q) =>
-          q.eq("customerId", organization.customerId)
-        )
-        .first()
+      await ctx.runQuery(internal.subscription.getSubscriptionByCustomerId, {
+        customerId: organization.customerId,
+      })
     );
 
-    const guestListCreditBalance = await ctx.db
-      .query("organizationCredits")
-      .withIndex("by_organizationId", (q) =>
-        q.eq("organizationId", organization._id)
-      )
-      .unique();
+    const availableCredits = await ctx.runQuery(
+      internal.organizationCredits.getAvailableGuestListCreditsInternal,
+      {
+        organizationId: organization._id,
+      }
+    );
 
-    const availableCredits = guestListCreditBalance
-      ? guestListCreditBalance.totalCredits - guestListCreditBalance.creditsUsed
-      : 0;
-
-    const connectedAccount = await ctx.db
-      .query("connectedAccounts")
-      .withIndex("by_customerId", (q) =>
-        q.eq("customerId", organization.customerId)
-      )
-      .first();
+    const connectedAccount = await ctx.runQuery(
+      internal.connectedAccounts.getConnectedAccountByCustomerId,
+      {
+        customerId: organization.customerId,
+      }
+    );
 
     return {
       organization,

@@ -1,4 +1,3 @@
-// hooks/useContextOrganization.ts
 import { useContext } from "react";
 import { OrganizationContext } from "@/contexts/OrganizationContext";
 

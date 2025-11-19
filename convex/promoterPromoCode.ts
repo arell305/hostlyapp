@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import {
   ErrorMessages,
   ShowErrorMessages,
@@ -13,7 +13,7 @@ import {
 } from "./backendUtils/validation";
 import { isUserInCompanyOfEvent } from "./backendUtils/helper";
 import { requireAuthenticatedUser } from "../shared/utils/auth";
-import { Id } from "./_generated/dataModel";
+import { Doc, Id } from "./_generated/dataModel";
 
 export const addOrUpdatePromoterPromoCode = mutation({
   args: {
@@ -105,5 +105,17 @@ export const validatePromoterPromoCode = query({
       promoDiscount: organization.promoDiscount,
     };
     return PromoterPromoCodeWithDiscount;
+  },
+});
+
+export const getPromoterPromoCodeByUserIdInternal = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args): Promise<Doc<"promoterPromoCode"> | null> => {
+    return await ctx.db
+      .query("promoterPromoCode")
+      .withIndex("by_promoterUserId", (q) =>
+        q.eq("promoterUserId", args.userId)
+      )
+      .unique();
   },
 });

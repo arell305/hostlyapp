@@ -7,7 +7,7 @@ import { UserRole } from "@shared/types/enums";
 import NProgress from "nprogress";
 import FullLoading from "@shared/ui/loading/FullLoading";
 
-const MIN_DELAY = 4000;
+const MIN_DELAY = 10000;
 
 export default function RedirectingSignUpPage() {
   const router = useRouter();

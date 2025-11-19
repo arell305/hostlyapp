@@ -9,6 +9,8 @@ import { Webhook } from "svix";
 import { internal } from "../_generated/api";
 import { updateClerkUserPublicMetadata } from "@/shared/utils/clerk";
 import { validateUser } from "../backendUtils/validation";
+import { Doc } from "../_generated/dataModel";
+import { retryUntil } from "../backendUtils/utils";
 
 export async function verifyClerkWebhook(
   payload: string,
@@ -99,61 +101,48 @@ export const handleOrganizationInvitationAccepted = async (
   ctx: GenericActionCtx<any>,
   data: OrganizationInvitationJSON
 ) => {
-  const MAX_RETRIES = 5;
-  const RETRY_DELAY_MS = 500;
+  const { email_address, organization_id, public_metadata } = data;
 
-  const retry = async <T>(
-    fn: () => Promise<T>,
-    retries: number
-  ): Promise<T> => {
-    try {
-      return await fn();
-    } catch (err) {
-      if (retries > 0) {
-        await new Promise((res) => setTimeout(res, RETRY_DELAY_MS));
-        return retry(fn, retries - 1);
-      }
-      throw err;
-    }
-  };
-
-  try {
-    const user = await retry(async () => {
-      const fetchedUser = await ctx.runQuery(internal.users.findUserByEmail, {
-        email: data.email_address,
+  const user = await retryUntil(
+    async () => {
+      return await ctx.runQuery(internal.users.findUserByEmail, {
+        email: email_address,
       });
-      return validateUser(fetchedUser);
-    }, MAX_RETRIES);
-    const organization = await ctx.runQuery(
-      internal.organizations.internalGetOrganizationByClerkId,
-      {
-        clerkOrganizationId: data.organization_id,
-      }
-    );
-
-    if (!organization) {
-      console.error("Organization not found:", data.organization_id);
-      return;
+    },
+    {
+      maxAttempts: 10,
+      initialDelayMs: 300,
+      baseDelayMs: 400,
+      backoffMultiplier: 2,
+      timeoutMessage: `User not found after retries: ${email_address}`,
     }
+  );
 
-    // USER READY → proceed
-    await Promise.all([
-      ctx.runMutation(internal.users.updateUserByEmail, {
-        email: data.email_address,
-        role: data.public_metadata.role as UserRole,
-        organizationId: organization._id,
-      }),
-      updateClerkUserPublicMetadata(user.clerkUserId, {
-        role: data.public_metadata.role,
-        convexSlug: organization.slug,
-        convexUserId: user._id,
-      }),
-    ]);
-  } catch (err) {
-    // Only throw on real errors (DB, network, etc.)
-    console.error("Critical error in invitation webhook:", err);
-    throw err; // Let Clerk retry
+  if (!user?.clerkUserId) {
+    throw new Error(`User missing clerkUserId: ${email_address}`);
   }
+
+  const organization = await ctx.runQuery(
+    internal.organizations.internalGetOrganizationByClerkId,
+    { clerkOrganizationId: organization_id }
+  );
+
+  if (!organization) {
+    throw new Error(`Organization not found: ${organization_id}`);
+  }
+
+  await Promise.all([
+    ctx.runMutation(internal.users.updateUserByEmail, {
+      email: email_address,
+      role: public_metadata.role as UserRole,
+      organizationId: organization._id,
+    }),
+    updateClerkUserPublicMetadata(user.clerkUserId, {
+      role: public_metadata.role as UserRole,
+      convexSlug: organization.slug,
+      convexUserId: user._id,
+    }),
+  ]);
 };
 export const handleUserUpdated = async (
   ctx: GenericActionCtx<any>,

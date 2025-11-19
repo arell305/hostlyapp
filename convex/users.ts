@@ -1,5 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import {
+  action,
+  internalAction,
   internalMutation,
   internalQuery,
   mutation,
@@ -12,6 +14,8 @@ import { requireAuthenticatedUser } from "../shared/utils/auth";
 import { isUserInOrganization } from "./backendUtils/helper";
 import { validateOrganization, validateUser } from "./backendUtils/validation";
 import { ErrorMessages, UserRole } from "@/shared/types/enums";
+import { retryUntil } from "./backendUtils/utils";
+import { internal } from "./_generated/api";
 
 export const createUser = internalMutation({
   args: {
@@ -252,5 +256,34 @@ export const internalUpsertUserByClerkId = internalMutation({
       organizationId: args.organizationId,
       isActive: true,
     });
+  },
+});
+
+export const waitForUserSync = internalAction({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, { clerkUserId }): Promise<Doc<"users">> => {
+    return await retryUntil(
+      async () => {
+        const user = await ctx.runQuery(
+          internal.users.internalFindUserByClerkId,
+          {
+            clerkUserId,
+          }
+        );
+
+        // Wait until user exists AND has organizationId
+        if (user && user.organizationId && user.isActive) {
+          return user;
+        }
+        return null;
+      },
+      {
+        maxAttempts: 25,
+        baseDelayMs: 600,
+        initialDelayMs: 200,
+        timeoutMessage:
+          "Failed to sync user with organization. Please refresh.",
+      }
+    );
   },
 });

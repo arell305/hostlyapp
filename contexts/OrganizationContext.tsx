@@ -1,16 +1,25 @@
 "use client";
 
-import { createContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useUser, useOrganization, useOrganizationList } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
+import { useUser } from "@clerk/nextjs";
+import { useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { UserRole } from "@shared/types/enums";
 import type { UserWithPromoCode } from "@shared/types/types";
 import FullLoading from "@shared/ui/loading/FullLoading";
 import MessagePage from "@shared/ui/shared-page/MessagePage";
-import { isHostlyUser } from "@/shared/utils/permissions";
 import { Doc } from "convex/_generated/dataModel";
+import { getCleanSlug } from "@/shared/utils/params";
+
+export interface GetOrganizationContextData {
+  organization: Doc<"organizations">;
+  connectedAccountId: string | null | string;
+  connectedAccountStatus: string | null;
+  subscription: Doc<"subscriptions">;
+  availableCredits: number;
+  user: UserWithPromoCode;
+}
 
 type OrganizationContextType = {
   organization: Doc<"organizations">;
@@ -32,114 +41,62 @@ export const OrganizationProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const router = useRouter();
   const { slug } = useParams();
-  const cleanSlug =
-    typeof slug === "string" ? slug.split("?")[0].toLowerCase() : "";
+  const cleanSlug = getCleanSlug(slug);
 
   const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn } = useUser();
   const orgRole = (clerkUser?.publicMetadata.role as UserRole) ?? undefined;
 
-  const { organization: clerkOrg, isLoaded: orgLoaded } = useOrganization();
-  const { setActive, isLoaded: orgListLoaded } = useOrganizationList();
+  const [data, setData] = useState<GetOrganizationContextData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const shouldQueryOrg = !!cleanSlug && isClerkLoaded && !!isSignedIn;
-  const orgContext = useQuery(
-    api.organizations.getOrganizationContext,
-    shouldQueryOrg ? { slug: cleanSlug } : "skip"
-  );
-
-  const lastLoadedRef = useRef<number>(Date.now());
-  const lastSetRef = useRef<string | null>(null);
-  const [tookTooLong, setTookTooLong] = useState(false);
+  const getContext = useAction(api.organizations.getOrganizationContext);
 
   useEffect(() => {
-    if (
-      !isClerkLoaded ||
-      !isSignedIn ||
-      !orgLoaded ||
-      !orgListLoaded ||
-      !orgContext?.organization
-    )
-      return;
-    const org = orgContext.organization;
-    if (!org.clerkOrganizationId || !setActive) return;
+    const load = async () => {
+      if (!isClerkLoaded || !isSignedIn) {
+        setData(null);
+        setIsLoading(false);
+        return;
+      }
 
-    const role =
-      (clerkUser?.publicMetadata.role as UserRole | undefined) ?? undefined;
-    const isStaff = isHostlyUser(String(role));
-    const isAdminSlug = org.slug === "admin";
-    if (isAdminSlug && !isStaff) return;
+      setIsLoading(true);
 
-    const expectedId = org.clerkOrganizationId;
-    if (clerkOrg?.id === expectedId || lastSetRef.current === expectedId)
-      return;
+      try {
+        const result = await getContext({ slug: cleanSlug });
 
-    setActive({ organization: expectedId }).finally(() => {
-      lastSetRef.current = expectedId;
-    });
-  }, [
-    isClerkLoaded,
-    isSignedIn,
-    orgLoaded,
-    orgListLoaded,
-    orgContext?.organization,
-    clerkOrg?.id,
-    setActive,
-    clerkUser?.publicMetadata?.role,
-  ]);
-
-  useEffect(() => {
-    const TTL = 2 * 60 * 1000;
-    const onFocus = () => {
-      if (Date.now() - lastLoadedRef.current > TTL) router.refresh();
+        if (result?.organization && result?.user && result?.subscription) {
+          setData(result);
+        } else {
+          setData(null);
+        }
+      } catch {
+        setData(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, [router]);
 
-  useEffect(() => {
-    if (orgContext) lastLoadedRef.current = Date.now();
-  }, [orgContext]);
-
-  useEffect(() => {
-    const id = setTimeout(() => setTookTooLong(true), 8000);
-    return () => clearTimeout(id);
-  }, []);
-
-  const stillLoading = !shouldQueryOrg || orgContext === undefined;
-  const org = orgContext?.organization;
-  const ctxUser = orgContext?.user;
-  const connectedAccountId = orgContext?.connectedAccountId ?? "";
-  const connectedAccountEnabled =
-    orgContext?.connectedAccountStatus === "Verified";
-  const subscription = orgContext?.subscription as
-    | Doc<"subscriptions">
-    | undefined;
-  const availableCredits = orgContext?.availableCredits ?? 0;
+    load();
+  }, [cleanSlug, isClerkLoaded, isSignedIn, getContext]);
 
   const value = useMemo<OrganizationContextType | null>(() => {
-    if (!org || !ctxUser || !subscription) return null;
+    if (!data) {
+      return null;
+    }
+
     return {
-      organization: org,
-      connectedAccountId,
-      connectedAccountEnabled,
-      subscription,
-      availableCredits,
-      user: ctxUser,
+      organization: data.organization,
+      connectedAccountId: data.connectedAccountId ?? "",
+      connectedAccountEnabled: data.connectedAccountStatus === "Verified",
+      subscription: data.subscription,
+      availableCredits: data.availableCredits,
+      user: data.user,
       orgRole,
       cleanSlug,
     };
-  }, [
-    org,
-    ctxUser,
-    subscription,
-    connectedAccountId,
-    connectedAccountEnabled,
-    availableCredits,
-    orgRole,
-    cleanSlug,
-  ]);
+  }, [data, orgRole, cleanSlug]);
 
-  if (isClerkLoaded && !isSignedIn) {
+  if (!isClerkLoaded || !isSignedIn) {
     return (
       <MessagePage
         title="Please sign in"
@@ -150,17 +107,8 @@ export const OrganizationProvider: React.FC<React.PropsWithChildren> = ({
     );
   }
 
-  if (stillLoading) {
-    return tookTooLong ? (
-      <MessagePage
-        title="Reconnecting…"
-        description="Taking longer than usual. Try refreshing."
-        buttonLabel="Retry"
-        onButtonClick={() => router.refresh()}
-      />
-    ) : (
-      <FullLoading />
-    );
+  if (isLoading) {
+    return <FullLoading />;
   }
 
   if (!value) {

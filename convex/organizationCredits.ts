@@ -5,7 +5,7 @@ export const getAvailableGuestListCreditsInternal = internalQuery({
   args: {
     organizationId: v.id("organizations"),
   },
-  handler: async (ctx, args): Promise<Number> => {
+  handler: async (ctx, args): Promise<number> => {
     const { organizationId } = args;
 
     const creditsRecord = await ctx.db
