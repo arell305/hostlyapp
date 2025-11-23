@@ -1,7 +1,7 @@
-import CampaignIdPage from "@/features/campaigns/CampaignIdPage";
+import CampaignIdProvider from "@/features/campaigns/CampaignIdProvider";
 
 const Page = () => {
-  return <CampaignIdPage />;
+  return <CampaignIdProvider />;
 };
 
 export default Page;

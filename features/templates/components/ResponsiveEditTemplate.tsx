@@ -4,9 +4,9 @@ import ResponsiveModal from "@shared/ui/responsive/ResponsiveModal";
 import FormActions from "@shared/ui/buttonContainers/FormActions";
 import { TemplateValues } from "@shared/types/types";
 import { useUpdateSmsTemplate } from "@/domain/smsTemplates";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import TemplateFields from "./TemplateFields";
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Doc } from "@/convex/_generated/dataModel";
 
 interface ResponsiveEditTemplateProps {
   isOpen: boolean;
@@ -42,27 +42,30 @@ const ResponsiveEditTemplate: React.FC<ResponsiveEditTemplateProps> = ({
     }
   }, [isOpen, template]);
 
-  const resetState = () => {
-    setUpdateSmsTemplateError(null);
-    setValues({
-      body: template.body,
-      name: template.name,
-      messageType: template.messageType,
-    });
-  };
+  const hasChanges = useMemo(() => {
+    const trimmedBody = values.body.trim();
+    const trimmedName = values.name.trim();
+    const trimmedMessageType = values.messageType;
+
+    return (
+      trimmedBody !== template.body.trim() ||
+      trimmedName !== template.name.trim() ||
+      trimmedMessageType !== template.messageType
+    );
+  }, [values.body, values.name, values.messageType, template]);
 
   const handleClose = () => {
-    resetState();
+    setUpdateSmsTemplateError(null);
     onOpenChange(false);
   };
 
   const handleSave = async () => {
+    if (!hasChanges) return;
+
     const body = values.body.trim();
     const name = values.name.trim();
 
-    if (!values.messageType || !body || !name) {
-      return;
-    }
+    if (!values.messageType || !body || !name) return;
 
     const success = await updateSmsTemplate({
       smsTemplateId: template._id,
@@ -78,7 +81,8 @@ const ResponsiveEditTemplate: React.FC<ResponsiveEditTemplateProps> = ({
     }
   };
 
-  const isDisabled =
+  const isSubmitDisabled =
+    !hasChanges ||
     !values.body.trim() ||
     !values.name.trim() ||
     !values.messageType ||
@@ -102,7 +106,7 @@ const ResponsiveEditTemplate: React.FC<ResponsiveEditTemplateProps> = ({
           isLoading={updateSmsTemplateLoading}
           submitText="Save Changes"
           error={updateSmsTemplateError}
-          isSubmitDisabled={isDisabled}
+          isSubmitDisabled={isSubmitDisabled}
         />
       </TemplateFields>
     </ResponsiveModal>

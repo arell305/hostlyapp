@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/primitive/dialog";
-import FormActions from "@/shared/ui/buttonContainers/FormActions";
+import FormActions from "../buttonContainers/FormActions";
 
 export interface ConfirmModalProps {
   isOpen: boolean;

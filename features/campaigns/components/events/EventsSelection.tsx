@@ -1,14 +1,13 @@
 "use client";
 
-import SearchInput from "@/features/events/components/SearchInput";
 import SectionContainer from "@/shared/ui/containers/SectionContainer";
-import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
-import { useRef, useState } from "react";
-import NoEventSelected from "./NoEventSelected";
-import EventListForCampaignLoader from "./EventListForCampaignLoader";
-import { EventFilter } from "@/shared/types/types";
 import { useCampaignForm } from "../../contexts/CampaignFormContext";
 import FormActions from "@/shared/ui/buttonContainers/FormActions";
+import SectionBodyContainer from "@/shared/ui/containers/SectionBodyContainer";
+import EventsSelectionContent from "./EventsSelectionContent";
+import EventSelected from "./EventSelected";
+import IconButton from "@/shared/ui/buttonContainers/IconButton";
+import { ArrowLeftIcon } from "lucide-react";
 
 interface EventsSelectionProps {
   triggerCancelModal: () => void;
@@ -19,54 +18,26 @@ const EventsSelection: React.FC<EventsSelectionProps> = ({
 }) => {
   const { nextStep, formData, updateFormData } = useCampaignForm();
 
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const [selectedTab, setSelectedTab] = useState<EventFilter>("upcoming");
-
-  const showSearchInput = selectedTab === "upcoming" || selectedTab === "past";
-
   const isNextDisabled = formData.eventId === undefined;
 
-  const handleTabChange = (value: EventFilter) => {
-    setSelectedTab(value);
-    if (value === "none") {
-      updateFormData({ eventId: null });
-    } else {
-      updateFormData({ eventId: undefined });
-    }
+  const isEventSelected = !!formData.eventId;
+
+  const handleBack = () => {
+    updateFormData({ eventId: undefined });
   };
 
   return (
-    <SectionContainer>
-      <h2>Choose Event for Campaign</h2>
+    <SectionContainer className="gap-0">
+      <SectionBodyContainer>
+        <div className="flex items-center gap-x-2">
+          {isEventSelected && (
+            <IconButton icon={<ArrowLeftIcon />} onClick={handleBack} />
+          )}
+          <h2>Choose Event for Campaign</h2>
+        </div>
 
-      <ToggleTabs
-        options={[
-          { label: "Upcoming", value: "upcoming" },
-          { label: "Past", value: "past" },
-          { label: "None", value: "none" },
-        ]}
-        value={selectedTab}
-        onChange={handleTabChange}
-      />
-
-      {showSearchInput ? (
-        <>
-          <SearchInput
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            searchInputRef={searchInputRef}
-            placeholder="Search events..."
-          />
-
-          <EventListForCampaignLoader
-            eventFilter={selectedTab}
-            searchTerm={searchTerm}
-          />
-        </>
-      ) : (
-        <NoEventSelected />
-      )}
+        {isEventSelected ? <EventSelected /> : <EventsSelectionContent />}
+      </SectionBodyContainer>
       <FormActions
         onCancel={triggerCancelModal}
         onSubmit={nextStep}

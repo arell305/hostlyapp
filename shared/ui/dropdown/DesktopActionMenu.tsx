@@ -10,7 +10,7 @@ import { ReactNode } from "react";
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  trigger: ReactNode;
+  trigger?: ReactNode;
   children: ReactNode;
   menuWidth?: string;
   menuPadding?: string;
@@ -26,7 +26,8 @@ export default function DesktopActionMenu({
 }: Props) {
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
-      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+      {trigger && <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>}
+
       <DropdownMenuContent
         align="end"
         className={`${menuWidth} ${menuPadding}`}

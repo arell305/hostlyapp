@@ -5,6 +5,7 @@ import FullLoading from "@shared/ui/loading/FullLoading";
 import {
   useContextOrganization,
   useEventIdScope,
+  useUserScope,
 } from "@/shared/hooks/contexts";
 import { isAdmin, isHostlyUser, isManager } from "@/shared/utils/permissions";
 import { isModerator, isPromoter } from "@/shared/utils/permissions";
@@ -23,6 +24,7 @@ export default function EventIdPage() {
     availableCredits,
     orgRole,
     cleanSlug,
+    user,
   } = useContextOrganization();
 
   const canCheckInGuests = isModerator(orgRole);
@@ -33,9 +35,18 @@ export default function EventIdPage() {
 
   const getEventByIdResponse = useQuery(api.events.getEventById, { eventId });
 
-  const handleNavigateHome = () => {
+  const handleGoBack = () => {
     NProgress.start();
-    router.push(`/${cleanSlug}/app/`);
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(`/${cleanSlug}/app/`);
+    }
+  };
+
+  const handleGoHome = () => {
+    NProgress.start();
+    router.push(`/${cleanSlug}/app`);
   };
 
   const handleAddGuestList = () => {
@@ -52,6 +63,12 @@ export default function EventIdPage() {
     NProgress.start();
     router.push(`/${cleanSlug}/app`);
   };
+  const handleAddCampaign = () => {
+    NProgress.start();
+    router.push(
+      `/${cleanSlug}/app/campaigns/${user._id}/add?eventId=${eventId}`
+    );
+  };
 
   if (!getEventByIdResponse) {
     return <FullLoading />;
@@ -61,7 +78,7 @@ export default function EventIdPage() {
     return (
       <MessagePage
         buttonLabel="Home"
-        onButtonClick={handleNavigateHome}
+        onButtonClick={handleGoHome}
         title="Event Not Found"
         description="The event you are looking for does not exist."
       />
@@ -74,7 +91,7 @@ export default function EventIdPage() {
       isAppAdmin={isAppAdmin}
       isStripeEnabled={connectedAccountEnabled}
       subscription={subscription}
-      handleNavigateHome={handleNavigateHome}
+      handleGoBack={handleGoBack}
       canCheckInGuests={canCheckInGuests}
       canUploadGuest={canUploadGuest}
       canEditEvent={canEditEvent}
@@ -89,6 +106,8 @@ export default function EventIdPage() {
       isCompanyAdmin={isCompanyAdmin}
       availableCredits={availableCredits}
       onDeleteSuccess={handleDeleteSuccess}
+      canCreateCampaign={!canCheckInGuests}
+      onAddCampaign={handleAddCampaign}
     />
   );
 }

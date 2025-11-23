@@ -49,7 +49,12 @@ export type SmsMessageDirection = "inbound" | "outbound";
 export type AuthorType = "guest" | "host" | "ai";
 export type MessageStatus = "pending" | "sent" | "failed";
 
-export type ActiveTab = "view" | "guestList" | "ticketInfo" | "summary";
+export type ActiveTab =
+  | "view"
+  | "guestList"
+  | "ticketInfo"
+  | "summary"
+  | "campaigns";
 export type ActiveStripeTab = "document" | "payouts" | "payments";
 
 export type Gender = "male" | "female";

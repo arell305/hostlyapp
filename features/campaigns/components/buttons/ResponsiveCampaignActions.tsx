@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { EllipsisVertical } from "lucide-react";
-import { Doc } from "@/convex/_generated/dataModel";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 import useMediaQuery from "@/shared/hooks/ui/useMediaQuery";
 import { DESKTOP_WIDTH } from "@shared/types/constants";
 import IconButton from "@/shared/ui/buttonContainers/IconButton";
@@ -12,29 +12,38 @@ import CampaignActionMenuContent from "./CampaignActionMenuContent";
 
 type Props = {
   campaign: Doc<"campaigns">;
-  onEdit: () => void;
-  onDelete: () => void;
-  onCancel: () => void;
+  onDelete: (id: Id<"campaigns">) => void;
+  onCancel: (id: Id<"campaigns">) => void;
+  onReactivate: (id: Id<"campaigns">) => void;
+  onResume: (id: Id<"campaigns">) => void;
+  onOpenEvent?: () => void;
+  onEdit?: (campaign: Doc<"campaigns">) => void;
 };
 
 export default function ResponsiveCampaignActions({
   campaign,
-  onEdit,
   onDelete,
   onCancel,
+  onReactivate,
+  onResume,
+  onOpenEvent,
+  onEdit,
 }: Props) {
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
 
   const handleClose = () => setOpen(false);
 
   const menu = (
     <CampaignActionMenuContent
       campaign={campaign}
-      onEdit={onEdit}
       onDelete={onDelete}
       onCancel={onCancel}
       onClose={handleClose}
+      onReactivate={onReactivate}
+      onResume={onResume}
+      onOpenEvent={onOpenEvent}
+      onEdit={onEdit}
     />
   );
 
@@ -43,6 +52,7 @@ export default function ResponsiveCampaignActions({
       icon={<EllipsisVertical />}
       onClick={() => setOpen(true)}
       variant="ghost"
+      title="More actions"
     />
   );
 
@@ -56,7 +66,6 @@ export default function ResponsiveCampaignActions({
       </DesktopActionMenu>
     );
   }
-
   return (
     <MobileActionDrawer
       isOpen={open}

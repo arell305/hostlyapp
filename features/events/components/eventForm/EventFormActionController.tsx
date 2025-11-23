@@ -36,6 +36,7 @@ const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
   onSubmit,
   organizationId,
 }) => {
+  const { hasChanges } = useEventForm();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const {
     eventName,
@@ -53,6 +54,7 @@ const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
     setErrors,
   } = useEventForm();
   const isSubmitDisabled =
+    !hasChanges ||
     !eventName.trim() ||
     !startTime ||
     !endTime ||

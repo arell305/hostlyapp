@@ -3,7 +3,7 @@
 import { AddButton } from "@shared/ui/buttonContainers/NewItemButton";
 import PageContainer from "@shared/ui/containers/PageContainer";
 import SectionHeaderWithAction from "@shared/ui/headings/SectionHeaderWithAction";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ContactsLoader from "@/features/contacts/components/ContactsLoader";
 import ResponsiveAddContact from "@/features/contacts/components/ResponsiveAddContact";
 import { useUserScope } from "@/shared/hooks/contexts";
@@ -15,6 +15,7 @@ import { DESKTOP_WIDTH } from "@/shared/types/constants";
 import AddContactsMenuContent from "./components/AddContactsMenuContent";
 import MobileActionDrawer from "@/shared/ui/drawer/MobileActionDrawer";
 import AddContactTriggerButton from "./components/AddContactTriggerButton";
+import SearchInput from "../events/components/SearchInput";
 
 const ContactsIdPage = () => {
   const { userId } = useUserScope();
@@ -23,6 +24,8 @@ const ContactsIdPage = () => {
     useState<boolean>(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadContacts = () => {
     setIsUploadingContactsModal(true);
@@ -70,8 +73,13 @@ const ContactsIdPage = () => {
           )
         }
       />
-
-      <ContactsLoader userId={userId} />
+      <SearchInput
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        searchInputRef={searchInputRef}
+        placeholder="Search contacts..."
+      />
+      <ContactsLoader userId={userId} searchTerm={searchTerm} />
 
       <ResponsiveAddContact
         isOpen={isAddingContact}

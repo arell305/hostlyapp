@@ -2,21 +2,26 @@
 import { useCampaigns } from "@/domain/campaigns";
 import { useUserScope } from "@/shared/hooks/contexts";
 import CampaignsSection from "../CampaignsSection";
-import { CampaignFilter, CampaignStatus } from "@/shared/types/types";
+import { CampaignFilterStatus } from "@/shared/types/types";
 
 interface CampaignsLoaderProps {
-  selectedTab: CampaignStatus;
+  selectedTab: CampaignFilterStatus;
+  searchTerm: string;
 }
 
-const CampaignsLoader = ({ selectedTab }: CampaignsLoaderProps) => {
+const CampaignsLoader = ({ selectedTab, searchTerm }: CampaignsLoaderProps) => {
   const { userId } = useUserScope();
-  const campaigns = useCampaigns(userId, selectedTab);
+
+  const isActive = selectedTab !== "Archived";
+
+  const status = selectedTab !== "Archived" ? selectedTab : undefined;
+  const campaigns = useCampaigns(userId, status, isActive);
 
   if (!campaigns) {
     return;
   }
 
-  return <CampaignsSection campaigns={campaigns} />;
+  return <CampaignsSection campaigns={campaigns} searchTerm={searchTerm} />;
 };
 
 export default CampaignsLoader;

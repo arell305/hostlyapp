@@ -207,3 +207,11 @@ export function formatCentsToDollars(cents: number): string {
     currency: "USD",
   }).format(cents / 100);
 }
+
+export const hasFormValue = <T>(value: T | null | undefined): value is T => {
+  if (value == null) return false;
+  if (typeof value === "string") return value.trim() !== "";
+  if (Array.isArray(value)) return value.length > 0;
+  if (value && typeof value === "object") return Object.keys(value).length > 0;
+  return true;
+};

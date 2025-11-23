@@ -19,7 +19,11 @@ const AddCampaignPage = () => {
 
   const handleConfirmCancel = () => {
     setConfirmCancelModal(false);
-    router.push(stripAddSegment(pathname));
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(stripAddSegment(pathname));
+    }
   };
 
   const handleTriggerCancelModal = () => {

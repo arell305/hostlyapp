@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import IconButton from "@shared/ui/buttonContainers/IconButton";
 import TopBarContainer from "@shared/ui/containers/TopBarContainer";
 import CenteredTitle from "@shared/ui/headings/CenteredTitle";
@@ -21,11 +21,19 @@ const AddGuestTopRow: React.FC<AddGuestTopRowProps> = ({
     <TopBarContainer>
       {" "}
       <div className="">
-        <IconButton icon={<Home size={20} />} onClick={handleGoHome} />
+        <IconButton
+          icon={<ArrowLeft size={20} />}
+          onClick={handleGoHome}
+          title="Go Back"
+        />
       </div>
       <CenteredTitle title={eventData.name} />
       <div className=" flex justify-end">
-        <IconButton icon={<X size={20} />} onClick={handleGoBack} />
+        <IconButton
+          icon={<X size={20} />}
+          onClick={handleGoBack}
+          title="Close"
+        />
       </div>
     </TopBarContainer>
   );

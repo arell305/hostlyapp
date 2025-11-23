@@ -1,8 +1,9 @@
 "use client";
+
+import { useEffect, useState } from "react";
 import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
 import { CampaignTab } from "@/shared/types/types";
 import PageContainer from "@/shared/ui/containers/PageContainer";
-import { useState } from "react";
 import { useCampaignScope } from "@/shared/hooks/contexts/useCampaignScope";
 import { useUpdateCampaign } from "@/domain/campaigns";
 import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
@@ -12,21 +13,20 @@ import { useUserScope } from "@/shared/hooks/contexts";
 import CampaignNav from "./components/campaign/CampaignNav";
 import CampaignIdContent from "./components/CampaignIdContent";
 import MessagingTab from "./components/messages/MessagingTab";
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { useCampaignForm } from "@/shared/hooks/contexts/campaign/useCampaignForm";
 
 const CampaignIdPage = () => {
   const router = useRouter();
   const { cleanSlug } = useContextOrganization();
   const { userId } = useUserScope();
-  const { campaign } = useCampaignScope();
-  const [selectedTab, setSelectedTab] = useState<CampaignTab>("messages");
-  const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const { campaign, isEditing, setIsEditing } = useCampaignScope();
+  const { hasChanges: hasCampaignUpdateChanges } = useCampaignForm();
 
-  const showConfirmDeleteModal = () => {
-    setShowConfirmDelete(true);
-    setUpdateCampaignError(null);
-  };
+  const initialTab: CampaignTab = isEditing ? "details" : "messages";
+  const [selectedTab, setSelectedTab] = useState<CampaignTab>(initialTab);
+  const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
+  const [showConfirmMessagesCancel, setShowConfirmMessagesCancel] =
+    useState<boolean>(false);
 
   const {
     updateCampaign,
@@ -35,67 +35,126 @@ const CampaignIdPage = () => {
     setUpdateCampaignError,
   } = useUpdateCampaign();
 
-  const handleCloseConfirmDeleteModal = () => {
-    setShowConfirmDelete(false);
-    setUpdateCampaignError(null);
-  };
-
-  const handleDelete = async (): Promise<void> => {
-    const success = await updateCampaign({
-      campaignId: campaign._id,
-      updates: { isActive: false },
-    });
-
-    if (success) {
-      handleCloseConfirmDeleteModal();
-      router.push(`/${cleanSlug}/app/campaigns/${userId}`);
+  useEffect(() => {
+    if (isEditing) {
+      setSelectedTab("details");
     }
-  };
+  }, [isEditing]);
 
   const handleEdit = () => {
     setIsEditing(true);
   };
 
-  const handleCancel = async () => {
-    await updateCampaign({
+  const handleTabChange = (tab: CampaignTab) => {
+    if (tab === "messages" && isEditing) {
+      if (hasCampaignUpdateChanges) {
+        setShowConfirmMessagesCancel(true);
+      } else {
+        setSelectedTab(tab);
+        setIsEditing(false);
+      }
+    } else {
+      setSelectedTab(tab);
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    setSelectedTab("messages");
+    setIsEditing(false);
+    setShowConfirmMessagesCancel(false);
+  };
+
+  const handleDelete = async () => {
+    const success = await updateCampaign({
+      campaignId: campaign._id,
+      updates: { isActive: false },
+    });
+    if (success) {
+      router.push(`/${cleanSlug}/app/campaigns/${userId}`);
+    }
+  };
+
+  const handleCancel = () =>
+    updateCampaign({
       campaignId: campaign._id,
       updates: { status: "Cancelled" },
     });
+  const handleReactivate = () =>
+    updateCampaign({ campaignId: campaign._id, updates: { isActive: true } });
+  const handleResume = () =>
+    updateCampaign({
+      campaignId: campaign._id,
+      updates: { status: "Scheduled" },
+    });
+
+  const handleOpenEvent = () => {
+    if (campaign.eventId) {
+      router.push(`/${cleanSlug}/app/events/${campaign.eventId}`);
+    }
   };
 
   return (
     <PageContainer>
       <CampaignNav
         campaign={campaign}
-        onDelete={showConfirmDeleteModal}
+        onDelete={() => setShowConfirmDelete(true)}
         onEdit={handleEdit}
         onCancel={handleCancel}
+        isEditing={isEditing}
+        setIsEditing={setIsEditing}
+        onReactivate={handleReactivate}
+        onResume={handleResume}
+        onOpenEvent={handleOpenEvent}
       />
+
       <ToggleTabs
         options={[
           { label: "Messages", value: "messages" },
           { label: "Details", value: "details" },
         ]}
         value={selectedTab}
-        onChange={setSelectedTab}
+        onChange={handleTabChange}
       />
 
       {selectedTab === "details" && <CampaignIdContent />}
       {selectedTab === "messages" && <MessagingTab />}
+
+      {/* Archive Confirmation */}
       <ResponsiveConfirm
         isOpen={showConfirmDelete}
-        title="Confirm Archive"
+        title="Archive Campaign"
         confirmText="Yes, Archive"
-        cancelText="No, Cancel"
+        cancelText="Cancel"
         confirmVariant="destructive"
-        content={
-          "Are you sure you want to delete this campaign? All pending messages will be stopped."
-        }
+        content="This will stop all pending messages."
         error={updateCampaignError}
         isLoading={updateCampaignLoading}
         modalProps={{
-          onClose: handleCloseConfirmDeleteModal,
+          onClose: () => {
+            setShowConfirmDelete(false);
+            setUpdateCampaignError(null);
+          },
           onConfirm: handleDelete,
+        }}
+      />
+
+      {/* Discard Changes Confirmation */}
+      <ResponsiveConfirm
+        isOpen={showConfirmMessagesCancel}
+        title="Discard Changes?"
+        confirmText="Discard"
+        cancelText="Stay"
+        confirmVariant="destructive"
+        content="You have unsaved changes. They will be lost if you leave."
+        error={null}
+        isLoading={false}
+        modalProps={{
+          onClose: () => setShowConfirmMessagesCancel(false),
+          onConfirm: handleConfirmDiscard,
+        }}
+        drawerProps={{
+          onOpenChange: () => setShowConfirmMessagesCancel(false),
+          onSubmit: handleConfirmDiscard,
         }}
       />
     </PageContainer>

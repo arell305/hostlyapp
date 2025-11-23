@@ -6,16 +6,17 @@ import ContactsSection from "./ContactsSection";
 
 type ContactsLoaderProps = {
   userId?: Id<"users">;
+  searchTerm: string;
 };
 
-const ContactsLoader = ({ userId }: ContactsLoaderProps) => {
+const ContactsLoader = ({ userId, searchTerm }: ContactsLoaderProps) => {
   const contacts = useContacts(userId);
 
   if (!contacts) {
     return;
   }
 
-  return <ContactsSection contacts={contacts} />;
+  return <ContactsSection contacts={contacts} searchTerm={searchTerm} />;
 };
 
 export default ContactsLoader;

@@ -6,6 +6,7 @@ import { FrontendErrorMessages } from "@/shared/types/enums";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { CampaignStatus } from "@/shared/types/types";
+import { setErrorFromConvexError } from "@/shared/lib/errorHelper";
 
 interface UpdateCampaignInput {
   campaignId: Id<"campaigns">;
@@ -13,7 +14,7 @@ interface UpdateCampaignInput {
     name?: string;
     isActive?: boolean;
     eventId?: Id<"events">;
-    scheduleTime?: number;
+    scheduleTime?: number | null;
     relativeOffsetMinutes?: number;
     promptResponse?: string;
     status?: CampaignStatus;
@@ -42,8 +43,7 @@ export const useUpdateCampaign = () => {
 
       return { success: true, campaignId: response };
     } catch (err) {
-      console.error(FrontendErrorMessages.GENERIC_ERROR, err);
-      setError(FrontendErrorMessages.GENERIC_ERROR);
+      setErrorFromConvexError(err, setError);
       return { success: false };
     } finally {
       setLoading(false);

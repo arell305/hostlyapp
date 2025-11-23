@@ -9,23 +9,15 @@ import { Doc } from "@/convex/_generated/dataModel";
 
 interface ContactsSectionProps {
   contacts: Doc<"contacts">[];
+  searchTerm: string;
 }
 
-const ContactsSection = ({ contacts }: ContactsSectionProps) => {
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
+const ContactsSection = ({ contacts, searchTerm }: ContactsSectionProps) => {
   const filteredContacts = useMemo(() => {
     return filterContactsByName(contacts, searchTerm);
   }, [contacts, searchTerm]);
   return (
     <SectionContainer>
-      <SearchInput
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        searchInputRef={searchInputRef}
-        placeholder="Search contacts..."
-      />
       {filteredContacts.length > 0 ? (
         <ContactsContent contacts={filteredContacts} />
       ) : (

@@ -4,7 +4,11 @@ import { useSmsTemplates } from "@/domain/smsTemplates";
 import { useUserScope } from "@/shared/hooks/contexts";
 import TemplatesSection from "./TemplatesSection";
 
-const TemplatesLoader = () => {
+interface TemplatesLoaderProps {
+  searchTerm: string;
+}
+
+const TemplatesLoader = ({ searchTerm }: TemplatesLoaderProps) => {
   const { userId } = useUserScope();
   const smsTemplates = useSmsTemplates(userId);
 
@@ -12,7 +16,7 @@ const TemplatesLoader = () => {
     return;
   }
 
-  return <TemplatesSection templates={smsTemplates} />;
+  return <TemplatesSection templates={smsTemplates} searchTerm={searchTerm} />;
 };
 
 export default TemplatesLoader;

@@ -1,86 +1,96 @@
 "use client";
 
-import { Home, Plus } from "lucide-react";
+import { ArrowLeft, Pen, Plus, X } from "lucide-react";
 import IconButton from "@shared/ui/buttonContainers/IconButton";
 import TopBarContainer from "@shared/ui/containers/TopBarContainer";
 import CenteredTitle from "@shared/ui/headings/CenteredTitle";
 import { Doc } from "convex/_generated/dataModel";
-import EventActionMenuContent from "./EventActionMenuContent";
-import GenericEditDeleteButton from "@/shared/ui/buttonContainers/GenericEditDelete";
+import ResponsivePromoterMenuContent from "./nav/ResponsivePromoterMenuContent";
+import ResponsiveAdminMenuContent from "./nav/ResponsiveAdminMenuContent";
+import { useEventForm } from "@/shared/hooks/contexts";
+import IconButtonContainer from "@/shared/ui/buttonContainers/IconButtonContainer";
 
 interface TopRowNavProps {
   eventData: Doc<"events">;
   isAdminOrg: boolean;
-  isEditing: boolean;
-  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   onCancelEdit: () => void;
-  handleGoHome: () => void;
+  handleGoBack: () => void;
   canUploadGuest: boolean;
   canEditEvent: boolean;
   handleAddGuestList: () => void;
   isGuestListOpen: boolean;
   guestListInfo?: Doc<"guestListInfo"> | null;
   onDelete: () => void;
+  onAddCampaign: () => void;
 }
 
 const TopRowNav: React.FC<TopRowNavProps> = ({
   eventData,
   isGuestListOpen,
-  isEditing,
-  setIsEditing,
   onCancelEdit,
-  handleGoHome,
+  handleGoBack,
   canUploadGuest,
   canEditEvent,
   handleAddGuestList,
   guestListInfo,
   onDelete,
+  onAddCampaign,
 }) => {
+  const { setIsEditing, isEditing } = useEventForm();
+  const handleEdit = () => {
+    setIsEditing?.(!isEditing);
+  };
+
   return (
     <TopBarContainer className="">
-      {" "}
       <div className="">
         <IconButton
-          icon={<Home size={20} />}
-          onClick={handleGoHome}
-          title="Home"
-          disabled={isEditing}
+          icon={<ArrowLeft size={20} />}
+          onClick={handleGoBack}
+          title="Back"
         />
       </div>
       <CenteredTitle title={eventData.name} />
-      <div className=" flex justify-end">
-        {canEditEvent && (
-          <GenericEditDeleteButton
-            doc={eventData}
-            isEditing={isEditing}
-            onToggleEdit={() => setIsEditing((prev) => !prev)}
-            onCancelEdit={onCancelEdit}
-            onDelete={onDelete}
-            entityName="Event"
-            renderMobileMenu={({ onEdit, onDelete, onClose }) => (
-              <EventActionMenuContent
-                event={eventData}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onClose={onClose}
-              />
-            )}
-          />
-        )}
-        {canUploadGuest &&
-          guestListInfo &&
-          (isGuestListOpen ? (
+      <div className="flex justify-end gap-2 items-center">
+        {canEditEvent &&
+          (isEditing ? (
             <IconButton
-              icon={<Plus size={20} />}
-              onClick={handleAddGuestList}
-              title="Add Guest List"
-              disabled={!isGuestListOpen}
+              icon={<X size={20} />}
+              onClick={onCancelEdit}
+              title="Cancel Editing"
             />
           ) : (
-            <span className="text-sm text-muted-foreground">
-              Guest List Closed
-            </span>
+            <IconButtonContainer>
+              <IconButton
+                icon={<Pen size={20} />}
+                onClick={handleEdit}
+                title="Edit Event"
+              />
+              <ResponsiveAdminMenuContent
+                event={eventData}
+                onDelete={onDelete}
+                onAddCampaign={onAddCampaign}
+              />
+            </IconButtonContainer>
           ))}
+
+        <IconButtonContainer>
+          {canUploadGuest &&
+            guestListInfo &&
+            (isGuestListOpen ? (
+              <IconButton
+                icon={<Plus size={20} />}
+                onClick={handleAddGuestList}
+                title="Add Guest List"
+              />
+            ) : (
+              <span className="text-sm ">Guest List Closed</span>
+            ))}
+
+          {canUploadGuest && (
+            <ResponsivePromoterMenuContent onAddCampaign={onAddCampaign} />
+          )}
+        </IconButtonContainer>
       </div>
     </TopBarContainer>
   );

@@ -12,6 +12,7 @@ interface SearchInputProps {
   setSearchTerm: (value: string) => void;
   searchInputRef: RefObject<HTMLInputElement>;
   placeholder?: string;
+  className?: string;
 }
 
 const SearchInput: React.FC<SearchInputProps> = ({
@@ -19,6 +20,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   setSearchTerm,
   searchInputRef,
   placeholder = "Search...",
+  className,
 }) => {
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
@@ -38,7 +40,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
 
   return (
     <div
-      className="relative flex items-center   rounded-md "
+      className={`relative flex items-center  rounded-md ${className}`}
       onClick={handleClick}
     >
       <FaSearch className="absolute left-4 text-grayText" />

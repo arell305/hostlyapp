@@ -19,7 +19,8 @@ export default function MenuCancel<T extends { _id: string }>({
     <Button
       variant="menu"
       size="menu"
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation();
         onCancel(doc._id);
         onClose();
       }}

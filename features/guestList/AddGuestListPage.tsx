@@ -25,7 +25,11 @@ const AddGuestListPage: React.FC = () => {
   }
 
   const handleGoBack = () => {
-    router.back();
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(`/${cleanSlug}/app/events/${eventId}`);
+    }
   };
 
   const handleNavigateHome = () => {

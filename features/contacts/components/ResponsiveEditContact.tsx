@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ResponsiveModal from "@/shared/ui/responsive/ResponsiveModal";
 import FormActions from "@/shared/ui/buttonContainers/FormActions";
 import { Doc } from "convex/_generated/dataModel";
@@ -40,9 +40,17 @@ const ResponsiveEditContact: React.FC<Props> = ({
     }
   }, [contact]);
 
+  const hasChanges = useMemo(() => {
+    if (!contact) return false;
+    const trimmedName = values.name.trim();
+    const trimmedPhone = values.phoneNumber.trim();
+    const originalName = (contact.name || "").trim();
+    const originalPhone = (contact.phoneNumber || "").trim();
+    return trimmedName !== originalName || trimmedPhone !== originalPhone;
+  }, [values.name, values.phoneNumber, contact]);
+
   const resetState = () => {
     setUpdateContactError(null);
-    setValues({ name: "", phoneNumber: "" });
   };
 
   const handleClose = () => {
@@ -51,21 +59,23 @@ const ResponsiveEditContact: React.FC<Props> = ({
   };
 
   const handleSave = async () => {
-    if (!contact?._id) {
-      return;
-    }
-    const name = values.name.trim();
-    const phoneNumber = values.phoneNumber.trim();
+    if (!contact?._id || !hasChanges) return;
+
     const result = await updateContact({
       contactId: contact._id,
-      updates: { name, phoneNumber },
+      updates: {
+        name: values.name.trim(),
+        phoneNumber: values.phoneNumber.trim(),
+      },
     });
+
     if (result) {
       handleClose();
     }
   };
 
-  const isDisabled =
+  const isSubmitDisabled =
+    !hasChanges ||
     !values.name.trim() ||
     !values.phoneNumber.trim() ||
     updateContactLoading ||
@@ -86,9 +96,9 @@ const ResponsiveEditContact: React.FC<Props> = ({
           onCancel={handleClose}
           onSubmit={handleSave}
           isLoading={updateContactLoading}
-          submitText="Save"
+          submitText="Save Changes"
           error={updateContactError}
-          isSubmitDisabled={isDisabled}
+          isSubmitDisabled={isSubmitDisabled}
         />
       </ContactFields>
     </ResponsiveModal>

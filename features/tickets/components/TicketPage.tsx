@@ -1,9 +1,10 @@
 "use client";
 
 import { Id } from "convex/_generated/dataModel";
-import TicketContent from "./TicketContent";
 import SubPageContainer from "@shared/ui/containers/SubPageContainer";
-import { useTicketsByEventId } from "@/domain/tickets/";
+import TicketsLoader from "./TicketsLoader";
+import { useRef, useState } from "react";
+import SearchInput from "@/features/events/components/SearchInput";
 
 interface TicketPageProps {
   eventId: Id<"events">;
@@ -14,15 +15,22 @@ const TicketPage: React.FC<TicketPageProps> = ({
   eventId,
   canCheckInGuests,
 }) => {
-  const result = useTicketsByEventId(eventId);
-
-  if (!result) {
-    return;
-  }
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <SubPageContainer>
-      <TicketContent tickets={result} canCheckInGuests={canCheckInGuests} />
+      <SearchInput
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        searchInputRef={searchInputRef}
+        placeholder="Search Ticket ID..."
+      />
+      <TicketsLoader
+        eventId={eventId}
+        canCheckInGuests={canCheckInGuests}
+        searchTerm={searchTerm}
+      />
     </SubPageContainer>
   );
 };

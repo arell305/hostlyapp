@@ -1,10 +1,9 @@
 "use client";
 
 import useRedeemTicket from "@/domain/tickets/useRedeemTicket";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { filterBySearchTerm } from "@shared/utils/format";
 import SectionContainer from "@shared/ui/containers/SectionContainer";
-import SearchInput from "../../events/components/SearchInput";
 import ResponsiveConfirm from "@shared/ui/responsive/ResponsiveConfirm";
 import { TicketSchemaWithPromoter } from "@shared/types/schemas-types";
 import TicketList from "@/features/tickets/components/TicketList";
@@ -12,11 +11,13 @@ import TicketList from "@/features/tickets/components/TicketList";
 interface TicketContentProps {
   tickets: TicketSchemaWithPromoter[];
   canCheckInGuests: boolean;
+  searchTerm: string;
 }
 
 const TicketContent: React.FC<TicketContentProps> = ({
   tickets,
   canCheckInGuests,
+  searchTerm,
 }) => {
   const {
     redeemTicketError,
@@ -27,9 +28,7 @@ const TicketContent: React.FC<TicketContentProps> = ({
     setRedeemTicketError,
   } = useRedeemTicket();
 
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [showRedeemModal, setShowRedeemModal] = useState<boolean>(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleConfirmRedeem = async () => {
     const result = await handleRedeem();
@@ -45,14 +44,7 @@ const TicketContent: React.FC<TicketContentProps> = ({
   }, [tickets, searchTerm]);
 
   return (
-    <SectionContainer>
-      <SearchInput
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        searchInputRef={searchInputRef}
-        placeholder="Search Ticket ID..."
-      />
-
+    <SectionContainer className="mt-4">
       <TicketList
         tickets={filteredTickets}
         canCheckInTickets={canCheckInGuests}

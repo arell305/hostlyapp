@@ -5,7 +5,8 @@ import { useQuery } from "convex/react";
 
 export function useCampaigns(
   userId: Id<"users">,
-  status?: CampaignStatus
+  status?: CampaignStatus,
+  isActive?: boolean
 ): Doc<"campaigns">[] | undefined {
-  return useQuery(api.campaigns.getCampaigns, { userId, status });
+  return useQuery(api.campaigns.getCampaigns, { userId, status, isActive });
 }

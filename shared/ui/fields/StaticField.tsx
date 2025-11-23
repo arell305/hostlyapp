@@ -7,7 +7,7 @@ import { FiCopy } from "react-icons/fi";
 
 interface StaticFieldProps {
   label: string;
-  value: string | number | null;
+  value: ReactNode;
   secondaryValue?: string | null;
   className?: string;
   icon?: ReactNode;

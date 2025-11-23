@@ -17,6 +17,7 @@ interface TemplateFieldsProps {
   onChange: (patch: Partial<TemplateValues>) => void;
   className?: string;
   children?: React.ReactNode;
+  showName?: boolean;
 }
 
 const TemplateFields = ({
@@ -24,6 +25,7 @@ const TemplateFields = ({
   onChange,
   className,
   children,
+  showName = true,
 }: TemplateFieldsProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [messageType, setMessageType] = useState<"manual" | "ai">("manual");
@@ -58,13 +60,15 @@ const TemplateFields = ({
         required
       />
 
-      <LabeledInputField
-        label="Name*"
-        name="name"
-        value={values.name}
-        onChange={(e) => onChange({ name: e.target.value })}
-        placeholder="Enter name of template"
-      />
+      {showName && (
+        <LabeledInputField
+          label="Name*"
+          value={values.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+          placeholder="Enter template name"
+          name="name"
+        />
+      )}
 
       <VariablesInserter
         label="Insert Variables"

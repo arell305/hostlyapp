@@ -1,13 +1,21 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
-import { Id } from "@/convex/_generated/dataModel";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+} from "react";
+import { Doc, Id } from "@/convex/_generated/dataModel";
+import { TemplateMode } from "@/shared/types/types";
 
 type CampaignFormStep = "event" | "template" | "details";
 
 interface CampaignFormData {
   eventId?: Id<"events"> | null;
   templateId?: Id<"smsTemplates"> | null;
-  body?: string;
+  body: string | null;
   subject?: string;
   content?: string;
   sendAt: number | null;
@@ -25,6 +33,11 @@ interface CampaignFormContextType {
   isSubmitDisabled: boolean;
   sendType: "now" | "later";
   handleSendTypeChange: (type: "now" | "later") => void;
+  templateMode: TemplateMode;
+  setTemplateMode: (mode: TemplateMode) => void;
+  template: Doc<"smsTemplates"> | null;
+  setTemplate: (template: Doc<"smsTemplates"> | null) => void;
+  resetForm: () => void;
 }
 
 const CampaignFormContext = createContext<CampaignFormContextType | undefined>(
@@ -37,41 +50,74 @@ export const CAMPAIGN_FORM_STEPS: CampaignFormStep[] = [
   "details",
 ];
 
-export const CampaignFormProvider = ({ children }: { children: ReactNode }) => {
+interface CampaignFormProviderProps {
+  children: ReactNode;
+  initialEventId?: Id<"events"> | null; // ← from URL query param
+}
+
+export const CampaignFormProvider = ({
+  children,
+  initialEventId,
+}: CampaignFormProviderProps) => {
   const [formData, setFormData] = useState<CampaignFormData>({
-    eventId: null,
-    templateId: null,
+    eventId: initialEventId ? (initialEventId as Id<"events">) : undefined,
+    templateId: undefined,
     name: "",
     sendAt: null,
+    body: null,
+    subject: undefined,
+    content: undefined,
+    timezone: undefined,
   });
-  const [currentStep, setCurrentStep] = useState<CampaignFormStep>("event");
+
+  const [currentStep, setCurrentStep] = useState<CampaignFormStep>(() => {
+    return initialEventId ? "template" : "event";
+  });
   const [sendType, setSendType] = useState<"now" | "later">("now");
+  const [templateMode, setTemplateMode] = useState<TemplateMode>("list");
+  const [template, setTemplate] = useState<Doc<"smsTemplates"> | null>(null);
 
   const handleSendTypeChange = (type: "now" | "later") => {
     setSendType(type);
   };
 
-  const updateFormData = (data: Partial<CampaignFormData>) => {
+  const updateFormData = useCallback((data: Partial<CampaignFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
-  };
+  }, []);
 
-  const goToStep = (step: CampaignFormStep) => {
+  const goToStep = useCallback((step: CampaignFormStep) => {
     setCurrentStep(step);
-  };
+  }, []);
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     const currentIndex = CAMPAIGN_FORM_STEPS.indexOf(currentStep);
     if (currentIndex < CAMPAIGN_FORM_STEPS.length - 1) {
       setCurrentStep(CAMPAIGN_FORM_STEPS[currentIndex + 1]);
     }
-  };
+  }, [currentStep]);
 
-  const prevStep = () => {
+  const prevStep = useCallback(() => {
     const currentIndex = CAMPAIGN_FORM_STEPS.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(CAMPAIGN_FORM_STEPS[currentIndex - 1]);
     }
-  };
+  }, [currentStep]);
+
+  const resetForm = useCallback(() => {
+    setFormData({
+      eventId: initialEventId ? (initialEventId as Id<"events">) : undefined,
+      templateId: undefined,
+      name: "",
+      sendAt: null,
+      body: null,
+      subject: undefined,
+      content: undefined,
+      timezone: undefined,
+    });
+    setCurrentStep("event");
+    setSendType("now");
+    setTemplate(null);
+  }, [initialEventId]);
 
   const isSubmitDisabled =
     !formData.name.trim() ||
@@ -80,26 +126,31 @@ export const CampaignFormProvider = ({ children }: { children: ReactNode }) => {
     (sendType === "later" &&
       (formData.sendAt === null || formData.sendAt <= Date.now()));
 
+  const value = {
+    formData,
+    currentStep,
+    updateFormData,
+    goToStep,
+    nextStep,
+    prevStep,
+    isSubmitDisabled,
+    sendType,
+    handleSendTypeChange,
+    templateMode,
+    setTemplateMode,
+    template,
+    setTemplate,
+    resetForm,
+  };
+
   return (
-    <CampaignFormContext.Provider
-      value={{
-        formData,
-        currentStep,
-        updateFormData,
-        goToStep,
-        nextStep,
-        prevStep,
-        isSubmitDisabled,
-        sendType,
-        handleSendTypeChange,
-      }}
-    >
+    <CampaignFormContext.Provider value={value}>
       {children}
     </CampaignFormContext.Provider>
   );
 };
 
-export const useCampaignForm = () => {
+export const useCampaignForm = (): CampaignFormContextType => {
   const context = useContext(CampaignFormContext);
   if (!context) {
     throw new Error("useCampaignForm must be used within CampaignFormProvider");

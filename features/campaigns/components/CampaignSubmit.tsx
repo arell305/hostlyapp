@@ -21,7 +21,7 @@ const CampaignSubmit = () => {
       return;
     }
 
-    if (formData.eventId === undefined || formData.body === undefined) {
+    if (formData.eventId === undefined || !formData.body) {
       return;
     }
 

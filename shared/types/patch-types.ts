@@ -1,4 +1,3 @@
-import { Id } from "convex/_generated/dataModel";
 import { SmsMessageType } from "./enums";
 import { CampaignStatus } from "./types";
 
@@ -17,8 +16,8 @@ export type SmsTemplatePatch = {
 
 export type CampaignPatch = {
   name?: string;
+  smsBody?: string;
   isActive?: boolean;
-  eventId?: Id<"events">;
   scheduleTime?: number | null;
   promptResponse?: string;
   status?: CampaignStatus;

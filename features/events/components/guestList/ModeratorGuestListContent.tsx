@@ -14,16 +14,15 @@ interface ModeratorGuestListContentProps {
   isCheckInOpen: boolean;
   guestListData: GuestListEntryWithPromoter[];
   canCheckInGuests: boolean;
+  searchTerm: string;
 }
 
 const ModeratorGuestListContent = ({
   isCheckInOpen,
   guestListData,
   canCheckInGuests,
+  searchTerm,
 }: ModeratorGuestListContentProps) => {
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedGuest, setSelectedGuest] =
     useState<GuestListEntryWithPromoter | null>(null);
@@ -74,12 +73,6 @@ const ModeratorGuestListContent = ({
   return (
     <>
       <SectionContainer>
-        <SearchInput
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          searchInputRef={searchInputRef}
-          placeholder="Search guests..."
-        />
         <GuestListContainer
           filteredGuests={filteredGuests}
           handleCheckInGuest={handleCheckInGuest}

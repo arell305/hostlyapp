@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import {
   internalMutation,
   internalQuery,
@@ -11,8 +11,14 @@ import {
   isUserTheSameAsIdentity,
   pickDefined,
   isEmptyObject,
+  isUserInCompanyOfEvent,
 } from "./backendUtils/helper";
-import { validateCampaign, validateUser } from "./backendUtils/validation";
+import {
+  validateCampaign,
+  validateEvent,
+  validateOrganization,
+  validateUser,
+} from "./backendUtils/validation";
 import { CampaignPatch } from "@/shared/types/patch-types";
 import { CampaignStatusConvex } from "./schema";
 
@@ -32,7 +38,7 @@ export const getCampaignsArgs = {
 export const getCampaigns = query({
   args: getCampaignsArgs,
   handler: async (ctx, args): Promise<Doc<"campaigns">[]> => {
-    const { userId, status } = args;
+    const { userId, status, isActive } = args;
 
     const identity = await requireAuthenticatedUser(ctx);
     const user = validateUser(await ctx.db.get(userId));
@@ -45,6 +51,9 @@ export const getCampaigns = query({
 
     if (status !== undefined) {
       query = query.filter((q) => q.eq(q.field("status"), status));
+    }
+    if (isActive !== undefined) {
+      query = query.filter((q) => q.eq(q.field("isActive"), isActive));
     }
 
     return await query.collect();
@@ -93,15 +102,15 @@ export const updateCampaign = mutation({
     updates: v.object({
       name: v.optional(v.string()),
       isActive: v.optional(v.boolean()),
-      eventId: v.optional(v.id("events")),
       scheduleTime: v.optional(v.union(v.number(), v.null())),
       promptResponse: v.optional(v.string()),
       status: v.optional(CampaignStatusConvex),
+      smsBody: v.optional(v.string()),
     }),
   },
   handler: async (ctx, args): Promise<Id<"campaigns">> => {
     const { campaignId, updates } = args;
-    const { name, isActive, eventId, scheduleTime, promptResponse, status } =
+    const { name, isActive, scheduleTime, promptResponse, status, smsBody } =
       updates;
 
     const identity = await requireAuthenticatedUser(ctx);
@@ -110,13 +119,24 @@ export const updateCampaign = mutation({
     const user = validateUser(await ctx.db.get(campaign.userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
 
+    if (
+      campaign.status === "Sent" &&
+      (smsBody !== undefined || scheduleTime !== undefined)
+    ) {
+      throw new ConvexError({
+        code: "BAD_REQUEST",
+        message:
+          "Cannot update sms body or schedule time after campaign has been sent",
+      });
+    }
+
     const patch = pickDefined<CampaignPatch>({
       name,
       isActive,
-      eventId,
       scheduleTime,
       promptResponse,
       status,
+      smsBody,
     });
 
     isEmptyObject(patch);
@@ -163,5 +183,26 @@ export const getCampaignsByIdInternal = internalQuery({
     const { campaignId } = args;
 
     return await ctx.db.get(campaignId);
+  },
+});
+
+export const getCampaignsByEventId = query({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, args): Promise<Doc<"campaigns">[]> => {
+    const { eventId } = args;
+
+    const identity = await requireAuthenticatedUser(ctx);
+    const convexUserId = identity.convexUserId as Id<"users">;
+    const user = validateUser(await ctx.db.get(convexUserId));
+
+    const event = validateEvent(await ctx.db.get(eventId));
+    isUserInCompanyOfEvent(user, event);
+
+    return await ctx.db
+      .query("campaigns")
+      .withIndex("by_eventId", (q) => q.eq("eventId", eventId))
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .order("desc")
+      .collect();
   },
 });

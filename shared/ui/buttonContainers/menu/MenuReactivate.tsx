@@ -9,16 +9,15 @@ type MenuReactivateProps<T extends { _id: string; name?: string }> = {
   onClose: () => void;
 };
 
-export default function MenuDelete<T extends { _id: string; name?: string }>({
-  doc,
-  onReactivate,
-  onClose,
-}: MenuReactivateProps<T>) {
+export default function MenuReactivate<
+  T extends { _id: string; name?: string },
+>({ doc, onReactivate, onClose }: MenuReactivateProps<T>) {
   return (
     <Button
       variant="menu"
       size="menu"
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation();
         onReactivate(doc._id);
         onClose();
       }}

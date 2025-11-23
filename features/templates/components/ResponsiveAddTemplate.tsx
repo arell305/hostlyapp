@@ -3,7 +3,6 @@
 import FormActions from "@shared/ui/buttonContainers/FormActions";
 import { TemplateValues } from "@shared/types/types";
 import { useInsertSmsTemplate } from "@/domain/smsTemplates";
-import { SmsMessageType } from "@shared/types/enums";
 import { useState } from "react";
 import TemplateFields from "./TemplateFields";
 import { useUserScope } from "@/shared/hooks/contexts";

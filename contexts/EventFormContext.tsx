@@ -1,13 +1,18 @@
 "use client";
 
-import React, { createContext, useState, ReactNode, useEffect } from "react";
+import React, {
+  createContext,
+  useState,
+  ReactNode,
+  useEffect,
+  useMemo,
+} from "react";
 import { TicketType, TicketTypeForm, AddressValue } from "@shared/types/types";
 import { ticketNameOptions } from "@shared/types/constants";
 import { Doc, Id } from "convex/_generated/dataModel";
 import { EventFormErrors } from "@/shared/utils/form-validation/validateEventForm";
 
 export interface EventFormContextType {
-  // Event Details
   eventName: string;
   setEventName: (val: string) => void;
   description: string;
@@ -21,7 +26,6 @@ export interface EventFormContextType {
   photoStorageId: Id<"_storage"> | null;
   setPhotoStorageId: (val: Id<"_storage"> | null) => void;
 
-  // Guest List
   isGuestListSelected: boolean;
   setIsGuestListSelected: (val: boolean) => void;
   guestListCloseTime: number | null;
@@ -31,19 +35,19 @@ export interface EventFormContextType {
   guestListRules: string;
   setGuestListRules: (val: string) => void;
 
-  // Tickets
   isTicketsSelected: boolean;
   setIsTicketsSelected: (val: boolean) => void;
   ticketTypes: TicketTypeForm[];
   setTicketTypes: (val: TicketTypeForm[]) => void;
 
-  // Autocomplete
   value: AddressValue | null;
   setValue: (val: AddressValue | null) => void;
 
-  // errors
   errors: EventFormErrors;
   setErrors: React.Dispatch<React.SetStateAction<EventFormErrors>>;
+  hasChanges: boolean;
+  isEditing: boolean;
+  setIsEditing?: (val: boolean) => void;
 }
 
 export const EventFormContext = createContext<EventFormContextType | undefined>(
@@ -55,13 +59,16 @@ export const EventFormProvider = ({
   initialEventData,
   initialTicketData,
   initialGuestListData,
+  isEditing = false,
+  setIsEditing,
 }: {
   children: ReactNode;
   initialEventData?: Doc<"events">;
   initialTicketData?: TicketType[] | null;
   initialGuestListData?: Doc<"guestListInfo"> | null;
+  isEditing?: boolean;
+  setIsEditing?: (val: boolean) => void;
 }) => {
-  // Event Details
   const [eventName, setEventName] = useState(initialEventData?.name || "");
   const [description, setDescription] = useState(
     initialEventData?.description || ""
@@ -77,7 +84,6 @@ export const EventFormProvider = ({
     initialEventData?.photo || null
   );
 
-  // Guest List
   const [isGuestListSelected, setIsGuestListSelected] =
     useState(!!initialGuestListData);
   const [guestListCloseTime, setGuestListCloseTime] = useState<number | null>(
@@ -90,41 +96,119 @@ export const EventFormProvider = ({
     initialGuestListData?.guestListRules || ""
   );
 
-  // Tickets
   const [isTicketsSelected, setIsTicketsSelected] =
     useState(!!initialTicketData);
   const [ticketTypes, setTicketTypes] = useState<TicketTypeForm[]>([]);
 
-  useEffect(() => {
-    if (initialTicketData) {
-      const activeTickets = initialTicketData.filter((type) => type.isActive);
+  const [value, setValue] = useState<AddressValue | null>(null);
+  const [errors, setErrors] = useState<EventFormErrors>({});
 
+  useEffect(() => {
+    if (!isEditing) return;
+
+    setEventName(initialEventData?.name || "");
+    setDescription(initialEventData?.description || "");
+    setAddress(initialEventData?.address || "");
+    setStartTime(initialEventData?.startTime || null);
+    setEndTime(initialEventData?.endTime || null);
+    setPhotoStorageId(initialEventData?.photo || null);
+
+    setIsGuestListSelected(!!initialGuestListData);
+    setGuestListCloseTime(initialGuestListData?.guestListCloseTime || null);
+    setCheckInCloseTime(initialGuestListData?.checkInCloseTime || null);
+    setGuestListRules(initialGuestListData?.guestListRules || "");
+
+    setIsTicketsSelected(!!initialTicketData);
+    if (initialTicketData) {
+      const activeTickets = initialTicketData.filter((t) => t.isActive);
       setTicketTypes(
-        activeTickets.map((type) => ({
-          name: type.name,
-          price: type.price.toString(),
-          capacity: type.capacity.toString(),
-          ticketSalesEndTime: type.ticketSalesEndTime,
-          showCustomInput: !ticketNameOptions.includes(type.name),
-          eventTicketTypeId: type._id,
-          description: type.description || "",
+        activeTickets.map((t) => ({
+          name: t.name,
+          price: t.price.toString(),
+          capacity: t.capacity.toString(),
+          ticketSalesEndTime: t.ticketSalesEndTime,
+          showCustomInput: !ticketNameOptions.includes(t.name),
+          eventTicketTypeId: t._id,
+          description: t.description || "",
         }))
       );
     } else {
       setTicketTypes([]);
     }
-  }, [initialTicketData]);
 
-  // Autocomplete
-  const [value, setValue] = useState<AddressValue | null>(null);
-
-  const [errors, setErrors] = useState<EventFormErrors>({});
+    setErrors({});
+    setValue(null);
+  }, [isEditing, initialEventData, initialTicketData, initialGuestListData]);
 
   useEffect(() => {
     if (!isTicketsSelected) {
       setTicketTypes([]);
     }
   }, [isTicketsSelected]);
+
+  const hasChanges = useMemo(() => {
+    if (!initialEventData) return true;
+
+    const eventChanged =
+      eventName.trim() !== (initialEventData.name?.trim() || "") ||
+      (description.trim() || "") !==
+        (initialEventData.description?.trim() || "") ||
+      address.trim() !== (initialEventData.address?.trim() || "") ||
+      startTime !== initialEventData.startTime ||
+      endTime !== initialEventData.endTime ||
+      photoStorageId !== initialEventData.photo;
+
+    const ticketsChanged = (() => {
+      const originalActiveTickets =
+        initialTicketData?.filter((t) => t.isActive) || [];
+      if (isTicketsSelected !== !!initialTicketData?.length) return true;
+      if (!isTicketsSelected) return false;
+      if (originalActiveTickets.length !== ticketTypes.length) return true;
+
+      return ticketTypes.some((current, i) => {
+        const orig = originalActiveTickets[i];
+        return (
+          current.name.trim() !== orig.name.trim() ||
+          Number(current.price) !== orig.price ||
+          Number(current.capacity) !== orig.capacity ||
+          current.ticketSalesEndTime !== orig.ticketSalesEndTime ||
+          (current.description?.trim() || "") !==
+            (orig.description?.trim() || "")
+        );
+      });
+    })();
+
+    const guestListChanged = (() => {
+      const wasSelected = !!initialGuestListData;
+      if (isGuestListSelected !== wasSelected) return true;
+      if (!isGuestListSelected) return false;
+
+      return (
+        guestListCloseTime !== initialGuestListData?.guestListCloseTime ||
+        checkInCloseTime !== initialGuestListData?.checkInCloseTime ||
+        guestListRules.trim() !==
+          (initialGuestListData?.guestListRules?.trim() || "")
+      );
+    })();
+
+    return eventChanged || ticketsChanged || guestListChanged;
+  }, [
+    initialEventData,
+    initialTicketData,
+    initialGuestListData,
+    eventName,
+    description,
+    address,
+    startTime,
+    endTime,
+    photoStorageId,
+    ticketTypes,
+    isTicketsSelected,
+    isGuestListSelected,
+    guestListCloseTime,
+    checkInCloseTime,
+    guestListRules,
+  ]);
 
   return (
     <EventFormContext.Provider
@@ -141,6 +225,7 @@ export const EventFormProvider = ({
         setEndTime,
         photoStorageId,
         setPhotoStorageId,
+
         isGuestListSelected,
         setIsGuestListSelected,
         guestListCloseTime,
@@ -149,14 +234,20 @@ export const EventFormProvider = ({
         setCheckInCloseTime,
         guestListRules,
         setGuestListRules,
+
         isTicketsSelected,
         setIsTicketsSelected,
         ticketTypes,
         setTicketTypes,
+
         value,
         setValue,
+
         errors,
         setErrors,
+        hasChanges,
+        isEditing,
+        setIsEditing,
       }}
     >
       {children}

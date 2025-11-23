@@ -1,11 +1,10 @@
 "use client";
 
 import { Doc, Id } from "convex/_generated/dataModel";
-import PromoterGuestListContent from "./PromoterGuestListContent";
-import ModeratorGuestListContent from "./ModeratorGuestListContent";
-import { isPast } from "@/shared/utils/luxon";
 import SubPageContainer from "@/shared/ui/containers/SubPageContainer";
-import { useEventWithGuestLists } from "@/domain/guestListEntries";
+import { useRef, useState } from "react";
+import SearchInput from "../SearchInput";
+import GuestListLoader from "./GuestListLoader";
 
 interface GuestListPageProps {
   eventId: Id<"events">;
@@ -20,29 +19,25 @@ const GuestListPage: React.FC<GuestListPageProps> = ({
   canCheckInGuests,
   guestListInfo,
 }) => {
-  let isCheckInOpen: boolean = !isPast(guestListInfo.checkInCloseTime);
-  const isGuestListOpen = !isPast(guestListInfo.guestListCloseTime);
-
-  const resultGuestList = useEventWithGuestLists(eventId);
-
-  if (!resultGuestList) {
-    return;
-  }
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   return (
     <SubPageContainer>
-      {canUploadGuest ? (
-        <PromoterGuestListContent
-          guestListData={resultGuestList}
-          isGuestListOpen={isGuestListOpen}
-        />
-      ) : (
-        <ModeratorGuestListContent
-          isCheckInOpen={isCheckInOpen}
-          guestListData={resultGuestList}
-          canCheckInGuests={canCheckInGuests}
-        />
-      )}
+      <SearchInput
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        searchInputRef={searchInputRef}
+        placeholder="Search guests..."
+        className="mb-4"
+      />
+      <GuestListLoader
+        eventId={eventId}
+        searchTerm={searchTerm}
+        canUploadGuest={canUploadGuest}
+        canCheckInGuests={canCheckInGuests}
+        guestListInfo={guestListInfo}
+      />
     </SubPageContainer>
   );
 };

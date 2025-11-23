@@ -6,35 +6,53 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import NProgress from "nprogress";
 import CampaignsLoader from "./components/CampaignsQuery";
-import { useState } from "react";
-import { CampaignStatus } from "@/shared/types/types";
+import { useRef, useState } from "react";
+import { CampaignFilterStatus } from "@/shared/types/types";
 import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
+import ResponsiveCampaignFiltersActions from "./components/buttons/ResponsiveCampaignFiltersActions";
+import SearchInput from "../events/components/SearchInput";
 
 const CampaignsUserIdPage = () => {
   const pathname = usePathname();
-  const [selectedTab, setSelectedTab] = useState<CampaignStatus>("Scheduled");
+  const [selectedTab, setSelectedTab] =
+    useState<CampaignFilterStatus>("Scheduled");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const handleTabChange = (tab: CampaignFilterStatus) => {
+    setSelectedTab(tab);
+  };
   return (
     <PageContainer>
       <SectionHeaderWithAction
-        title="Campaign"
+        title="Campaigns"
         actions={
           <Link href={`${pathname}/add`}>
             <AddButton onClick={() => NProgress.start()} label="Campaign" />
           </Link>
         }
       />
-      <ToggleTabs
-        options={[
-          { label: "Scheduled", value: "Scheduled" },
-          { label: "Sent", value: "Sent" },
-          { label: "Failed", value: "Failed" },
-          { label: "Cancelled", value: "Cancelled" },
-        ]}
-        value={selectedTab}
-        onChange={setSelectedTab}
+      <div className="flex items-center gap-4">
+        <ToggleTabs
+          options={[
+            { label: "Scheduled", value: "Scheduled" },
+            { label: "Sent", value: "Sent" },
+          ]}
+          value={selectedTab}
+          onChange={handleTabChange}
+        />
+        <ResponsiveCampaignFiltersActions
+          onAction={handleTabChange}
+          campaignStatus={selectedTab}
+        />
+      </div>
+      <SearchInput
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        searchInputRef={searchInputRef}
+        placeholder="Search campaigns..."
       />
-      <CampaignsLoader selectedTab={selectedTab} />
+      <CampaignsLoader selectedTab={selectedTab} searchTerm={searchTerm} />
     </PageContainer>
   );
 };

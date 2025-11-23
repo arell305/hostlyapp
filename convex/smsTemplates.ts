@@ -32,6 +32,21 @@ export const getSmsTemplates = query({
   },
 });
 
+export const getSmsTemplate = query({
+  args: { smsTemplateId: v.id("smsTemplates") },
+  handler: async (ctx, args): Promise<Doc<"smsTemplates">> => {
+    const { smsTemplateId } = args;
+
+    const identity = await requireAuthenticatedUser(ctx);
+
+    const smsTemplate = validateSmsTemplate(await ctx.db.get(smsTemplateId));
+    const user = validateUser(await ctx.db.get(smsTemplate.userId));
+    isUserTheSameAsIdentity(identity, user.clerkUserId);
+
+    return smsTemplate;
+  },
+});
+
 export const insertSmsTemplate = mutation({
   args: {
     body: v.string(),

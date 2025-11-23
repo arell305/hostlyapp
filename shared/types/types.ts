@@ -551,3 +551,9 @@ export type CampaignTab = "messages" | "details";
 export type CampaignFilter = "upcoming" | "completed" | "archived";
 
 export type CampaignStatus = "Scheduled" | "Sent" | "Failed" | "Cancelled";
+
+export type CampaignFilterStatus = CampaignStatus | "Archived";
+
+export type TemplateMode = "custom" | "existing" | "list";
+
+export type SelectedTemplateMode = Exclude<TemplateMode, "list">;

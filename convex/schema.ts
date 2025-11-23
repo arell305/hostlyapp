@@ -106,7 +106,9 @@ export default defineSchema({
     status: CampaignStatusConvex,
     updatedAt: v.number(),
     userId: v.id("users"),
-  }).index("by_userId_updatedAt", ["userId", "updatedAt"]),
+  })
+    .index("by_userId_updatedAt", ["userId", "updatedAt"])
+    .index("by_eventId", ["eventId"]),
   connectedAccounts: defineTable({
     chargesEnabled: v.optional(v.boolean()),
     customerId: v.id("customers"),

@@ -6,7 +6,7 @@ import FormActions from "@/shared/ui/buttonContainers/FormActions";
 import { Doc } from "convex/_generated/dataModel";
 import { FaqValues } from "@/shared/types/types";
 import { FaqFields } from "@/features/faq/components/FAQFields";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface ResponsiveEditFaqProps {
   isOpen: boolean;
@@ -33,32 +33,37 @@ const ResponsiveEditFaq: React.FC<ResponsiveEditFaqProps> = ({
 
   useEffect(() => {
     if (faq) {
-      setValues({ question: faq.question, answer: faq.answer });
+      setValues({
+        question: faq.question ?? "",
+        answer: faq.answer ?? "",
+      });
     }
   }, [faq]);
 
-  const resetState = () => {
-    setUpdateCompanyFaqError(null);
-    setValues({ question: "", answer: "" });
-  };
+  const hasChanges = useMemo(() => {
+    if (!faq) return false;
+    const trimmedQuestion = values.question.trim();
+    const trimmedAnswer = values.answer.trim();
+    const originalQuestion = (faq.question ?? "").trim();
+    const originalAnswer = (faq.answer ?? "").trim();
+    return (
+      trimmedQuestion !== originalQuestion || trimmedAnswer !== originalAnswer
+    );
+  }, [values.question, values.answer, faq]);
 
   const handleClose = () => {
-    resetState();
+    setUpdateCompanyFaqError(null);
     onOpenChange(false);
   };
 
   const handleSave = async () => {
-    if (!faq?._id) {
-      return;
-    }
-    const question = values.question.trim();
-    const answer = values.answer.trim();
+    if (!faq?._id || !hasChanges) return;
 
     const success = await updateCompanyFaq({
       faqId: faq._id,
       updates: {
-        question,
-        answer,
+        question: values.question.trim(),
+        answer: values.answer.trim(),
       },
     });
 
@@ -67,15 +72,19 @@ const ResponsiveEditFaq: React.FC<ResponsiveEditFaqProps> = ({
     }
   };
 
-  const isDisabled =
-    !values.question.trim() || !values.answer.trim() || updateCompanyFaqLoading;
+  const isSubmitDisabled =
+    !hasChanges ||
+    !values.question.trim() ||
+    !values.answer.trim() ||
+    updateCompanyFaqLoading ||
+    !faq?._id;
 
   return (
     <ResponsiveModal
       isOpen={isOpen}
       onOpenChange={handleClose}
       title="Edit FAQ"
-      description="Enter a question and answer to edit a FAQ."
+      description="Update the question and answer for this FAQ."
     >
       <FaqFields
         values={values}
@@ -85,9 +94,9 @@ const ResponsiveEditFaq: React.FC<ResponsiveEditFaqProps> = ({
           onCancel={handleClose}
           onSubmit={handleSave}
           isLoading={updateCompanyFaqLoading}
-          submitText="Save"
+          submitText="Save Changes"
           error={updateCompanyFaqError}
-          isSubmitDisabled={isDisabled}
+          isSubmitDisabled={isSubmitDisabled}
         />
       </FaqFields>
     </ResponsiveModal>

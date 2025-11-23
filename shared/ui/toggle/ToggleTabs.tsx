@@ -1,9 +1,9 @@
 import { Label } from "@/shared/ui/primitive/label";
 
-interface ToggleTabsProps<T> {
+interface ToggleTabsProps<T extends string> {
   label?: string;
   options: { label: string; value: T }[];
-  value: T;
+  value: T | null;
   onChange: (value: T) => void;
   className?: string;
 }
@@ -29,7 +29,7 @@ const ToggleTabs = <T extends string>({
             className={`rounded-md px-4 py-1 text-sm font-medium transition ${
               value === option.value
                 ? "bg-cardBackgroundHover text-whiteText"
-                : "text-grayText hover:bg-cardBackgroundHover/70 hover:text-whiteText "
+                : "text-grayText hover:bg-cardBackgroundHover/70 hover:text-whiteText"
             }`}
           >
             {option.label}
