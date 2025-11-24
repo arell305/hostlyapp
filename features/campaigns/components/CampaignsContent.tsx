@@ -17,6 +17,12 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
   const router = useRouter();
   const [campaignToDelete, setCampaignToDelete] =
     useState<Id<"campaigns"> | null>(null);
+  const [loadingCampaignId, setLoadingCampaignId] =
+    useState<Id<"campaigns"> | null>(null);
+  const [campaignErrors, setCampaignErrors] = useState<
+    Record<Id<"campaigns">, string | null>
+  >({});
+
   const { updateCampaign, updateCampaignLoading, updateCampaignError } =
     useUpdateCampaign();
 
@@ -49,28 +55,61 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
   };
 
   const handleCancel = async (campaignId: Id<"campaigns">) => {
-    await updateCampaign({
-      campaignId,
-      updates: {
-        status: "Cancelled",
-      },
-    });
+    setLoadingCampaignId(campaignId);
+    setCampaignErrors((prev) => ({ ...prev, [campaignId]: null }));
+    try {
+      await updateCampaign({
+        campaignId,
+        updates: {
+          status: "Cancelled",
+        },
+      });
+    } catch (error) {
+      setCampaignErrors((prev) => ({
+        ...prev,
+        [campaignId]: (error as Error).message || "Unknown error",
+      }));
+    } finally {
+      setLoadingCampaignId(null);
+    }
   };
   const handleReactivate = async (campaignId: Id<"campaigns">) => {
-    await updateCampaign({
-      campaignId,
-      updates: {
-        isActive: true,
-      },
-    });
+    setLoadingCampaignId(campaignId);
+    setCampaignErrors((prev) => ({ ...prev, [campaignId]: null }));
+    try {
+      await updateCampaign({
+        campaignId,
+        updates: {
+          isActive: true,
+        },
+      });
+    } catch (error) {
+      setCampaignErrors((prev) => ({
+        ...prev,
+        [campaignId]: (error as Error).message || "Unknown error",
+      }));
+    } finally {
+      setLoadingCampaignId(null);
+    }
   };
   const handleResume = async (campaignId: Id<"campaigns">) => {
-    await updateCampaign({
-      campaignId,
-      updates: {
-        status: "Scheduled",
-      },
-    });
+    setLoadingCampaignId(campaignId);
+    setCampaignErrors((prev) => ({ ...prev, [campaignId]: null }));
+    try {
+      await updateCampaign({
+        campaignId,
+        updates: {
+          status: "Scheduled",
+        },
+      });
+    } catch (error) {
+      setCampaignErrors((prev) => ({
+        ...prev,
+        [campaignId]: (error as Error).message || "Unknown error",
+      }));
+    } finally {
+      setLoadingCampaignId(null);
+    }
   };
 
   const baseHref = `/${organization.slug}/app/campaigns/`;
@@ -85,6 +124,7 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
     <CardContainer className="p-1">
       {campaigns.map((campaign) => {
         const href = `${baseHref}/${campaign.userId}/${campaign._id}`;
+        const isLoading = loadingCampaignId === campaign._id;
         return (
           <CampaignCard
             key={campaign._id}
@@ -95,6 +135,8 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
             onCancel={handleCancel}
             onReactivate={handleReactivate}
             onResume={handleResume}
+            isLoading={isLoading}
+            error={campaignErrors[campaign._id]}
           />
         );
       })}

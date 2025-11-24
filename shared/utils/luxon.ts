@@ -204,3 +204,8 @@ export const formatDisplayDateTime = (
     .setZone(TIME_ZONE)
     .toFormat("h:mma · MMM d, yyyy");
 };
+
+export const formatDateTime = (timestamp: number) =>
+  DateTime.fromMillis(timestamp)
+    .setZone(TIME_ZONE)
+    .toFormat(" MMM d, yyyy h:mma");

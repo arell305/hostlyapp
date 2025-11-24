@@ -5,6 +5,8 @@ import { CardHeader, CardTitle } from "@shared/ui/primitive/card";
 import { Doc, Id } from "convex/_generated/dataModel";
 import Link from "next/link";
 import ResponsiveCampaignActions from "./buttons/ResponsiveCampaignActions";
+import { Loader2 } from "lucide-react";
+import CampaignBadgesRow from "./campaign/CampaignBadgesRow";
 
 interface CampaignCardProps {
   campaign: Doc<"campaigns">;
@@ -13,7 +15,9 @@ interface CampaignCardProps {
   onCancel: (id: Id<"campaigns">) => void;
   onReactivate: (id: Id<"campaigns">) => void;
   onResume: (id: Id<"campaigns">) => void;
-  onEdit: () => void;
+  onEdit: (campaign: Doc<"campaigns">) => void;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 const CampaignCard = ({
@@ -24,20 +28,37 @@ const CampaignCard = ({
   onReactivate,
   onResume,
   onEdit,
+  isLoading = false,
+  error,
 }: CampaignCardProps) => {
   return (
-    <Link href={href} className="">
-      <CustomCard className="hover:shadow-glow-white ">
+    <Link href={href} className="block">
+      <CustomCard className="hover:shadow-glow-white min-h-[80px]">
         <CardHeader className="flex flex-row justify-between">
-          <CardTitle>{campaign.name}</CardTitle>
-          <ResponsiveCampaignActions
-            campaign={campaign}
-            onDelete={onDelete}
-            onCancel={onCancel}
-            onReactivate={onReactivate}
-            onResume={onResume}
-            onEdit={onEdit}
-          />
+          <div className="flex flex-col gap-y-1">
+            <CardTitle>{campaign.name}</CardTitle>
+            <CampaignBadgesRow campaign={campaign} />
+          </div>
+
+          <div className="flex flex-col items-end">
+            {isLoading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <ResponsiveCampaignActions
+                campaign={campaign}
+                onDelete={onDelete}
+                onCancel={onCancel}
+                onReactivate={onReactivate}
+                onResume={onResume}
+                onEdit={onEdit}
+              />
+            )}
+            {error && (
+              <p className="text-red-500 text-sm mt-1 whitespace-pre-wrap">
+                {error}
+              </p>
+            )}
+          </div>
         </CardHeader>
       </CustomCard>
     </Link>
