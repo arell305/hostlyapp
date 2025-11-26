@@ -11,6 +11,10 @@ interface ActiveMembersSectionProps {
 const ActiveMembersSection = ({ users }: ActiveMembersSectionProps) => {
   const { organization } = useContextOrganization();
 
+  if (users.length === 0) {
+    return <p className="text-grayText">No users found.</p>;
+  }
+
   return (
     <CustomCard className="p-0">
       {users.map((member) => (

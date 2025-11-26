@@ -24,17 +24,18 @@ interface EventFormActionControllerProps {
     ticketData: TicketType[],
     guesListData: GuestListFormInput | null
   ) => Promise<void>;
+  isLoadingParent?: boolean;
 }
 
 const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
   isEdit,
-
   isUpdateEventLoading,
   saveError,
   submitError,
   onCancelEdit,
   onSubmit,
   organizationId,
+  isLoadingParent = false,
 }) => {
   const { hasChanges } = useEventForm();
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -144,7 +145,7 @@ const EventFormActionController: React.FC<EventFormActionControllerProps> = ({
     <>
       <EventFormActions
         isEdit={isEdit}
-        isLoading={isLoading}
+        isLoading={isLoading || isLoadingParent}
         isUpdateLoading={isUpdateEventLoading}
         saveError={submitError || saveError}
         onCancel={onCancelEdit || (() => {})}

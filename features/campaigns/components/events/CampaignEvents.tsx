@@ -1,6 +1,8 @@
+"use client";
+
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import CampaignEventCard from "./CampaignEventCard";
-import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 import CappedCardList from "@/shared/ui/containers/CappedCardList";
 import EventDetailsLoader from "./EventDetailsLoader";
 
@@ -9,7 +11,7 @@ interface CampaignEventsProps {
 }
 
 const CampaignEvents: React.FC<CampaignEventsProps> = ({ events }) => {
-  const { updateFormData, formData } = useCampaignForm();
+  const { updateFormData, formData } = useCreateCampaignForm();
 
   const handleEventSelect = (eventId: Id<"events">) => {
     if (formData.eventId === eventId) {

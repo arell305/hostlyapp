@@ -51,11 +51,26 @@ export function filterContactsByName(
   contacts: Doc<"contacts">[],
   searchTerm: string
 ): Doc<"contacts">[] {
-  const normalizedTerm = searchTerm.trim().toLowerCase();
-  if (!normalizedTerm) return contacts;
-  return contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(normalizedTerm)
-  );
+  const term = searchTerm.trim().toLowerCase();
+
+  if (!term) {
+    return contacts;
+  }
+
+  const isNumberSearch = /^\d+$/.test(term);
+  const cleanTerm = term.replace(/[^\d]/g, "");
+
+  return contacts.filter((contact) => {
+    const name = (contact.name ?? "").toLowerCase();
+    const phone = (contact.phoneNumber ?? "").toString();
+    const cleanPhone = phone.replace(/[^\d]/g, "");
+
+    if (isNumberSearch) {
+      return phone.includes(term) || cleanPhone.includes(cleanTerm);
+    }
+
+    return name.includes(term);
+  });
 }
 
 export function filterTemplatesByNameOrBody(
@@ -95,6 +110,36 @@ export function filterBySearchTerm<T>(
 
   return list.filter((item) =>
     selector(item).toLowerCase().includes(normalizedTerm)
+  );
+}
+
+export function filterFaqs(
+  faqs: Doc<"faq">[],
+  searchTerm: string
+): Doc<"faq">[] {
+  const normalizedTerm = searchTerm.trim().toLowerCase();
+  if (!normalizedTerm) {
+    return faqs;
+  }
+
+  return faqs.filter(
+    (faq) =>
+      faq.question.toLowerCase().includes(normalizedTerm) ||
+      faq.answer.toLowerCase().includes(normalizedTerm)
+  );
+}
+
+export function filterUsers(
+  users: Doc<"users">[],
+  searchTerm: string
+): Doc<"users">[] {
+  const normalizedTerm = searchTerm.trim().toLowerCase();
+  if (!normalizedTerm) {
+    return users;
+  }
+
+  return users.filter((user) =>
+    user.name?.toLowerCase().includes(normalizedTerm)
   );
 }
 

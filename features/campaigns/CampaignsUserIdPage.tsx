@@ -5,19 +5,16 @@ import SectionHeaderWithAction from "@shared/ui/headings/SectionHeaderWithAction
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import NProgress from "nprogress";
-import CampaignsLoader from "./components/CampaignsQuery";
-import { useRef, useState } from "react";
+import CampaignsLoader from "./components/CampaignsLoader";
+import { useState } from "react";
 import { CampaignFilterStatus } from "@/shared/types/types";
 import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
 import ResponsiveCampaignFiltersActions from "./components/buttons/ResponsiveCampaignFiltersActions";
-import SearchInput from "../events/components/SearchInput";
 
 const CampaignsUserIdPage = () => {
   const pathname = usePathname();
   const [selectedTab, setSelectedTab] =
     useState<CampaignFilterStatus>("Scheduled");
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleTabChange = (tab: CampaignFilterStatus) => {
     setSelectedTab(tab);
@@ -46,13 +43,7 @@ const CampaignsUserIdPage = () => {
           campaignStatus={selectedTab}
         />
       </div>
-      <SearchInput
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        searchInputRef={searchInputRef}
-        placeholder="Search campaigns..."
-      />
-      <CampaignsLoader selectedTab={selectedTab} searchTerm={searchTerm} />
+      <CampaignsLoader selectedTab={selectedTab} />
     </PageContainer>
   );
 };

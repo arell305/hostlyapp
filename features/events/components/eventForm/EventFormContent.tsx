@@ -33,6 +33,7 @@ interface EventFormContentProps {
   handleBuyCredit: () => void;
   isCompanyAdmin: boolean;
   availableCredits?: number;
+  isLoading?: boolean;
 }
 
 const EventFormContent: React.FC<EventFormContentProps> = ({
@@ -50,6 +51,7 @@ const EventFormContent: React.FC<EventFormContentProps> = ({
   handleBuyCredit,
   isCompanyAdmin,
   availableCredits = 0,
+  isLoading,
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false);
 
@@ -82,6 +84,7 @@ const EventFormContent: React.FC<EventFormContentProps> = ({
           onCancelEdit={onCancelEdit}
           organizationId={organizationId}
           onSubmit={onSubmit}
+          isLoadingParent={isLoading}
         />
       </div>
     </>

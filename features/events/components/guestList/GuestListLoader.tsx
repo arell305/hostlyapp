@@ -5,13 +5,14 @@ import PromoterGuestListContent from "./PromoterGuestListContent";
 import ModeratorGuestListContent from "./ModeratorGuestListContent";
 import { isPast } from "@/shared/utils/luxon";
 import { useEventWithGuestLists } from "@/domain/guestListEntries";
+import GuestListSkeleton from "@/shared/ui/skeleton/GuestCardSkeleton";
+import GuestListPage from "./GuestListPage";
 
 interface GuestListLoaderProps {
   eventId: Id<"events">;
   canUploadGuest: boolean;
   canCheckInGuests: boolean;
   guestListInfo: Doc<"guestListInfo">;
-  searchTerm: string;
 }
 
 const GuestListLoader: React.FC<GuestListLoaderProps> = ({
@@ -19,34 +20,21 @@ const GuestListLoader: React.FC<GuestListLoaderProps> = ({
   canUploadGuest,
   canCheckInGuests,
   guestListInfo,
-  searchTerm,
 }) => {
-  let isCheckInOpen: boolean = !isPast(guestListInfo.checkInCloseTime);
-  const isGuestListOpen = !isPast(guestListInfo.guestListCloseTime);
-
   const resultGuestList = useEventWithGuestLists(eventId);
 
   if (!resultGuestList) {
-    return;
+    return <GuestListSkeleton />;
   }
 
   return (
-    <>
-      {canUploadGuest ? (
-        <PromoterGuestListContent
-          guestListData={resultGuestList}
-          isGuestListOpen={isGuestListOpen}
-          searchTerm={searchTerm}
-        />
-      ) : (
-        <ModeratorGuestListContent
-          isCheckInOpen={isCheckInOpen}
-          guestListData={resultGuestList}
-          canCheckInGuests={canCheckInGuests}
-          searchTerm={searchTerm}
-        />
-      )}
-    </>
+    <GuestListPage
+      guestListData={resultGuestList}
+      eventId={eventId}
+      canUploadGuest={canUploadGuest}
+      canCheckInGuests={canCheckInGuests}
+      guestListInfo={guestListInfo}
+    />
   );
 };
 

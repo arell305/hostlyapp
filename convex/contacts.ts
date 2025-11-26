@@ -193,3 +193,17 @@ export const bulkUpsertContacts = mutation({
     return true;
   },
 });
+
+export const getContactById = query({
+  args: { id: v.id("contacts") },
+  handler: async (ctx, args): Promise<Doc<"contacts">> => {
+    const { id } = args;
+    const identity = await requireAuthenticatedUser(ctx);
+
+    const contact = validateContact(await ctx.db.get(id));
+    const user = validateUser(await ctx.db.get(contact.userId));
+    isUserTheSameAsIdentity(identity, user.clerkUserId);
+
+    return contact;
+  },
+});

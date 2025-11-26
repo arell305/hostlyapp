@@ -1,7 +1,7 @@
 "use client";
 
 import SectionContainer from "@/shared/ui/containers/SectionContainer";
-import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 import FormActions from "@/shared/ui/buttonContainers/FormActions";
 import SectionBodyContainer from "@/shared/ui/containers/SectionBodyContainer";
 import EventsSelectionContent from "./EventsSelectionContent";
@@ -16,7 +16,7 @@ interface EventsSelectionProps {
 const EventsSelection: React.FC<EventsSelectionProps> = ({
   triggerCancelModal,
 }) => {
-  const { nextStep, formData, updateFormData } = useCampaignForm();
+  const { nextStep, formData, updateFormData } = useCreateCampaignForm();
 
   const isNextDisabled = formData.eventId === undefined;
 

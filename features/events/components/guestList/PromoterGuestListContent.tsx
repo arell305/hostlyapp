@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useDeleteGuestName } from "@/domain/guestListEntries";
 import { useUpdateGuestName } from "@/domain/guestListEntries";
 import ResponsiveEditGuestName from "@shared/ui/responsive/ResponsiveEditGuestName";
 import ResponsiveConfirm from "@shared/ui/responsive/ResponsiveConfirm";
-import { filterGuestsByName } from "@shared/utils/format";
 import SectionContainer from "@shared/ui/containers/SectionContainer";
 import EmptyList from "@shared/ui/list/EmptyList";
 import GuestListContainer from "./GuestListContainer";
@@ -13,15 +12,14 @@ import { Doc, Id } from "convex/_generated/dataModel";
 import { GuestListEntryWithPromoter } from "@shared/types/schemas-types";
 
 type PromoterGuestListContentProps = {
-  guestListData: GuestListEntryWithPromoter[];
+  filteredGuests: GuestListEntryWithPromoter[];
   isGuestListOpen: boolean;
   searchTerm: string;
 };
 
 const PromoterGuestListContent = ({
-  guestListData,
+  filteredGuests,
   isGuestListOpen,
-  searchTerm,
 }: PromoterGuestListContentProps) => {
   const [editingGuest, setEditingGuest] =
     useState<Doc<"guestListEntries"> | null>(null);
@@ -88,11 +86,7 @@ const PromoterGuestListContent = ({
     }
   };
 
-  const filteredGuests = useMemo(() => {
-    return filterGuestsByName(guestListData, searchTerm);
-  }, [guestListData, searchTerm]);
-
-  const isEmpty = guestListData.length === 0;
+  const isEmpty = filteredGuests.length === 0;
 
   return (
     <SectionContainer>

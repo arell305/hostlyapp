@@ -2,7 +2,8 @@
 
 import { Id } from "@/convex/_generated/dataModel";
 import { useCampaignsByEventId } from "@/domain/campaigns";
-import CampaignsContent from "@/features/campaigns/components/CampaignsContent";
+import CampaignsTab from "./CampaignsTab";
+import CampaignCardsSkeleton from "@/shared/ui/skeleton/CampaignCardsSkeleton";
 
 interface CampaignLoaderByEventProps {
   eventId: Id<"events">;
@@ -14,10 +15,10 @@ const CampaignLoaderByEvent: React.FC<CampaignLoaderByEventProps> = ({
   const campaigns = useCampaignsByEventId(eventId);
 
   if (!campaigns) {
-    return;
+    return <CampaignCardsSkeleton />;
   }
 
-  return <CampaignsContent campaigns={campaigns} />;
+  return <CampaignsTab campaigns={campaigns} />;
 };
 
 export default CampaignLoaderByEvent;

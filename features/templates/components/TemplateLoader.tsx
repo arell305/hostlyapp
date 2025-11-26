@@ -3,20 +3,17 @@
 import { useSmsTemplates } from "@/domain/smsTemplates";
 import { useUserScope } from "@/shared/hooks/contexts";
 import TemplatesSection from "./TemplatesSection";
+import TemplatesSkeleton from "@/shared/ui/skeleton/TemplatesSkeleton";
 
-interface TemplatesLoaderProps {
-  searchTerm: string;
-}
-
-const TemplatesLoader = ({ searchTerm }: TemplatesLoaderProps) => {
+const TemplatesLoader = () => {
   const { userId } = useUserScope();
   const smsTemplates = useSmsTemplates(userId);
 
   if (!smsTemplates) {
-    return;
+    return <TemplatesSkeleton />;
   }
 
-  return <TemplatesSection templates={smsTemplates} searchTerm={searchTerm} />;
+  return <TemplatesSection templates={smsTemplates} />;
 };
 
 export default TemplatesLoader;

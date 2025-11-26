@@ -175,3 +175,5 @@ export const TAGS_BY_TYPE: Record<
     { key: "companyName", label: "Company" },
   ],
 };
+
+export const SEARCH_MIN_LENGTH = 6;

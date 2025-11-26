@@ -96,7 +96,7 @@ export const GuestListCheckout: React.FC<GuestListCheckoutProps> = ({
 
       <div className="text-center">
         <p className="text-lg font-semibold">
-          Total: ${formatCurrency(totalAmount)}
+          Total: {formatCurrency(totalAmount)}
         </p>
         <p className="text-sm text-gray-500">
           (${(amountInCents / 100).toFixed(2)} per credit)

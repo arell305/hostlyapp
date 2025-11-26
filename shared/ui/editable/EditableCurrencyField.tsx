@@ -3,7 +3,6 @@
 import { Label } from "@shared/ui/primitive/label";
 import IconButton from "@shared/ui/buttonContainers/IconButton";
 import { NumericFormat } from "react-number-format";
-import _ from "lodash";
 import FieldErrorMessage from "../error/FieldErrorMessage";
 import SavingIcon from "../icons/SavingIcon";
 import FormattedValueDisplay from "../display/FormattedValueDisplay";
@@ -19,7 +18,7 @@ interface EditableCurrencyFieldProps {
   isSaving: boolean;
   error?: string | null;
   className?: string;
-  disabled?: boolean;
+  hasChanges: boolean;
 }
 
 const EditableCurrencyField: React.FC<EditableCurrencyFieldProps> = ({
@@ -32,7 +31,7 @@ const EditableCurrencyField: React.FC<EditableCurrencyFieldProps> = ({
   isSaving,
   error,
   className,
-  disabled,
+  hasChanges,
 }) => {
   return (
     <EditableFieldWrapper className={className}>
@@ -71,14 +70,15 @@ const EditableCurrencyField: React.FC<EditableCurrencyFieldProps> = ({
           <IconButton
             icon={<SavingIcon isSaving={isSaving} />}
             onClick={onSave}
-            disabled={isSaving || disabled}
-            title={disabled ? "Disabled" : "Save"}
+            disabled={isSaving || !hasChanges}
+            title={!hasChanges ? "No changes" : "Save"}
+            className={!hasChanges ? "opacity-50 cursor-not-allowed" : ""}
           />
         </div>
       ) : (
         <FormattedValueDisplay
           value={value}
-          isCurrency={true}
+          isCurrency
           fallbackText="Not Set"
         />
       )}

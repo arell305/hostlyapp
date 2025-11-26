@@ -3,27 +3,17 @@
 import { useUserScope } from "@/shared/hooks/contexts";
 import { useSmsTemplates } from "@/domain/smsTemplates";
 import CampaignTemplateContent from "./CampaignTemplateContent";
+import TemplatesSkeleton from "@/shared/ui/skeleton/TemplatesSkeleton";
 
-interface CampaignTemplateLoaderProps {
-  searchTerm: string;
-}
-
-const CampaignTemplateLoader: React.FC<CampaignTemplateLoaderProps> = ({
-  searchTerm,
-}) => {
+const CampaignTemplateLoader = () => {
   const { userId } = useUserScope();
   const smsTemplates = useSmsTemplates(userId);
 
   if (!smsTemplates) {
-    return;
+    return <TemplatesSkeleton className="mt-4" />;
   }
 
-  return (
-    <CampaignTemplateContent
-      smsTemplates={smsTemplates}
-      searchTerm={searchTerm}
-    />
-  );
+  return <CampaignTemplateContent smsTemplates={smsTemplates} />;
 };
 
 export default CampaignTemplateLoader;

@@ -1,4 +1,5 @@
-import { CampaignStatus, TemplateMode } from "@/shared/types/types";
+import { Doc } from "@/convex/_generated/dataModel";
+import { TemplateMode } from "@/shared/types/types";
 
 export const getTemplateTitle = (
   templateMode: TemplateMode,
@@ -17,4 +18,17 @@ export const getTemplateTitle = (
     default:
       return "Select Template";
   }
+};
+
+export const getSenderPrefix = (
+  lastMessage: Doc<"smsMessages">,
+  initials: string
+) => {
+  if (lastMessage.direction === "outbound") {
+    return lastMessage.authorType === "ai" ? "AI: " : "You: ";
+  }
+  if (lastMessage.authorType === "ai") {
+    return "AI: ";
+  }
+  return initials;
 };

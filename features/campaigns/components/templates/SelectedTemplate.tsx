@@ -1,16 +1,17 @@
 "use client";
 
 import { useSmsTemplate } from "@/domain/smsTemplates";
-import { useCampaignForm } from "@/features/campaigns/contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "@/features/campaigns/contexts/CampaignFormContext";
 import EditableTemplate from "./EditableTemplate";
+import EventCardsSkeleton from "@/shared/ui/skeleton/EventCardSkeleton";
 
 const SelectedTemplate: React.FC = () => {
-  const { formData } = useCampaignForm();
+  const { formData } = useCreateCampaignForm();
 
   const smsTemplate = useSmsTemplate(formData.templateId);
 
   if (!smsTemplate) {
-    return null;
+    return <EventCardsSkeleton />;
   }
 
   return <EditableTemplate smsTemplate={smsTemplate} />;

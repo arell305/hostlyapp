@@ -1,10 +1,10 @@
 "use client";
 
-import { useCampaignForm } from "../contexts/CampaignFormContext";
 import CampaignStepper from "./CampaignStepper";
 import EventsSelection from "./events/EventsSelection";
 import TemplateSelection from "./TemplateSelection";
 import DetailsSection from "./details/DetailsSection";
+import { useCreateCampaignForm } from "../contexts/CampaignFormContext";
 
 interface CampaignFormContentProps {
   triggerCancelModal: () => void;
@@ -13,7 +13,7 @@ interface CampaignFormContentProps {
 const CampaignFormContent: React.FC<CampaignFormContentProps> = ({
   triggerCancelModal,
 }) => {
-  const { currentStep } = useCampaignForm();
+  const { currentStep } = useCreateCampaignForm();
 
   return (
     <div className="max-w-4xl mx-auto">

@@ -1,33 +1,26 @@
 "use client";
 
 import { Id } from "convex/_generated/dataModel";
-import TicketContent from "./TicketContent";
 import { useTicketsByEventId } from "@/domain/tickets/";
+import TicketsSkeleton from "@/shared/ui/skeleton/TicketsSkeleton";
+import TicketPage from "./TicketPage";
 
 interface TicketsLoaderProps {
   eventId: Id<"events">;
   canCheckInGuests: boolean;
-  searchTerm: string;
 }
 
 const TicketsLoader: React.FC<TicketsLoaderProps> = ({
   eventId,
   canCheckInGuests,
-  searchTerm,
 }) => {
   const result = useTicketsByEventId(eventId);
 
   if (!result) {
-    return;
+    return <TicketsSkeleton className="mt-4" />;
   }
 
-  return (
-    <TicketContent
-      tickets={result}
-      canCheckInGuests={canCheckInGuests}
-      searchTerm={searchTerm}
-    />
-  );
+  return <TicketPage canCheckInGuests={canCheckInGuests} tickets={result} />;
 };
 
 export default TicketsLoader;

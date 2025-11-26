@@ -6,7 +6,8 @@ import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
 import { Button } from "@shared/ui/primitive/button";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import CampaignForm from "./components/CampaignForm";
+import CampaignFormContent from "./components/CampaignFormContent";
+import { useCreateCampaignForm } from "./contexts/CampaignFormContext";
 
 function stripAddSegment(path: string): string {
   return path.replace(/\/add\/?$/, "");
@@ -16,6 +17,7 @@ const AddCampaignPage = () => {
   const pathname = usePathname();
   const [confirmCancelModal, setConfirmCancelModal] = useState<boolean>(false);
   const router = useRouter();
+  const { isFormDirty } = useCreateCampaignForm();
 
   const handleConfirmCancel = () => {
     setConfirmCancelModal(false);
@@ -27,23 +29,32 @@ const AddCampaignPage = () => {
   };
 
   const handleTriggerCancelModal = () => {
+    console.log("handleTriggerCancelModal");
     setConfirmCancelModal(true);
+  };
+
+  const handleCancel = () => {
+    if (isFormDirty) {
+      handleTriggerCancelModal();
+    } else {
+      if (window.history.length > 1) {
+        router.back();
+      } else {
+        router.push(stripAddSegment(pathname));
+      }
+    }
   };
   return (
     <PageContainer>
       <SectionHeaderWithAction
         title="Add Campaign"
         actions={
-          <Button
-            onClick={handleTriggerCancelModal}
-            variant="navGhost"
-            size="nav"
-          >
+          <Button onClick={handleCancel} variant="navGhost" size="nav">
             Cancel
           </Button>
         }
       />
-      <CampaignForm triggerCancelModal={handleTriggerCancelModal} />
+      <CampaignFormContent triggerCancelModal={handleCancel} />
       <ResponsiveConfirm
         isOpen={confirmCancelModal}
         title="Confirm Cancel"

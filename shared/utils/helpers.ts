@@ -215,3 +215,19 @@ export const hasFormValue = <T>(value: T | null | undefined): value is T => {
   if (value && typeof value === "object") return Object.keys(value).length > 0;
   return true;
 };
+
+export const getInitials = (name: string): string => {
+  const clean = name.trim();
+  if (!clean) {
+    return "?";
+  }
+
+  const parts = clean.split(/\s+/);
+  if (parts.length === 1) {
+    return clean.slice(0, 2).toUpperCase();
+  }
+
+  const first = parts[0][0];
+  const last = parts[parts.length - 1][0];
+  return (first + last).toUpperCase();
+};

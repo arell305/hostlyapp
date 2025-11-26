@@ -393,3 +393,15 @@ export const validateUser2 = (user: Doc<"users"> | null): Doc<"users"> => {
   }
   return user;
 };
+
+export const validateSmsThread = (
+  smsThread: Doc<"smsThreads"> | null
+): Doc<"smsThreads"> => {
+  if (!smsThread) {
+    throw new ConvexError({
+      code: "NOT_FOUND",
+      message: ShowErrorMessages.THREAD_NOT_FOUND,
+    });
+  }
+  return smsThread;
+};

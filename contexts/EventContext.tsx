@@ -7,6 +7,7 @@ import MessagePage from "@shared/ui/shared-page/MessagePage";
 import type { EventWithTicketTypes } from "@shared/types/schemas-types";
 import type { TicketSoldCountByType } from "@shared/types/types";
 import { Doc, Id } from "convex/_generated/dataModel";
+import EventDetailsSkeleton from "@/shared/ui/skeleton/EventDetailsSkeleton";
 
 export type EventContextType = {
   event: EventWithTicketTypes;
@@ -21,8 +22,9 @@ export const EventContext = createContext<EventContextType | undefined>(
 
 export const EventProvider: React.FC<{
   eventId: Id<"events">;
+  showSkeleton?: boolean;
   children: React.ReactNode;
-}> = ({ children, eventId }) => {
+}> = ({ children, eventId, showSkeleton = false }) => {
   const eventResponse = useQuery(api.events.getEventById, { eventId });
 
   const activeTicketTypes = useMemo<Doc<"eventTicketTypes">[]>(
@@ -69,6 +71,10 @@ export const EventProvider: React.FC<{
     ticketSoldCounts,
     activeTicketTypes,
   ]);
+
+  if (showSkeleton && !eventResponse) {
+    return <EventDetailsSkeleton />;
+  }
 
   if (!eventResponse) {
     return <FullLoading />;

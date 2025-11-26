@@ -11,9 +11,9 @@ import IconButton from "@/shared/ui/buttonContainers/IconButton";
 import { Pencil, X } from "lucide-react";
 import EditableImage from "@/shared/ui/editable/EditableImage";
 import EditableInputField from "@/shared/ui/editable/EditableInputField";
+import EditableCurrencyField from "@/shared/ui/editable/EditableCurrencyField";
 import EditableContainer from "@/shared/ui/containers/EditableContainer";
 import EditableImageContainer from "@/shared/ui/containers/EditableImageContainer";
-import EditableCurrencyField from "@/shared/ui/editable/EditableCurrencyField";
 import PageContainer from "@/shared/ui/containers/PageContainer";
 import { Doc } from "convex/_generated/dataModel";
 
@@ -28,13 +28,15 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
   displayCompanyPhoto,
   canEditSettings,
 }) => {
-  const [companyName, setCompanyName] = useState<string | null | undefined>(
-    organization?.name
+  const [companyName, setCompanyName] = useState("");
+  const [promoDiscount, setPromoDiscount] = useState("");
+
+  const [originalName] = useState(organization?.name || "");
+  const [originalPromo] = useState(
+    organization?.promoDiscount?.toString() || ""
   );
-  const [promoDiscount, setPromoDiscount] = useState<string>(
-    organization?.promoDiscount.toString() || ""
-  );
-  const [isEditing, setIsEditing] = useState<boolean>(false);
+
+  const [isEditing, setIsEditing] = useState(false);
 
   const {
     updateOrgName,
@@ -53,16 +55,18 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
   } = useUploadOrganizationPhoto();
 
   useEffect(() => {
-    setCompanyName(organization?.name);
-    setPromoDiscount(organization?.promoDiscount.toString() || "");
+    setCompanyName(organization?.name || "");
+    setPromoDiscount(organization?.promoDiscount?.toString() || "");
   }, [organization]);
+
+  const hasNameChanged = companyName.trim() !== originalName.trim();
+  const hasPromoChanged = promoDiscount !== originalPromo;
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
       return;
     }
-
     const success = await uploadOrganizationPhoto(file, organization._id);
     if (success) {
       setIsEditing(false);
@@ -70,17 +74,24 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
   };
 
   const handleSaveCompanyName = async () => {
-    if (!companyName || companyName.trim() === "") return;
-    const response = await updateOrgName(organization._id, companyName);
-    if (response.success === true) {
+    if (!hasNameChanged || !companyName.trim()) {
+      return;
+    }
+    const response = await updateOrgName(organization._id, companyName.trim());
+    if (response.success) {
       setIsEditing(false);
       window.location.href = `/${response.slug}/app/company-settings`;
     }
   };
 
   const handleSavePromoDiscount = async () => {
+    if (!hasPromoChanged) {
+      return;
+    }
     const { promoDiscountValue } = validatePromoDiscount(promoDiscount, true);
-    if (!promoDiscountValue) return;
+    if (!promoDiscountValue) {
+      return;
+    }
 
     const success = await updateOrg(organization._id, {
       promoDiscount: promoDiscountValue,
@@ -92,14 +103,11 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
 
   const handleToggleEditing = () => {
     if (isEditing) {
-      setCompanyName(organization?.name);
-      setPromoDiscount(organization?.promoDiscount.toString() || "");
+      setCompanyName(originalName);
+      setPromoDiscount(originalPromo);
     }
     setIsEditing((prev) => !prev);
   };
-
-  const isCompanyNameDisabled = !companyName || companyName.trim() === "";
-  const isPromoDiscountDisabled = !promoDiscount || promoDiscount.trim() === "";
 
   return (
     <PageContainer>
@@ -109,10 +117,11 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
           <IconButton
             icon={isEditing ? <X size={20} /> : <Pencil size={20} />}
             onClick={handleToggleEditing}
-            title={isEditing ? "Cancel Edit" : "Edit"}
+            title={isEditing ? "Cancel" : "Edit"}
           />
         }
       />
+
       <CustomCard>
         <EditableImageContainer>
           <EditableImage
@@ -127,33 +136,28 @@ const CompanySettingsContent: React.FC<CompanySettingsContentProps> = ({
         </EditableImageContainer>
 
         <EditableContainer>
-          {isEditing && (
-            <EditableInputField
-              label="Company Name"
-              value={companyName || ""}
-              onChange={(e) => setCompanyName(e.target.value)}
-              onSave={handleSaveCompanyName}
-              isEditing={isEditing}
-              isSaving={isNameSaving}
-              name="companyName"
-              error={nameError}
-              disabled={isCompanyNameDisabled}
-            />
-          )}
+          <EditableInputField
+            label="Company Name"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            onSave={handleSaveCompanyName}
+            isEditing={isEditing}
+            isSaving={isNameSaving}
+            name="companyName"
+            error={nameError}
+            hasChanges={hasNameChanged}
+          />
 
           <EditableCurrencyField
             label="Promo Discount Amount"
             value={promoDiscount ? parseFloat(promoDiscount) : null}
-            onChange={(value) =>
-              setPromoDiscount(value ? value.toString() : "")
-            }
+            onChange={(value) => setPromoDiscount(value?.toString() || "")}
             onSave={handleSavePromoDiscount}
             isEditing={isEditing}
             isSaving={isPromoSaving}
             name="promoDiscount"
             error={promoError}
-            className={isEditing ? "" : "border-t "}
-            disabled={isPromoDiscountDisabled}
+            hasChanges={hasPromoChanged}
           />
         </EditableContainer>
       </CustomCard>

@@ -211,6 +211,7 @@ export default defineSchema({
     malesInGroup: v.optional(v.number()),
     name: v.string(),
     phoneNumber: v.optional(v.union(v.string(), v.null())),
+    contactId: v.optional(v.id("contacts")),
     userPromoterId: v.optional(v.id("users")),
   })
     .index("by_eventId", ["eventId"])
@@ -267,18 +268,17 @@ export default defineSchema({
     authorType: AuthorTypeConvex,
     campaignId: v.id("campaigns"),
     direction: SmsMessageDirectionConvex,
-    guestId: v.id("guests"),
+    contactId: v.id("contacts"),
     message: v.string(),
     providerMessageId: v.optional(v.string()),
     sentAt: v.number(),
     status: MessageStatusConvex,
-    threadId: v.id("smsThreads"),
-    toPhoneE164: v.string(),
+    threadId: v.optional(v.id("smsThreads")),
+    toPhoneE164: v.optional(v.string()),
+    fromPhoneE164: v.optional(v.string()),
     updatedAt: v.number(),
-    userId: v.id("users"),
   })
     .index("by_threadId_sentAt", ["threadId", "sentAt"])
-    .index("by_userId_updatedAt", ["userId", "updatedAt"])
     .index("by_providerMessageId", ["providerMessageId"]),
   smsTemplates: defineTable({
     body: v.string(),
@@ -289,18 +289,29 @@ export default defineSchema({
     userId: v.id("users"),
   }).index("by_userId_updatedAt", ["userId", "updatedAt"]),
   smsThreads: defineTable({
-    awaitingResponse: v.boolean(),
     campaignId: v.id("campaigns"),
-    createdAt: v.number(),
-    guestId: v.id("guests"),
-    lastAiOutboundAt: v.optional(v.number()),
-    lastHumanOutboundAt: v.optional(v.number()),
+    contactId: v.id("contacts"),
+    updatedAt: v.number(),
     lastMessageAt: v.number(),
     lastMessageDirection: SmsMessageDirectionConvex,
-    lastMessageId: v.optional(v.id("smsMessages")),
-    updatedAt: v.number(),
-    userId: v.id("users"),
-  }).index("by_campaignId_updatedAt", ["campaignId", "updatedAt"]),
+    awaitingResponse: v.boolean(),
+    needsHumanReview: v.boolean(),
+    lastAiOutboundAt: v.optional(v.number()),
+    lastHumanOutboundAt: v.optional(v.number()),
+    lastMessageId: v.id("smsMessages"),
+  })
+    .index("by_campaign_updatedAt", ["campaignId", "updatedAt"])
+    .index("by_campaign_needsReview", [
+      "campaignId",
+      "needsHumanReview",
+      "updatedAt",
+    ])
+    .index("by_campaign_awaiting", [
+      "campaignId",
+      "awaitingResponse",
+      "updatedAt",
+    ]),
+
   stripeConnectedCustomers: defineTable({
     email: v.string(),
     stripeAccountId: v.string(),

@@ -270,3 +270,9 @@ export interface GetEventSummaryData {
   tickets: TicketSalesByPromoter[];
   ticketTotals: TicketTotalsItem[] | null;
 }
+
+export interface SmsThreadWithContactAndLastMessage {
+  thread: Doc<"smsThreads">;
+  contact: Doc<"contacts">;
+  lastMessage: Doc<"smsMessages">;
+}

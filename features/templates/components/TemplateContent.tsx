@@ -58,6 +58,10 @@ const TemplateContent = ({ smsTemplates }: TemplateContentProps) => {
     setTemplateToEdit(null);
   };
 
+  if (smsTemplates.length === 0) {
+    return <p className="text-grayText">No templates found.</p>;
+  }
+
   return (
     <>
       <CardContainer>

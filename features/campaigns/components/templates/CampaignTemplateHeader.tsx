@@ -1,6 +1,6 @@
 "use client";
 
-import { useCampaignForm } from "@/features/campaigns/contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "@/features/campaigns/contexts/CampaignFormContext";
 import { getTemplateTitle } from "@/features/campaigns/utils/helpers";
 import IconButton from "@/shared/ui/buttonContainers/IconButton";
 import { ArrowLeftIcon } from "lucide-react";
@@ -13,7 +13,7 @@ const CampaignTemplateHeader = () => {
     updateFormData,
     template,
     setTemplate,
-  } = useCampaignForm();
+  } = useCreateCampaignForm();
 
   const showCustomButton = templateMode === "list";
   const showBackButton = templateMode !== "list";

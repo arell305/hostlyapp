@@ -1,7 +1,7 @@
-import AddCampaignPage from "@/features/campaigns/AddCampaignPage";
+import AddCampaignProvider from "@/features/campaigns/components/AddCampaignProvider";
 
 const Page = () => {
-  return <AddCampaignPage />;
+  return <AddCampaignProvider />;
 };
 
 export default Page;

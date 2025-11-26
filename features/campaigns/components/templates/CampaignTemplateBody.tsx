@@ -1,16 +1,16 @@
 "use client";
 
-import { useCampaignForm } from "@/features/campaigns/contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "@/features/campaigns/contexts/CampaignFormContext";
 import EditableTemplate from "./EditableTemplate";
 import SelectedTemplate from "./SelectedTemplate";
-import CampaignTemplateQuery from "./CampaignTemplateQuery";
+import CampaignTemplateLoader from "./CampaignTemplateLoader";
 
 const CampaignTemplateBody = () => {
-  const { templateMode } = useCampaignForm();
+  const { templateMode } = useCreateCampaignForm();
 
   return (
     <>
-      {templateMode === "list" && <CampaignTemplateQuery />}
+      {templateMode === "list" && <CampaignTemplateLoader />}
       {templateMode === "custom" && <EditableTemplate />}
       {templateMode === "existing" && <SelectedTemplate />}
     </>

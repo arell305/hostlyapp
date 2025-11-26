@@ -7,6 +7,7 @@ import Link from "next/link";
 import ResponsiveCampaignActions from "./buttons/ResponsiveCampaignActions";
 import { Loader2 } from "lucide-react";
 import CampaignBadgesRow from "./campaign/CampaignBadgesRow";
+import FieldErrorMessage from "@/shared/ui/error/FieldErrorMessage";
 
 interface CampaignCardProps {
   campaign: Doc<"campaigns">;
@@ -34,7 +35,7 @@ const CampaignCard = ({
   return (
     <Link href={href} className="block">
       <CustomCard className="hover:shadow-glow-white min-h-[80px]">
-        <CardHeader className="flex flex-row justify-between">
+        <CardHeader className="flex flex-row justify-between space-y-0">
           <div className="flex flex-col gap-y-1">
             <CardTitle>{campaign.name}</CardTitle>
             <CampaignBadgesRow campaign={campaign} />
@@ -53,11 +54,7 @@ const CampaignCard = ({
                 onEdit={onEdit}
               />
             )}
-            {error && (
-              <p className="text-red-500 text-sm mt-1 whitespace-pre-wrap">
-                {error}
-              </p>
-            )}
+            <FieldErrorMessage error={error} />
           </div>
         </CardHeader>
       </CustomCard>

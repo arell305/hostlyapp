@@ -1,11 +1,12 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useState,
   ReactNode,
   useEffect,
   useMemo,
+  useContext,
 } from "react";
 import { TicketType, TicketTypeForm, AddressValue } from "@shared/types/types";
 import { ticketNameOptions } from "@shared/types/constants";
@@ -96,8 +97,9 @@ export const EventFormProvider = ({
     initialGuestListData?.guestListRules || ""
   );
 
-  const [isTicketsSelected, setIsTicketsSelected] =
-    useState(!!initialTicketData);
+  const [isTicketsSelected, setIsTicketsSelected] = useState(
+    !!initialTicketData?.length
+  );
   const [ticketTypes, setTicketTypes] = useState<TicketTypeForm[]>([]);
 
   const [value, setValue] = useState<AddressValue | null>(null);
@@ -118,7 +120,7 @@ export const EventFormProvider = ({
     setCheckInCloseTime(initialGuestListData?.checkInCloseTime || null);
     setGuestListRules(initialGuestListData?.guestListRules || "");
 
-    setIsTicketsSelected(!!initialTicketData);
+    setIsTicketsSelected(!!initialTicketData?.length);
     if (initialTicketData) {
       const activeTickets = initialTicketData.filter((t) => t.isActive);
       setTicketTypes(
@@ -147,52 +149,62 @@ export const EventFormProvider = ({
   }, [isTicketsSelected]);
 
   const hasChanges = useMemo(() => {
-    if (!initialEventData) return true;
+    if (!isEditing) {
+      return (
+        eventName.trim() !== "" ||
+        description.trim() !== "" ||
+        address.trim() !== "" ||
+        startTime !== null ||
+        endTime !== null ||
+        photoStorageId !== null ||
+        isGuestListSelected ||
+        isTicketsSelected ||
+        ticketTypes.length > 0 ||
+        guestListRules.trim() !== "" ||
+        guestListCloseTime !== null ||
+        checkInCloseTime !== null
+      );
+    }
+
+    if (!initialEventData) return false;
 
     const eventChanged =
       eventName.trim() !== (initialEventData.name?.trim() || "") ||
-      (description.trim() || "") !==
-        (initialEventData.description?.trim() || "") ||
+      description.trim() !== (initialEventData.description?.trim() || "") ||
       address.trim() !== (initialEventData.address?.trim() || "") ||
       startTime !== initialEventData.startTime ||
       endTime !== initialEventData.endTime ||
       photoStorageId !== initialEventData.photo;
 
-    const ticketsChanged = (() => {
-      const originalActiveTickets =
-        initialTicketData?.filter((t) => t.isActive) || [];
-      if (isTicketsSelected !== !!initialTicketData?.length) return true;
-      if (!isTicketsSelected) return false;
-      if (originalActiveTickets.length !== ticketTypes.length) return true;
+    const guestListChanged =
+      isGuestListSelected !== !!initialGuestListData ||
+      (isGuestListSelected &&
+        (guestListCloseTime !== initialGuestListData?.guestListCloseTime ||
+          checkInCloseTime !== initialGuestListData?.checkInCloseTime ||
+          guestListRules.trim() !==
+            (initialGuestListData?.guestListRules?.trim() || "")));
 
-      return ticketTypes.some((current, i) => {
-        const orig = originalActiveTickets[i];
-        return (
-          current.name.trim() !== orig.name.trim() ||
-          Number(current.price) !== orig.price ||
-          Number(current.capacity) !== orig.capacity ||
-          current.ticketSalesEndTime !== orig.ticketSalesEndTime ||
-          (current.description?.trim() || "") !==
-            (orig.description?.trim() || "")
-        );
-      });
-    })();
+    const originalActiveTickets =
+      initialTicketData?.filter((t) => t.isActive) || [];
+    const ticketsChanged =
+      isTicketsSelected !== originalActiveTickets.length > 0 ||
+      (isTicketsSelected &&
+        (ticketTypes.length !== originalActiveTickets.length ||
+          ticketTypes.some((t, i) => {
+            const orig = originalActiveTickets[i];
+            if (!orig) return true;
+            return (
+              t.name.trim() !== orig.name.trim() ||
+              Number(t.price) !== orig.price ||
+              Number(t.capacity) !== orig.capacity ||
+              t.ticketSalesEndTime !== orig.ticketSalesEndTime ||
+              (t.description?.trim() || "") !== (orig.description?.trim() || "")
+            );
+          })));
 
-    const guestListChanged = (() => {
-      const wasSelected = !!initialGuestListData;
-      if (isGuestListSelected !== wasSelected) return true;
-      if (!isGuestListSelected) return false;
-
-      return (
-        guestListCloseTime !== initialGuestListData?.guestListCloseTime ||
-        checkInCloseTime !== initialGuestListData?.checkInCloseTime ||
-        guestListRules.trim() !==
-          (initialGuestListData?.guestListRules?.trim() || "")
-      );
-    })();
-
-    return eventChanged || ticketsChanged || guestListChanged;
+    return eventChanged || guestListChanged || ticketsChanged;
   }, [
+    isEditing,
     initialEventData,
     initialTicketData,
     initialGuestListData,
@@ -202,12 +214,12 @@ export const EventFormProvider = ({
     startTime,
     endTime,
     photoStorageId,
-    ticketTypes,
-    isTicketsSelected,
     isGuestListSelected,
+    isTicketsSelected,
+    ticketTypes,
+    guestListRules,
     guestListCloseTime,
     checkInCloseTime,
-    guestListRules,
   ]);
 
   return (
@@ -253,4 +265,12 @@ export const EventFormProvider = ({
       {children}
     </EventFormContext.Provider>
   );
+};
+
+export const useEventForm = (): EventFormContextType => {
+  const context = useContext(EventFormContext);
+  if (!context) {
+    throw new Error("useEventForm must be used within EventFormProvider");
+  }
+  return context;
 };

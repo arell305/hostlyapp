@@ -35,3 +35,9 @@ export function normalizeEventId(
 ): Id<"events"> | undefined {
   return normalizeParam<Id<"events">>(raw);
 }
+
+export function normalizeSmsThreadId(
+  raw: string | string[] | undefined
+): Id<"smsThreads"> | undefined {
+  return normalizeParam<Id<"smsThreads">>(raw);
+}

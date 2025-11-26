@@ -1,28 +1,38 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Doc } from "@/convex/_generated/dataModel";
 import SectionContainer from "@/shared/ui/containers/SectionContainer";
 import { filterTemplatesByNameOrBody } from "@/shared/utils/format";
 import TemplateContent from "./TemplateContent";
+import { SEARCH_MIN_LENGTH } from "@/shared/types/constants";
+import SearchInput from "@/features/events/components/SearchInput";
 
 interface TemplatesSectionProps {
   templates: Doc<"smsTemplates">[];
-  searchTerm: string;
 }
 
-const TemplatesSection = ({ templates, searchTerm }: TemplatesSectionProps) => {
+const TemplatesSection = ({ templates }: TemplatesSectionProps) => {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const showSearch = templates.length > SEARCH_MIN_LENGTH;
+
   const filteredTemplates = useMemo(() => {
     return filterTemplatesByNameOrBody(templates, searchTerm);
   }, [templates, searchTerm]);
 
   return (
     <SectionContainer>
-      {filteredTemplates.length > 0 ? (
-        <TemplateContent smsTemplates={filteredTemplates} />
-      ) : (
-        <p className="text-grayText">No templates found.</p>
+      {showSearch && (
+        <SearchInput
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          searchInputRef={searchInputRef}
+          placeholder="Search templates..."
+        />
       )}
+      <TemplateContent smsTemplates={filteredTemplates} />
     </SectionContainer>
   );
 };

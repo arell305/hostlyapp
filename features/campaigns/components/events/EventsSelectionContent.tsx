@@ -4,10 +4,10 @@ import EventListForCampaignLoader from "./EventListForCampaignLoader";
 import NoEventSelected from "./NoEventSelected";
 import { EventFilter } from "@/shared/types/types";
 import { useState, useRef } from "react";
-import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 
 const EventsSelectionContent = () => {
-  const { updateFormData } = useCampaignForm();
+  const { updateFormData } = useCreateCampaignForm();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);

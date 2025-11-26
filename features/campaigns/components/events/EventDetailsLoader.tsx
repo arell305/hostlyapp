@@ -9,7 +9,7 @@ import CampaignEventDetails from "./CampaignEventDetails";
 
 const EventDetailsLoader: React.FC<EventDetailsLoaderProps> = ({ eventId }) => {
   return (
-    <EventProvider eventId={eventId}>
+    <EventProvider eventId={eventId} showSkeleton>
       <CampaignEventDetails />
     </EventProvider>
   );

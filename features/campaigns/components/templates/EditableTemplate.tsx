@@ -2,14 +2,14 @@
 
 import { Doc } from "@/convex/_generated/dataModel";
 import TemplateFields from "@/features/templates/components/TemplateFields";
-import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 import { TemplateValues } from "@/shared/types/types";
 
 interface EditableTemplateProps {
   smsTemplate?: Doc<"smsTemplates">;
 }
 const EditableTemplate: React.FC<EditableTemplateProps> = ({ smsTemplate }) => {
-  const { formData, updateFormData, templateMode } = useCampaignForm();
+  const { formData, updateFormData, templateMode } = useCreateCampaignForm();
 
   const values =
     templateMode === "existing" && smsTemplate

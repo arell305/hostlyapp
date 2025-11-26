@@ -1,7 +1,7 @@
 "use client";
 
 import { useInsertCampaign } from "@/domain/campaigns";
-import { useCampaignForm } from "../contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "../contexts/CampaignFormContext";
 import { useRouter } from "next/navigation";
 import { useContextOrganization, useUserScope } from "@/shared/hooks/contexts";
 import FormActions from "@/shared/ui/buttonContainers/FormActions";
@@ -9,7 +9,7 @@ import FormActions from "@/shared/ui/buttonContainers/FormActions";
 const CampaignSubmit = () => {
   const router = useRouter();
 
-  const { formData, isSubmitDisabled, prevStep } = useCampaignForm();
+  const { formData, isSubmitDisabled, prevStep } = useCreateCampaignForm();
   const { organization } = useContextOrganization();
   const { userId } = useUserScope();
 

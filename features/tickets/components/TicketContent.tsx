@@ -1,8 +1,7 @@
 "use client";
 
 import useRedeemTicket from "@/domain/tickets/useRedeemTicket";
-import { useMemo, useState } from "react";
-import { filterBySearchTerm } from "@shared/utils/format";
+import { useState } from "react";
 import SectionContainer from "@shared/ui/containers/SectionContainer";
 import ResponsiveConfirm from "@shared/ui/responsive/ResponsiveConfirm";
 import { TicketSchemaWithPromoter } from "@shared/types/schemas-types";
@@ -17,7 +16,6 @@ interface TicketContentProps {
 const TicketContent: React.FC<TicketContentProps> = ({
   tickets,
   canCheckInGuests,
-  searchTerm,
 }) => {
   const {
     redeemTicketError,
@@ -39,14 +37,10 @@ const TicketContent: React.FC<TicketContentProps> = ({
     }
   };
 
-  const filteredTickets = useMemo(() => {
-    return filterBySearchTerm(tickets, searchTerm, (t) => t.ticketUniqueId);
-  }, [tickets, searchTerm]);
-
   return (
     <SectionContainer className="mt-4">
       <TicketList
-        tickets={filteredTickets}
+        tickets={tickets}
         canCheckInTickets={canCheckInGuests}
         setSelectedTicketId={setSelectedTicketId}
         setShowRedeemTicket={setShowRedeemModal}

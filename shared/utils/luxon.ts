@@ -209,3 +209,20 @@ export const formatDateTime = (timestamp: number) =>
   DateTime.fromMillis(timestamp)
     .setZone(TIME_ZONE)
     .toFormat(" MMM d, yyyy h:mma");
+
+export function formatRelativeTimestamp(rawTimestamp?: number | null): string {
+  if (!rawTimestamp) {
+    return "";
+  }
+
+  const timestampInMilliseconds =
+    rawTimestamp > 1e12 ? rawTimestamp : rawTimestamp * 1000;
+
+  const dateTime = DateTime.fromMillis(timestampInMilliseconds);
+
+  if (!dateTime.isValid) {
+    return "";
+  }
+
+  return dateTime.toRelative() ?? "";
+}

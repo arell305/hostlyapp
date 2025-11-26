@@ -3,20 +3,20 @@
 import { useContacts } from "@/domain/contacts";
 import { Id } from "convex/_generated/dataModel";
 import ContactsSection from "./ContactsSection";
+import ContactsSkeleton from "@/shared/ui/skeleton/ContactsSkeleton";
 
 type ContactsLoaderProps = {
   userId?: Id<"users">;
-  searchTerm: string;
 };
 
-const ContactsLoader = ({ userId, searchTerm }: ContactsLoaderProps) => {
+const ContactsLoader = ({ userId }: ContactsLoaderProps) => {
   const contacts = useContacts(userId);
 
   if (!contacts) {
-    return;
+    return <ContactsSkeleton />;
   }
 
-  return <ContactsSection contacts={contacts} searchTerm={searchTerm} />;
+  return <ContactsSection contacts={contacts} />;
 };
 
 export default ContactsLoader;

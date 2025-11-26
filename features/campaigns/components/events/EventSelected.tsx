@@ -1,10 +1,10 @@
 "use client";
 
-import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 import EventDetailsLoader from "./EventDetailsLoader";
 
 const EventSelected = () => {
-  const { formData } = useCampaignForm();
+  const { formData } = useCreateCampaignForm();
 
   if (!formData.eventId) {
     return <div>No event selected</div>;

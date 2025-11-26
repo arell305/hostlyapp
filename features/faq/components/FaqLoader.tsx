@@ -2,17 +2,18 @@
 
 import { useContextOrganization } from "@/shared/hooks/contexts";
 import { useCompanyFaqs } from "@/domain/faqs";
-import FAQContent from "./FAQContent";
+import FaqCardsSkeleton from "@/shared/ui/skeleton/FaqCardSkeleton";
+import FaqSection from "./FaqSection";
 
 const FaqLoader = () => {
   const { organization } = useContextOrganization();
   const faqs = useCompanyFaqs(organization._id);
 
   if (!faqs) {
-    return;
+    return <FaqCardsSkeleton />;
   }
 
-  return <FAQContent faqs={faqs} />;
+  return <FaqSection faqs={faqs} />;
 };
 
 export default FaqLoader;

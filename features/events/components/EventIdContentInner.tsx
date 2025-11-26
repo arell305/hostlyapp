@@ -15,14 +15,14 @@ import { ActiveTab } from "@shared/types/enums";
 import { useUpdateEvent } from "@/domain/events";
 import ToggleTabs from "@shared/ui/toggle/ToggleTabs";
 import { isPast } from "date-fns";
-import TicketPage from "@/features/tickets/components/TicketPage";
-import GuestListPage from "./guestList/GuestListPage";
 import { useCancelEvent } from "@/domain/events";
 import PageContainer from "@shared/ui/containers/PageContainer";
 import GetEventSummary from "@/features/events/components/summary/SummaryContent";
 import CampaignLoaderByEvent from "./campaigns/CampaignLoaderByEvent";
 import EventFormContent from "./eventForm/EventFormContent";
 import { useEventForm } from "@/shared/hooks/contexts";
+import GuestListLoader from "./guestList/GuestListLoader";
+import TicketsLoader from "@/features/tickets/components/TicketsLoader";
 
 interface EventIdContentInnerProps {
   data: {
@@ -197,14 +197,14 @@ const EventIdContentInner: React.FC<EventIdContentInnerProps> = ({
           )}
 
           {activeTab === "ticketInfo" && (
-            <TicketPage
+            <TicketsLoader
               canCheckInGuests={canCheckInGuests}
               eventId={data.event._id}
             />
           )}
 
           {activeTab === "guestList" && data.guestListInfo && (
-            <GuestListPage
+            <GuestListLoader
               eventId={data.event._id}
               canUploadGuest={canUploadGuest}
               canCheckInGuests={canCheckInGuests}

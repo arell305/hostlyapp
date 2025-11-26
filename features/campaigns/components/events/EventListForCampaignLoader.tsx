@@ -4,6 +4,7 @@ import { useContextOrganization } from "@/shared/hooks/contexts";
 import { useEventsForCampaign } from "@/domain/events";
 import { EventFilterWithoutNone } from "@/shared/types/types";
 import CampaignEvents from "./CampaignEvents";
+import EventCardsSkeleton from "@/shared/ui/skeleton/EventCardSkeleton";
 
 interface EventListForCampaignLoaderProps {
   eventFilter: EventFilterWithoutNone;
@@ -31,7 +32,7 @@ const EventListForCampaignLoader: React.FC<EventListForCampaignLoaderProps> = ({
   }
 
   if (!events) {
-    return;
+    return <EventCardsSkeleton />;
   }
 
   return <CampaignEvents events={events} />;

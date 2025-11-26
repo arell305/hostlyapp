@@ -1,10 +1,10 @@
 "use client";
 
 import FormActions from "@/shared/ui/buttonContainers/FormActions";
-import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 
 const TemplateSelectionButton = () => {
-  const { prevStep, nextStep, formData } = useCampaignForm();
+  const { prevStep, nextStep, formData } = useCreateCampaignForm();
 
   const isNextDisabled = formData.body === null;
 

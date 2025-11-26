@@ -1,9 +1,10 @@
 "use client";
 
 import { useUsersByOrganization } from "@/domain/organizations";
-import ActiveMembersSection from "@/features/users/components/section/ActiveMembersSection";
 import { Id } from "convex/_generated/dataModel";
-import DeletedMembersSection from "@/features/users/components/section/DeletedMembersSection";
+import MemberCardSkeleton from "@/shared/ui/skeleton/MemberCardSkeleton";
+import ActiveMembersFilter from "@/features/users/components/section/ActiveMembersFilter";
+import DeletedMembersFilter from "@/features/users/components/section/DeletedMembersFilter";
 
 interface GetUsersByCompanyProps {
   organizationId: Id<"organizations">;
@@ -16,14 +17,14 @@ const GetUsersByCompany: React.FC<GetUsersByCompanyProps> = ({
   const users = useUsersByOrganization(organizationId, isActive);
 
   if (!users) {
-    return;
+    return <MemberCardSkeleton />;
   }
 
   if (isActive) {
-    return <ActiveMembersSection users={users} />;
-  } else {
-    return <DeletedMembersSection users={users} />;
+    return <ActiveMembersFilter users={users} />;
   }
+
+  return <DeletedMembersFilter users={users} />;
 };
 
 export default GetUsersByCompany;

@@ -6,6 +6,8 @@ import {
   useState,
   ReactNode,
   useCallback,
+  useRef,
+  useEffect,
 } from "react";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { TemplateMode } from "@/shared/types/types";
@@ -23,7 +25,7 @@ interface CampaignFormData {
   name: string;
 }
 
-interface CampaignFormContextType {
+interface CreateCampaignFormContextType {
   formData: CampaignFormData;
   currentStep: CampaignFormStep;
   updateFormData: (data: Partial<CampaignFormData>) => void;
@@ -38,11 +40,12 @@ interface CampaignFormContextType {
   template: Doc<"smsTemplates"> | null;
   setTemplate: (template: Doc<"smsTemplates"> | null) => void;
   resetForm: () => void;
+  isFormDirty: boolean;
 }
 
-const CampaignFormContext = createContext<CampaignFormContextType | undefined>(
-  undefined
-);
+const CreateCampaignFormContext = createContext<
+  CreateCampaignFormContextType | undefined
+>(undefined);
 
 export const CAMPAIGN_FORM_STEPS: CampaignFormStep[] = [
   "event",
@@ -52,15 +55,15 @@ export const CAMPAIGN_FORM_STEPS: CampaignFormStep[] = [
 
 interface CampaignFormProviderProps {
   children: ReactNode;
-  initialEventId?: Id<"events"> | null; // ← from URL query param
+  initialEventId?: Id<"events"> | null;
 }
 
-export const CampaignFormProvider = ({
+export const CreateCampaignFormProvider = ({
   children,
   initialEventId,
 }: CampaignFormProviderProps) => {
-  const [formData, setFormData] = useState<CampaignFormData>({
-    eventId: initialEventId ? (initialEventId as Id<"events">) : undefined,
+  const initialFormData = useRef<CampaignFormData>({
+    eventId: initialEventId ?? undefined,
     templateId: undefined,
     name: "",
     sendAt: null,
@@ -70,12 +73,16 @@ export const CampaignFormProvider = ({
     timezone: undefined,
   });
 
-  const [currentStep, setCurrentStep] = useState<CampaignFormStep>(() => {
-    return initialEventId ? "template" : "event";
-  });
+  const [formData, setFormData] = useState<CampaignFormData>(
+    initialFormData.current
+  );
+  const [currentStep, setCurrentStep] = useState<CampaignFormStep>(
+    initialEventId ? "template" : "event"
+  );
   const [sendType, setSendType] = useState<"now" | "later">("now");
   const [templateMode, setTemplateMode] = useState<TemplateMode>("list");
   const [template, setTemplate] = useState<Doc<"smsTemplates"> | null>(null);
+  const [isFormDirty, setIsFormDirty] = useState(false);
 
   const handleSendTypeChange = (type: "now" | "later") => {
     setSendType(type);
@@ -90,34 +97,42 @@ export const CampaignFormProvider = ({
   }, []);
 
   const nextStep = useCallback(() => {
-    const currentIndex = CAMPAIGN_FORM_STEPS.indexOf(currentStep);
-    if (currentIndex < CAMPAIGN_FORM_STEPS.length - 1) {
-      setCurrentStep(CAMPAIGN_FORM_STEPS[currentIndex + 1]);
+    const idx = CAMPAIGN_FORM_STEPS.indexOf(currentStep);
+    if (idx < CAMPAIGN_FORM_STEPS.length - 1) {
+      setCurrentStep(CAMPAIGN_FORM_STEPS[idx + 1]);
     }
   }, [currentStep]);
 
   const prevStep = useCallback(() => {
-    const currentIndex = CAMPAIGN_FORM_STEPS.indexOf(currentStep);
-    if (currentIndex > 0) {
-      setCurrentStep(CAMPAIGN_FORM_STEPS[currentIndex - 1]);
+    const idx = CAMPAIGN_FORM_STEPS.indexOf(currentStep);
+    if (idx > 0) {
+      setCurrentStep(CAMPAIGN_FORM_STEPS[idx - 1]);
     }
   }, [currentStep]);
 
   const resetForm = useCallback(() => {
-    setFormData({
-      eventId: initialEventId ? (initialEventId as Id<"events">) : undefined,
-      templateId: undefined,
-      name: "",
-      sendAt: null,
-      body: null,
-      subject: undefined,
-      content: undefined,
-      timezone: undefined,
-    });
-    setCurrentStep("event");
+    setFormData(initialFormData.current);
+    setCurrentStep(initialEventId ? "template" : "event");
     setSendType("now");
     setTemplate(null);
+    setIsFormDirty(false);
   }, [initialEventId]);
+
+  useEffect(() => {
+    const dirty =
+      formData.eventId !== initialFormData.current.eventId ||
+      formData.templateId !== initialFormData.current.templateId ||
+      formData.name !== initialFormData.current.name ||
+      formData.body !== initialFormData.current.body ||
+      formData.subject !== initialFormData.current.subject ||
+      formData.content !== initialFormData.current.content ||
+      formData.sendAt !== initialFormData.current.sendAt ||
+      formData.timezone !== initialFormData.current.timezone ||
+      sendType !== "now" ||
+      template !== null;
+
+    setIsFormDirty(dirty);
+  }, [formData, sendType, template]);
 
   const isSubmitDisabled =
     !formData.name.trim() ||
@@ -141,19 +156,22 @@ export const CampaignFormProvider = ({
     template,
     setTemplate,
     resetForm,
+    isFormDirty,
   };
 
   return (
-    <CampaignFormContext.Provider value={value}>
+    <CreateCampaignFormContext.Provider value={value}>
       {children}
-    </CampaignFormContext.Provider>
+    </CreateCampaignFormContext.Provider>
   );
 };
 
-export const useCampaignForm = (): CampaignFormContextType => {
-  const context = useContext(CampaignFormContext);
+export const useCreateCampaignForm = (): CreateCampaignFormContextType => {
+  const context = useContext(CreateCampaignFormContext);
   if (!context) {
-    throw new Error("useCampaignForm must be used within CampaignFormProvider");
+    throw new Error(
+      "useCreateCampaignForm must be used within CreateCampaignFormProvider"
+    );
   }
   return context;
 };

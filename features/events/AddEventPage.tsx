@@ -6,6 +6,7 @@ import { isManager } from "@/shared/utils/permissions";
 import MessagePage from "@shared/ui/shared-page/MessagePage";
 import { useRouter } from "next/navigation";
 import NProgress from "nprogress";
+import { EventFormProvider } from "@/contexts/EventFormContext";
 
 const AddEventPage = () => {
   const { orgRole, cleanSlug } = useContextOrganization();
@@ -37,11 +38,13 @@ const AddEventPage = () => {
     );
   }
   return (
-    <AddEventContent
-      onCancel={handleCancel}
-      onSubmitSuccess={handleSubmitSuccess}
-      onBuyCredit={handleBuyCredit}
-    />
+    <EventFormProvider>
+      <AddEventContent
+        onCancel={handleCancel}
+        onSubmitSuccess={handleSubmitSuccess}
+        onBuyCredit={handleBuyCredit}
+      />
+    </EventFormProvider>
   );
 };
 

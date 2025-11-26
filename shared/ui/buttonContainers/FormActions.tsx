@@ -12,7 +12,6 @@ interface FormActionsProps {
   cancelVariant?: "default" | "secondary" | "destructive" | "outline";
   submitVariant?: "default" | "secondary" | "destructive" | "outline";
   error?: string | null;
-  fullWidth?: boolean;
   className?: string;
 }
 
@@ -26,7 +25,6 @@ const FormActions: React.FC<FormActionsProps> = ({
   cancelVariant = "secondary",
   submitVariant = "default",
   error,
-  fullWidth = true,
   className,
 }) => {
   return (

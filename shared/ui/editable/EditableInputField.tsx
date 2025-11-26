@@ -4,7 +4,6 @@ import { Input } from "@shared/ui/primitive/input";
 import { Label } from "@shared/ui/primitive/label";
 import IconButton from "@shared/ui/buttonContainers/IconButton";
 import { Save, Loader2 } from "lucide-react";
-import _ from "lodash";
 import EditableFieldWrapper from "../containers/EditableFieldWapper";
 import FormattedValueDisplay from "../display/FormattedValueDisplay";
 import FieldErrorMessage from "../error/FieldErrorMessage";
@@ -18,7 +17,7 @@ interface EditableInputFieldProps {
   isEditing: boolean;
   isSaving: boolean;
   error?: string | null;
-  disabled?: boolean;
+  hasChanges: boolean;
 }
 
 const EditableInputField: React.FC<EditableInputFieldProps> = ({
@@ -30,11 +29,11 @@ const EditableInputField: React.FC<EditableInputFieldProps> = ({
   isEditing,
   isSaving,
   error,
-  disabled,
+  hasChanges,
 }) => {
   return (
     <EditableFieldWrapper className="border-t">
-      <Label htmlFor={name} className="font-normal text-grayText ">
+      <Label htmlFor={name} className="font-normal text-grayText">
         {label}
       </Label>
 
@@ -43,7 +42,6 @@ const EditableInputField: React.FC<EditableInputFieldProps> = ({
           <div className="flex flex-col w-full">
             <Input
               id={name}
-              name={name}
               value={value}
               onChange={onChange}
               className={error ? "border-red-500" : ""}
@@ -59,15 +57,16 @@ const EditableInputField: React.FC<EditableInputFieldProps> = ({
               )
             }
             onClick={onSave}
-            disabled={isSaving || disabled}
-            title={"Save"}
+            disabled={isSaving || !hasChanges}
+            title={!hasChanges ? "No changes" : "Save"}
+            className={!hasChanges ? "opacity-50 cursor-not-allowed" : ""}
           />
         </div>
       ) : (
         <FormattedValueDisplay
           value={value}
           fallbackText="Not Set"
-          className="text-xl font-semibold mt-.5"
+          className="text-xl font-semibold mt-0.5"
         />
       )}
     </EditableFieldWrapper>

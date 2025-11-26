@@ -1,14 +1,14 @@
 "use client";
 
 import LabeledDateTimeField from "@/shared/ui/fields/LabeledDateTimeField";
-import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 import { formatToDateTimeLocalPST, getCurrentTime } from "@/shared/utils/luxon";
 import LabeledInputField from "@/shared/ui/fields/LabeledInputField";
 import { PresetButtons } from "@/shared/ui/fields/PresetButtons";
 
 const DetailsSelection = () => {
   const { formData, updateFormData, sendType, handleSendTypeChange } =
-    useCampaignForm();
+    useCreateCampaignForm();
   const { sendAt } = formData;
   const min = formatToDateTimeLocalPST(getCurrentTime());
 

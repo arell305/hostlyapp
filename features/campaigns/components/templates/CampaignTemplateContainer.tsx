@@ -3,7 +3,7 @@
 import { Doc } from "@/convex/_generated/dataModel";
 import CampaignTemplateCard from "./CampaignTemplateCard";
 import EmptyList from "@/shared/ui/list/EmptyList";
-import { useCampaignForm } from "../../contexts/CampaignFormContext";
+import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 import CappedCardList from "@/shared/ui/containers/CappedCardList";
 
 interface CampaignTemplateContainerProps {
@@ -12,7 +12,8 @@ interface CampaignTemplateContainerProps {
 const CampaignTemplateContainer: React.FC<CampaignTemplateContainerProps> = ({
   smsTemplates,
 }) => {
-  const { updateFormData, setTemplateMode, setTemplate } = useCampaignForm();
+  const { updateFormData, setTemplateMode, setTemplate } =
+    useCreateCampaignForm();
 
   const handleTemplateSelect = (template: Doc<"smsTemplates">) => {
     updateFormData({ templateId: template._id, body: template.body });
@@ -23,7 +24,7 @@ const CampaignTemplateContainer: React.FC<CampaignTemplateContainerProps> = ({
   if (smsTemplates.length === 0) {
     return (
       <EmptyList
-        className="mt-4"
+        className=""
         items={smsTemplates}
         message="No templates found."
       />
@@ -32,7 +33,7 @@ const CampaignTemplateContainer: React.FC<CampaignTemplateContainerProps> = ({
 
   return (
     <>
-      <CappedCardList className="mt-4">
+      <CappedCardList>
         {smsTemplates.map((template) => (
           <CampaignTemplateCard
             key={template._id}

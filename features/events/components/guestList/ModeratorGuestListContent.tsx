@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useUpdateGuestAttendance } from "@/domain/guestListEntries";
 import { filterGuestsByName } from "@shared/utils/format";
-import SearchInput from "../SearchInput";
 import SectionContainer from "@shared/ui/containers/SectionContainer";
 import GuestListContainer from "./GuestListContainer";
 import ResponsiveGuestCheckIn from "@shared/ui/responsive/ResponsiveGuestCheckIn";
@@ -12,16 +11,14 @@ import { Id } from "convex/_generated/dataModel";
 
 interface ModeratorGuestListContentProps {
   isCheckInOpen: boolean;
-  guestListData: GuestListEntryWithPromoter[];
+  filteredGuests: GuestListEntryWithPromoter[];
   canCheckInGuests: boolean;
-  searchTerm: string;
 }
 
 const ModeratorGuestListContent = ({
   isCheckInOpen,
-  guestListData,
+  filteredGuests,
   canCheckInGuests,
-  searchTerm,
 }: ModeratorGuestListContentProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedGuest, setSelectedGuest] =
@@ -32,10 +29,6 @@ const ModeratorGuestListContent = ({
     error: checkInGuestError,
     setError: setIsCheckInGuestError,
   } = useUpdateGuestAttendance();
-
-  const filteredGuests = useMemo(() => {
-    return filterGuestsByName(guestListData, searchTerm);
-  }, [guestListData, searchTerm]);
 
   const handleCheckInGuest = (guest: GuestListEntryWithPromoter) => {
     setSelectedGuest(guest);

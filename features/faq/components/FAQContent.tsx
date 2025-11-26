@@ -63,6 +63,10 @@ const FAQContent = ({ faqs }: FAQContentProps) => {
     setShowEdit(true);
   };
 
+  if (faqs.length === 0) {
+    return <p className="text-grayText">No faqs found.</p>;
+  }
+
   return (
     <CardContainer>
       {faqs.map((faq) => (

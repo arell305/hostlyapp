@@ -73,13 +73,8 @@ const ContactsIdPage = () => {
           )
         }
       />
-      <SearchInput
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        searchInputRef={searchInputRef}
-        placeholder="Search contacts..."
-      />
-      <ContactsLoader userId={userId} searchTerm={searchTerm} />
+
+      <ContactsLoader userId={userId} />
 
       <ResponsiveAddContact
         isOpen={isAddingContact}

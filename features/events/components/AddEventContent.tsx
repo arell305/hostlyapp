@@ -12,9 +12,9 @@ import { Notification } from "@shared/ui/display/Notification";
 import ResponsiveConfirm from "@shared/ui/responsive/ResponsiveConfirm";
 import { Id } from "@convex/_generated/dataModel";
 import SectionHeaderWithAction from "@shared/ui/headings/SectionHeaderWithAction";
-import EventFormWrapper from "@/features/events/components/eventForm/EventFormWrapper";
-import { useContextOrganization } from "@/shared/hooks/contexts";
+import { useContextOrganization, useEventForm } from "@/shared/hooks/contexts";
 import { isAdmin } from "@/shared/utils/permissions";
+import EventFormContent from "./eventForm/EventFormContent";
 
 interface AddEventContentProps {
   onCancel: () => void;
@@ -34,6 +34,8 @@ const AddEventContent: React.FC<AddEventContentProps> = ({
     connectedAccountEnabled,
     availableCredits,
   } = useContextOrganization();
+
+  const { hasChanges } = useEventForm();
 
   const [showCancelConfirmModal, setShowCancelConfirmModal] =
     useState<boolean>(false);
@@ -59,7 +61,11 @@ const AddEventContent: React.FC<AddEventContentProps> = ({
   };
 
   const handleCancel = () => {
-    setShowCancelConfirmModal(true);
+    if (hasChanges) {
+      setShowCancelConfirmModal(true);
+    } else {
+      onCancel();
+    }
   };
 
   const handleConfirmCancel = () => {
@@ -97,7 +103,7 @@ const AddEventContent: React.FC<AddEventContentProps> = ({
         </div>
       )}
 
-      <EventFormWrapper
+      <EventFormContent
         isStripeEnabled={connectedAccountEnabled}
         onSubmit={handleSubmit}
         isEdit={false}
@@ -105,11 +111,11 @@ const AddEventContent: React.FC<AddEventContentProps> = ({
         saveEventError={error}
         subscription={subscription}
         organizationId={organization._id}
-        isSubmitLoading={isLoading}
         submitError={error}
         handleBuyCredit={handleBuyCredit}
         isCompanyAdmin={isCompanyAdmin}
         availableCredits={availableCredits}
+        isLoading={isLoading}
       />
       <ResponsiveConfirm
         isOpen={showCancelConfirmModal}

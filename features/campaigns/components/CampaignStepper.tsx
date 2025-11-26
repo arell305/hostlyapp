@@ -2,7 +2,7 @@
 
 import {
   CAMPAIGN_FORM_STEPS,
-  useCampaignForm,
+  useCreateCampaignForm,
 } from "../contexts/CampaignFormContext";
 import Stepper from "@shared/ui/stepper/Stepper";
 
@@ -15,7 +15,7 @@ const LABELS: Record<string, string> = {
 type LocalCampaignFormStep = (typeof CAMPAIGN_FORM_STEPS)[number];
 
 const CampaignStepper: React.FC = () => {
-  const { currentStep, goToStep, formData } = useCampaignForm();
+  const { currentStep, goToStep, formData } = useCreateCampaignForm();
   const steps = CAMPAIGN_FORM_STEPS.map((key) => ({ label: LABELS[key] }));
   const currentIndex = CAMPAIGN_FORM_STEPS.indexOf(
     currentStep as LocalCampaignFormStep
@@ -25,7 +25,7 @@ const CampaignStepper: React.FC = () => {
   const disabledSteps: number[] = [];
   if (formData.eventId === undefined) {
     disabledSteps.push(2, 3);
-  } else if (formData.body === undefined) {
+  } else if (formData.body === null) {
     disabledSteps.push(3);
   }
 

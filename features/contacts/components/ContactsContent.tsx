@@ -68,8 +68,12 @@ const ContactsContent = ({ contacts }: ContactsContentProps) => {
     }
   };
 
+  if (contacts.length === 0) {
+    return <p className="text-grayText">No contacts found.</p>;
+  }
+
   return (
-    <CustomCard>
+    <CustomCard className="border-b-0">
       {contacts.map((contact) => (
         <ContactCard
           key={contact._id}
