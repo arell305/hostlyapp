@@ -11,7 +11,7 @@ import FieldErrorMessage from "@/shared/ui/error/FieldErrorMessage";
 import { CampaignWithEvent } from "@/shared/types/types";
 
 interface CampaignCardProps {
-  campaign: CampaignWithEvent;
+  campaign: CampaignWithEvent | Doc<"campaigns">;
   href: string;
   onDelete: (id: Id<"campaigns">) => void;
   onCancel: (id: Id<"campaigns">) => void;
