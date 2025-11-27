@@ -18,6 +18,7 @@ type Props = {
   onReactivate: () => void;
   onResume: () => void;
   onOpenEvent: () => void;
+  onStop: () => void;
 };
 
 export default function ResponsiveCampaignCardActions({
@@ -28,6 +29,7 @@ export default function ResponsiveCampaignCardActions({
   onReactivate,
   onResume,
   onOpenEvent,
+  onStop,
 }: Props) {
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   const [open, setOpen] = useState<boolean>(false);
@@ -44,6 +46,7 @@ export default function ResponsiveCampaignCardActions({
       onReactivate={onReactivate}
       onResume={onResume}
       onOpenEvent={onOpenEvent}
+      onStop={onStop}
     />
   );
 
