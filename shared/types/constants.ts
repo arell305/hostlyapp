@@ -139,15 +139,4 @@ export const ERROR_MESSAGES: Record<string, string> = {
 export const DEFAULT_ERROR_MESSAGE =
   "An unexpected error occurred. Please try again.";
 
-export const TAGS_BY_CONTEXT = [
-  { key: "firstName", label: "First Name" },
-  { key: "lastName", label: "Last Name" },
-  { key: "eventName", label: "Event Name" },
-  { key: "eventDate", label: "Event Date" },
-  { key: "eventTime", label: "Event Time" },
-  { key: "venueName", label: "Venue" },
-  { key: "guestListLink", label: "Guest List Link" },
-  { key: "companyName", label: "Company" },
-];
-
 export const SEARCH_MIN_LENGTH = 6;
