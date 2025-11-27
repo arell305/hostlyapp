@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@shared/ui/primitive/card";
 import ResponsiveTemplateActions from "./ResponsiveTemplateActions";
+import TemplateBadgesRow from "./TemplateBadgesRow";
 
 interface TemplateCardProps {
   template: Doc<"smsTemplates">;
@@ -19,7 +20,7 @@ const TemplateCard = ({ template, onDelete, onEdit }: TemplateCardProps) => {
   return (
     <CustomCard>
       <CardHeader>
-        <div className="flex items-start justify-between gap-1 mb-2">
+        <div className="flex items-start justify-between  ">
           <CardTitle>{template.name}</CardTitle>
           <ResponsiveTemplateActions
             template={template}
@@ -30,6 +31,7 @@ const TemplateCard = ({ template, onDelete, onEdit }: TemplateCardProps) => {
         <CardDescription className="line-clamp-2">
           {template.body}
         </CardDescription>
+        <TemplateBadgesRow template={template} />
       </CardHeader>
     </CustomCard>
   );

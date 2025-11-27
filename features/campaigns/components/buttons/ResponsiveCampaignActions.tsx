@@ -18,6 +18,7 @@ type Props = {
   onResume: (id: Id<"campaigns">) => void;
   onOpenEvent?: () => void;
   onEdit?: (campaign: Doc<"campaigns">) => void;
+  onStop: (id: Id<"campaigns">) => void;
 };
 
 export default function ResponsiveCampaignActions({
@@ -28,6 +29,7 @@ export default function ResponsiveCampaignActions({
   onResume,
   onOpenEvent,
   onEdit,
+  onStop,
 }: Props) {
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   const [open, setOpen] = useState<boolean>(false);
@@ -44,6 +46,7 @@ export default function ResponsiveCampaignActions({
       onResume={onResume}
       onOpenEvent={onOpenEvent}
       onEdit={onEdit}
+      onStop={onStop}
     />
   );
 

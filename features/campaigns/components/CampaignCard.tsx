@@ -8,9 +8,10 @@ import ResponsiveCampaignActions from "./buttons/ResponsiveCampaignActions";
 import { Loader2 } from "lucide-react";
 import CampaignBadgesRow from "./campaign/CampaignBadgesRow";
 import FieldErrorMessage from "@/shared/ui/error/FieldErrorMessage";
+import { CampaignWithEvent } from "@/shared/types/types";
 
 interface CampaignCardProps {
-  campaign: Doc<"campaigns">;
+  campaign: CampaignWithEvent;
   href: string;
   onDelete: (id: Id<"campaigns">) => void;
   onCancel: (id: Id<"campaigns">) => void;
@@ -19,6 +20,7 @@ interface CampaignCardProps {
   onEdit: (campaign: Doc<"campaigns">) => void;
   isLoading?: boolean;
   error?: string | null;
+  onStop: (id: Id<"campaigns">) => void;
 }
 
 const CampaignCard = ({
@@ -31,6 +33,7 @@ const CampaignCard = ({
   onEdit,
   isLoading = false,
   error,
+  onStop,
 }: CampaignCardProps) => {
   return (
     <Link href={href} className="block">
@@ -52,6 +55,7 @@ const CampaignCard = ({
                 onReactivate={onReactivate}
                 onResume={onResume}
                 onEdit={onEdit}
+                onStop={onStop}
               />
             )}
             <FieldErrorMessage error={error} />

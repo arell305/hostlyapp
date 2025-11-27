@@ -5,6 +5,7 @@ import EventsSelection from "./events/EventsSelection";
 import TemplateSelection from "./TemplateSelection";
 import DetailsSection from "./details/DetailsSection";
 import { useCreateCampaignForm } from "../contexts/CampaignFormContext";
+import AudienceSection from "./audience/AudienceSection";
 
 interface CampaignFormContentProps {
   triggerCancelModal: () => void;
@@ -21,6 +22,7 @@ const CampaignFormContent: React.FC<CampaignFormContentProps> = ({
       {currentStep === "event" && (
         <EventsSelection triggerCancelModal={triggerCancelModal} />
       )}
+      {currentStep === "audience" && <AudienceSection />}
       {currentStep === "template" && <TemplateSelection />}
       {currentStep === "details" && <DetailsSection />}
     </div>

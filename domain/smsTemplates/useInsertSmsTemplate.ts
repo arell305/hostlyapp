@@ -2,17 +2,12 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
-
-import {
-  FrontendErrorMessages,
-  type SmsMessageType,
-} from "@shared/types/enums";
+import { FrontendErrorMessages } from "@shared/types/enums";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 
 interface InsertSmsTemplateInput {
   body: string;
-  messageType: SmsMessageType;
   name: string;
   userId: Id<"users">;
 }

@@ -7,7 +7,8 @@ import { useState, useRef } from "react";
 import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 
 const EventsSelectionContent = () => {
-  const { updateFormData } = useCreateCampaignForm();
+  const { updateFormData, setHasGuestList, setTemplateMode } =
+    useCreateCampaignForm();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -17,8 +18,16 @@ const EventsSelectionContent = () => {
 
   const handleTabChange = (value: EventFilter) => {
     setSelectedTab(value);
+    setTemplateMode("list");
+
     if (value === "none") {
-      updateFormData({ eventId: null });
+      updateFormData({
+        eventId: null,
+        audienceType: "All Contacts",
+        body: null,
+        templateId: null,
+      });
+      setHasGuestList(false);
     } else {
       updateFormData({ eventId: undefined });
     }

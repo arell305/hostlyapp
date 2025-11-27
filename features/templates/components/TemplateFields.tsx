@@ -3,9 +3,7 @@ import FormContainer from "@shared/ui/containers/FormContainer";
 import LabeledInputField from "@shared/ui/fields/LabeledInputField";
 import LabeledTextAreaField from "@shared/ui/fields/LabeledTextAreaField";
 import { TemplateValues } from "@shared/types/types";
-import PresetButtonSelector from "@/shared/ui/fields/PresetButtonSelector";
-import { SmsMessageType } from "@/shared/types/enums";
-import { MESSAGE_TYPE_OPTIONS, TAGS_BY_TYPE } from "@/shared/types/constants";
+import { getFilteredVariables } from "@/shared/utils/uiHelpers";
 import { useRef, useState } from "react";
 import AiMessageGenerator from "@/features/templates/components/AiMessageGenerator";
 import VariablesInserter from "@/shared/ui/fields/VariablesInserter";
@@ -18,6 +16,8 @@ interface TemplateFieldsProps {
   className?: string;
   children?: React.ReactNode;
   showName?: boolean;
+  bodyError?: string | null;
+  variableFilter?: "all" | "noEvent" | "noGuestList";
 }
 
 const TemplateFields = ({
@@ -26,6 +26,8 @@ const TemplateFields = ({
   className,
   children,
   showName = true,
+  bodyError,
+  variableFilter = "all",
 }: TemplateFieldsProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [messageType, setMessageType] = useState<"manual" | "ai">("manual");
@@ -45,21 +47,8 @@ const TemplateFields = ({
     }, 0);
   };
 
-  const availableVariables = values.messageType
-    ? TAGS_BY_TYPE[values.messageType]
-    : [];
-
   return (
     <FormContainer className={cn("space-y-4", className)}>
-      <PresetButtonSelector
-        label="Message Type"
-        name="messageType"
-        options={MESSAGE_TYPE_OPTIONS}
-        value={values.messageType}
-        onChange={(value) => onChange({ messageType: value as SmsMessageType })}
-        required
-      />
-
       {showName && (
         <LabeledInputField
           label="Name*"
@@ -71,8 +60,7 @@ const TemplateFields = ({
       )}
 
       <VariablesInserter
-        label="Insert Variables"
-        variables={availableVariables}
+        variables={getFilteredVariables(variableFilter)}
         textareaValue={values.body}
         onInsert={handleVariableInsert}
         textareaRef={textareaRef}
@@ -101,11 +89,8 @@ const TemplateFields = ({
           });
         }}
         onChange={(e) => onChange({ body: e.target.value })}
-        placeholder={
-          values.messageType
-            ? "Enter message or generate with AI"
-            : "Select a message type first"
-        }
+        placeholder="Enter message or generate with AI"
+        error={bodyError}
       />
 
       {children}

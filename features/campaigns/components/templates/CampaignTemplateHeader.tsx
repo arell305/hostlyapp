@@ -31,9 +31,12 @@ const CampaignTemplateHeader = () => {
 
   return (
     <div className="flex  justify-between">
-      <div className="flex items-center gap-x-2">
+      <div className="flex items-center gap-x-1">
         {showBackButton && (
-          <IconButton icon={<ArrowLeftIcon />} onClick={handleBack} />
+          <IconButton
+            icon={<ArrowLeftIcon className="size-4" />}
+            onClick={handleBack}
+          />
         )}
         <h2>{templateTitle}</h2>
       </div>

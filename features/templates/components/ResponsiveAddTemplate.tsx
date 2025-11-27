@@ -21,7 +21,6 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
   const [values, setValues] = useState<TemplateValues>({
     body: "",
     name: "",
-    messageType: null,
   });
 
   const {
@@ -36,7 +35,6 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
     setValues({
       body: "",
       name: "",
-      messageType: "all_guests",
     });
   };
 
@@ -49,7 +47,7 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
     const body = values.body.trim();
     const name = values.name.trim();
 
-    if (!values.messageType || !body || !name) {
+    if (!body || !name) {
       return;
     }
 
@@ -57,7 +55,6 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
       userId,
       body,
       name,
-      messageType: values.messageType,
     });
 
     if (success) {
@@ -66,10 +63,7 @@ const ResponsiveAddTemplate: React.FC<ResponsiveAddTemplateProps> = ({
   };
 
   const isDisabled =
-    !values.body.trim() ||
-    !values.name.trim() ||
-    !values.messageType ||
-    insertSmsTemplateLoading;
+    !values.body.trim() || !values.name.trim() || insertSmsTemplateLoading;
 
   return (
     <ResponsiveHeightModal

@@ -4,7 +4,8 @@ import SummaryContent from "@/features/events/components/summary/SummaryContent"
 import { useEventContext } from "@/shared/hooks/contexts";
 
 const CampaignEventDetails = () => {
-  const { event } = useEventContext();
+  const { event, guestListInfo } = useEventContext();
+
   return (
     <>
       <SummaryContent
@@ -13,6 +14,7 @@ const CampaignEventDetails = () => {
         canEditEvent={false}
         promoterGuestStats={[]}
         ticketSalesByPromoterData={null}
+        guestListInfo={guestListInfo}
       />
     </>
   );

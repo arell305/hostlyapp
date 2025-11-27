@@ -1,5 +1,4 @@
-import { SmsMessageType } from "./enums";
-import { CampaignStatus } from "./types";
+import { AudienceType, CampaignStatus } from "./types";
 
 export type FaqPatch = {
   question: string;
@@ -9,7 +8,6 @@ export type FaqPatch = {
 
 export type SmsTemplatePatch = {
   body: string;
-  messageType: SmsMessageType;
   name: string;
   isActive: boolean;
 };
@@ -21,6 +19,11 @@ export type CampaignPatch = {
   scheduleTime?: number | null;
   promptResponse?: string;
   status?: CampaignStatus;
+  audienceType?: AudienceType;
+  stopRepliesAt?: number;
+  enableAiReplies?: boolean;
+  includeFaqInAiReplies?: boolean;
+  aiPrompt?: string | null;
 };
 
 export type GuestPatch = {

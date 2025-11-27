@@ -4,20 +4,20 @@ import { Doc, Id } from "@/convex/_generated/dataModel";
 import CampaignEventCard from "./CampaignEventCard";
 import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 import CappedCardList from "@/shared/ui/containers/CappedCardList";
-import EventDetailsLoader from "./EventDetailsLoader";
 
 interface CampaignEventsProps {
   events: Doc<"events">[];
 }
 
 const CampaignEvents: React.FC<CampaignEventsProps> = ({ events }) => {
-  const { updateFormData, formData } = useCreateCampaignForm();
+  const { updateFormData, formData, setTemplateMode } = useCreateCampaignForm();
 
   const handleEventSelect = (eventId: Id<"events">) => {
+    setTemplateMode("list");
     if (formData.eventId === eventId) {
       updateFormData({ eventId: undefined });
     } else {
-      updateFormData({ eventId });
+      updateFormData({ eventId, body: null, templateId: null });
     }
   };
 
@@ -37,9 +37,6 @@ const CampaignEvents: React.FC<CampaignEventsProps> = ({ events }) => {
             event={event}
             onSelect={handleEventSelect}
           />
-          {formData.eventId === event._id && (
-            <EventDetailsLoader eventId={event._id} />
-          )}
         </div>
       ))}
     </CappedCardList>

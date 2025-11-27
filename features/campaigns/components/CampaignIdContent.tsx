@@ -6,6 +6,8 @@ import CampaignDetails from "./campaign/CampaignDetails";
 import { useCampaignScope } from "@/shared/hooks/contexts";
 import CampaignEditFormActions from "./campaign/CampaignEditFormActions";
 import CampaignDetailsEdit from "./campaign/CampaignDetailsEdit";
+import AiDetails from "./ai/AiDetails";
+import AiDetailsEdit from "./ai/AiDetailsEdit";
 
 const CampaignIdContent = () => {
   const { isEditing } = useCampaignScope();
@@ -14,12 +16,14 @@ const CampaignIdContent = () => {
       {isEditing ? (
         <>
           <CampaignDetailsEdit />
+          <AiDetailsEdit />
           <EventCampaignDetails />
           <CampaignEditFormActions />
         </>
       ) : (
         <>
           <CampaignDetails />
+          <AiDetails />
           <EventCampaignDetails />
         </>
       )}

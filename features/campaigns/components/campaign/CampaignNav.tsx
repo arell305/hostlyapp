@@ -23,6 +23,7 @@ interface CampaignNavProps {
   onReactivate: () => void;
   onResume: () => void;
   onOpenEvent: () => void;
+  onStop: () => void;
 }
 const CampaignNav = ({
   campaign,
@@ -34,6 +35,7 @@ const CampaignNav = ({
   onReactivate,
   onResume,
   onOpenEvent,
+  onStop,
 }: CampaignNavProps) => {
   const { userId } = useUserScope();
   const { cleanSlug } = useContextOrganization();
@@ -112,6 +114,7 @@ const CampaignNav = ({
               onReactivate={onReactivate}
               onResume={onResume}
               onOpenEvent={onOpenEvent}
+              onStop={onStop}
             />
           </IconButtonContainer>
         )}

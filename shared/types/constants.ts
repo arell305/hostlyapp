@@ -139,41 +139,15 @@ export const ERROR_MESSAGES: Record<string, string> = {
 export const DEFAULT_ERROR_MESSAGE =
   "An unexpected error occurred. Please try again.";
 
-export const MESSAGE_TYPE_OPTIONS = [
-  { value: SmsMessageType.BEFORE_EVENT, label: "Before Event" },
-  { value: SmsMessageType.ATTENDED_EVENT, label: "Attended" },
-  { value: SmsMessageType.NOT_ATTENDED_EVENT, label: "Not Attended" },
-  { value: SmsMessageType.ALL_DB_GUESTS, label: "All Guests" },
+export const TAGS_BY_CONTEXT = [
+  { key: "firstName", label: "First Name" },
+  { key: "lastName", label: "Last Name" },
+  { key: "eventName", label: "Event Name" },
+  { key: "eventDate", label: "Event Date" },
+  { key: "eventTime", label: "Event Time" },
+  { key: "venueName", label: "Venue" },
+  { key: "guestListLink", label: "Guest List Link" },
+  { key: "companyName", label: "Company" },
 ];
-
-export const TAGS_BY_TYPE: Record<
-  (typeof SmsMessageType)[keyof typeof SmsMessageType],
-  { key: string; label: string }[]
-> = {
-  [SmsMessageType.BEFORE_EVENT]: [
-    { key: "firstName", label: "First Name" },
-    { key: "lastName", label: "Last Name" },
-    { key: "eventName", label: "Event Name" },
-    { key: "eventDate", label: "Event Date" },
-    { key: "eventTime", label: "Event Time" },
-    { key: "venueName", label: "Venue" },
-  ],
-  [SmsMessageType.ATTENDED_EVENT]: [
-    { key: "firstName", label: "First Name" },
-    { key: "lastName", label: "Last Name" },
-    { key: "eventName", label: "Event Name" },
-  ],
-  [SmsMessageType.NOT_ATTENDED_EVENT]: [
-    { key: "firstName", label: "First Name" },
-    { key: "lastName", label: "Last Name" },
-    { key: "eventName", label: "Event Name" },
-    { key: "nextEventDate", label: "Next Event" },
-  ],
-  [SmsMessageType.ALL_DB_GUESTS]: [
-    { key: "firstName", label: "First Name" },
-    { key: "lastName", label: "Last Name" },
-    { key: "companyName", label: "Company" },
-  ],
-};
 
 export const SEARCH_MIN_LENGTH = 6;

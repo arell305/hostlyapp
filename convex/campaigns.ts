@@ -16,11 +16,11 @@ import {
 import {
   validateCampaign,
   validateEvent,
-  validateOrganization,
   validateUser,
 } from "./backendUtils/validation";
 import { CampaignPatch } from "@/shared/types/patch-types";
-import { CampaignStatusConvex } from "./schema";
+import { AudienceTypeConvex, CampaignStatusConvex } from "./schema";
+import { CampaignWithEvent, CampaignWithGuestList } from "@/shared/types/types";
 
 export const getCampaignsArgs = {
   userId: v.id("users"),
@@ -37,26 +37,71 @@ export const getCampaignsArgs = {
 
 export const getCampaigns = query({
   args: getCampaignsArgs,
-  handler: async (ctx, args): Promise<Doc<"campaigns">[]> => {
-    const { userId, status, isActive } = args;
+  handler: async (context, argumentsObject): Promise<CampaignWithEvent[]> => {
+    const { userId, status, isActive } = argumentsObject;
 
-    const identity = await requireAuthenticatedUser(ctx);
-    const user = validateUser(await ctx.db.get(userId));
-    isUserTheSameAsIdentity(identity, user.clerkUserId);
+    const identity = await requireAuthenticatedUser(context);
+    const userDocument = validateUser(await context.db.get(userId));
+    isUserTheSameAsIdentity(identity, userDocument.clerkUserId);
 
-    let query = ctx.db
+    let campaignQuery = context.db
       .query("campaigns")
-      .withIndex("by_userId_updatedAt", (q) => q.eq("userId", userId))
+      .withIndex("by_userId_updatedAt", (queryBuilder) =>
+        queryBuilder.eq("userId", userId)
+      )
       .order("desc");
 
     if (status !== undefined) {
-      query = query.filter((q) => q.eq(q.field("status"), status));
-    }
-    if (isActive !== undefined) {
-      query = query.filter((q) => q.eq(q.field("isActive"), isActive));
+      campaignQuery = campaignQuery.filter((queryBuilder) =>
+        queryBuilder.eq(queryBuilder.field("status"), status)
+      );
     }
 
-    return await query.collect();
+    if (isActive !== undefined) {
+      campaignQuery = campaignQuery.filter((queryBuilder) =>
+        queryBuilder.eq(queryBuilder.field("isActive"), isActive)
+      );
+    }
+
+    const campaignDocuments = await campaignQuery.collect();
+
+    const eventIdList = Array.from(
+      new Set(
+        campaignDocuments
+          .map((campaignDocument) =>
+            campaignDocument.eventId ? String(campaignDocument.eventId) : null
+          )
+          .filter((eventId) => eventId)
+      )
+    );
+
+    const eventDocuments = await Promise.all(
+      eventIdList.map((eventId) => context.db.get(eventId as Id<"events">))
+    );
+
+    const eventNameById = new Map();
+    eventDocuments.forEach((eventDocument) => {
+      if (eventDocument && eventDocument._id && eventDocument.name) {
+        eventNameById.set(String(eventDocument._id), eventDocument.name);
+      }
+    });
+
+    const campaignDocumentsWithEvents = campaignDocuments.map(
+      (campaignDocument) => {
+        const eventIdString = campaignDocument.eventId
+          ? String(campaignDocument.eventId)
+          : null;
+
+        return {
+          ...campaignDocument,
+          eventName: eventIdString
+            ? eventNameById.get(eventIdString) || null
+            : undefined,
+        };
+      }
+    );
+
+    return campaignDocumentsWithEvents;
   },
 });
 
@@ -68,10 +113,24 @@ export const insertCampaign = mutation({
     eventId: v.union(v.id("events"), v.null()),
     scheduleTime: v.union(v.number(), v.null()),
     promptResponse: v.optional(v.string()),
+    audienceType: AudienceTypeConvex,
+    enableAiReplies: v.boolean(),
+    includeFaqInAiReplies: v.optional(v.boolean()),
+    aiPrompt: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args): Promise<Id<"campaigns">> => {
-    const { name, smsBody, userId, eventId, scheduleTime, promptResponse } =
-      args;
+    const {
+      name,
+      smsBody,
+      userId,
+      eventId,
+      scheduleTime,
+      promptResponse,
+      audienceType,
+      enableAiReplies,
+      includeFaqInAiReplies,
+      aiPrompt,
+    } = args;
 
     const identity = await requireAuthenticatedUser(ctx);
 
@@ -90,6 +149,10 @@ export const insertCampaign = mutation({
       promptResponse,
       updatedAt: Date.now(),
       status: "Scheduled",
+      audienceType,
+      enableAiReplies,
+      includeFaqInAiReplies,
+      aiPrompt,
     });
 
     return campaignId;
@@ -106,12 +169,28 @@ export const updateCampaign = mutation({
       promptResponse: v.optional(v.string()),
       status: v.optional(CampaignStatusConvex),
       smsBody: v.optional(v.string()),
+      audienceType: v.optional(AudienceTypeConvex),
+      stopRepliesAt: v.optional(v.number()),
+      enableAiReplies: v.optional(v.boolean()),
+      includeFaqInAiReplies: v.optional(v.boolean()),
+      aiPrompt: v.optional(v.union(v.string(), v.null())),
     }),
   },
   handler: async (ctx, args): Promise<Id<"campaigns">> => {
     const { campaignId, updates } = args;
-    const { name, isActive, scheduleTime, promptResponse, status, smsBody } =
-      updates;
+    const {
+      name,
+      isActive,
+      scheduleTime,
+      promptResponse,
+      status,
+      smsBody,
+      audienceType,
+      stopRepliesAt,
+      enableAiReplies,
+      includeFaqInAiReplies,
+      aiPrompt,
+    } = updates;
 
     const identity = await requireAuthenticatedUser(ctx);
 
@@ -137,6 +216,11 @@ export const updateCampaign = mutation({
       promptResponse,
       status,
       smsBody,
+      audienceType,
+      stopRepliesAt,
+      enableAiReplies,
+      includeFaqInAiReplies,
+      aiPrompt,
     });
 
     isEmptyObject(patch);
@@ -164,16 +248,36 @@ export const updateCampaignInternal = internalMutation({
 
 export const getCampaignById = query({
   args: { campaignId: v.id("campaigns") },
-  handler: async (ctx, args): Promise<Doc<"campaigns">> => {
-    const { campaignId } = args;
+  handler: async (context, argumentsObject): Promise<CampaignWithGuestList> => {
+    const { campaignId } = argumentsObject;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(context);
 
-    const campaign = validateCampaign(await ctx.db.get(campaignId));
-    const user = validateUser(await ctx.db.get(campaign.userId));
-    isUserTheSameAsIdentity(identity, user.clerkUserId);
+    const campaignDocument = validateCampaign(await context.db.get(campaignId));
+    const userDocument = validateUser(
+      await context.db.get(campaignDocument.userId)
+    );
+    isUserTheSameAsIdentity(identity, userDocument.clerkUserId);
 
-    return campaign;
+    let hasGuestList: boolean = false;
+
+    if (campaignDocument.eventId) {
+      const guestListRecords = await context.db
+        .query("guestListInfo")
+        .withIndex("by_eventId", (queryBuilder) =>
+          queryBuilder.eq("eventId", campaignDocument.eventId as Id<"events">)
+        )
+        .collect();
+
+      if (guestListRecords.length > 0) {
+        hasGuestList = true;
+      }
+    }
+
+    return {
+      ...campaignDocument,
+      hasGuestList,
+    };
   },
 });
 

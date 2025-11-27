@@ -2,7 +2,11 @@ import {
   GuestListEntryWithPromoter,
   TicketSchemaWithPromoter,
 } from "@/shared/types/schemas-types";
-import { GuestEntry, GuestListNameSchema } from "@/shared/types/types";
+import {
+  CampaignWithEvent,
+  GuestEntry,
+  GuestListNameSchema,
+} from "@/shared/types/types";
 import _ from "lodash";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { isValidPhoneNumber } from "./frontend-validation";
@@ -90,9 +94,9 @@ export function filterTemplatesByNameOrBody(
 }
 
 export function filterCampaignsByName(
-  campaigns: Doc<"campaigns">[],
+  campaigns: Doc<"campaigns">[] | CampaignWithEvent[],
   searchTerm: string
-): Doc<"campaigns">[] {
+): Doc<"campaigns">[] | CampaignWithEvent[] {
   const normalizedTerm = searchTerm.trim().toLowerCase();
   if (!normalizedTerm) return campaigns;
   return campaigns.filter((campaign) =>

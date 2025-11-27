@@ -8,9 +8,10 @@ import { useUpdateCampaign } from "@/domain/campaigns";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
+import { CampaignWithEvent } from "@/shared/types/types";
 
 interface CampaignsContentProps {
-  campaigns: Doc<"campaigns">[];
+  campaigns: CampaignWithEvent[] | Doc<"campaigns">[];
 }
 const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
   const { organization } = useContextOrganization();
@@ -22,6 +23,10 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
   const [campaignErrors, setCampaignErrors] = useState<
     Record<Id<"campaigns">, string | null>
   >({});
+  const [campaignToStopReplies, setCampaignToStopReplies] =
+    useState<Id<"campaigns"> | null>(null);
+  const [showStopRepliesConfirm, setShowStopRepliesConfirm] =
+    useState<boolean>(false);
 
   const { updateCampaign, updateCampaignLoading, updateCampaignError } =
     useUpdateCampaign();
@@ -112,6 +117,31 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
     }
   };
 
+  const handleStop = async (campaignId: Id<"campaigns">) => {
+    setCampaignToStopReplies(campaignId);
+    setShowStopRepliesConfirm(true);
+  };
+
+  const handleCloseStopRepliesConfirmModal = () => {
+    setCampaignToStopReplies(null);
+    setShowStopRepliesConfirm(false);
+  };
+
+  const handleConfirmStopReplies = async () => {
+    if (!campaignToStopReplies) {
+      return;
+    }
+    const success = await updateCampaign({
+      campaignId: campaignToStopReplies,
+      updates: {
+        stopRepliesAt: Date.now(),
+      },
+    });
+    if (success) {
+      handleCloseStopRepliesConfirmModal();
+    }
+  };
+
   const baseHref = `/${organization.slug}/app/campaigns/`;
 
   const showDeleteConfirm = campaignToDelete !== null;
@@ -137,6 +167,7 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
             onResume={handleResume}
             isLoading={isLoading}
             error={campaignErrors[campaign._id]}
+            onStop={handleStop}
           />
         );
       })}
@@ -156,6 +187,24 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
         drawerProps={{
           onOpenChange: handleCloseDeleteConfirmModal,
           onSubmit: handleConfirmDelete,
+        }}
+      />
+      <ResponsiveConfirm
+        isOpen={showDeleteConfirm}
+        title="Confirm Stop AI Replies"
+        content="Are you sure you want to stop AI replies for this campaign? You can not resume AI replies later."
+        confirmText="Yes, Stop AI Replies"
+        cancelText="No, Cancel"
+        confirmVariant="destructive"
+        error={updateCampaignError}
+        isLoading={updateCampaignLoading}
+        modalProps={{
+          onClose: handleCloseStopRepliesConfirmModal,
+          onConfirm: handleConfirmStopReplies,
+        }}
+        drawerProps={{
+          onOpenChange: handleCloseStopRepliesConfirmModal,
+          onSubmit: handleConfirmStopReplies,
         }}
       />
     </CardContainer>

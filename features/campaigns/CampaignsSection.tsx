@@ -7,9 +7,10 @@ import SectionContainer from "@/shared/ui/containers/SectionContainer";
 import { filterCampaignsByName } from "@/shared/utils/format";
 import SearchInput from "../events/components/SearchInput";
 import { SEARCH_MIN_LENGTH } from "@/shared/types/constants";
+import { CampaignWithEvent } from "@/shared/types/types";
 
 interface CampaignsSectionProps {
-  campaigns: Doc<"campaigns">[];
+  campaigns: CampaignWithEvent[];
 }
 
 const CampaignsSection = ({ campaigns }: CampaignsSectionProps) => {

@@ -1,6 +1,5 @@
 "use client";
 
-import { Id } from "convex/_generated/dataModel";
 import SubPageContainer from "@shared/ui/containers/SubPageContainer";
 import { useMemo, useRef, useState } from "react";
 import SearchInput from "@/features/events/components/SearchInput";

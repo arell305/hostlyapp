@@ -4,11 +4,11 @@ import { createContext, useState, useEffect, type ReactNode } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Id } from "convex/_generated/dataModel";
 import { useCampaignById } from "@/domain/campaigns";
-import type { Doc } from "@/convex/_generated/dataModel";
 import { EventProvider } from "./EventContext";
+import { CampaignWithGuestList } from "@/shared/types/types";
 
 export type CampaignScope = {
-  campaign: Doc<"campaigns">;
+  campaign: CampaignWithGuestList;
   isEditing: boolean;
   setIsEditing: (value: boolean) => void;
 };
@@ -26,15 +26,13 @@ export function CampaignScopeProvider({
   const router = useRouter();
   const urlEditMode = searchParams.get("edit") === "true";
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
   const campaign = useCampaignById(campaignId);
 
-  // Sync isEditing with ?edit=true param
   useEffect(() => {
     if (urlEditMode && campaign) {
       setIsEditing(true);
 
-      // Clean up the URL (remove ?edit=true) without page reload
       const currentPath = window.location.pathname;
       router.replace(currentPath, { scroll: false });
     }

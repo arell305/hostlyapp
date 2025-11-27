@@ -7,7 +7,6 @@ import {
   isUserTheSameAsIdentity,
   pickDefined,
 } from "./backendUtils/helper";
-import { SmsMessageTypeConvex } from "./schema";
 import { SmsTemplatePatch } from "@/shared/types/patch-types";
 import { Doc } from "./_generated/dataModel";
 
@@ -50,12 +49,11 @@ export const getSmsTemplate = query({
 export const insertSmsTemplate = mutation({
   args: {
     body: v.string(),
-    messageType: SmsMessageTypeConvex,
     name: v.string(),
     userId: v.id("users"),
   },
   handler: async (ctx, args): Promise<boolean> => {
-    const { body, messageType, name, userId } = args;
+    const { body, name, userId } = args;
 
     const identity = await requireAuthenticatedUser(ctx);
 
@@ -64,7 +62,6 @@ export const insertSmsTemplate = mutation({
 
     await ctx.db.insert("smsTemplates", {
       body,
-      messageType,
       name,
       userId,
       isActive: true,
@@ -80,14 +77,13 @@ export const updateSmsTemplate = mutation({
     smsTemplateId: v.id("smsTemplates"),
     updates: v.object({
       body: v.optional(v.string()),
-      messageType: v.optional(SmsMessageTypeConvex),
       name: v.optional(v.string()),
       isActive: v.optional(v.boolean()),
     }),
   },
   handler: async (ctx, args): Promise<boolean> => {
     const { smsTemplateId, updates } = args;
-    const { body, messageType, name, isActive } = updates;
+    const { body, name, isActive } = updates;
 
     const idenitity = await requireAuthenticatedUser(ctx);
 
@@ -97,7 +93,6 @@ export const updateSmsTemplate = mutation({
 
     const patch = pickDefined<SmsTemplatePatch>({
       body,
-      messageType,
       name,
       isActive,
     });

@@ -13,6 +13,8 @@ interface PresetButtonsProps<T extends string> {
   onValueChange: (value: T) => void;
   presets: readonly PresetButton<T>[];
   className?: string;
+  stacked?: boolean;
+  stackedWidth?: string;
 }
 
 export function PresetButtons<T extends string>({
@@ -21,12 +23,20 @@ export function PresetButtons<T extends string>({
   onValueChange,
   presets,
   className,
+  stacked = false,
+  stackedWidth = "md:w-[300px]",
 }: PresetButtonsProps<T>) {
   return (
     <div className={cn("space-y-3", className)}>
       <Label className="text-base font-medium">{label}</Label>
 
-      <div className="flex flex-wrap gap-2">
+      <div
+        className={cn(
+          "flex gap-2",
+          stacked ? "flex-col" : "flex-wrap",
+          stacked && stackedWidth
+        )}
+      >
         {presets.map(({ value: presetValue, label: presetLabel }) => (
           <Button
             key={presetValue}
@@ -34,8 +44,12 @@ export function PresetButtons<T extends string>({
             variant={value === presetValue ? "selectedOutline" : "outline"}
             size="sm"
             onClick={() => onValueChange(presetValue)}
+            className={cn(
+              "justify-start",
+              stacked ? "w-full" : "flex-1 min-w-fit"
+            )}
           >
-            {presetLabel}
+            <span className="truncate">{presetLabel}</span>
           </Button>
         ))}
       </div>

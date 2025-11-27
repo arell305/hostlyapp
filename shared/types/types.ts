@@ -5,10 +5,15 @@ import {
   ActiveTab,
   SubscriptionStatus,
   UserRole,
-  SmsMessageType,
   ResponseStatus,
 } from "./enums";
 import { EventWithTicketTypes } from "./schemas-types";
+
+export type AudienceType =
+  | "All Contacts"
+  | "All Guest List Guests"
+  | "Attended Guest List Guests"
+  | "Not Attended Guest List Guests";
 
 export type SubscriptionTierType = "Standard" | "Plus" | "Elite";
 
@@ -516,7 +521,6 @@ export type ContactValues = {
 export type TemplateValues = {
   body: string;
   name: string;
-  messageType: SmsMessageType | null;
 };
 
 export type CampaignValues = {
@@ -557,3 +561,11 @@ export type CampaignFilterStatus = CampaignStatus | "Archived";
 export type TemplateMode = "custom" | "existing" | "list";
 
 export type SelectedTemplateMode = Exclude<TemplateMode, "list">;
+
+export type CampaignWithEvent = Doc<"campaigns"> & {
+  eventName: string;
+};
+
+export type CampaignWithGuestList = Doc<"campaigns"> & {
+  hasGuestList: boolean;
+};

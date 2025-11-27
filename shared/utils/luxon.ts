@@ -210,6 +210,9 @@ export const formatDateTime = (timestamp: number) =>
     .setZone(TIME_ZONE)
     .toFormat(" MMM d, yyyy h:mma");
 
+export const formatShortDateTime = (timestamp: number) =>
+  DateTime.fromMillis(timestamp).setZone(TIME_ZONE).toFormat("MM/dd/yy h:mma");
+
 export function formatRelativeTimestamp(rawTimestamp?: number | null): string {
   if (!rawTimestamp) {
     return "";
@@ -226,3 +229,11 @@ export function formatRelativeTimestamp(rawTimestamp?: number | null): string {
 
   return dateTime.toRelative() ?? "";
 }
+
+export const getDefaultScheduledTime = (): number => {
+  const now = DateTime.now().setZone(TIME_ZONE);
+  const minutes = now.minute;
+  const minutesToNext15 = 15 - (minutes % 15);
+  const rounded = now.plus({ minutes: minutesToNext15 }).startOf("minute");
+  return rounded.toMillis();
+};

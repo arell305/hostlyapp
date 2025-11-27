@@ -47,13 +47,6 @@ export const StripeAccountStatusConvex = v.union(
   v.literal("Incomplete")
 );
 
-export const SmsMessageTypeConvex = v.union(
-  v.literal("all_guests"),
-  v.literal("attended_event"),
-  v.literal("not_attended_event"),
-  v.literal("before_event")
-);
-
 export const SmsMessageDirectionConvex = v.union(
   v.literal("inbound"),
   v.literal("outbound")
@@ -83,6 +76,13 @@ export const CampaignStatusConvex = v.union(
   v.literal("Cancelled")
 );
 
+export const AudienceTypeConvex = v.union(
+  v.literal("All Contacts"),
+  v.literal("All Guest List Guests"),
+  v.literal("Attended Guest List Guests"),
+  v.literal("Not Attended Guest List Guests")
+);
+
 export const GuestListNames = v.object({
   id: v.string(),
   name: v.string(),
@@ -95,7 +95,11 @@ export const GuestListNames = v.object({
 
 export default defineSchema({
   campaigns: defineTable({
+    aiPrompt: v.optional(v.union(v.string(), v.null())),
+    audienceType: AudienceTypeConvex,
+    enableAiReplies: v.boolean(),
     eventId: v.union(v.id("events"), v.null()),
+    includeFaqInAiReplies: v.optional(v.boolean()),
     isActive: v.boolean(),
     name: v.string(),
     templateId: v.optional(v.id("smsTemplates")),
@@ -104,6 +108,7 @@ export default defineSchema({
     scheduleTime: v.union(v.number(), v.null()),
     sentAt: v.optional(v.number()),
     status: CampaignStatusConvex,
+    stopRepliesAt: v.optional(v.number()),
     updatedAt: v.number(),
     userId: v.id("users"),
   })
@@ -283,7 +288,6 @@ export default defineSchema({
   smsTemplates: defineTable({
     body: v.string(),
     isActive: v.boolean(),
-    messageType: SmsMessageTypeConvex,
     name: v.string(),
     updatedAt: v.number(),
     userId: v.id("users"),

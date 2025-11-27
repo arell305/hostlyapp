@@ -1,4 +1,5 @@
 import { Doc } from "@/convex/_generated/dataModel";
+import TemplateBadgesRow from "@/features/templates/components/TemplateBadgesRow";
 import { cn } from "@/shared/lib/utils";
 import CustomCard from "@/shared/ui/cards/CustomCard";
 import {
@@ -23,7 +24,10 @@ const CampaignTemplateCard: React.FC<CampaignTemplateCardProps> = ({
     >
       <CardHeader>
         <CardTitle>{template.name}</CardTitle>
-        <CardDescription>{template.body}</CardDescription>
+        <CardDescription className="line-clamp-2">
+          {template.body}
+        </CardDescription>
+        <TemplateBadgesRow template={template} />
       </CardHeader>
     </CustomCard>
   );

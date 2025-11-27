@@ -29,9 +29,12 @@ const EventsSelection: React.FC<EventsSelectionProps> = ({
   return (
     <SectionContainer className="gap-0">
       <SectionBodyContainer>
-        <div className="flex items-center gap-x-2">
+        <div className="flex items-center gap-x-1">
           {isEventSelected && (
-            <IconButton icon={<ArrowLeftIcon />} onClick={handleBack} />
+            <IconButton
+              icon={<ArrowLeftIcon className="size-4" />}
+              onClick={handleBack}
+            />
           )}
           <h2>Choose Event for Campaign</h2>
         </div>

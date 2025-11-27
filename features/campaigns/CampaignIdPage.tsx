@@ -27,6 +27,8 @@ const CampaignIdPage = () => {
   const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
   const [showConfirmMessagesCancel, setShowConfirmMessagesCancel] =
     useState<boolean>(false);
+  const [showStopRepliesConfirm, setShowStopRepliesConfirm] =
+    useState<boolean>(false);
 
   const {
     updateCampaign,
@@ -93,6 +95,24 @@ const CampaignIdPage = () => {
     }
   };
 
+  const handleStop = () => {
+    setShowStopRepliesConfirm(true);
+  };
+
+  const handleConfirmStop = async () => {
+    const success = await updateCampaign({
+      campaignId: campaign._id,
+      updates: { stopRepliesAt: Date.now() },
+    });
+    if (success) {
+      handleCloseStopRepliesConfirm();
+    }
+  };
+
+  const handleCloseStopRepliesConfirm = () => {
+    setShowStopRepliesConfirm(false);
+  };
+
   return (
     <PageContainer>
       <CampaignNav
@@ -105,6 +125,7 @@ const CampaignIdPage = () => {
         onReactivate={handleReactivate}
         onResume={handleResume}
         onOpenEvent={handleOpenEvent}
+        onStop={handleStop}
       />
 
       <ToggleTabs
@@ -119,7 +140,6 @@ const CampaignIdPage = () => {
       {selectedTab === "details" && <CampaignIdContent />}
       {selectedTab === "messages" && <MessagingTab />}
 
-      {/* Archive Confirmation */}
       <ResponsiveConfirm
         isOpen={showConfirmDelete}
         title="Archive Campaign"
@@ -135,6 +155,25 @@ const CampaignIdPage = () => {
             setUpdateCampaignError(null);
           },
           onConfirm: handleDelete,
+        }}
+      />
+
+      <ResponsiveConfirm
+        isOpen={showStopRepliesConfirm}
+        title="Confirm Stop AI Replies"
+        content="Are you sure you want to stop AI replies for this campaign? You can not resume AI replies later."
+        confirmText="Yes, Stop AI Replies"
+        cancelText="No, Cancel"
+        confirmVariant="destructive"
+        error={updateCampaignError}
+        isLoading={updateCampaignLoading}
+        modalProps={{
+          onClose: handleCloseStopRepliesConfirm,
+          onConfirm: handleConfirmStop,
+        }}
+        drawerProps={{
+          onOpenChange: handleCloseStopRepliesConfirm,
+          onSubmit: handleConfirmStop,
         }}
       />
 

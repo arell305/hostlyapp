@@ -3,17 +3,13 @@
 import FormActions from "@/shared/ui/buttonContainers/FormActions";
 import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 
-const TemplateSelectionButton = () => {
-  const { prevStep, nextStep, formData, bodyError } = useCreateCampaignForm();
-
-  const isNextDisabled =
-    formData.body === null || bodyError !== null || formData.body.trim() === "";
+const AudienceSelectionButton = () => {
+  const { prevStep, nextStep } = useCreateCampaignForm();
 
   return (
     <FormActions
       onCancel={prevStep}
       onSubmit={nextStep}
-      isSubmitDisabled={isNextDisabled}
       isLoading={false}
       error={null}
       cancelText="Back"
@@ -25,4 +21,4 @@ const TemplateSelectionButton = () => {
   );
 };
 
-export default TemplateSelectionButton;
+export default AudienceSelectionButton;

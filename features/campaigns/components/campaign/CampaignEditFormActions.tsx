@@ -14,7 +14,7 @@ const CampaignEditFormActions = () => {
   const { setIsEditing, campaign } = useCampaignScope();
   const { updateCampaign, updateCampaignLoading, updateCampaignError } =
     useUpdateCampaign();
-  const { formData, hasChanges } = useCampaignForm();
+  const { formData, hasChanges, bodyError } = useCampaignForm();
   const { name, smsBody, scheduleTime } = formData;
 
   const isSent = campaign.status === "Sent";
@@ -27,6 +27,10 @@ const CampaignEditFormActions = () => {
     if (!isSent) {
       updates.smsBody = campaign.smsBody;
       updates.scheduleTime = campaign.scheduleTime;
+      updates.promptResponse = formData.promptResponse;
+      updates.enableAiReplies = formData.enableAiReplies;
+      updates.includeFaqInAiReplies = formData.includeFaqInAiReplies;
+      updates.aiPrompt = formData.aiPrompt;
     }
 
     const success = await updateCampaign({
@@ -59,7 +63,8 @@ const CampaignEditFormActions = () => {
     !hasFormValue(name) ||
     !hasFormValue(smsBody) ||
     !hasFormValue(scheduleTime) ||
-    !hasChanges;
+    !hasChanges ||
+    bodyError !== null;
 
   const cancelText = hasChanges ? "Cancel" : "Close";
 

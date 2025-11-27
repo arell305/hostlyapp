@@ -31,6 +31,10 @@ const CampaignSubmit = () => {
       eventId: formData.eventId,
       scheduleTime: formData.sendAt,
       smsBody: formData.body,
+      audienceType: formData.audienceType,
+      enableAiReplies: formData.enableAiReplies,
+      includeFaqInAiReplies: formData.includeFaqInAiReplies,
+      aiPrompt: formData.aiPrompt,
     });
 
     if (success) {

@@ -22,7 +22,6 @@ const ResponsiveEditTemplate: React.FC<ResponsiveEditTemplateProps> = ({
   const [values, setValues] = useState<TemplateValues>({
     body: template.body,
     name: template.name,
-    messageType: template.messageType,
   });
 
   const {
@@ -37,7 +36,6 @@ const ResponsiveEditTemplate: React.FC<ResponsiveEditTemplateProps> = ({
       setValues({
         body: template.body,
         name: template.name,
-        messageType: template.messageType,
       });
     }
   }, [isOpen, template]);
@@ -45,14 +43,12 @@ const ResponsiveEditTemplate: React.FC<ResponsiveEditTemplateProps> = ({
   const hasChanges = useMemo(() => {
     const trimmedBody = values.body.trim();
     const trimmedName = values.name.trim();
-    const trimmedMessageType = values.messageType;
 
     return (
       trimmedBody !== template.body.trim() ||
-      trimmedName !== template.name.trim() ||
-      trimmedMessageType !== template.messageType
+      trimmedName !== template.name.trim()
     );
-  }, [values.body, values.name, values.messageType, template]);
+  }, [values.body, values.name, template]);
 
   const handleClose = () => {
     setUpdateSmsTemplateError(null);
@@ -60,19 +56,22 @@ const ResponsiveEditTemplate: React.FC<ResponsiveEditTemplateProps> = ({
   };
 
   const handleSave = async () => {
-    if (!hasChanges) return;
+    if (!hasChanges) {
+      return;
+    }
 
     const body = values.body.trim();
     const name = values.name.trim();
 
-    if (!values.messageType || !body || !name) return;
+    if (!body || !name) {
+      return;
+    }
 
     const success = await updateSmsTemplate({
       smsTemplateId: template._id,
       updates: {
         body,
         name,
-        messageType: values.messageType,
       },
     });
 
@@ -85,7 +84,6 @@ const ResponsiveEditTemplate: React.FC<ResponsiveEditTemplateProps> = ({
     !hasChanges ||
     !values.body.trim() ||
     !values.name.trim() ||
-    !values.messageType ||
     updateSmsTemplateLoading;
 
   return (

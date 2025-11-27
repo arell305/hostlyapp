@@ -8,6 +8,7 @@ import MenuReactivate from "@/shared/ui/buttonContainers/menu/MenuReactivate";
 import MenuResume from "@/shared/ui/buttonContainers/menu/MenuResume";
 import MenuEvent from "@/shared/ui/buttonContainers/menu/MenuEvent";
 import MenuEdit from "@/shared/ui/buttonContainers/menu/MenuEdit";
+import MenuStop from "@/shared/ui/buttonContainers/menu/MenuStop";
 
 type Props = {
   campaign: Doc<"campaigns">;
@@ -18,6 +19,7 @@ type Props = {
   onOpenEvent?: (campaign: Doc<"campaigns">) => void;
   onClose: () => void;
   onEdit?: (campaign: Doc<"campaigns">) => void;
+  onStop: (id: Id<"campaigns">) => void;
 };
 
 export default function CampaignActionMenuContent({
@@ -29,6 +31,7 @@ export default function CampaignActionMenuContent({
   onOpenEvent,
   onClose,
   onEdit,
+  onStop,
 }: Props) {
   const hasEvent = campaign.eventId !== null && campaign.eventId !== undefined;
 
@@ -62,6 +65,15 @@ export default function CampaignActionMenuContent({
       {campaign.status === "Cancelled" && (
         <MenuResume doc={campaign} onResume={onResume} onClose={onClose} />
       )}
+      {campaign.enableAiReplies &&
+        campaign.stopRepliesAt === undefined &&
+        campaign.status !== "Scheduled" && (
+          <MenuStop
+            doc={campaign}
+            onStop={() => onStop(campaign._id)}
+            onClose={onClose}
+          />
+        )}
 
       <MenuDelete
         isArchived

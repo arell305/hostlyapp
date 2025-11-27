@@ -8,11 +8,16 @@ import {
   useCallback,
   useRef,
   useEffect,
+  useMemo,
 } from "react";
 import { Doc, Id } from "@/convex/_generated/dataModel";
-import { TemplateMode } from "@/shared/types/types";
+import { AudienceType, TemplateMode } from "@/shared/types/types";
+import {
+  hasEventRequiredVariables,
+  hasGuestListVariables,
+} from "@/shared/utils/uiHelpers";
 
-type CampaignFormStep = "event" | "template" | "details";
+type CampaignFormStep = "event" | "audience" | "template" | "details";
 
 interface CampaignFormData {
   eventId?: Id<"events"> | null;
@@ -21,8 +26,11 @@ interface CampaignFormData {
   subject?: string;
   content?: string;
   sendAt: number | null;
-  timezone?: string;
   name: string;
+  audienceType: AudienceType;
+  enableAiReplies: boolean;
+  includeFaqInAiReplies: boolean;
+  aiPrompt?: string | null;
 }
 
 interface CreateCampaignFormContextType {
@@ -41,6 +49,9 @@ interface CreateCampaignFormContextType {
   setTemplate: (template: Doc<"smsTemplates"> | null) => void;
   resetForm: () => void;
   isFormDirty: boolean;
+  hasGuestList: boolean;
+  setHasGuestList: (hasGuestList: boolean) => void;
+  bodyError: string | null;
 }
 
 const CreateCampaignFormContext = createContext<
@@ -49,6 +60,7 @@ const CreateCampaignFormContext = createContext<
 
 export const CAMPAIGN_FORM_STEPS: CampaignFormStep[] = [
   "event",
+  "audience",
   "template",
   "details",
 ];
@@ -68,21 +80,22 @@ export const CreateCampaignFormProvider = ({
     name: "",
     sendAt: null,
     body: null,
-    subject: undefined,
-    content: undefined,
-    timezone: undefined,
+    audienceType: "All Contacts",
+    enableAiReplies: false,
+    includeFaqInAiReplies: true,
   });
 
   const [formData, setFormData] = useState<CampaignFormData>(
     initialFormData.current
   );
   const [currentStep, setCurrentStep] = useState<CampaignFormStep>(
-    initialEventId ? "template" : "event"
+    initialEventId ? "audience" : "event"
   );
   const [sendType, setSendType] = useState<"now" | "later">("now");
   const [templateMode, setTemplateMode] = useState<TemplateMode>("list");
   const [template, setTemplate] = useState<Doc<"smsTemplates"> | null>(null);
-  const [isFormDirty, setIsFormDirty] = useState(false);
+  const [isFormDirty, setIsFormDirty] = useState<boolean>(false);
+  const [hasGuestList, setHasGuestList] = useState<boolean>(false);
 
   const handleSendTypeChange = (type: "now" | "later") => {
     setSendType(type);
@@ -127,14 +140,24 @@ export const CreateCampaignFormProvider = ({
       formData.subject !== initialFormData.current.subject ||
       formData.content !== initialFormData.current.content ||
       formData.sendAt !== initialFormData.current.sendAt ||
-      formData.timezone !== initialFormData.current.timezone ||
       sendType !== "now" ||
       template !== null;
 
     setIsFormDirty(dirty);
   }, [formData, sendType, template]);
 
+  const bodyError = useMemo(() => {
+    if (!formData.eventId && hasEventRequiredVariables(formData.body ?? "")) {
+      return "Body contains tags that require an Event";
+    }
+    if (!hasGuestList && hasGuestListVariables(formData.body ?? "")) {
+      return "Body contains tags that require a Guest List";
+    }
+    return null;
+  }, [formData.body, formData.eventId, hasGuestList]);
+
   const isSubmitDisabled =
+    bodyError !== null ||
     !formData.name.trim() ||
     !formData.body?.trim() ||
     formData.eventId === undefined ||
@@ -142,6 +165,7 @@ export const CreateCampaignFormProvider = ({
       (formData.sendAt === null || formData.sendAt <= Date.now()));
 
   const value = {
+    bodyError,
     formData,
     currentStep,
     updateFormData,
@@ -157,6 +181,8 @@ export const CreateCampaignFormProvider = ({
     setTemplate,
     resetForm,
     isFormDirty,
+    hasGuestList,
+    setHasGuestList,
   };
 
   return (

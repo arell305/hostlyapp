@@ -5,12 +5,12 @@ interface EventDetailsLoaderProps {
 }
 import { EventProvider } from "@/contexts/EventContext";
 import { Id } from "convex/_generated/dataModel";
-import CampaignEventDetails from "./CampaignEventDetails";
+import CampaignEventUpdateGuestState from "./CampaignEventUpdateGuestState";
 
 const EventDetailsLoader: React.FC<EventDetailsLoaderProps> = ({ eventId }) => {
   return (
     <EventProvider eventId={eventId} showSkeleton>
-      <CampaignEventDetails />
+      <CampaignEventUpdateGuestState />
     </EventProvider>
   );
 };

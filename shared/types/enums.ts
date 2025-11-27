@@ -10,12 +10,6 @@ export type StripeAccountStatus =
   | "Disabled"
   | "Incomplete";
 
-export type SmsMessageType =
-  | "all_guests"
-  | "attended_event"
-  | "before_event"
-  | "not_attended_event";
-
 export type SubscriptionStatus =
   | "active"
   | "trialing"
