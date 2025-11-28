@@ -1,7 +1,7 @@
 "use node";
 
 import { action, internalAction } from "./_generated/server";
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
 import { PendingInvitationUser } from "@/shared/types/types";
 import {
   RoleConvex,
@@ -46,6 +46,7 @@ import {
   validateUser,
 } from "./backendUtils/validation";
 import { Id } from "./_generated/dataModel";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const fulfill = internalAction({
   args: { headers: v.any(), payload: v.string() },
@@ -125,9 +126,9 @@ export const createClerkInvitation = action({
     );
 
     if (user?.isActive) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.USER_ALREADY_EXISTS, {
         code: "BAD_REQUEST",
-        message: ShowErrorMessages.USER_ALREADY_EXISTS,
+        showToUser: true,
       });
     }
 
@@ -188,23 +189,22 @@ export const createClerkOrganization = action({
     );
 
     if (user.organizationId) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.USER_ALREADY_HAS_COMPANY, {
         code: "CONFLICT",
-        message: ShowErrorMessages.USER_ALREADY_HAS_COMPANY,
+        showToUser: true,
       });
     }
 
     if (!user.customerId) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.USER_NOT_CUSTOMER, {
         code: "BAD_REQUEST",
-        message: ShowErrorMessages.USER_NOT_CUSTOMER,
+        showToUser: true,
       });
     }
 
     if (!user.clerkUserId) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.USER_NOT_CLERK_USER, {
         code: "BAD_REQUEST",
-        message: ShowErrorMessages.USER_NOT_CLERK_USER,
       });
     }
 
@@ -220,9 +220,9 @@ export const createClerkOrganization = action({
     );
 
     if (existingOrganization) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.COMPANY_NAME_ALREADY_EXISTS, {
         code: "CONFLICT",
-        message: ShowErrorMessages.COMPANY_NAME_ALREADY_EXISTS,
+        showToUser: true,
       });
     }
 

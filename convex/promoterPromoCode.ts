@@ -14,6 +14,7 @@ import {
 import { isUserInCompanyOfEvent } from "./backendUtils/helper";
 import { requireAuthenticatedUser } from "../shared/utils/auth";
 import { Doc, Id } from "./_generated/dataModel";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const addOrUpdatePromoterPromoCode = mutation({
   args: {
@@ -35,9 +36,9 @@ export const addOrUpdatePromoterPromoCode = mutation({
       .unique();
 
     if (existingPromoCodeWithName) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.PROMOTER_PROMO_CODE_NAME_EXISTS, {
         code: "BAD_REQUEST",
-        message: ShowErrorMessages.PROMOTER_PROMO_CODE_NAME_EXISTS,
+        showToUser: true,
       });
     }
 
@@ -68,9 +69,9 @@ export const validatePromoterPromoCode = query({
   handler: async (ctx, args): Promise<PromoterPromoCodeWithDiscount> => {
     const normalizedId = ctx.db.normalizeId("events", args.eventId);
     if (!normalizedId) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.EVENT_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.EVENT_NOT_FOUND,
+        showToUser: true,
       });
     }
     const promoterPromoCode = await ctx.db
@@ -79,9 +80,9 @@ export const validatePromoterPromoCode = query({
       .unique();
 
     if (!promoterPromoCode) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.INVALID_PROMO_CODE, {
         code: "BAD_REQUEST",
-        message: ShowErrorMessages.INVALID_PROMO_CODE,
+        showToUser: true,
       });
     }
 

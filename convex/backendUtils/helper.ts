@@ -16,6 +16,7 @@ import {
 } from "@/convex/functions/stripe";
 import { DateTime } from "luxon";
 import { ConvexError } from "convex/values";
+import { throwConvexError } from "./errors";
 
 export function isUserInOrganization(
   identity: UserIdentity,
@@ -57,9 +58,9 @@ export function isUserTheSameAsIdentity(
   }
 
   if (identity.id !== clerkUserId) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.FOBIDDEN_COMPANY, {
       code: "FORBIDDEN",
-      message: ErrorMessages.FOBIDDEN_COMPANY,
+      showToUser: true,
     });
   }
 
@@ -74,7 +75,10 @@ export function isUserThePromoter(
     return true;
   }
   if (guestList.userPromoterId !== user._id) {
-    throw new Error(ErrorMessages.PROMOTER_NOT_BELONG_TO_GUEST_LIST);
+    throwConvexError(ErrorMessages.PROMOTER_NOT_BELONG_TO_GUEST_LIST, {
+      code: "FORBIDDEN",
+      showToUser: true,
+    });
   }
   return true;
 }
@@ -87,9 +91,9 @@ export function isUserInCompanyOfEvent(
     return true;
   }
   if (event.organizationId !== user.organizationId) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.PROMOTER_NOT_BELONG_TO_COMPANY_OF_EVENT, {
       code: "FORBIDDEN",
-      message: ErrorMessages.PROMOTER_NOT_BELONG_TO_COMPANY_OF_EVENT,
+      showToUser: true,
     });
   }
 

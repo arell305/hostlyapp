@@ -21,6 +21,7 @@ import {
 import { CampaignPatch } from "@/shared/types/patch-types";
 import { AudienceTypeConvex, CampaignStatusConvex } from "./schema";
 import { CampaignWithEvent, CampaignWithGuestList } from "@/shared/types/types";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const getCampaignsArgs = {
   userId: v.id("users"),
@@ -202,11 +203,13 @@ export const updateCampaign = mutation({
       campaign.status === "Sent" &&
       (smsBody !== undefined || scheduleTime !== undefined)
     ) {
-      throw new ConvexError({
-        code: "BAD_REQUEST",
-        message:
-          "Cannot update sms body or schedule time after campaign has been sent",
-      });
+      throwConvexError(
+        "Cannot update sms body or schedule time after campaign has been sent",
+        {
+          code: "BAD_REQUEST",
+          showToUser: true,
+        }
+      );
     }
 
     const patch = pickDefined<CampaignPatch>({

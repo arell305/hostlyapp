@@ -10,6 +10,7 @@ import {
 } from "./backendUtils/validation";
 import { isUserInOrganization } from "./backendUtils/helper";
 import { Doc, Id } from "./_generated/dataModel";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const findCustomerByEmail = internalQuery({
   args: {
@@ -46,34 +47,34 @@ export const findCustomerByClerkId = internalQuery({
       .first();
 
     if (!user?.customerId) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.USER_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.USER_NOT_FOUND,
+        showToUser: true,
       });
     }
 
     const customer = await ctx.db.get(user.customerId);
 
     if (!customer) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.CUSTOMER_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.CUSTOMER_NOT_FOUND,
+        showToUser: true,
       });
     }
 
     if (!user.organizationId) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.COMPANY_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.COMPANY_NOT_FOUND,
+        showToUser: true,
       });
     }
 
     const organization = await ctx.db.get(user.organizationId);
 
     if (!organization) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.COMPANY_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.COMPANY_NOT_FOUND,
+        showToUser: true,
       });
     }
 
@@ -243,25 +244,25 @@ export const findUserAndCustomerByClerkId = internalQuery({
     const user = validateUser(await ctx.db.get(args.userId));
 
     if (!user?.customerId) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.USER_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.USER_NOT_FOUND,
+        showToUser: true,
       });
     }
 
     const customer = await ctx.db.get(user.customerId);
 
     if (!customer) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.CUSTOMER_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.CUSTOMER_NOT_FOUND,
+        showToUser: true,
       });
     }
 
     if (!user.organizationId) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.COMPANY_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.COMPANY_NOT_FOUND,
+        showToUser: true,
       });
     }
 

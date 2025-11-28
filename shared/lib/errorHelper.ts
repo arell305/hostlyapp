@@ -63,20 +63,30 @@ export function getConvexErrorMessage(unknownError: unknown): {
   code?: ConvexErrorCode;
   recognized: boolean;
 } {
-  const payload = (unknownError as ConvexClientError)?.data;
-  const code = payload?.code as ConvexErrorCode | undefined;
-  const message = payload?.message;
-  const fallbackMessage = ERROR_MESSAGES.INTERNAL_ERROR;
-  const isRecognized =
-    code === "CONFLICT" ||
-    code === "UNAUTHORIZED" ||
-    code === "NOT_FOUND" ||
-    code === "FORBIDDEN" ||
-    code === "BAD_REQUEST";
-  if (isRecognized) {
-    return { message: message ?? fallbackMessage, code, recognized: true };
+  const payload = (unknownError as any)?.data;
+
+  if (payload && typeof payload === "object") {
+    const rawCode = payload.code as string | undefined;
+    const message = payload.message as string | undefined;
+    const showToUser = payload.showToUser ?? false;
+
+    if (showToUser) {
+      return {
+        message: message ?? "Something went wrong.",
+        code: rawCode as ConvexErrorCode | undefined,
+        recognized: true,
+      };
+    } else {
+      return {
+        message: "Something went wrong. Please try again.",
+        recognized: true,
+      };
+    }
   }
-  return { message: fallbackMessage, recognized: false };
+  return {
+    message: "Something went wrong. Please try again.",
+    recognized: false,
+  };
 }
 
 export function setErrorFromConvexError(

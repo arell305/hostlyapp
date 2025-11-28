@@ -1,26 +1,24 @@
 import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "convex/_generated/api";
-import { UserRole } from "@/shared/types/enums";
 import { setErrorFromConvexError } from "@/shared/lib/errorHelper";
 
 export const useGenerateMessage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  const generateMessage = async (prompt: string): Promise<string> => {
+  const generateMessageAction = useAction(api.openAi.generateMessage);
+  const generateMessage = async (prompt: string): Promise<string | null> => {
     setIsLoading(true);
     setError(null);
-
     try {
-      return "Hello, world!";
+      return await generateMessageAction({ prompt });
     } catch (error) {
       setErrorFromConvexError(error, setError);
-      return "";
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  return { generateMessage, isLoading, error, setError };
+  return { generateMessage, isLoading, error };
 };

@@ -32,6 +32,7 @@ import {
   isUserInOrganization,
 } from "./backendUtils/helper";
 import { DateTime } from "luxon";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const addEvent = action({
   args: {
@@ -128,9 +129,9 @@ export const getEventById = query({
   handler: async (ctx, { eventId }): Promise<GetEventByIdData> => {
     const normalizedId = ctx.db.normalizeId("events", eventId);
     if (!normalizedId) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.EVENT_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ShowErrorMessages.EVENT_NOT_FOUND,
+        showToUser: true,
       });
     }
 
@@ -405,9 +406,9 @@ export const getEventsWithTickets = internalQuery({
         .unique();
 
       if (!promoterPromoCode) {
-        throw new ConvexError({
+        throwConvexError(ShowErrorMessages.INVALID_PROMO_CODE, {
           code: "BAD_REQUEST",
-          message: ShowErrorMessages.INVALID_PROMO_CODE,
+          showToUser: true,
         });
       }
       const user = validateUser(
@@ -418,9 +419,9 @@ export const getEventsWithTickets = internalQuery({
       );
 
       if (event.organizationId !== user.organizationId) {
-        throw new ConvexError({
+        throwConvexError(ShowErrorMessages.INVALID_PROMO_CODE, {
           code: "BAD_REQUEST",
-          message: ShowErrorMessages.INVALID_PROMO_CODE,
+          showToUser: true,
         });
       }
       promoterUserId = user._id;

@@ -11,6 +11,7 @@ import {
 import { GuestPatch } from "@/shared/types/patch-types";
 import { Doc } from "./_generated/dataModel";
 import { isValidPhoneNumber } from "@/shared/utils/frontend-validation";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const getContacts = query({
   args: { userId: v.id("users") },
@@ -51,9 +52,9 @@ export const insertContact = mutation({
     isUserTheSameAsIdentity(identity, user.clerkUserId);
 
     if (!isValidPhoneNumber(phoneNumber)) {
-      throw new ConvexError({
+      throwConvexError("Invalid phone number", {
         code: "BAD_REQUEST",
-        message: "Invalid phone number",
+        showToUser: true,
       });
     }
 
@@ -63,9 +64,9 @@ export const insertContact = mutation({
       .filter((q) => q.eq(q.field("isActive"), true))
       .first();
     if (existingContact) {
-      throw new ConvexError({
+      throwConvexError("Contact already exists", {
         code: "BAD_REQUEST",
-        message: "Contact already exists",
+        showToUser: true,
       });
     }
 
@@ -103,9 +104,9 @@ export const updateContact = mutation({
 
     if (phoneNumber && phoneNumber !== contact.phoneNumber) {
       if (!isValidPhoneNumber(phoneNumber)) {
-        throw new ConvexError({
+        throwConvexError("Invalid phone number", {
           code: "BAD_REQUEST",
-          message: "Invalid phone number",
+          showToUser: true,
         });
       }
 
@@ -115,9 +116,9 @@ export const updateContact = mutation({
         .filter((q) => q.eq(q.field("isActive"), true))
         .first();
       if (existingContact) {
-        throw new ConvexError({
+        throwConvexError("Contact already exists", {
           code: "BAD_REQUEST",
-          message: "Contact already exists",
+          showToUser: true,
         });
       }
     }

@@ -15,22 +15,23 @@ import { DateTime } from "luxon";
 import { formatToTimeAndShortDate } from "../../shared/utils/luxon";
 import { Doc } from "convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
+import { throwConvexError } from "./errors";
 
 export function validateOrganization(
   organization: Doc<"organizations"> | null,
   checkActive: boolean = true
 ): Doc<"organizations"> {
   if (!organization) {
-    throw new ConvexError({
+    throwConvexError(ShowErrorMessages.COMPANY_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ShowErrorMessages.COMPANY_NOT_FOUND,
+      showToUser: true,
     });
   }
 
   if (checkActive && !organization.isActive) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.COMPANY_INACTIVE, {
       code: "BAD_REQUEST",
-      message: ErrorMessages.COMPANY_INACTIVE,
+      showToUser: true,
     });
   }
 
@@ -42,16 +43,16 @@ export function validateCustomer(
   checkActive: boolean = true
 ): Doc<"customers"> {
   if (!customer) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.CUSTOMER_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ErrorMessages.CUSTOMER_NOT_FOUND,
+      showToUser: true,
     });
   }
 
   if (checkActive && !customer.isActive) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.CUSTOMER_INACTIVE, {
       code: "BAD_REQUEST",
-      message: ErrorMessages.CUSTOMER_INACTIVE,
+      showToUser: true,
     });
   }
 
@@ -121,30 +122,30 @@ export function validateUser(
   checkOrganizationId: boolean = false
 ): Doc<"users"> {
   if (!user) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.USER_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ErrorMessages.USER_NOT_FOUND,
+      showToUser: true,
     });
   }
 
   if (checkActive && !user.isActive) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.USER_INACTIVE, {
       code: "BAD_REQUEST",
-      message: ErrorMessages.USER_INACTIVE,
+      showToUser: true,
     });
   }
 
   if (checkCustomerId && !user.customerId) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.USER_NOT_CUSTOMER, {
       code: "BAD_REQUEST",
-      message: ErrorMessages.USER_NOT_CUSTOMER,
+      showToUser: true,
     });
   }
 
   if (checkOrganizationId && !user.organizationId) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.USER_NO_COMPANY, {
       code: "BAD_REQUEST",
-      message: ErrorMessages.USER_NO_COMPANY,
+      showToUser: true,
     });
   }
 
@@ -156,16 +157,16 @@ export function validateConnectedAccount(
   checkActive: boolean = true
 ): Doc<"connectedAccounts"> {
   if (!connectedAccount) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ErrorMessages.CONNECTED_ACCOUNT_NOT_FOUND,
+      showToUser: true,
     });
   }
 
   if (checkActive && connectedAccount.status !== "Verified") {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.CONNECTED_ACCOUNT_INACTIVE, {
       code: "BAD_REQUEST",
-      message: ErrorMessages.CONNECTED_ACCOUNT_INACTIVE,
+      showToUser: true,
     });
   }
 
@@ -177,16 +178,16 @@ export function validateEvent(
   checkActive: boolean = true
 ): Doc<"events"> {
   if (!event) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.EVENT_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ErrorMessages.EVENT_NOT_FOUND,
+      showToUser: true,
     });
   }
 
   if (checkActive && !event.isActive) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.EVENT_INACTIVE, {
       code: "BAD_REQUEST",
-      message: ErrorMessages.EVENT_INACTIVE,
+      showToUser: true,
     });
   }
 
@@ -197,9 +198,9 @@ export function validateGuestList(
   guestList: Doc<"guestListInfo"> | null
 ): Doc<"guestListInfo"> {
   if (!guestList) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.GUEST_LIST_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ErrorMessages.GUEST_LIST_NOT_FOUND,
+      showToUser: true,
     });
   }
   return guestList;
@@ -209,9 +210,9 @@ export function validateSubscription(
   subscription: Doc<"subscriptions"> | null
 ): Doc<"subscriptions"> {
   if (!subscription) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.SUBSCRIPTION_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ErrorMessages.SUBSCRIPTION_NOT_FOUND,
+      showToUser: true,
     });
   }
   return subscription;
@@ -221,9 +222,9 @@ export const validateTicket = (
   ticket: Doc<"tickets"> | null
 ): Doc<"tickets"> => {
   if (!ticket) {
-    throw new ConvexError({
+    throwConvexError(ShowErrorMessages.TICKET_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ShowErrorMessages.TICKET_NOT_FOUND,
+      showToUser: true,
     });
   }
   return ticket;
@@ -234,10 +235,13 @@ export const validateTicketCheckIn = (
   event: Doc<"events">
 ): void => {
   if (ticket.checkInTime) {
-    throw new ConvexError({
-      code: "BAD_REQUEST",
-      message: `Ticket already checked in on ${formatToTimeAndShortDate(ticket.checkInTime)}`,
-    });
+    throwConvexError(
+      `Ticket already checked in on ${formatToTimeAndShortDate(ticket.checkInTime)}`,
+      {
+        code: "BAD_REQUEST",
+        showToUser: true,
+      }
+    );
   }
 
   const now = DateTime.now().toMillis();
@@ -245,12 +249,13 @@ export const validateTicketCheckIn = (
   const eventEndTime = DateTime.fromMillis(event.endTime).toMillis();
 
   if (now < eventStartTime || now > eventEndTime) {
-    throw new ConvexError({
-      code: "BAD_REQUEST",
-      message: `Invalid check-in. Ticket is for ${event.name} on ${formatToTimeAndShortDate(
-        event.startTime
-      )}`,
-    });
+    throwConvexError(
+      `Invalid check-in. Ticket is for ${event.name} on ${formatToTimeAndShortDate(event.startTime)}`,
+      {
+        code: "BAD_REQUEST",
+        showToUser: true,
+      }
+    );
   }
 };
 
@@ -259,16 +264,16 @@ export function validateGuestEntry(
   requireActive: boolean = true
 ): Doc<"guestListEntries"> {
   if (!guestEntry) {
-    throw new ConvexError({
+    throwConvexError(ShowErrorMessages.GUEST_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ShowErrorMessages.GUEST_NOT_FOUND,
+      showToUser: true,
     });
   }
 
   if (requireActive && guestEntry.isActive === false) {
-    throw new ConvexError({
+    throwConvexError(ShowErrorMessages.GUEST_INACTIVE, {
       code: "BAD_REQUEST",
-      message: ShowErrorMessages.GUEST_INACTIVE,
+      showToUser: true,
     });
   }
 
@@ -287,14 +292,14 @@ export function validateGuestEntryOwnership(
 
   if (!isOwner && !isHostlyUser) {
     if (user.role === UserRole.Promoter) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.GUEST_DOES_NOT_BELONG_TO_PROMOTER, {
         code: "FORBIDDEN",
-        message: ShowErrorMessages.GUEST_DOES_NOT_BELONG_TO_PROMOTER,
+        showToUser: true,
       });
     }
-    throw new ConvexError({
+    throwConvexError(ShowErrorMessages.FORBIDDEN_PRIVILEGES, {
       code: "FORBIDDEN",
-      message: ShowErrorMessages.FORBIDDEN_PRIVILEGES,
+      showToUser: true,
     });
   }
 }
@@ -303,9 +308,9 @@ export function validateOrganizationCredit(
   organizationCredit: Doc<"organizationCredits"> | null
 ): Doc<"organizationCredits"> {
   if (!organizationCredit) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.ORGANIZATION_CREDIT_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ErrorMessages.ORGANIZATION_CREDIT_NOT_FOUND,
+      showToUser: true,
     });
   }
   return organizationCredit;
@@ -315,9 +320,9 @@ export const validateGuestListInfo = (
   guestListInfo: Doc<"guestListInfo"> | null
 ): Doc<"guestListInfo"> => {
   if (!guestListInfo) {
-    throw new ConvexError({
+    throwConvexError(ShowErrorMessages.GUEST_LIST_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ShowErrorMessages.GUEST_LIST_NOT_FOUND,
+      showToUser: true,
     });
   }
   return guestListInfo;
@@ -327,9 +332,9 @@ export const validateEventTicketType = (
   eventTicketType: Doc<"eventTicketTypes"> | null
 ): Doc<"eventTicketTypes"> => {
   if (!eventTicketType) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.EVENT_TICKET_TYPE_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ErrorMessages.EVENT_TICKET_TYPE_NOT_FOUND,
+      showToUser: true,
     });
   }
   return eventTicketType;
@@ -337,7 +342,10 @@ export const validateEventTicketType = (
 
 export const validateFaq = (faq: Doc<"faq"> | null): Doc<"faq"> => {
   if (!faq) {
-    throw new Error(ShowErrorMessages.FAQ_NOT_FOUND);
+    throwConvexError(ShowErrorMessages.FAQ_NOT_FOUND, {
+      code: "NOT_FOUND",
+      showToUser: true,
+    });
   }
   return faq;
 };
@@ -346,7 +354,10 @@ export const validateSmsTemplate = (
   smsTemplate: Doc<"smsTemplates"> | null
 ): Doc<"smsTemplates"> => {
   if (!smsTemplate) {
-    throw new Error(ShowErrorMessages.SMS_TEMPLATE_NOT_FOUND);
+    throwConvexError(ShowErrorMessages.SMS_TEMPLATE_NOT_FOUND, {
+      code: "NOT_FOUND",
+      showToUser: true,
+    });
   }
   return smsTemplate;
 };
@@ -355,7 +366,10 @@ export const validateCampaign = (
   campaign: Doc<"campaigns"> | null
 ): Doc<"campaigns"> => {
   if (!campaign) {
-    throw new Error(ShowErrorMessages.CAMPAIGN_NOT_FOUND);
+    throwConvexError(ShowErrorMessages.CAMPAIGN_NOT_FOUND, {
+      code: "NOT_FOUND",
+      showToUser: true,
+    });
   }
   return campaign;
 };
@@ -364,9 +378,9 @@ export const validateContact = (
   contact: Doc<"contacts"> | null
 ): Doc<"contacts"> => {
   if (!contact) {
-    throw new ConvexError({
+    throwConvexError(ShowErrorMessages.CONTACT_DB_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ShowErrorMessages.CONTACT_DB_NOT_FOUND,
+      showToUser: true,
     });
   }
   return contact;
@@ -376,9 +390,9 @@ export const validateThread = (
   thread: Doc<"smsThreads"> | null
 ): Doc<"smsThreads"> => {
   if (!thread) {
-    throw new ConvexError({
+    throwConvexError(ShowErrorMessages.THREAD_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ShowErrorMessages.THREAD_NOT_FOUND,
+      showToUser: true,
     });
   }
   return thread;
@@ -386,9 +400,9 @@ export const validateThread = (
 
 export const validateUser2 = (user: Doc<"users"> | null): Doc<"users"> => {
   if (!user) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.USER_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ErrorMessages.USER_NOT_FOUND,
+      showToUser: true,
     });
   }
   return user;
@@ -398,9 +412,9 @@ export const validateSmsThread = (
   smsThread: Doc<"smsThreads"> | null
 ): Doc<"smsThreads"> => {
   if (!smsThread) {
-    throw new ConvexError({
+    throwConvexError(ShowErrorMessages.THREAD_NOT_FOUND, {
       code: "NOT_FOUND",
-      message: ShowErrorMessages.THREAD_NOT_FOUND,
+      showToUser: true,
     });
   }
   return smsThread;

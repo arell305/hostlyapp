@@ -1,21 +1,20 @@
 import { Id } from "@/convex/_generated/dataModel";
-import { TemplateValues } from "../types/types";
 
 export const EVENT_REQUIRED_VARIABLES = [
   { key: "eventName", label: "Event Name" },
   { key: "eventDate", label: "Event Date" },
   { key: "startTime", label: "Start Time" },
-  { key: "venueName", label: "Venue" },
+  { key: "address", label: "Address" },
 ];
 
 export const GUEST_LIST_VARIABLES = [
-  { key: "guestListLink", label: "Guest List Link" },
-  { key: "guestListCloseTime", label: "Guest List Close Time" },
+  { key: "checkInCloseTime", label: "GL Arrive By" },
+  { key: "guestListRules", label: "GL Rules" },
 ];
 
 export const TAGS_BY_CONTEXT = [
-  { key: "firstName", label: "First Name" },
-  { key: "lastName", label: "Last Name" },
+  { key: "guestFirstName", label: "Guest First Name" },
+  { key: "sender", label: "Sender First Name" },
   ...EVENT_REQUIRED_VARIABLES,
   ...GUEST_LIST_VARIABLES,
   { key: "companyName", label: "Company" },

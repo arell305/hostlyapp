@@ -21,6 +21,7 @@ import { GuestListEntryWithPromoter } from "@/shared/types/schemas-types";
 import { computeKpis, getPercentageChange } from "./backendUtils/kpiHelper";
 import { upsertContactForUser } from "./backendUtils/contactsHelper";
 import { isValidPhoneNumber } from "@/shared/utils/frontend-validation";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const getEventWithGuestLists = query({
   args: { eventId: v.id("events") },
@@ -113,9 +114,9 @@ export const deleteGuestListEntry = mutation({
 
     const guestEntry = await ctx.db.get(guestId);
     if (!guestEntry) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.GUEST_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ShowErrorMessages.GUEST_NOT_FOUND,
+        showToUser: true,
       });
     }
 
@@ -225,9 +226,9 @@ export const addGuestListEntry = mutation({
       if (guest.phoneNumber !== undefined) {
         const isPhoneNumberValid = isValidPhoneNumber(guest.phoneNumber.trim());
         if (!isPhoneNumberValid) {
-          throw new ConvexError({
+          throwConvexError("Invalid phone number", {
             code: "BAD_REQUEST",
-            message: "Invalid phone number",
+            showToUser: true,
           });
         }
       }
@@ -470,9 +471,9 @@ export const addPublicGuestListEntry = mutation({
 
     const isGuestListOpen = guestListInfo.guestListCloseTime > Date.now();
     if (!isGuestListOpen) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.GUEST_LIST_CLOSED, {
         code: "CONFLICT",
-        message: ShowErrorMessages.GUEST_LIST_CLOSED,
+        showToUser: true,
       });
     }
 

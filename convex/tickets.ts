@@ -36,6 +36,7 @@ import { handleError, isUserInCompanyOfEvent } from "./backendUtils/helper";
 import { DateTime } from "luxon";
 import { formatToPstShortDate } from "@/shared/utils/luxon";
 import { startOfPstDay } from "@/shared/utils/luxon";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const insertTicketsSold = action({
   args: {
@@ -305,9 +306,9 @@ export const getTicketById = internalQuery({
   ): Promise<Doc<"tickets">> => {
     const ticket = await ctx.db.get(ticketId);
     if (!ticket) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.TICKET_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.TICKET_NOT_FOUND,
+        showToUser: true,
       });
     }
     return ticket;

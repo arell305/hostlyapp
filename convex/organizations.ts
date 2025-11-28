@@ -17,8 +17,8 @@ import {
   validateUser,
 } from "./backendUtils/validation";
 import { EventWithTicketTypes } from "@/shared/types/schemas-types";
-import { retryUntil } from "./backendUtils/utils";
 import { internal } from "./_generated/api";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const createConvexOrganization = internalMutation({
   args: {
@@ -77,9 +77,9 @@ export const updateOrganization = internalMutation({
       .first();
 
     if (!organization) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.COMPANY_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.COMPANY_NOT_FOUND,
+        showToUser: true,
       });
     }
 

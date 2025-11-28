@@ -9,6 +9,7 @@
  */
 
 import type * as backendUtils_contactsHelper from "../backendUtils/contactsHelper.js";
+import type * as backendUtils_errors from "../backendUtils/errors.js";
 import type * as backendUtils_helper from "../backendUtils/helper.js";
 import type * as backendUtils_kpiHelper from "../backendUtils/kpiHelper.js";
 import type * as backendUtils_utils from "../backendUtils/utils.js";
@@ -22,12 +23,14 @@ import type * as customers from "../customers.js";
 import type * as eventTicketTypes from "../eventTicketTypes.js";
 import type * as events from "../events.js";
 import type * as faq from "../faq.js";
+import type * as functions_openAi from "../functions/openAi.js";
 import type * as functions_stripe from "../functions/stripe.js";
 import type * as functions_stripeConnect from "../functions/stripeConnect.js";
 import type * as guestListCreditTransactions from "../guestListCreditTransactions.js";
 import type * as guestListEntries from "../guestListEntries.js";
 import type * as guestListInfo from "../guestListInfo.js";
 import type * as http from "../http.js";
+import type * as openAi from "../openAi.js";
 import type * as organizationCredits from "../organizationCredits.js";
 import type * as organizations from "../organizations.js";
 import type * as pdfMonkey from "../pdfMonkey.js";
@@ -63,6 +66,7 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   "backendUtils/contactsHelper": typeof backendUtils_contactsHelper;
+  "backendUtils/errors": typeof backendUtils_errors;
   "backendUtils/helper": typeof backendUtils_helper;
   "backendUtils/kpiHelper": typeof backendUtils_kpiHelper;
   "backendUtils/utils": typeof backendUtils_utils;
@@ -76,12 +80,14 @@ declare const fullApi: ApiFromModules<{
   eventTicketTypes: typeof eventTicketTypes;
   events: typeof events;
   faq: typeof faq;
+  "functions/openAi": typeof functions_openAi;
   "functions/stripe": typeof functions_stripe;
   "functions/stripeConnect": typeof functions_stripeConnect;
   guestListCreditTransactions: typeof guestListCreditTransactions;
   guestListEntries: typeof guestListEntries;
   guestListInfo: typeof guestListInfo;
   http: typeof http;
+  openAi: typeof openAi;
   organizationCredits: typeof organizationCredits;
   organizations: typeof organizations;
   pdfMonkey: typeof pdfMonkey;

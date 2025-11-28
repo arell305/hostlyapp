@@ -99,7 +99,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="h-4 w-4 animate-spin" />
             </div>
-            <span className="opacity-0">{children}</span>
+            <span className="invisible">{children}</span>
           </>
         ) : (
           children

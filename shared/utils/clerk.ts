@@ -7,6 +7,7 @@ import {
 } from "@clerk/backend";
 import { getBaseUrl } from "./helpers";
 import slugify from "slugify";
+import { throwConvexError } from "@/convex/backendUtils/errors";
 
 if (!process.env.CLERK_SECRET_KEY) {
   throw new Error(ErrorMessages.ENV_NOT_SET_CLERK_SECRET_KEY);
@@ -184,8 +185,9 @@ export async function clerkInviteUserToOrganization(
 
     return response.json();
   } catch (error) {
-    console.error(ErrorMessages.CLERK_INVITATION_ERROR, error);
-    throw new Error(ErrorMessages.CLERK_INVITATION_ERROR);
+    throwConvexError(error, {
+      code: "INTERNAL_ERROR",
+    });
   }
 }
 

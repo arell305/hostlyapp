@@ -1,5 +1,7 @@
 import { internalQuery } from "./_generated/server";
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
+import { throwConvexError } from "./backendUtils/errors";
+import { ShowErrorMessages } from "@/shared/types/enums";
 
 export const findPromoIdByCode = internalQuery({
   args: { promoCode: v.string() },
@@ -10,9 +12,9 @@ export const findPromoIdByCode = internalQuery({
       .first();
 
     if (!promo) {
-      throw new ConvexError({
+      throwConvexError(ShowErrorMessages.INVALID_PROMO_CODE, {
         code: "NOT_FOUND",
-        message: "Promo code not found",
+        showToUser: true,
       });
     }
 

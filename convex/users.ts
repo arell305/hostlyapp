@@ -16,6 +16,7 @@ import { validateOrganization, validateUser } from "./backendUtils/validation";
 import { ErrorMessages, UserRole } from "@/shared/types/enums";
 import { retryUntil } from "./backendUtils/utils";
 import { internal } from "./_generated/api";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const createUser = internalMutation({
   args: {
@@ -107,9 +108,9 @@ export const findUserById = query({
     const user = validateUser(await ctx.db.get(userId), false, false, true);
 
     if (!user.organizationId) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.USER_NO_COMPANY, {
         code: "BAD_REQUEST",
-        message: ErrorMessages.USER_NO_COMPANY,
+        showToUser: true,
       });
     }
 
@@ -158,16 +159,16 @@ export const internalFindUserByClerkId = internalQuery({
       .unique();
 
     if (!user) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.USER_NOT_FOUND, {
         code: "NOT_FOUND",
-        message: ErrorMessages.USER_NOT_FOUND,
+        showToUser: true,
       });
     }
 
     if (!user.isActive) {
-      throw new ConvexError({
+      throwConvexError(ErrorMessages.USER_INACTIVE, {
         code: "BAD_REQUEST",
-        message: ErrorMessages.USER_INACTIVE,
+        showToUser: true,
       });
     }
 

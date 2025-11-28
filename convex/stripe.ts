@@ -58,6 +58,7 @@ import { Id } from "./_generated/dataModel";
 import Stripe from "stripe";
 import { APPLICATION_FEE } from "@/app/types/constants";
 import { SubscriptionTierType } from "@/shared/types/types";
+import { throwConvexError } from "./backendUtils/errors";
 
 export const validatePromoCode = action({
   args: { promoCode: v.string() },
@@ -126,8 +127,8 @@ export const createStripeSubscription = action({
       });
 
       if (existingUser && !existingUser.customerId) {
-        throw new ConvexError({
-          message: ErrorMessages.CUSTOMER_EXISTING_USER,
+        throwConvexError(ErrorMessages.CUSTOMER_EXISTING_USER, {
+          showToUser: true,
           code: "CONFLICT",
         });
       }
@@ -140,7 +141,10 @@ export const createStripeSubscription = action({
       );
 
       if (existingCustomer) {
-        throw new Error(ShowErrorMessages.CUSTOMER_EXISTS);
+        throwConvexError(ShowErrorMessages.CUSTOMER_EXISTS, {
+          showToUser: true,
+          code: "CONFLICT",
+        });
       }
 
       const customer = await createStripeCustomer(email);
@@ -226,8 +230,7 @@ export const createStripeSubscription = action({
       return true;
     } catch (error) {
       console.error("Error creating stripe subscription:", error);
-      throw new ConvexError({
-        message: ErrorMessages.INTERNAL_ERROR,
+      throwConvexError(ErrorMessages.INTERNAL_ERROR, {
         code: "INTERNAL_SERVER_ERROR",
       });
     }

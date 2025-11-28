@@ -1,7 +1,7 @@
 import { ErrorMessages, UserRole } from "@/shared/types/enums";
 import { UserIdentity } from "convex/server";
 import { MutationCtx, ActionCtx, QueryCtx } from "@/convex/_generated/server";
-import { ConvexError } from "convex/values";
+import { throwConvexError } from "@/convex/backendUtils/errors";
 
 export async function requireAuthenticatedUser(
   ctx: MutationCtx | ActionCtx | QueryCtx,
@@ -9,18 +9,18 @@ export async function requireAuthenticatedUser(
 ): Promise<UserIdentity> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.UNAUTHENTICATED, {
       code: "UNAUTHORIZED",
-      message: ErrorMessages.UNAUTHENTICATED,
+      showToUser: true,
     });
   }
 
   const userRole = identity.role as UserRole;
 
   if (requiredRoles && !requiredRoles.includes(userRole)) {
-    throw new ConvexError({
+    throwConvexError(ErrorMessages.FORBIDDEN_PERMISSION, {
       code: "FORBIDDEN",
-      message: ErrorMessages.FORBIDDEN_PERMISSION,
+      showToUser: true,
     });
   }
 
