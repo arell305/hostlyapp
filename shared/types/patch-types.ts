@@ -17,7 +17,6 @@ export type CampaignPatch = {
   smsBody?: string;
   isActive?: boolean;
   scheduleTime?: number | null;
-  promptResponse?: string;
   status?: CampaignStatus;
   audienceType?: AudienceType;
   stopRepliesAt?: number;

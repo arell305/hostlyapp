@@ -6,14 +6,17 @@ import { formatToDateTimeLocalPST, getCurrentTime } from "@/shared/utils/luxon";
 import LabeledInputField from "@/shared/ui/fields/LabeledInputField";
 import { PresetButtons } from "@/shared/ui/fields/PresetButtons";
 import LabeledTextAreaField from "@/shared/ui/fields/LabeledTextAreaField";
-import ToggleButton from "@/shared/ui/buttonContainers/ToggleButton";
 import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
+import { MAX_PROMPT_LENGTH } from "@/shared/types/constants";
 
 const DetailsSelection = () => {
   const { formData, updateFormData, sendType, handleSendTypeChange } =
     useCreateCampaignForm();
   const { sendAt } = formData;
   const min = formatToDateTimeLocalPST(getCurrentTime());
+
+  const aiPromptLength = formData.aiPrompt ? formData.aiPrompt.length : 0;
+  const maxLengthReached = aiPromptLength >= MAX_PROMPT_LENGTH;
 
   return (
     <>
@@ -59,6 +62,12 @@ const DetailsSelection = () => {
             onChange={(e) => updateFormData({ aiPrompt: e.target.value })}
             placeholder="Enter AI prompt"
             rows={2}
+            maxLength={MAX_PROMPT_LENGTH}
+            error={
+              maxLengthReached
+                ? "Prompt cannot exceed 500 characters"
+                : undefined
+            }
           />
         </>
       )}

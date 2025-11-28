@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
-import { FrontendErrorMessages } from "@/shared/types/enums";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 import { AudienceType, CampaignStatus } from "@/shared/types/types";
@@ -15,8 +14,6 @@ interface UpdateCampaignInput {
     isActive?: boolean;
     eventId?: Id<"events">;
     scheduleTime?: number | null;
-    relativeOffsetMinutes?: number;
-    promptResponse?: string;
     status?: CampaignStatus;
     audienceType?: AudienceType;
     stopRepliesAt?: number;

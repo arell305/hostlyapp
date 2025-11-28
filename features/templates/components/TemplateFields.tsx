@@ -9,6 +9,7 @@ import AiMessageGenerator from "@/features/templates/components/AiMessageGenerat
 import VariablesInserter from "@/shared/ui/fields/VariablesInserter";
 import ToggleTabs from "@/shared/ui/toggle/ToggleTabs";
 import { cn } from "@/shared/lib/utils";
+import { MAX_SMS_LENGTH } from "@/shared/types/constants";
 
 interface TemplateFieldsProps {
   values: TemplateValues;
@@ -46,6 +47,9 @@ const TemplateFields = ({
       }
     }, 0);
   };
+
+  const smsLength = values.body?.length ?? 0;
+  const maxLengthReached = smsLength >= MAX_SMS_LENGTH;
 
   return (
     <FormContainer className={cn("space-y-4", className)}>
@@ -90,7 +94,12 @@ const TemplateFields = ({
         }}
         onChange={(e) => onChange({ body: e.target.value })}
         placeholder="Enter message or generate with AI"
-        error={bodyError}
+        error={
+          maxLengthReached
+            ? `Message cannot exceed ${MAX_SMS_LENGTH} characters`
+            : bodyError
+        }
+        maxLength={MAX_SMS_LENGTH}
       />
 
       {children}

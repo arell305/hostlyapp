@@ -12,6 +12,7 @@ interface LabeledTextAreaFieldProps
   error?: string | null;
   className?: string;
   name: string;
+  maxLength?: number;
 }
 
 const LabeledTextAreaField = forwardRef<
@@ -27,6 +28,7 @@ const LabeledTextAreaField = forwardRef<
       error,
       className = "",
       name,
+      maxLength,
       ...rest
     },
     ref
@@ -43,6 +45,7 @@ const LabeledTextAreaField = forwardRef<
             value={value}
             onChange={onChange}
             className={`${error ? "border-red-500" : ""} ${className}`}
+            maxLength={maxLength}
             {...rest}
           />
         </LabelWrapper>

@@ -1,4 +1,4 @@
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
 import {
   internalMutation,
   internalQuery,
@@ -14,14 +14,17 @@ import {
   isUserInCompanyOfEvent,
 } from "./backendUtils/helper";
 import {
+  validateAiPromptLength,
   validateCampaign,
   validateEvent,
+  validateSmsLength,
   validateUser,
 } from "./backendUtils/validation";
 import { CampaignPatch } from "@/shared/types/patch-types";
 import { AudienceTypeConvex, CampaignStatusConvex } from "./schema";
 import { CampaignWithEvent, CampaignWithGuestList } from "@/shared/types/types";
 import { throwConvexError } from "./backendUtils/errors";
+import { UserRole } from "@/shared/types/enums";
 
 export const getCampaignsArgs = {
   userId: v.id("users"),
@@ -41,7 +44,13 @@ export const getCampaigns = query({
   handler: async (context, argumentsObject): Promise<CampaignWithEvent[]> => {
     const { userId, status, isActive } = argumentsObject;
 
-    const identity = await requireAuthenticatedUser(context);
+    const identity = await requireAuthenticatedUser(context, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
     const userDocument = validateUser(await context.db.get(userId));
     isUserTheSameAsIdentity(identity, userDocument.clerkUserId);
 
@@ -113,7 +122,6 @@ export const insertCampaign = mutation({
     userId: v.id("users"),
     eventId: v.union(v.id("events"), v.null()),
     scheduleTime: v.union(v.number(), v.null()),
-    promptResponse: v.optional(v.string()),
     audienceType: AudienceTypeConvex,
     enableAiReplies: v.boolean(),
     includeFaqInAiReplies: v.optional(v.boolean()),
@@ -126,14 +134,21 @@ export const insertCampaign = mutation({
       userId,
       eventId,
       scheduleTime,
-      promptResponse,
       audienceType,
       enableAiReplies,
       includeFaqInAiReplies,
       aiPrompt,
     } = args;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
+    validateAiPromptLength({ aiPrompt });
+    validateSmsLength({ sms: smsBody });
 
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
@@ -147,7 +162,6 @@ export const insertCampaign = mutation({
       userId,
       eventId,
       scheduleTime: finalScheduleTime,
-      promptResponse,
       updatedAt: Date.now(),
       status: "Scheduled",
       audienceType,
@@ -167,7 +181,6 @@ export const updateCampaign = mutation({
       name: v.optional(v.string()),
       isActive: v.optional(v.boolean()),
       scheduleTime: v.optional(v.union(v.number(), v.null())),
-      promptResponse: v.optional(v.string()),
       status: v.optional(CampaignStatusConvex),
       smsBody: v.optional(v.string()),
       audienceType: v.optional(AudienceTypeConvex),
@@ -183,7 +196,6 @@ export const updateCampaign = mutation({
       name,
       isActive,
       scheduleTime,
-      promptResponse,
       status,
       smsBody,
       audienceType,
@@ -193,7 +205,17 @@ export const updateCampaign = mutation({
       aiPrompt,
     } = updates;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    validateAiPromptLength({ aiPrompt });
+    validateSmsLength({ sms: smsBody });
+
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+      UserRole.Hostly_Admin,
+    ]);
 
     const campaign = validateCampaign(await ctx.db.get(campaignId));
     const user = validateUser(await ctx.db.get(campaign.userId));
@@ -216,7 +238,6 @@ export const updateCampaign = mutation({
       name,
       isActive,
       scheduleTime,
-      promptResponse,
       status,
       smsBody,
       audienceType,
@@ -254,7 +275,13 @@ export const getCampaignById = query({
   handler: async (context, argumentsObject): Promise<CampaignWithGuestList> => {
     const { campaignId } = argumentsObject;
 
-    const identity = await requireAuthenticatedUser(context);
+    const identity = await requireAuthenticatedUser(context, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
 
     const campaignDocument = validateCampaign(await context.db.get(campaignId));
     const userDocument = validateUser(
@@ -298,7 +325,13 @@ export const getCampaignsByEventId = query({
   handler: async (ctx, args): Promise<Doc<"campaigns">[]> => {
     const { eventId } = args;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
     const convexUserId = identity.convexUserId as Id<"users">;
     const user = validateUser(await ctx.db.get(convexUserId));
 

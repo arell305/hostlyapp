@@ -16,6 +16,7 @@ import { formatToTimeAndShortDate } from "../../shared/utils/luxon";
 import { Doc } from "convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 import { throwConvexError } from "./errors";
+import { MAX_PROMPT_LENGTH, MAX_SMS_LENGTH } from "@/shared/types/constants";
 
 export function validateOrganization(
   organization: Doc<"organizations"> | null,
@@ -419,3 +420,33 @@ export const validateSmsThread = (
   }
   return smsThread;
 };
+
+export function validateAiPromptLength({
+  aiPrompt,
+  maxLength = MAX_PROMPT_LENGTH,
+}: {
+  aiPrompt?: string | null;
+  maxLength?: number;
+}): void {
+  if (aiPrompt && aiPrompt.length > maxLength) {
+    throwConvexError(`AI prompt cannot exceed ${maxLength} characters`, {
+      code: "BAD_REQUEST",
+      showToUser: true,
+    });
+  }
+}
+
+export function validateSmsLength({
+  sms,
+  maxLength = MAX_SMS_LENGTH,
+}: {
+  sms?: string | null;
+  maxLength?: number;
+}): void {
+  if (sms && sms.length > maxLength) {
+    throwConvexError(`SMS cannot exceed ${maxLength} characters`, {
+      code: "BAD_REQUEST",
+      showToUser: true,
+    });
+  }
+}

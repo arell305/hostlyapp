@@ -30,6 +30,7 @@ import type * as guestListCreditTransactions from "../guestListCreditTransaction
 import type * as guestListEntries from "../guestListEntries.js";
 import type * as guestListInfo from "../guestListInfo.js";
 import type * as http from "../http.js";
+import type * as lib_openai from "../lib/openai.js";
 import type * as openAi from "../openAi.js";
 import type * as organizationCredits from "../organizationCredits.js";
 import type * as organizations from "../organizations.js";
@@ -87,6 +88,7 @@ declare const fullApi: ApiFromModules<{
   guestListEntries: typeof guestListEntries;
   guestListInfo: typeof guestListInfo;
   http: typeof http;
+  "lib/openai": typeof lib_openai;
   openAi: typeof openAi;
   organizationCredits: typeof organizationCredits;
   organizations: typeof organizations;

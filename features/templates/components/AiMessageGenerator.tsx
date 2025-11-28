@@ -7,6 +7,7 @@ import { Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useGenerateMessage } from "@/domain/openAi";
 import FieldErrorMessage from "@/shared/ui/error/FieldErrorMessage";
+import { MAX_PROMPT_LENGTH } from "@/shared/types/constants";
 
 interface AiMessageGeneratorProps {
   onGenerate: (generatedText: string) => void;
@@ -30,7 +31,9 @@ const AiMessageGenerator: React.FC<AiMessageGeneratorProps> = ({
     }
   };
 
-  const disabled = isLoading || !aiPrompt.trim();
+  const maxLengthReached = aiPrompt.length >= MAX_PROMPT_LENGTH;
+
+  const disabled = isLoading || !aiPrompt.trim() || maxLengthReached;
 
   return (
     <div className="w-full max-w-md">
@@ -49,6 +52,7 @@ const AiMessageGenerator: React.FC<AiMessageGeneratorProps> = ({
           }}
           className="text-base"
           autoFocus
+          maxLength={MAX_PROMPT_LENGTH}
         />
 
         <Button
@@ -64,7 +68,9 @@ const AiMessageGenerator: React.FC<AiMessageGeneratorProps> = ({
           Generate Message
         </Button>
       </div>
-      <FieldErrorMessage error={error} />
+      <FieldErrorMessage
+        error={maxLengthReached ? "Prompt cannot exceed 500 characters" : error}
+      />
     </div>
   );
 };

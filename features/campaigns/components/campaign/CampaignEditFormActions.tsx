@@ -27,7 +27,6 @@ const CampaignEditFormActions = () => {
     if (!isSent) {
       updates.smsBody = campaign.smsBody;
       updates.scheduleTime = campaign.scheduleTime;
-      updates.promptResponse = formData.promptResponse;
       updates.enableAiReplies = formData.enableAiReplies;
       updates.includeFaqInAiReplies = formData.includeFaqInAiReplies;
       updates.aiPrompt = formData.aiPrompt;

@@ -140,3 +140,6 @@ export const DEFAULT_ERROR_MESSAGE =
   "An unexpected error occurred. Please try again.";
 
 export const SEARCH_MIN_LENGTH = 6;
+
+export const MAX_PROMPT_LENGTH = 500;
+export const MAX_SMS_LENGTH = 320;

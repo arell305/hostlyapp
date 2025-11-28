@@ -104,7 +104,6 @@ export default defineSchema({
     name: v.string(),
     templateId: v.optional(v.id("smsTemplates")),
     smsBody: v.string(),
-    promptResponse: v.optional(v.string()),
     scheduleTime: v.union(v.number(), v.null()),
     sentAt: v.optional(v.number()),
     status: CampaignStatusConvex,

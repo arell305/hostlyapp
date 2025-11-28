@@ -12,7 +12,6 @@ interface InsertCampaignInput {
   userId: Id<"users">;
   eventId: Id<"events"> | null;
   scheduleTime: number | null;
-  promptResponse?: string;
   smsBody: string;
   audienceType: AudienceType;
   enableAiReplies: boolean;
@@ -43,7 +42,6 @@ export const useInsertCampaign = () => {
         userId: data.userId,
         eventId: data.eventId,
         scheduleTime: data.scheduleTime,
-        promptResponse: data.promptResponse,
         smsBody: data.smsBody,
         audienceType: data.audienceType,
         enableAiReplies: data.enableAiReplies,

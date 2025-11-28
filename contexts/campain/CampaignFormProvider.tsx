@@ -1,18 +1,15 @@
 import { createContext, useState, useEffect, useMemo } from "react";
 import { useCampaignScope } from "@/shared/hooks/contexts";
-import { TemplateMode } from "@/shared/types/types";
 import {
   hasEventRequiredVariables,
   hasGuestListVariables,
 } from "@/shared/utils/uiHelpers";
-import { DateTime } from "luxon"; // ← Make sure Luxon is imported
 import { getDefaultScheduledTime } from "@/shared/utils/luxon";
 
 type CampaignFormData = {
   name: string;
   smsBody: string;
   scheduleTime: number | null;
-  promptResponse?: string;
   enableAiReplies?: boolean;
   includeFaqInAiReplies?: boolean;
   aiPrompt?: string | null;
@@ -54,7 +51,6 @@ export const CampaignFormProvider: React.FC<{ children: React.ReactNode }> = ({
     name: campaign.name,
     smsBody: campaign.smsBody,
     scheduleTime: campaign.scheduleTime,
-    promptResponse: campaign.promptResponse,
     enableAiReplies: campaign.enableAiReplies,
     includeFaqInAiReplies: campaign.includeFaqInAiReplies,
     aiPrompt: campaign.aiPrompt,
@@ -85,7 +81,6 @@ export const CampaignFormProvider: React.FC<{ children: React.ReactNode }> = ({
         name: campaign.name,
         smsBody: campaign.smsBody,
         scheduleTime: campaign.scheduleTime,
-        promptResponse: campaign.promptResponse,
         enableAiReplies: campaign.enableAiReplies,
         includeFaqInAiReplies: campaign.includeFaqInAiReplies,
         aiPrompt: campaign.aiPrompt,

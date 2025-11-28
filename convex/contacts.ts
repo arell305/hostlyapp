@@ -12,13 +12,20 @@ import { GuestPatch } from "@/shared/types/patch-types";
 import { Doc } from "./_generated/dataModel";
 import { isValidPhoneNumber } from "@/shared/utils/frontend-validation";
 import { throwConvexError } from "./backendUtils/errors";
+import { UserRole } from "@/shared/types/enums";
 
 export const getContacts = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args): Promise<Doc<"contacts">[]> => {
     const { userId } = args;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
 
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
@@ -46,7 +53,13 @@ export const insertContact = mutation({
   handler: async (ctx, args): Promise<boolean> => {
     const { name, userId, phoneNumber } = args;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
 
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
@@ -96,7 +109,13 @@ export const updateContact = mutation({
     const { contactId, updates } = args;
     const { name, phoneNumber, isActive } = updates;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
 
     const contact = validateContact(await ctx.db.get(contactId));
     const user = validateUser(await ctx.db.get(contact.userId));
@@ -199,7 +218,13 @@ export const getContactById = query({
   args: { id: v.id("contacts") },
   handler: async (ctx, args): Promise<Doc<"contacts">> => {
     const { id } = args;
-    const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
 
     const contact = validateContact(await ctx.db.get(id));
     const user = validateUser(await ctx.db.get(contact.userId));

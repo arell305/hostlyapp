@@ -1,7 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAuthenticatedUser } from "@/shared/utils/auth";
-import { validateSmsTemplate, validateUser } from "./backendUtils/validation";
+import {
+  validateSmsLength,
+  validateSmsTemplate,
+  validateUser,
+} from "./backendUtils/validation";
 import {
   isEmptyObject,
   isUserTheSameAsIdentity,
@@ -9,13 +13,20 @@ import {
 } from "./backendUtils/helper";
 import { SmsTemplatePatch } from "@/shared/types/patch-types";
 import { Doc } from "./_generated/dataModel";
+import { UserRole } from "@/shared/types/enums";
 
 export const getSmsTemplates = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args): Promise<Doc<"smsTemplates">[]> => {
     const { userId } = args;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
 
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
@@ -36,7 +47,13 @@ export const getSmsTemplate = query({
   handler: async (ctx, args): Promise<Doc<"smsTemplates">> => {
     const { smsTemplateId } = args;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
 
     const smsTemplate = validateSmsTemplate(await ctx.db.get(smsTemplateId));
     const user = validateUser(await ctx.db.get(smsTemplate.userId));
@@ -55,7 +72,15 @@ export const insertSmsTemplate = mutation({
   handler: async (ctx, args): Promise<boolean> => {
     const { body, name, userId } = args;
 
-    const identity = await requireAuthenticatedUser(ctx);
+    validateSmsLength({ sms: body });
+
+    const identity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
 
     const user = validateUser(await ctx.db.get(userId));
     isUserTheSameAsIdentity(identity, user.clerkUserId);
@@ -84,8 +109,15 @@ export const updateSmsTemplate = mutation({
   handler: async (ctx, args): Promise<boolean> => {
     const { smsTemplateId, updates } = args;
     const { body, name, isActive } = updates;
+    validateSmsLength({ sms: body });
 
-    const idenitity = await requireAuthenticatedUser(ctx);
+    const idenitity = await requireAuthenticatedUser(ctx, [
+      UserRole.Admin,
+      UserRole.Promoter,
+      UserRole.Manager,
+      UserRole.Hostly_Admin,
+      UserRole.Hostly_Moderator,
+    ]);
 
     const smsTemplate = validateSmsTemplate(await ctx.db.get(smsTemplateId));
     const user = validateUser(await ctx.db.get(smsTemplate.userId));

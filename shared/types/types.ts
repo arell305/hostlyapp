@@ -525,8 +525,6 @@ export type TemplateValues = {
 
 export type CampaignValues = {
   name: string;
-  promptResponse: string;
-  relativeOffsetMinutes: number;
   scheduleTime: number;
 };
 
