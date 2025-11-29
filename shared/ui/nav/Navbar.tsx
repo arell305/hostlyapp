@@ -5,7 +5,11 @@ import MobileSidebar from "./MobileSidebar";
 import NavbarActions from "./NavBarActions";
 import Logo from "@/shared/ui/image/Logo";
 
-const Navbar = () => {
+interface NavbarProps {
+  className?: string;
+}
+
+const Navbar = ({ className }: NavbarProps) => {
   const [showNavbar, setShowNavbar] = useState<boolean>(true);
   const [lastScrollY, setLastScrollY] = useState<number>(0);
 

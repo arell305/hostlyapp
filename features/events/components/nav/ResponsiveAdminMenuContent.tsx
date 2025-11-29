@@ -15,12 +15,14 @@ type Props = {
   onAddCampaign: () => void;
   event: Doc<"events">;
   onDelete: (id: Id<"events">) => void;
+  onEdit: () => void;
 };
 
 export default function ResponsiveAdminMenuContent({
   event,
   onDelete,
   onAddCampaign,
+  onEdit,
 }: Props) {
   const isDesktop = useMediaQuery(DESKTOP_WIDTH);
   const [open, setOpen] = useState<boolean>(false);
@@ -33,6 +35,7 @@ export default function ResponsiveAdminMenuContent({
       onDelete={onDelete}
       onAddCampaign={onAddCampaign}
       onClose={handleClose}
+      onEdit={onEdit}
     />
   );
 

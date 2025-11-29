@@ -43,15 +43,13 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
 
   return (
     <TopBarContainer className="">
-      <div className="">
-        <IconButton
-          icon={<ArrowLeft size={20} />}
-          onClick={handleGoBack}
-          title="Back"
-        />
-      </div>
+      <IconButton
+        icon={<ArrowLeft size={20} />}
+        onClick={handleGoBack}
+        title="Back"
+      />
       <CenteredTitle title={eventData.name} />
-      <div className="flex justify-end gap-2 items-center">
+      <div className="flex justify-end  items-center">
         {canEditEvent &&
           (isEditing ? (
             <IconButton
@@ -60,18 +58,12 @@ const TopRowNav: React.FC<TopRowNavProps> = ({
               title="Cancel Editing"
             />
           ) : (
-            <IconButtonContainer>
-              <IconButton
-                icon={<Pen size={20} />}
-                onClick={handleEdit}
-                title="Edit Event"
-              />
-              <ResponsiveAdminMenuContent
-                event={eventData}
-                onDelete={onDelete}
-                onAddCampaign={onAddCampaign}
-              />
-            </IconButtonContainer>
+            <ResponsiveAdminMenuContent
+              event={eventData}
+              onDelete={onDelete}
+              onAddCampaign={onAddCampaign}
+              onEdit={handleEdit}
+            />
           ))}
 
         <IconButtonContainer>

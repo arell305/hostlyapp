@@ -101,12 +101,6 @@ const CampaignNav = ({
           />
         ) : (
           <IconButtonContainer>
-            <IconButton
-              icon={<Pen size={20} />}
-              onClick={onEdit}
-              title="Edit"
-              variant="ghost"
-            />
             <ResponsiveCampaignActions
               campaign={campaign}
               onDelete={onDelete}
@@ -115,6 +109,7 @@ const CampaignNav = ({
               onResume={onResume}
               onOpenEvent={onOpenEvent}
               onStop={onStop}
+              onEdit={onEdit}
             />
           </IconButtonContainer>
         )}

@@ -10,7 +10,7 @@ import { formatToTimeAndShortDate, isPast } from "@/shared/utils/luxon";
 import { LuClipboardList } from "react-icons/lu";
 
 const CampaignEventDetails = () => {
-  const { event, guestListInfo } = useEventContext();
+  const { event, guestListInfo, ticketTypes } = useEventContext();
 
   const isCheckInOpen = guestListInfo
     ? !isPast(guestListInfo.checkInCloseTime)
@@ -20,7 +20,6 @@ const CampaignEventDetails = () => {
     ? !isPast(guestListInfo.guestListCloseTime)
     : false;
 
-  const ticketInfo = event.ticketTypes;
   const canEditEvent = false;
   const isPromoter = false;
 
@@ -29,7 +28,7 @@ const CampaignEventDetails = () => {
       <div>
         <h2 className="mb-1 font-medium">Event Details</h2>
 
-        <DetailsView eventData={event} />
+        <DetailsView eventData={event} className="w-full" />
       </div>
       <div>
         <h2 className="mb-1 font-medium">Guest List</h2>
@@ -53,13 +52,30 @@ const CampaignEventDetails = () => {
           />
         )}
       </div>
-      <TicketTimeCard
-        ticketTotals={null}
-        ticketInfo={ticketInfo}
-        canEditEvent={canEditEvent}
-        isPromoter={isPromoter}
-        hideTicketsSold={true}
-      />
+      <div>
+        {ticketTypes.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {ticketTypes.map((ticketType) => (
+              <TicketTimeCard
+                key={ticketType._id}
+                ticketTotals={null}
+                ticketInfo={[ticketType]}
+                canEditEvent={canEditEvent}
+                isPromoter={isPromoter}
+                hideTicketsSold={true}
+              />
+            ))}
+          </div>
+        ) : (
+          <div>
+            <h2 className="font-medium mb-1">Tickets</h2>
+            <EmptyStateCard
+              message="There is no ticket option for this event."
+              icon={<LuClipboardList className="text-2xl" />}
+            />
+          </div>
+        )}
+      </div>
     </SubPageContainer>
   );
 };

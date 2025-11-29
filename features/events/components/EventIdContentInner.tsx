@@ -23,6 +23,8 @@ import EventFormContent from "./eventForm/EventFormContent";
 import { useEventForm } from "@/shared/hooks/contexts";
 import GuestListLoader from "./guestList/GuestListLoader";
 import TicketsLoader from "@/features/tickets/components/TicketsLoader";
+import useMediaQuery from "@/shared/hooks/ui/useMediaQuery";
+import { DESKTOP_WIDTH } from "@/shared/types/constants";
 
 interface EventIdContentInnerProps {
   data: {
@@ -70,6 +72,7 @@ const EventIdContentInner: React.FC<EventIdContentInnerProps> = ({
   const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
 
   const { hasChanges, isEditing, setIsEditing } = useEventForm();
+  const isDesktop = useMediaQuery(DESKTOP_WIDTH);
 
   const {
     updateEvent,
@@ -86,8 +89,10 @@ const EventIdContentInner: React.FC<EventIdContentInnerProps> = ({
 
   const tabs: Tab[] = useMemo(() => {
     const base: Tab[] = [{ label: "Summary", value: "summary" }];
-    if (data.guestListInfo)
+    if (data.guestListInfo && isDesktop)
       base.push({ label: "Guest List", value: "guestList" });
+    if (data.guestListInfo && !isDesktop)
+      base.push({ label: "GL", value: "guestList" });
     if (data.ticketTypes && data.ticketTypes.length > 0)
       base.push({ label: "Tickets", value: "ticketInfo" });
     if (canCreateCampaign)

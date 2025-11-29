@@ -1,7 +1,3 @@
-// components/shared/containers/SubPageContainer.tsx
-
-import React from "react";
-
 interface SubPageContainerProps {
   children: React.ReactNode;
   className?: string;

@@ -11,6 +11,7 @@ type Props = {
   onDelete: (id: Id<"events">) => void;
   onClose: () => void;
   onAddCampaign: () => void;
+  onEdit: () => void;
 };
 
 export default function ContactActionMenuContent({
@@ -18,9 +19,11 @@ export default function ContactActionMenuContent({
   onDelete,
   onClose,
   onAddCampaign,
+  onEdit,
 }: Props) {
   return (
     <MenuContainer>
+      <MenuEdit doc={event} onEdit={onEdit} onClose={onClose} />
       <MenuCampaign onAddCampaign={onAddCampaign} onClose={onClose} />
       <MenuDelete
         doc={event}

@@ -1,12 +1,9 @@
 "use client";
 
 import { Doc, Id } from "convex/_generated/dataModel";
-import PromoterGuestListContent from "./PromoterGuestListContent";
-import ModeratorGuestListContent from "./ModeratorGuestListContent";
-import { isPast } from "@/shared/utils/luxon";
 import { useEventWithGuestLists } from "@/domain/guestListEntries";
-import GuestListSkeleton from "@/shared/ui/skeleton/GuestCardSkeleton";
 import GuestListPage from "./GuestListPage";
+import TicketsSkeleton from "@/shared/ui/skeleton/TicketsSkeleton";
 
 interface GuestListLoaderProps {
   eventId: Id<"events">;
@@ -24,13 +21,12 @@ const GuestListLoader: React.FC<GuestListLoaderProps> = ({
   const resultGuestList = useEventWithGuestLists(eventId);
 
   if (!resultGuestList) {
-    return <GuestListSkeleton />;
+    return <TicketsSkeleton />;
   }
 
   return (
     <GuestListPage
       guestListData={resultGuestList}
-      eventId={eventId}
       canUploadGuest={canUploadGuest}
       canCheckInGuests={canCheckInGuests}
       guestListInfo={guestListInfo}

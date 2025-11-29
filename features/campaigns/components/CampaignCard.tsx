@@ -37,43 +37,35 @@ const CampaignCard = ({
   onStop,
 }: CampaignCardProps) => {
   return (
-    <Link href={href} className="block">
-      <CustomCard className="hover:shadow-glow-white min-h-[80px]">
-        <CardHeader className="flex flex-row justify-between space-y-0">
-          <div className="flex flex-col gap-y-2">
-            <CardTitle>{campaign.name}</CardTitle>
-            <div>
-              <CampaignDescription campaign={campaign} />
+    <CustomCard className="hover:shadow-glow-white min-h-[80px] block">
+      <CardHeader className="flex flex-row justify-between space-y-0">
+        <Link href={href} className="flex flex-col gap-y-2 w-full">
+          <CardTitle>{campaign.name}</CardTitle>
+          <div>
+            <CampaignDescription campaign={campaign} />
 
-              <CampaignBadgesRow campaign={campaign} />
-            </div>
+            <CampaignBadgesRow campaign={campaign} />
           </div>
+        </Link>
 
-          <div
-            className="flex flex-col items-end"
-            role="presentation"
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-          >
-            {isLoading ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <ResponsiveCampaignActions
-                campaign={campaign}
-                onDelete={onDelete}
-                onCancel={onCancel}
-                onReactivate={onReactivate}
-                onResume={onResume}
-                onEdit={onEdit}
-                onStop={onStop}
-              />
-            )}
-            <FieldErrorMessage error={error} />
-          </div>
-        </CardHeader>
-      </CustomCard>
-    </Link>
+        <div className="flex flex-col items-end">
+          {isLoading ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <ResponsiveCampaignActions
+              campaign={campaign}
+              onDelete={onDelete}
+              onCancel={onCancel}
+              onReactivate={onReactivate}
+              onResume={onResume}
+              onEdit={onEdit}
+              onStop={onStop}
+            />
+          )}
+          <FieldErrorMessage error={error} />
+        </div>
+      </CardHeader>
+    </CustomCard>
   );
 };
 

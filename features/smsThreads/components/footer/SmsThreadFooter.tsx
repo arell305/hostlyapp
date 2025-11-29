@@ -35,7 +35,7 @@ const SmsThreadFooter = () => {
           onChange={(e) => setMessageText(e.target.value)}
           placeholder="Type a message"
           rows={1}
-          className="bg-transparent w-full resize-none overflow-hidden rounded-xl border px-3 py-2 text-sm outline-none focus:ring-1 focus:primaryBlue max-h-32"
+          className="bg-transparent w-full resize-none overflow-hidden rounded-xl border px-3 py-2 outline-none focus:ring-1 focus:primaryBlue max-h-32"
         />
         <IconButton
           icon={<Send />}

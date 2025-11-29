@@ -1,36 +1,34 @@
-import { cn } from "@/shared/lib/utils";
+"use client";
+
+import CustomCard from "../cards/CustomCard";
+import SkeletonLine from "./SkeletonLine";
+
+const GuestCardSkeleton = () => (
+  <div className="border-b p-4 w-full flex justify-between items-center">
+    <div className="flex flex-col flex-1 min-w-0 gap-2">
+      {/* Name — will truncate properly */}
+      <SkeletonLine className="h-7 max-w-[70%] md:max-w-[50%]" />
+
+      {/* Phone / email — smaller */}
+      <SkeletonLine className="h-6 max-w-[60%] opacity-70" />
+    </div>
+
+    {/* Placeholder for check-in button */}
+    <div className="w-10 h-10 flex-shrink-0" />
+  </div>
+);
 
 interface GuestListSkeletonProps {
-  className?: string;
+  count?: number;
 }
 
-const GuestListSkeleton: React.FC<GuestListSkeletonProps> = ({ className }) => {
+const GuestListSkeleton: React.FC<GuestListSkeletonProps> = ({ count = 3 }) => {
   return (
-    <div
-      className={cn(
-        "p-4 rounded-xl bg-black border border-zinc-800 w-full",
-        className
-      )}
-    >
-      <div className="w-full h-10 bg-zinc-700 animate-pulse rounded mb-6" />
-
-      {[...Array(2)].map((_, i) => (
-        <div
-          key={i}
-          className="flex justify-between items-center border-b border-zinc-800 py-4"
-        >
-          <div>
-            <div className="w-40 h-5 bg-zinc-700 animate-pulse rounded mb-2" />
-            <div className="w-24 h-4 bg-zinc-700 animate-pulse rounded" />
-          </div>
-
-          <div className="flex gap-3">
-            <div className="w-6 h-6 bg-zinc-700 animate-pulse rounded-full" />
-            <div className="w-6 h-6 bg-zinc-700 animate-pulse rounded-full" />
-          </div>
-        </div>
+    <CustomCard>
+      {Array.from({ length: count }).map((_, i) => (
+        <GuestCardSkeleton key={i} />
       ))}
-    </div>
+    </CustomCard>
   );
 };
 

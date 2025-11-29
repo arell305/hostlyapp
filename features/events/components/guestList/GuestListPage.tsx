@@ -12,7 +12,6 @@ import { filterGuestsByName } from "@/shared/utils/format";
 import ModeratorGuestListContent from "./ModeratorGuestListContent";
 
 interface GuestListPageProps {
-  eventId: Id<"events">;
   canUploadGuest: boolean;
   canCheckInGuests: boolean;
   guestListInfo: Doc<"guestListInfo">;
@@ -20,7 +19,6 @@ interface GuestListPageProps {
 }
 
 const GuestListPage: React.FC<GuestListPageProps> = ({
-  eventId,
   canUploadGuest,
   canCheckInGuests,
   guestListInfo,

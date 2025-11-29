@@ -1,10 +1,10 @@
 "use client";
 
 import { Id } from "@/convex/_generated/dataModel";
-import CampaignEventCard from "./CampaignEventCard";
 import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 import CappedCardList from "@/shared/ui/containers/CappedCardList";
 import { EventWithExtras } from "@/shared/types/convex-types";
+import EventItem from "@/features/customerEvents/components/EventItem";
 
 interface CampaignEventsProps {
   events: EventWithExtras[];
@@ -32,7 +32,7 @@ const CampaignEvents: React.FC<CampaignEventsProps> = ({ events }) => {
     <CappedCardList>
       {events.map((event) => (
         <div key={event._id} className="w-full flex flex-col">
-          <CampaignEventCard
+          <EventItem
             isSelected={formData.eventId === event._id}
             key={event._id}
             event={event}

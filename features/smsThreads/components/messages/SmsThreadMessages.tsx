@@ -10,7 +10,7 @@ const SmsThreadMessages = () => {
   }
 
   return (
-    <div className="h-[70vh] overflow-y-auto">
+    <div className="h-[60vh] overflow-y-auto">
       {smsMessages.map((message) => (
         <SmsMessage
           key={message._id}
