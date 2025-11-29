@@ -16,7 +16,7 @@ const LABELS: Record<string, string> = {
 type LocalCampaignFormStep = (typeof CAMPAIGN_FORM_STEPS)[number];
 
 const CampaignStepper: React.FC = () => {
-  const { currentStep, goToStep, formData, bodyError } =
+  const { currentStep, goToStep, formData, bodyError, enableTemplate } =
     useCreateCampaignForm();
   const steps = CAMPAIGN_FORM_STEPS.map((key) => ({ label: LABELS[key] }));
   const currentIndex = CAMPAIGN_FORM_STEPS.indexOf(
@@ -30,6 +30,9 @@ const CampaignStepper: React.FC = () => {
   const disabledSteps: number[] = [];
   if (formData.eventId === undefined) {
     disabledSteps.push(2, 3, 4);
+  }
+  if (!enableTemplate) {
+    disabledSteps.push(3, 4);
   } else if (!isBodyValid) {
     disabledSteps.push(4);
   }

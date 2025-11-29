@@ -52,6 +52,8 @@ interface CreateCampaignFormContextType {
   hasGuestList: boolean;
   setHasGuestList: (hasGuestList: boolean) => void;
   bodyError: string | null;
+  enableTemplate: boolean;
+  setEnableTemplate: (enableTemplate: boolean) => void;
 }
 
 const CreateCampaignFormContext = createContext<
@@ -96,6 +98,7 @@ export const CreateCampaignFormProvider = ({
   const [template, setTemplate] = useState<Doc<"smsTemplates"> | null>(null);
   const [isFormDirty, setIsFormDirty] = useState<boolean>(false);
   const [hasGuestList, setHasGuestList] = useState<boolean>(false);
+  const [enableTemplate, setEnableTemplate] = useState<boolean>(false);
 
   const handleSendTypeChange = (type: "now" | "later") => {
     setSendType(type);
@@ -183,6 +186,8 @@ export const CreateCampaignFormProvider = ({
     isFormDirty,
     hasGuestList,
     setHasGuestList,
+    enableTemplate,
+    setEnableTemplate,
   };
 
   return (

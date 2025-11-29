@@ -53,7 +53,11 @@ export default function ResponsiveCampaignActions({
   const trigger = (
     <IconButton
       icon={<EllipsisVertical />}
-      onClick={() => setOpen(true)}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(true);
+      }}
       variant="ghost"
       title="More actions"
     />

@@ -1,22 +1,66 @@
 "use client";
 
-import SummaryContent from "@/features/events/components/summary/SummaryContent";
+import DetailsView from "@/features/customerEvents/components/view/DetailsView";
+import EmptyStateCard from "@/features/events/components/EmptyStateCard";
+import GuestListTimeCard from "@/features/events/components/GuestListTimeCard";
+import TicketTimeCard from "@/features/events/components/TicketTimeCard";
 import { useEventContext } from "@/shared/hooks/contexts";
+import SubPageContainer from "@/shared/ui/containers/SubPageContainer";
+import { formatToTimeAndShortDate, isPast } from "@/shared/utils/luxon";
+import { LuClipboardList } from "react-icons/lu";
 
 const CampaignEventDetails = () => {
   const { event, guestListInfo } = useEventContext();
 
+  const isCheckInOpen = guestListInfo
+    ? !isPast(guestListInfo.checkInCloseTime)
+    : false;
+
+  const isGuestListOpen = guestListInfo
+    ? !isPast(guestListInfo.guestListCloseTime)
+    : false;
+
+  const ticketInfo = event.ticketTypes;
+  const canEditEvent = false;
+  const isPromoter = false;
+
   return (
-    <>
-      <SummaryContent
-        event={event}
-        isPromoter={false}
-        canEditEvent={false}
-        promoterGuestStats={[]}
-        ticketSalesByPromoterData={null}
-        guestListInfo={guestListInfo}
+    <SubPageContainer className="flex flex-col gap-8">
+      <div>
+        <h2 className="mb-1 font-medium">Event Details</h2>
+
+        <DetailsView eventData={event} />
+      </div>
+      <div>
+        <h2 className="mb-1 font-medium">Guest List</h2>
+        {guestListInfo ? (
+          <GuestListTimeCard
+            guestListRules={guestListInfo.guestListRules}
+            isCheckInOpen={isCheckInOpen}
+            isGuestListOpen={isGuestListOpen}
+            guestListCloseTime={formatToTimeAndShortDate(
+              guestListInfo.guestListCloseTime
+            )}
+            formattedCheckInEndTime={formatToTimeAndShortDate(
+              guestListInfo.checkInCloseTime
+            )}
+            eventId={event._id}
+          />
+        ) : (
+          <EmptyStateCard
+            message="There is no guest list option for this event."
+            icon={<LuClipboardList className="text-2xl" />}
+          />
+        )}
+      </div>
+      <TicketTimeCard
+        ticketTotals={null}
+        ticketInfo={ticketInfo}
+        canEditEvent={canEditEvent}
+        isPromoter={isPromoter}
+        hideTicketsSold={true}
       />
-    </>
+    </SubPageContainer>
   );
 };
 

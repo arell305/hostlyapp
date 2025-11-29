@@ -17,6 +17,7 @@ interface TicketTimeCardProps {
   ticketTotals: TicketTypeTotal[] | null;
   canEditEvent: boolean;
   isPromoter: boolean;
+  hideTicketsSold?: boolean;
 }
 
 const TicketTimeCard = ({
@@ -25,6 +26,7 @@ const TicketTimeCard = ({
   ticketTotals,
   canEditEvent,
   isPromoter,
+  hideTicketsSold = false,
 }: TicketTimeCardProps) => {
   const sortedTickets = useMemo(
     () =>
@@ -93,7 +95,7 @@ const TicketTimeCard = ({
                 }
               />
 
-              {!isPromoter && (
+              {!isPromoter && !hideTicketsSold && (
                 <StaticField
                   className="border-none"
                   label="Tickets Sold:"

@@ -9,7 +9,7 @@ interface NotificationsLoaderProps {
 const NotificationsLoader = ({ onClick }: NotificationsLoaderProps) => {
   const totalRepliesNeeded = useTotalRepliesNeeded();
 
-  if (!totalRepliesNeeded) {
+  if (totalRepliesNeeded === undefined) {
     return <AvatarSkeleton className="h-8 w-8" />;
   }
 

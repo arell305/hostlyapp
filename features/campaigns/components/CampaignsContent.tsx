@@ -151,9 +151,7 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
   };
 
   if (campaigns.length === 0) {
-    return (
-      <p className="text-gray-500 text-center py-12">No campaigns found.</p>
-    );
+    return <p className="text-customGray">No campaigns found.</p>;
   }
 
   return (

@@ -45,14 +45,6 @@ const AiDetails = () => {
             />
           </>
         )}
-
-        {campaign.stopRepliesAt && (
-          <StaticField
-            label="Stopped at"
-            value={formatDisplayDateTime(campaign.stopRepliesAt)}
-            icon={<StopCircle className="text-xl" />}
-          />
-        )}
       </CustomCard>
     </div>
   );

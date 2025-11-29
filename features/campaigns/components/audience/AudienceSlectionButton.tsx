@@ -4,12 +4,16 @@ import FormActions from "@/shared/ui/buttonContainers/FormActions";
 import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 
 const AudienceSelectionButton = () => {
-  const { prevStep, nextStep } = useCreateCampaignForm();
+  const { prevStep, nextStep, setEnableTemplate } = useCreateCampaignForm();
 
+  const handleSubmit = () => {
+    setEnableTemplate(true);
+    nextStep();
+  };
   return (
     <FormActions
       onCancel={prevStep}
-      onSubmit={nextStep}
+      onSubmit={handleSubmit}
       isLoading={false}
       error={null}
       cancelText="Back"

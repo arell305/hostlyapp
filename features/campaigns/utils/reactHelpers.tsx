@@ -1,6 +1,7 @@
 // src/shared/utils/campaignStatusBadge.ts
 import { CampaignStatus } from "@/shared/types/types";
 import { Badge } from "@/shared/ui/primitive/badge";
+import { formatDisplayDateTime } from "@/shared/utils/luxon";
 import { type ReactNode } from "react";
 
 export const getCampaignStatusBadge = (
@@ -123,8 +124,8 @@ export const getAiStatusText = (
   stopRepliesAt?: number | null
 ): string => {
   if (stopRepliesAt !== undefined && stopRepliesAt !== null) {
-    return "Stopped";
+    return `Stopped at ${formatDisplayDateTime(stopRepliesAt)}`;
   }
 
-  return enableAiReplies ? "Enabled" : "Disabled";
+  return enableAiReplies ? "AI Enabled" : "AI Disabled";
 };

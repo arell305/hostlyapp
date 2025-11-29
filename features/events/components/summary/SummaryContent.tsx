@@ -28,6 +28,7 @@ interface SummaryContentProps {
   } | null;
   canEditEvent: boolean;
   event: Doc<"events">;
+  hideGuestListSummary?: boolean;
 }
 
 const SummaryContent: React.FC<SummaryContentProps> = ({
@@ -38,6 +39,7 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
   ticketSalesByPromoterData,
   canEditEvent,
   event,
+  hideGuestListSummary = false,
 }) => {
   const isGuestListOpen = guestListInfo
     ? !isPast(guestListInfo.guestListCloseTime)
@@ -131,26 +133,29 @@ const SummaryContent: React.FC<SummaryContentProps> = ({
         </div>
       )}
 
-      {guestListInfo && !isPromoter && promoterGuestStats && (
-        <div>
-          <h2 className="mb-1 font-medium">Promoter Guest List Summary</h2>
-          <div className="flex flex-col gap-2">
-            {promoterGuestStats.length > 0 ? (
-              promoterGuestStats.map((promoter) => (
-                <PromoterGuestsListData
-                  guestListData={promoter}
-                  key={promoter.promoterId}
+      {guestListInfo &&
+        !isPromoter &&
+        promoterGuestStats &&
+        !hideGuestListSummary && (
+          <div>
+            <h2 className="mb-1 font-medium">Promoter Guest List Summary</h2>
+            <div className="flex flex-col gap-2">
+              {promoterGuestStats.length > 0 ? (
+                promoterGuestStats.map((promoter) => (
+                  <PromoterGuestsListData
+                    guestListData={promoter}
+                    key={promoter.promoterId}
+                  />
+                ))
+              ) : (
+                <EmptyStateCard
+                  message="No promoter guests data found for this event."
+                  icon={<LuClipboardList className="text-2xl" />}
                 />
-              ))
-            ) : (
-              <EmptyStateCard
-                message="No promoter guests data found for this event."
-                icon={<LuClipboardList className="text-2xl" />}
-              />
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </SubPageContainer>
   );
 };

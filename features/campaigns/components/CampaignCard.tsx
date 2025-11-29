@@ -49,7 +49,13 @@ const CampaignCard = ({
             </div>
           </div>
 
-          <div className="flex flex-col items-end">
+          <div
+            className="flex flex-col items-end"
+            role="presentation"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             {isLoading ? (
               <Loader2 className="animate-spin" />
             ) : (

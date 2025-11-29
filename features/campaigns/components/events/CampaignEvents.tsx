@@ -24,7 +24,7 @@ const CampaignEvents: React.FC<CampaignEventsProps> = ({ events }) => {
   const hasEvents = events.length > 0;
 
   if (!hasEvents) {
-    return <div>No events found</div>;
+    return <div className=" text-grayText">No events found.</div>;
   }
 
   return (

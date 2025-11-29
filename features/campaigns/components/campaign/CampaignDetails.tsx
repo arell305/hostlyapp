@@ -30,16 +30,16 @@ const CampaignDetails = () => {
           icon={<Users className="text-xl" />}
         />
 
-        <StaticField
-          label="Scheduled for"
-          value={formatDisplayDateTime(campaign.scheduleTime)}
-          icon={<Clock className="text-xl" />}
-        />
-
-        {campaign.sentAt && (
+        {campaign.sentAt ? (
           <StaticField
             label="Sent at"
             value={formatDisplayDateTime(campaign.sentAt)}
+            icon={<Clock className="text-xl" />}
+          />
+        ) : (
+          <StaticField
+            label="Scheduled for"
+            value={formatDisplayDateTime(campaign.scheduleTime)}
             icon={<Clock className="text-xl" />}
           />
         )}
