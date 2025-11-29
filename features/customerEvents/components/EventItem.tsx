@@ -52,7 +52,7 @@ const EventItem: React.FC<EventItemProps> = ({
           </div>
 
           <div className="flex flex-col py-2">
-            <div className="font-medium text-2xl text-white">{event.name}</div>
+            <div className="font-medium text-xl text-white">{event.name}</div>
             <div className="text-sm text-grayText">{time}</div>
           </div>
         </div>

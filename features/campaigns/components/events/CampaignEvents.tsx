@@ -1,12 +1,13 @@
 "use client";
 
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Id } from "@/convex/_generated/dataModel";
 import CampaignEventCard from "./CampaignEventCard";
 import { useCreateCampaignForm } from "../../contexts/CampaignFormContext";
 import CappedCardList from "@/shared/ui/containers/CappedCardList";
+import { EventWithExtras } from "@/shared/types/convex-types";
 
 interface CampaignEventsProps {
-  events: Doc<"events">[];
+  events: EventWithExtras[];
 }
 
 const CampaignEvents: React.FC<CampaignEventsProps> = ({ events }) => {

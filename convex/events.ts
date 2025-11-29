@@ -13,8 +13,6 @@ import {
   GetEventByIdData,
   EventWithExtras,
 } from "@/shared/types/convex-types";
-import { TIME_ZONE } from "@/shared/types/constants";
-
 import { internal } from "./_generated/api";
 import { requireAuthenticatedUser } from "../shared/utils/auth";
 import {
@@ -31,7 +29,6 @@ import {
   hasTicketDataChanged,
   isUserInOrganization,
 } from "./backendUtils/helper";
-import { DateTime } from "luxon";
 import { throwConvexError } from "./backendUtils/errors";
 
 export const addEvent = action({
@@ -286,21 +283,9 @@ export const cancelEvent = mutation({
 export const getEventsByMonth = query({
   args: {
     organizationId: v.id("organizations"),
-    year: v.number(),
-    month: v.number(),
   },
   handler: async (ctx, args): Promise<EventWithExtras[]> => {
-    const { organizationId, year, month } = args;
-
-    const startDate = DateTime.fromObject(
-      { year, month, day: 1 },
-      { zone: TIME_ZONE }
-    ).startOf("month");
-
-    const endDate = DateTime.fromObject(
-      { year, month },
-      { zone: TIME_ZONE }
-    ).endOf("month");
+    const { organizationId } = args;
 
     const identity = await requireAuthenticatedUser(ctx);
     const organization = validateOrganization(await ctx.db.get(organizationId));
@@ -454,7 +439,7 @@ export const getEventsForCampaign = query({
   handler: async (
     ctx,
     { organizationId, range, search }
-  ): Promise<Doc<"events">[]> => {
+  ): Promise<EventWithExtras[]> => {
     const now = Date.now();
     const limit = 30;
 
@@ -465,6 +450,7 @@ export const getEventsForCampaign = query({
       UserRole.Hostly_Admin,
       UserRole.Promoter,
     ]);
+
     const validatedOrganization = validateOrganization(
       await ctx.db.get(organizationId),
       true
@@ -472,15 +458,39 @@ export const getEventsForCampaign = query({
 
     isUserInOrganization(identity, validatedOrganization.clerkOrganizationId);
 
+    const enrichEvents = async (events: Doc<"events">[]) => {
+      return Promise.all(
+        events.map(async (event) => {
+          const [guestListInfo] = await ctx.db
+            .query("guestListInfo")
+            .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+            .collect();
+
+          const ticketTypes = await ctx.db
+            .query("eventTicketTypes")
+            .withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+            .collect();
+
+          return {
+            ...event,
+            guestListInfo: guestListInfo || null,
+            ticketTypes,
+          };
+        })
+      );
+    };
+
     if (range === "upcoming") {
-      return await ctx.db
+      const upcomingEvents = await ctx.db
         .query("events")
         .withIndex("by_organizationId_and_startTime", (q) =>
-          q.eq("organizationId", organizationId)
+          q.eq("organizationId", validatedOrganization._id)
         )
         .filter((q) => q.gte(q.field("startTime"), now))
         .order("asc")
         .take(limit);
+
+      return enrichEvents(upcomingEvents);
     }
 
     const keyword = search?.trim().toLowerCase() ?? "";
@@ -492,14 +502,16 @@ export const getEventsForCampaign = query({
     const pastEvents = await ctx.db
       .query("events")
       .withIndex("by_organizationId_and_startTime", (q) =>
-        q.eq("organizationId", organizationId)
+        q.eq("organizationId", validatedOrganization._id)
       )
       .filter((q) => q.lt(q.field("startTime"), now))
       .order("desc")
       .take(200);
 
-    return pastEvents
-      .filter((event) => event.name.toLowerCase().includes(keyword))
-      .slice(0, limit);
+    const filtered = pastEvents.filter((event) =>
+      event.name.toLowerCase().includes(keyword)
+    );
+
+    return enrichEvents(filtered.slice(0, limit));
   },
 });

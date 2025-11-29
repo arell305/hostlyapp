@@ -11,7 +11,6 @@ import {
 } from "@/shared/utils/calendar";
 import { CalendarSwitcher } from "@/features/home/components/calendar/CalendarSwitcher";
 import { EventWithExtras } from "@shared/types/convex-types";
-import { DateTime } from "luxon";
 import { useMonthlyEvents } from "@/domain/events";
 import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
 import CalendarSwitcherLoading from "@/shared/ui/skeleton/CalendarSwitcherLoading";
@@ -27,12 +26,7 @@ const HomeContent: React.FC<HomeContentProps> = ({ pathname }) => {
   const [selectedEvents, setSelectedEvents] = useState<EventWithExtras[]>([]);
   const { organization } = useContextOrganization();
 
-  const { month, year } = useMemo(() => {
-    const dateTime = DateTime.fromJSDate(date);
-    return { month: dateTime.month, year: dateTime.year };
-  }, [date]);
-
-  const monthlyEventsData = useMonthlyEvents(organization._id, month, year);
+  const monthlyEventsData = useMonthlyEvents(organization._id);
 
   const { start, end } = useMemo(
     () => getVisibleRange(date, isWeekView),
