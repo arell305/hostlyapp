@@ -2,7 +2,6 @@
 
 import { useMemo, useRef, useState } from "react";
 import CampaignsContent from "./components/CampaignsContent";
-import { Doc } from "@/convex/_generated/dataModel";
 import SectionContainer from "@/shared/ui/containers/SectionContainer";
 import { filterCampaignsByName } from "@/shared/utils/format";
 import SearchInput from "../events/components/SearchInput";
@@ -14,7 +13,7 @@ interface CampaignsSectionProps {
 }
 
 const CampaignsSection = ({ campaigns }: CampaignsSectionProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const filteredContacts = useMemo(() => {

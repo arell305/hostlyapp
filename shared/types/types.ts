@@ -561,7 +561,8 @@ export type TemplateMode = "custom" | "existing" | "list";
 export type SelectedTemplateMode = Exclude<TemplateMode, "list">;
 
 export type CampaignWithEvent = Doc<"campaigns"> & {
-  eventName: string;
+  eventName: string | null;
+  awaitingReplies: number;
 };
 
 export type CampaignWithGuestList = Doc<"campaigns"> & {

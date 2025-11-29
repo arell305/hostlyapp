@@ -41,77 +41,61 @@ export const getCampaignsArgs = {
 
 export const getCampaigns = query({
   args: getCampaignsArgs,
-  handler: async (context, argumentsObject): Promise<CampaignWithEvent[]> => {
-    const { userId, status, isActive } = argumentsObject;
+  handler: async (ctx, args): Promise<CampaignWithEvent[]> => {
+    const { userId, status, isActive } = args;
 
-    const identity = await requireAuthenticatedUser(context, [
+    const identity = await requireAuthenticatedUser(ctx, [
       UserRole.Admin,
       UserRole.Promoter,
       UserRole.Manager,
       UserRole.Hostly_Admin,
       UserRole.Hostly_Moderator,
     ]);
-    const userDocument = validateUser(await context.db.get(userId));
-    isUserTheSameAsIdentity(identity, userDocument.clerkUserId);
+    const userDoc = validateUser(await ctx.db.get(userId));
+    isUserTheSameAsIdentity(identity, userDoc.clerkUserId);
 
-    let campaignQuery = context.db
+    let q = ctx.db
       .query("campaigns")
-      .withIndex("by_userId_updatedAt", (queryBuilder) =>
-        queryBuilder.eq("userId", userId)
-      )
+      .withIndex("by_userId_updatedAt", (q) => q.eq("userId", userId))
       .order("desc");
 
-    if (status !== undefined) {
-      campaignQuery = campaignQuery.filter((queryBuilder) =>
-        queryBuilder.eq(queryBuilder.field("status"), status)
-      );
-    }
+    if (status !== undefined)
+      q = q.filter((q) => q.eq(q.field("status"), status));
+    if (isActive !== undefined)
+      q = q.filter((q) => q.eq(q.field("isActive"), isActive));
 
-    if (isActive !== undefined) {
-      campaignQuery = campaignQuery.filter((queryBuilder) =>
-        queryBuilder.eq(queryBuilder.field("isActive"), isActive)
-      );
-    }
+    const campaigns = await q.collect();
+    if (campaigns.length === 0) return [];
 
-    const campaignDocuments = await campaignQuery.collect();
-
-    const eventIdList = Array.from(
+    const eventIds = Array.from(
       new Set(
-        campaignDocuments
-          .map((campaignDocument) =>
-            campaignDocument.eventId ? String(campaignDocument.eventId) : null
-          )
-          .filter((eventId) => eventId)
+        campaigns.map((c) => c.eventId).filter((id): id is Id<"events"> => !!id)
       )
     );
+    const events = await Promise.all(eventIds.map((id) => ctx.db.get(id)));
+    const eventNameMap = new Map<string, string>();
+    events.forEach((e) => e && eventNameMap.set(e._id, e.name));
 
-    const eventDocuments = await Promise.all(
-      eventIdList.map((eventId) => context.db.get(eventId as Id<"events">))
-    );
+    const replyCountMap = new Map<string, number>();
+    for (const campaign of campaigns) {
+      const threads = await ctx.db
+        .query("smsThreads")
+        .withIndex("by_campaign_needsReview", (q) =>
+          q.eq("campaignId", campaign._id)
+        )
+        .filter((q) => q.eq(q.field("needsHumanReview"), true))
+        .collect();
 
-    const eventNameById = new Map();
-    eventDocuments.forEach((eventDocument) => {
-      if (eventDocument && eventDocument._id && eventDocument.name) {
-        eventNameById.set(String(eventDocument._id), eventDocument.name);
-      }
-    });
+      replyCountMap.set(campaign._id, threads.length);
+    }
 
-    const campaignDocumentsWithEvents = campaignDocuments.map(
-      (campaignDocument) => {
-        const eventIdString = campaignDocument.eventId
-          ? String(campaignDocument.eventId)
-          : null;
-
-        return {
-          ...campaignDocument,
-          eventName: eventIdString
-            ? eventNameById.get(eventIdString) || null
-            : undefined,
-        };
-      }
-    );
-
-    return campaignDocumentsWithEvents;
+    return campaigns.map((campaign) => ({
+      ...campaign,
+      eventName: campaign.eventId
+        ? (eventNameMap.get(campaign.eventId) ?? null)
+        : null,
+      awaitingReplies: replyCountMap.get(campaign._id) ?? 0,
+    }));
   },
 });
 

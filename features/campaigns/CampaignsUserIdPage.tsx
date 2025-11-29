@@ -13,8 +13,7 @@ import ResponsiveCampaignFiltersActions from "./components/buttons/ResponsiveCam
 
 const CampaignsUserIdPage = () => {
   const pathname = usePathname();
-  const [selectedTab, setSelectedTab] =
-    useState<CampaignFilterStatus>("Scheduled");
+  const [selectedTab, setSelectedTab] = useState<CampaignFilterStatus>("Sent");
 
   const handleTabChange = (tab: CampaignFilterStatus) => {
     setSelectedTab(tab);
@@ -32,8 +31,8 @@ const CampaignsUserIdPage = () => {
       <div className="flex items-center gap-4">
         <ToggleTabs
           options={[
-            { label: "Scheduled", value: "Scheduled" },
             { label: "Sent", value: "Sent" },
+            { label: "Scheduled", value: "Scheduled" },
           ]}
           value={selectedTab}
           onChange={handleTabChange}

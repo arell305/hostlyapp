@@ -11,11 +11,13 @@ import ResponsiveConfirm from "@/shared/ui/responsive/ResponsiveConfirm";
 import { CampaignWithEvent } from "@/shared/types/types";
 
 interface CampaignsContentProps {
-  campaigns: CampaignWithEvent[] | Doc<"campaigns">[];
+  campaigns: (CampaignWithEvent | Doc<"campaigns">)[];
 }
+
 const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
   const { organization } = useContextOrganization();
   const router = useRouter();
+
   const [campaignToDelete, setCampaignToDelete] =
     useState<Id<"campaigns"> | null>(null);
   const [loadingCampaignId, setLoadingCampaignId] =
@@ -25,185 +27,198 @@ const CampaignsContent = ({ campaigns }: CampaignsContentProps) => {
   >({});
   const [campaignToStopReplies, setCampaignToStopReplies] =
     useState<Id<"campaigns"> | null>(null);
-  const [showStopRepliesConfirm, setShowStopRepliesConfirm] =
-    useState<boolean>(false);
+  const [showStopRepliesConfirm, setShowStopRepliesConfirm] = useState(false);
 
   const { updateCampaign, updateCampaignLoading, updateCampaignError } =
     useUpdateCampaign();
+  const baseHref = `/${organization.slug}/app/campaigns/`;
+
+  // Calculate total replies needed
+  const totalRepliesNeeded = campaigns.reduce((sum, c) => {
+    const withReplies = c as CampaignWithEvent;
+    return sum + (withReplies.awaitingReplies ?? 0);
+  }, 0);
+
+  // Split and sort: campaigns with replies first
+  const campaignsWithReplies = campaigns
+    .filter(
+      (c): c is CampaignWithEvent =>
+        "awaitingReplies" in c && c.awaitingReplies > 0
+    )
+    .sort((a, b) => b.awaitingReplies - a.awaitingReplies);
+
+  const campaignsWithoutReplies = campaigns.filter(
+    (c): c is CampaignWithEvent | Doc<"campaigns"> =>
+      !("awaitingReplies" in c) || c.awaitingReplies === 0
+  );
 
   const handleEdit = (campaign: Doc<"campaigns">) => {
     router.push(`${baseHref}/${campaign.userId}/${campaign._id}?edit=true`, {
       scroll: false,
     });
   };
-  const handleDelete = async (campaignId: Id<"campaigns">) => {
-    setCampaignToDelete(campaignId);
-  };
 
+  const handleDelete = (campaignId: Id<"campaigns">) =>
+    setCampaignToDelete(campaignId);
   const handleConfirmDelete = async () => {
-    if (!campaignToDelete) {
-      return;
-    }
+    if (!campaignToDelete) return;
     const success = await updateCampaign({
       campaignId: campaignToDelete,
-      updates: {
-        isActive: false,
-      },
+      updates: { isActive: false },
     });
-    if (success) {
-      handleCloseDeleteConfirmModal();
-    }
-  };
-
-  const handleCloseDeleteConfirmModal = () => {
-    setCampaignToDelete(null);
+    if (success) setCampaignToDelete(null);
   };
 
   const handleCancel = async (campaignId: Id<"campaigns">) => {
     setLoadingCampaignId(campaignId);
-    setCampaignErrors((prev) => ({ ...prev, [campaignId]: null }));
     try {
-      await updateCampaign({
-        campaignId,
-        updates: {
-          status: "Cancelled",
-        },
-      });
+      await updateCampaign({ campaignId, updates: { status: "Cancelled" } });
     } catch (error) {
       setCampaignErrors((prev) => ({
         ...prev,
-        [campaignId]: (error as Error).message || "Unknown error",
-      }));
-    } finally {
-      setLoadingCampaignId(null);
-    }
-  };
-  const handleReactivate = async (campaignId: Id<"campaigns">) => {
-    setLoadingCampaignId(campaignId);
-    setCampaignErrors((prev) => ({ ...prev, [campaignId]: null }));
-    try {
-      await updateCampaign({
-        campaignId,
-        updates: {
-          isActive: true,
-        },
-      });
-    } catch (error) {
-      setCampaignErrors((prev) => ({
-        ...prev,
-        [campaignId]: (error as Error).message || "Unknown error",
-      }));
-    } finally {
-      setLoadingCampaignId(null);
-    }
-  };
-  const handleResume = async (campaignId: Id<"campaigns">) => {
-    setLoadingCampaignId(campaignId);
-    setCampaignErrors((prev) => ({ ...prev, [campaignId]: null }));
-    try {
-      await updateCampaign({
-        campaignId,
-        updates: {
-          status: "Scheduled",
-        },
-      });
-    } catch (error) {
-      setCampaignErrors((prev) => ({
-        ...prev,
-        [campaignId]: (error as Error).message || "Unknown error",
+        [campaignId]: (error as Error).message,
       }));
     } finally {
       setLoadingCampaignId(null);
     }
   };
 
-  const handleStop = async (campaignId: Id<"campaigns">) => {
+  const handleReactivate = async (campaignId: Id<"campaigns">) => {
+    setLoadingCampaignId(campaignId);
+    try {
+      await updateCampaign({ campaignId, updates: { isActive: true } });
+    } catch (error) {
+      setCampaignErrors((prev) => ({
+        ...prev,
+        [campaignId]: (error as Error).message,
+      }));
+    } finally {
+      setLoadingCampaignId(null);
+    }
+  };
+
+  const handleResume = async (campaignId: Id<"campaigns">) => {
+    setLoadingCampaignId(campaignId);
+    try {
+      await updateCampaign({ campaignId, updates: { status: "Scheduled" } });
+    } catch (error) {
+      setCampaignErrors((prev) => ({
+        ...prev,
+        [campaignId]: (error as Error).message,
+      }));
+    } finally {
+      setLoadingCampaignId(null);
+    }
+  };
+
+  const handleStop = (campaignId: Id<"campaigns">) => {
     setCampaignToStopReplies(campaignId);
     setShowStopRepliesConfirm(true);
   };
 
-  const handleCloseStopRepliesConfirmModal = () => {
-    setCampaignToStopReplies(null);
-    setShowStopRepliesConfirm(false);
-  };
-
   const handleConfirmStopReplies = async () => {
-    if (!campaignToStopReplies) {
-      return;
-    }
+    if (!campaignToStopReplies) return;
     const success = await updateCampaign({
       campaignId: campaignToStopReplies,
-      updates: {
-        stopRepliesAt: Date.now(),
-      },
+      updates: { stopRepliesAt: Date.now() },
     });
     if (success) {
-      handleCloseStopRepliesConfirmModal();
+      setCampaignToStopReplies(null);
+      setShowStopRepliesConfirm(false);
     }
   };
 
-  const baseHref = `/${organization.slug}/app/campaigns/`;
-
-  const showDeleteConfirm = campaignToDelete !== null;
+  const renderCampaignCard = (
+    campaign: CampaignWithEvent | Doc<"campaigns">
+  ) => {
+    const href = `${baseHref}/${campaign.userId}/${campaign._id}`;
+    const isLoading = loadingCampaignId === campaign._id;
+    return (
+      <CampaignCard
+        key={campaign._id}
+        campaign={campaign}
+        href={href}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onCancel={handleCancel}
+        onReactivate={handleReactivate}
+        onResume={handleResume}
+        onStop={handleStop}
+        isLoading={isLoading}
+        error={campaignErrors[campaign._id]}
+      />
+    );
+  };
 
   if (campaigns.length === 0) {
-    return <p className="text-grayText">No campaigns found.</p>;
+    return (
+      <p className="text-gray-500 text-center py-12">No campaigns found.</p>
+    );
   }
 
   return (
-    <CardContainer className="p-1">
-      {campaigns.map((campaign) => {
-        const href = `${baseHref}/${campaign.userId}/${campaign._id}`;
-        const isLoading = loadingCampaignId === campaign._id;
-        return (
-          <CampaignCard
-            key={campaign._id}
-            campaign={campaign}
-            href={href}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onCancel={handleCancel}
-            onReactivate={handleReactivate}
-            onResume={handleResume}
-            isLoading={isLoading}
-            error={campaignErrors[campaign._id]}
-            onStop={handleStop}
-          />
-        );
-      })}
+    <CardContainer className="p-1 space-y-2">
+      {/* Replies Needed Section */}
+      {totalRepliesNeeded > 0 && (
+        <div>
+          <h2 className="text-xl font-bold text-white ">
+            Replies Needed ({totalRepliesNeeded})
+          </h2>
+          <div className="space-y-3">
+            {campaignsWithReplies.map(renderCampaignCard)}
+          </div>
+        </div>
+      )}
+
+      {/* Other Campaigns */}
+      {(totalRepliesNeeded === 0 || campaignsWithoutReplies.length > 0) && (
+        <div>
+          {totalRepliesNeeded > 0 && (
+            <h2 className="text-lg font-medium text-gray-400 ">
+              Other Campaigns
+            </h2>
+          )}
+          <div className="space-y-3">
+            {campaignsWithoutReplies.map(renderCampaignCard)}
+          </div>
+        </div>
+      )}
+
+      {/* Modals */}
       <ResponsiveConfirm
-        isOpen={showDeleteConfirm}
-        title="Confirm Archive"
-        content="Are you sure you want to archive this campaign?"
-        confirmText="Yes, Archive"
-        cancelText="No, Cancel"
+        isOpen={campaignToDelete !== null}
+        title="Archive Campaign"
+        content="This campaign will be archived and hidden."
+        confirmText="Archive"
+        cancelText="Cancel"
         confirmVariant="destructive"
         error={updateCampaignError}
         isLoading={updateCampaignLoading}
         modalProps={{
-          onClose: handleCloseDeleteConfirmModal,
+          onClose: () => setCampaignToDelete(null),
           onConfirm: handleConfirmDelete,
         }}
         drawerProps={{
-          onOpenChange: handleCloseDeleteConfirmModal,
+          onOpenChange: () => setCampaignToDelete(null),
           onSubmit: handleConfirmDelete,
         }}
       />
+
       <ResponsiveConfirm
-        isOpen={showDeleteConfirm}
-        title="Confirm Stop AI Replies"
-        content="Are you sure you want to stop AI replies for this campaign? You can not resume AI replies later."
-        confirmText="Yes, Stop AI Replies"
-        cancelText="No, Cancel"
+        isOpen={showStopRepliesConfirm}
+        title="Stop AI Replies"
+        content="AI will stop replying to new messages in this campaign."
+        confirmText="Stop AI Replies"
+        cancelText="Cancel"
         confirmVariant="destructive"
         error={updateCampaignError}
         isLoading={updateCampaignLoading}
         modalProps={{
-          onClose: handleCloseStopRepliesConfirmModal,
+          onClose: () => setShowStopRepliesConfirm(false),
           onConfirm: handleConfirmStopReplies,
         }}
         drawerProps={{
-          onOpenChange: handleCloseStopRepliesConfirmModal,
+          onOpenChange: () => setShowStopRepliesConfirm(false),
           onSubmit: handleConfirmStopReplies,
         }}
       />

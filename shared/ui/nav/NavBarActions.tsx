@@ -3,15 +3,17 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { UserButton } from "@clerk/nextjs";
-import { isPromoter } from "@/shared/utils/permissions";
+import { isManager, isPromoter } from "@/shared/utils/permissions";
 import EditPromoCodeDialog from "../modals/EditPromoCodeDialog";
-import { User } from "lucide-react";
+import { MessageCircle, User } from "lucide-react";
 import { roleMap } from "@/shared/types/enums";
 import { UserRole } from "@/shared/types/enums";
 import { FaEdit } from "react-icons/fa";
 import { usePathname, useRouter } from "next/navigation";
 import NProgress from "nprogress";
 import { useContextOrganization } from "@/shared/hooks/contexts/useContextOrganization";
+import NotificationsLoader from "./NotificationsLoader";
+import AvatarSkeleton from "../skeleton/AvatarSkeleton";
 
 const NavbarActions = () => {
   const { orgRole, user: userData } = useContextOrganization();
@@ -19,6 +21,7 @@ const NavbarActions = () => {
   const pathname = usePathname();
   const [showUserButton, setShowUserButton] = useState<boolean>(false);
   const showPromoCode = isPromoter(orgRole);
+  const showMessage = showPromoCode || isManager(orgRole);
   const [isPromoCodeModalOpen, setIsPromoCodeModalOpen] =
     useState<boolean>(false);
 
@@ -38,14 +41,23 @@ const NavbarActions = () => {
     ? `Promo Code: ${promoCode}`
     : "Add Promo Code";
 
+  const slug = pathname.split("/")[1];
+
   const handleRoleClick = () => {
-    const slug = pathname.split("/")[1];
     NProgress.start();
     router.push(`/${slug}/app/team/${userData?._id}`);
   };
 
+  const handleNotificationsClick = () => {
+    router.push(`/${slug}/app/campaigns/${userData?._id}`);
+    NProgress.start();
+  };
+
   return (
     <div className="flex items-center space-x-3">
+      {showMessage && (
+        <NotificationsLoader onClick={handleNotificationsClick} />
+      )}
       <div className="h-8 w-8">
         {showUserButton ? (
           <UserButton>
@@ -65,7 +77,7 @@ const NavbarActions = () => {
             </UserButton.MenuItems>
           </UserButton>
         ) : (
-          <div className="h-full w-full rounded-full bg-gray-700 animate-pulse" />
+          <AvatarSkeleton className="h-8 w-8" />
         )}
       </div>
       {isPromoCodeModalOpen && (

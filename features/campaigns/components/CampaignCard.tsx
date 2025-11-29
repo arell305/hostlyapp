@@ -6,6 +6,7 @@ import { Doc, Id } from "convex/_generated/dataModel";
 import Link from "next/link";
 import ResponsiveCampaignActions from "./buttons/ResponsiveCampaignActions";
 import { Loader2 } from "lucide-react";
+import CampaignDescription from "./campaign/CampaignDescription";
 import CampaignBadgesRow from "./campaign/CampaignBadgesRow";
 import FieldErrorMessage from "@/shared/ui/error/FieldErrorMessage";
 import { CampaignWithEvent } from "@/shared/types/types";
@@ -39,9 +40,13 @@ const CampaignCard = ({
     <Link href={href} className="block">
       <CustomCard className="hover:shadow-glow-white min-h-[80px]">
         <CardHeader className="flex flex-row justify-between space-y-0">
-          <div className="flex flex-col gap-y-1">
+          <div className="flex flex-col gap-y-2">
             <CardTitle>{campaign.name}</CardTitle>
-            <CampaignBadgesRow campaign={campaign} />
+            <div>
+              <CampaignDescription campaign={campaign} />
+
+              <CampaignBadgesRow campaign={campaign} />
+            </div>
           </div>
 
           <div className="flex flex-col items-end">
