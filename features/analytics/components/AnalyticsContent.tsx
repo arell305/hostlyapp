@@ -1,20 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SubscriptionTier } from "@shared/types/enums";
 import ToggleTabs from "@shared/ui/toggle/ToggleTabs";
 import PageHeading from "@shared/ui/headings/PageHeading";
 import PresetRangeDropdown from "@shared/ui/containers/date-filters/PresetRangeDropdown";
 import SingleDatePickerModal from "@shared/ui/containers/date-filters/DateRange";
 import { PresetOption } from "@shared/types/constants";
 import { getDateRangeFromPreset } from "@shared/utils/luxon";
-import TicketAnalyticsPage from "./tickets/TicketAnalyticsPage";
 import GuestListAnalyticsPage from "./guestList/GuestListAnalyticsPage";
 import { useContextOrganization } from "@/shared/hooks/contexts";
 import PageContainer from "@shared/ui/containers/PageContainer";
+import { isManager, isPromoter } from "@/shared/utils/permissions";
+import AdminTicketsLoader from "./tickets/AdminTicketsLoader";
+import PromoterTicketsLoader from "./tickets/PromoterTicketsLoader";
 
 const AnalyticsContent = () => {
-  const { subscription } = useContextOrganization();
+  const { subscription, organization, orgRole } = useContextOrganization();
+
   const { subscriptionTier } = subscription;
   const hasGuestListAccess =
     subscriptionTier === "Plus" || subscriptionTier === "Elite";
@@ -30,6 +32,9 @@ const AnalyticsContent = () => {
     defaultRange.from ?? null
   );
   const [endDate, setEndDate] = useState<Date | null>(defaultRange.to ?? null);
+
+  const canCompany = !!organization._id && isManager(orgRole);
+  const canPromoter = !canCompany && isPromoter(orgRole);
 
   const dateRange = useMemo(
     () => ({
@@ -98,9 +103,10 @@ const AnalyticsContent = () => {
         )}
       </div>
 
-      {selectedTab === "tickets" && (
-        <TicketAnalyticsPage dateRange={dateRange} />
+      {selectedTab === "tickets" && canCompany && (
+        <AdminTicketsLoader dateRange={dateRange} />
       )}
+      {canPromoter && <PromoterTicketsLoader dateRange={dateRange} />}
       {selectedTab === "guestlist" && hasGuestListAccess && (
         <GuestListAnalyticsPage dateRange={dateRange} />
       )}
